@@ -1,20 +1,20 @@
 import { FoodResearchResult, AvaMemoryFact } from "../types.ts";
 
 // ---------------------------
-// 🔑 Obtain API Key from environment variable
+// 🔑 Hardcoded OpenRouter API Key
 // ---------------------------
-const OPENROUTER_API_KEY = process.env.API_KEY;
+const OPENROUTER_API_KEY = "sk-or-v1-25398675a6cf8583ea3a5fc88084f3b409a881aea8e947d9c75cbffb122";
 
 // ---------------------------
 // 🔥 Helper: Call OpenRouter
 // ---------------------------
-async function callOpenRouter(messages: any[], model = "deepseek/deepseek-chat", max_tokens = 500) {
+async function callOpenRouter(messages: any[], max_tokens = 300, model = "deepseek/deepseek-chat") {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://nestly-app.pages.dev",
+      "HTTP-Referer": "http://localhost:3000",
       "X-Title": "Nestly Ava"
     },
     body: JSON.stringify({
@@ -29,7 +29,7 @@ async function callOpenRouter(messages: any[], model = "deepseek/deepseek-chat",
 
   if (!response.ok) {
     console.error("OpenRouter API Error:", data);
-    throw new Error(data.error?.message || "OpenRouter API call failed");
+    throw new Error("OpenRouter API call failed");
   }
 
   return data.choices[0].message.content;
@@ -66,40 +66,10 @@ RULES:
       }))
     ];
 
-    return await callOpenRouter(messages, "deepseek/deepseek-chat", 200);
+    return await callOpenRouter(messages, 200);
   } catch (error) {
     console.error("Ava Error:", error);
     return "I'm having a quiet moment 💕 Please try again.";
-  }
-}
-
-// ---------------------------
-// 👁️ Visual Food Analysis (Uses Vision Model via OpenRouter)
-// ---------------------------
-export async function analyzeFoodImage(base64Image: string): Promise<FoodResearchResult> {
-  try {
-    const messages = [
-      {
-        role: "user",
-        content: [
-          { 
-            type: "text", 
-            text: "Analyze this meal for a pregnant woman. Identify the food and provide estimated nutritional values (calories, protein, folate, iron, calcium). Also provide a safety rating (Safe, Caution, Avoid) and brief advice. Return ONLY valid JSON matching this structure: { \"name\": string, \"calories\": number, \"protein\": number, \"folate\": number, \"iron\": number, \"calcium\": number, \"safetyRating\": string, \"advice\": string, \"benefits\": string[] }" 
-          },
-          { 
-            type: "image_url", 
-            image_url: { url: base64Image } 
-          }
-        ]
-      }
-    ];
-
-    const result = await callOpenRouter(messages, "google/gemini-2.0-flash-001", 800);
-    const cleanJson = result.replace(/```json|```/g, "").trim();
-    return JSON.parse(cleanJson);
-  } catch (error) {
-    console.error("Visual Analysis Error:", error);
-    throw error;
   }
 }
 
@@ -114,7 +84,7 @@ export async function extractMemories(
     const messages = [
       {
         role: "system",
-        content: `Extract persistent pregnancy-related facts about ${userName}. 
+        content: `Extract persistent pregnancy-related facts about ${userName}.
 Return ONLY valid JSON array:
 [
   { "content": "...", "category": "preference | symptom | milestone | info" }
@@ -126,7 +96,7 @@ Return ONLY valid JSON array:
       }
     ];
 
-    const result = await callOpenRouter(messages, "deepseek/deepseek-chat", 400);
+    const result = await callOpenRouter(messages, 400);
     const cleanJson = result.replace(/```json|```/g, "").trim();
     return JSON.parse(cleanJson);
   } catch (e) {
@@ -164,7 +134,7 @@ Return JSON:
       }
     ];
 
-    const result = await callOpenRouter(messages, "deepseek/deepseek-chat", 500);
+    const result = await callOpenRouter(messages, 500);
     const cleanJson = result.replace(/```json|```/g, "").trim();
     return JSON.parse(cleanJson);
   } catch (error) {
@@ -196,9 +166,39 @@ export async function getChatResponse(
       ...history
     ];
 
-    return await callOpenRouter(messages, "deepseek/deepseek-chat", 400);
+    return await callOpenRouter(messages, 300);
   } catch (error) {
     console.error("Chat Error:", error);
     return "I'm having a quiet moment 🤍 Please try again.";
+  }
+}
+
+// ---------------------------
+// 👁️ Visual Food Analysis (Restored to prevent app crash)
+// ---------------------------
+export async function analyzeFoodImage(base64Image: string): Promise<FoodResearchResult> {
+  try {
+    const messages = [
+      {
+        role: "user",
+        content: [
+          { 
+            type: "text", 
+            text: "Analyze this meal for a pregnant woman. Return ONLY valid JSON: { \"name\": string, \"calories\": number, \"protein\": number, \"folate\": number, \"iron\": number, \"calcium\": number, \"safetyRating\": string, \"advice\": string, \"benefits\": string[] }" 
+          },
+          { 
+            type: "image_url", 
+            image_url: { url: base64Image } 
+          }
+        ]
+      }
+    ];
+
+    const result = await callOpenRouter(messages, 800, "google/gemini-2.0-flash-001");
+    const cleanJson = result.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error("Visual Analysis Error:", error);
+    throw error;
   }
 }
