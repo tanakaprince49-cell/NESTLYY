@@ -152,21 +152,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </button>
       </div>
 
-      {/* Widget Integration Helper - Only for mobile PWA context */}
+      {/* Widget Integration Helper - Specifically for the user's issue */}
       {showWidgetHelper && (
-        <div className="bg-[#7e1631] p-4 rounded-3xl text-white relative overflow-hidden shadow-lg shadow-rose-900/20">
-          <button onClick={() => setShowWidgetHelper(false)} className="absolute top-3 right-3 opacity-50 text-[10px] font-black uppercase">Close</button>
-          <div className="flex gap-4 items-center">
-            <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-xl shrink-0">📱</div>
-            <div className="space-y-0.5">
-              <h4 className="text-[10px] font-black uppercase tracking-widest">Enable Home Widget</h4>
-              <p className="text-[9px] font-medium opacity-80 leading-snug">To see stats on your home screen: Uninstall & Reinstall via Chrome's "Install App" menu.</p>
+        <div className="bg-[#7e1631] p-6 rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl shadow-rose-900/20 border border-white/10">
+          <button onClick={() => setShowWidgetHelper(false)} className="absolute top-4 right-5 opacity-40 text-[9px] font-black uppercase">Dismiss</button>
+          <div className="flex gap-5 items-center">
+            <div className="w-14 h-14 bg-white/10 rounded-3xl flex items-center justify-center text-3xl shrink-0 border border-white/10">📱</div>
+            <div className="space-y-1">
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-rose-300">Activate Home Widget</h4>
+              <p className="text-[10px] font-medium opacity-90 leading-relaxed">
+                To see widgets, you must <strong>Uninstall</strong> then <strong>Install App</strong> from Chrome's ⋮ menu. 
+                Shortcuts added via "Add to home screen" do not support widgets.
+              </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* NEW Summary Widgets Section */}
+      {/* Summary Widgets Section */}
       <div className="space-y-3">
         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 ml-1">Daily Glance</h3>
         <div className="grid grid-cols-2 gap-4">

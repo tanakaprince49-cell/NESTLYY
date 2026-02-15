@@ -3,30 +3,26 @@
 const WIDGET_TAG = 'nestly-stats';
 
 self.addEventListener("install", (event) => {
-  console.log("🛠 sw: Install");
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("🚀 sw: Activate");
   event.waitUntil(self.clients.claim());
 });
 
 /**
  * WIDGET LIFECYCLE
+ * These events are handled by Chromium/Android to render the system widgets.
  */
 self.addEventListener('widgetinstall', event => {
-  console.log('📦 sw: Widget Install', event.widget.tag);
   event.waitUntil(updateWidget(event.widget));
 });
 
 self.addEventListener('widgetresume', event => {
-  console.log('👁️ sw: Widget Resume', event.widget.tag);
   event.waitUntil(updateWidget(event.widget));
 });
 
 self.addEventListener('widgetclick', event => {
-  console.log('🖱️ sw: Widget Click', event.action);
   let url = '/';
   if (event.action === 'log_water') url = '/?tab=dashboard';
   if (event.action === 'open_ava') url = '/?tab=ava';
@@ -44,10 +40,10 @@ self.addEventListener('widgetclick', event => {
 
 async function updateWidget(widget) {
   try {
-    const templateResponse = await fetch('/nestly-widget-adaptive-card.json');
+    const templateResponse = await fetch('./nestly-widget-adaptive-card.json');
     const template = await templateResponse.json();
     
-    // In a production app, we would fetch real stats from IndexedDB here
+    // Send standard data to the Adaptive Card template
     await self.widgets.updateByTag(WIDGET_TAG, {
       template: template,
       data: {
@@ -58,10 +54,10 @@ async function updateWidget(widget) {
       }
     });
   } catch (e) {
-    console.error('sw: Widget update failed', e);
+    console.error('Widget Update Error:', e);
   }
 }
 
 self.addEventListener("fetch", (event) => {
-  // Required for PWA Installability criteria
+  // Pass-through for installability criteria
 });

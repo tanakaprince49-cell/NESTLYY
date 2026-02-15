@@ -2,7 +2,7 @@
   "name": "Nestly Pregnancy Companion",
   "short_name": "Nestly",
   "description": "Premium pregnancy nutrition and wellness tracker.",
-  "id": "com.nestly.app",
+  "id": "com.nestly.app.v10",
   "start_url": "/?pwa=true",
   "scope": "/",
   "display": "standalone",
