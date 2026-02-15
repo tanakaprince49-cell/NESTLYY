@@ -40,6 +40,23 @@
       "icons": [{ "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp", "sizes": "192x192" }]
     }
   ],
+  "widgets": [
+    {
+      "name": "Nestly Glance",
+      "short_name": "Glance",
+      "description": "View your pregnancy progress and vitals at a glance.",
+      "tag": "nestly-stats",
+      "template": "nestly-stats-template",
+      "ms_ac_template": "nestly-widget-adaptive-card.json",
+      "icons": [
+        {
+          "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp",
+          "sizes": "192x192",
+          "type": "image/webp"
+        }
+      ]
+    }
+  ],
   "orientation": "portrait",
   "prefer_related_applications": false
 }
