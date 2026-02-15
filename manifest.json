@@ -2,7 +2,7 @@
   "name": "Nestly Pregnancy Companion",
   "short_name": "Nestly",
   "description": "Premium pregnancy nutrition and wellness tracker.",
-  "id": "com.nestly.app.v4",
+  "id": "com.nestly.app.v5",
   "start_url": "/?pwa=true",
   "scope": "/",
   "display": "standalone",
@@ -31,12 +31,16 @@
   "shortcuts": [
     {
       "name": "Chat with Ava",
+      "short_name": "Ava",
       "url": "/?tab=ava",
+      "description": "Ask Ava about nutrition and safety",
       "icons": [{ "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp", "sizes": "192x192" }]
     },
     {
       "name": "Log Tools",
+      "short_name": "Tools",
       "url": "/?tab=tools",
+      "description": "Log weight, sleep, or contractions",
       "icons": [{ "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp", "sizes": "192x192" }]
     }
   ],
@@ -44,7 +48,7 @@
     {
       "name": "Nestly Glance",
       "short_name": "Glance",
-      "description": "View your pregnancy progress and vitals at a glance.",
+      "description": "View your pregnancy progress.",
       "tag": "nestly-stats",
       "template": "nestly-stats-template",
       "ms_ac_template": "nestly-widget-adaptive-card.json",

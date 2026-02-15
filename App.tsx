@@ -21,8 +21,7 @@ import {
   JournalEntry, 
   CalendarEvent,
   WeightLog,
-  SleepLog,
-  Achievement
+  SleepLog
 } from './types.ts';
 
 const App: React.FC = () => {
@@ -42,6 +41,21 @@ const App: React.FC = () => {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [weightLogs, setWeightLogs] = useState<WeightLog[]>([]);
   const [sleepLogs, setSleepLogs] = useState<SleepLog[]>([]);
+
+  // Handle deep linking from Shortcuts / Widgets
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'ava') setActiveTab('ava');
+    if (tab === 'tools') setActiveTab('tools');
+    if (tab === 'dashboard') setActiveTab('dashboard');
+    if (tab === 'baby') setActiveTab('baby');
+    
+    // Clear the URL params without reloading to keep a clean state
+    if (tab) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const loadUserData = useCallback(() => {
     if (!authEmail) return;

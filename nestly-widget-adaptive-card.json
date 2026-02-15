@@ -1,0 +1,80 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "Container",
+      "style": "emphasis",
+      "items": [
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "Image",
+                  "url": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp",
+                  "size": "Small",
+                  "style": "Person"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "stretch",
+              "verticalContentAlignment": "Center",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Nestly",
+                  "weight": "Bolder",
+                  "size": "Medium",
+                  "color": "Attention"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "spacing": "Medium",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Week 24 • Corn 🌽",
+          "size": "Large",
+          "weight": "Bolder",
+          "wrap": true
+        },
+        {
+          "type": "FactSet",
+          "facts": [
+            { "title": "Water", "value": "1.5L / 2L" },
+            { "title": "Weight", "value": "68 kg" }
+          ],
+          "spacing": "Small"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Execute",
+      "title": "Log 💧",
+      "id": "log_water",
+      "associatedInputs": "None",
+      "data": { "action": "open_water" }
+    },
+    {
+      "type": "Action.Execute",
+      "title": "Chat ✨",
+      "id": "open_ava",
+      "associatedInputs": "None",
+      "data": { "action": "open_ava" }
+    }
+  ]
+}
