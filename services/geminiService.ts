@@ -1,124 +1,103 @@
-//* ==========================================
-   AVA – Fast, Short, Smart, With Memory + Voice
-========================================== */
+// geminiServices.ts
+type ChatMessage = { role: "user" | "assistant"; text: string };
+type MemoryFact = string;
 
+const OPENROUTER_API_KEY = process.env.API_KEY;
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "deepseek/deepseek-chat";
 
-const OPENROUTER_API_KEY =
-  "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";
-
-/* ==========================================
-   MEMORY (Local Storage)
-========================================== */
-
-const MEMORY_KEY = "ava_memory";
-
-function saveMemory(messages: any[]) {
-  localStorage.setItem(MEMORY_KEY, JSON.stringify(messages));
-}
-
-function loadMemory() {
-  const memory = localStorage.getItem(MEMORY_KEY);
-  return memory ? JSON.parse(memory) : [];
-}
-
-/* ==========================================
-   CORE FAST CALL
-========================================== */
-
-async function callAva(messages: any[]) {
-  const response = await fetch(OPENROUTER_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://nestly.app",
-      "X-Title": "Ava AI",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        {
-          role: "system",
-          content: `
-You are Ava, a pregnancy companion.
-Be VERY concise.
-Max 2-3 short sentences.
-Warm but direct.
-No long explanations.
-`,
-        },
-        ...messages,
-      ],
-      temperature: 0.5,
-      max_tokens: 120,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(await response.text());
-  }
-
-  const data = await response.json();
-  return data.choices[0].message.content;
-}
-
-/* ==========================================
-   PUBLIC CHAT FUNCTION (With Memory)
-========================================== */
-
-export async function getAvaResponse(userMessage: string) {
+/**
+ * Get Ava's chat response
+ */
+export async function getAvaResponse(
+  chatHistory: ChatMessage[],
+  userName: string,
+  memoryBank: MemoryFact[] = []
+): Promise<string> {
   try {
-    let memory = loadMemory();
+    const memoryContext = memoryBank.length 
+      ? `THINGS YOU REMEMBER ABOUT ${userName}: ${memoryBank.join("; ")}`
+      : "";
 
-    // Add new user message
-    memory.push({ role: "user", content: userMessage });
+    const systemMessage = {
+      role: "system",
+      content: `You are Ava 💕, Nestly's warm pregnancy companion.
+USER NAME: ${userName}
+${memoryContext}
+RULES:
+- Extremely concise (1–2 sentences)
+- Warm, empathetic, supportive
+- If emergency symptoms (bleeding, severe pain), tell user to contact provider immediately`
+    };
 
-    // Keep only last 6 messages (faster)
-    memory = memory.slice(-6);
+    const messages = [
+      systemMessage,
+      ...chatHistory.map(m => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: m.text
+      }))
+    ];
 
-    const reply = await callAva(memory);
+    const res = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages,
+        temperature: 0.7,
+        max_tokens: 200
+      })
+    });
 
-    // Save assistant reply
-    memory.push({ role: "assistant", content: reply });
-    saveMemory(memory);
-
-    return reply;
-
-  } catch (error) {
-    console.error("Ava Error:", error);
-    return "Hmm… I’m reconnecting 💕";
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || "Ava is taking a quiet moment 💕";
+  } catch (err) {
+    console.error("Ava API Error:", err);
+    return "Ava is taking a quiet moment 💕";
   }
 }
 
-/* ==========================================
-   VOICE: TEXT → SPEECH
-========================================== */
+/**
+ * Make Ava speak using browser TTS
+ */
+export function speakAva(text: string) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
 
-export function speak(text: string) {
-  const speech = new SpeechSynthesisUtterance(text);
-  speech.rate = 1;
-  speech.pitch = 1.1;
-  speech.lang = "en-US";
-  window.speechSynthesis.speak(speech);
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 1.0;
+  utterance.pitch = 1.1;
+  utterance.lang = "en-US";
+  window.speechSynthesis.speak(utterance);
 }
 
-/* ==========================================
-   VOICE: SPEECH → TEXT
-========================================== */
-
-export function listen(callback: (text: string) => void) {
-  const SpeechRecognition =
-    (window as any).SpeechRecognition ||
-    (window as any).webkitSpeechRecognition;
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.start();
-
-  recognition.onresult = (event: any) => {
-    const transcript = event.results[0][0].transcript;
-    callback(transcript);
-  };
+/**
+ * General chat response for other components
+ */
+export async function getChatResponse(
+  chatHistory: { role: string; content: string }[],
+  systemInstruction: string
+): Promise<string> {
+  try {
+    const res = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [{ role: "system", content: systemInstruction }, ...chatHistory],
+        temperature: 0.7,
+        max_tokens: 500
+      })
+    });
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || "I'm having a quiet moment 🤍";
+  } catch (err) {
+    return "I'm having a quiet moment 🤍";
+  }
 }
