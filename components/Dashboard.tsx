@@ -80,6 +80,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [todaysEntries]
   );
 
+  const todayWater = useMemo(() => 
+    waterLogs.filter(w => new Date(w.timestamp).setHours(0, 0, 0, 0) === today)
+    .reduce((acc, curr) => acc + curr.amount, 0),
+    [waterLogs, today]
+  );
+
   const handleManualFoodLog = () => {
     if (!foodName || !foodCals) return;
     onAddEntry({
@@ -145,6 +151,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </button>
       </div>
 
+      {/* NEW Summary Widgets Section */}
+      <div className="space-y-3">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 ml-1">Daily Glance</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div onClick={() => onQuickTool('vitals')} className="card-premium p-5 bg-white border-2 border-slate-50 flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
+            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Vital Stats</span>
+            <div className="space-y-2 mt-2">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-slate-400 font-bold">Weight</span>
+                <span className="text-sm font-bold text-slate-800">{weightLogs[0]?.weight || profile.startingWeight || '--'} <span className="text-[8px] font-normal">kg</span></span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-slate-400 font-bold">Sleep</span>
+                <span className="text-sm font-bold text-slate-800">{sleepLogs[0]?.hours || '--'} <span className="text-[8px] font-normal">hrs</span></span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-slate-400 font-bold">Water</span>
+                <span className="text-sm font-bold text-slate-800">{todayWater} <span className="text-[8px] font-normal">ml</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div onClick={() => onQuickTool('progress')} className="card-premium p-5 bg-[#7e1631] text-white flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
+             <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Baby Growth</span>
+             <div className="mt-2 text-center">
+               <span className="text-3xl block mb-1">{baby.image}</span>
+               <span className="text-[10px] font-serif block leading-tight">Size of a {baby.size}</span>
+               <span className="text-[8px] uppercase tracking-widest opacity-60 mt-2 block">Week {weeks}</span>
+             </div>
+          </div>
+        </div>
+      </div>
+
       {/* Tip Card */}
       <div className="p-5 bg-gradient-to-br from-rose-50 to-white rounded-[2.5rem] border border-rose-100/50 shadow-sm relative overflow-hidden group">
          <div className="absolute top-0 right-0 px-3 py-1 bg-emerald-500 text-white text-[7px] font-black uppercase tracking-widest rounded-bl-xl flex items-center gap-1 shadow-sm">
@@ -168,20 +207,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Hydration */}
       <HydrationTracker logs={waterLogs} onAddWater={onAddWater} />
-
-      {/* Baby Status */}
-      <div className="card-premium p-8 bg-white border-2 border-slate-50 relative overflow-hidden group">
-        <div className="flex items-center gap-6">
-          <div className="w-20 h-20 bg-rose-50 rounded-[2rem] flex items-center justify-center text-5xl shadow-inner border border-rose-100 group-hover:scale-110 transition-transform">
-            {baby.image}
-          </div>
-          <div className="space-y-1">
-            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Baby's Current Size</span>
-            <h3 className="text-2xl font-serif text-slate-900 leading-none">Size of a {baby.size}</h3>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">{weeks} Weeks Pregnant</p>
-          </div>
-        </div>
-      </div>
 
       {/* Manual Entry */}
       <div className="card-premium p-6 bg-white border-2 border-slate-50 space-y-4">

@@ -28,6 +28,18 @@
       "purpose": "maskable"
     }
   ],
+  "shortcuts": [
+    {
+      "name": "Chat with Ava",
+      "url": "/?tab=ava",
+      "icons": [{ "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp", "sizes": "192x192" }]
+    },
+    {
+      "name": "Log Tools",
+      "url": "/?tab=tools",
+      "icons": [{ "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp", "sizes": "192x192" }]
+    }
+  ],
   "orientation": "portrait",
   "prefer_related_applications": false
 }
