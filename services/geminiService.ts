@@ -2,7 +2,8 @@
 type ChatMessage = { role: "user" | "assistant"; text: string };
 type MemoryFact = string;
 
-const OPENROUTER_API_KEY = process.env.API_KEY;
+// 🔑 Hardcoded OpenRouter test API key
+const OPENROUTER_API_KEY = "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";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "deepseek/deepseek-chat";
 
