@@ -35,7 +35,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
     try {
       const memoryStrings = memoryBank.map(m => m.content);
       
-      // Map app ChatMessage role ('model') to service ChatMessage role ('assistant')
+      // Map local 'model' role to service expected 'assistant' role
       const historyForApi = newMessages.map(m => ({
         role: (m.role === 'model' ? 'assistant' : 'user') as "user" | "assistant",
         text: m.text
@@ -50,12 +50,11 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
       const modelMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: response, timestamp: Date.now() };
       setMessages([...newMessages, modelMsg]);
       
-      // Optionally speak the response
       if (isSpeaking) {
         speakAva(response);
       }
     } catch (err) {
-      setMessages([...newMessages, { id: Date.now().toString(), role: 'model', text: "I'm having a quiet moment 💕. Please try again.", timestamp: Date.now() }]);
+      setMessages([...newMessages, { id: Date.now().toString(), role: 'model', text: "Ava is taking a quiet moment 💕", timestamp: Date.now() }]);
     } finally {
       setLoading(false);
     }
@@ -125,7 +124,6 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
           <button 
             onClick={toggleSpeech}
             className={`p-3 rounded-2xl bg-white border-2 transition-all active:scale-90 flex items-center justify-center ${isSpeaking ? 'border-rose-400 text-rose-500 shadow-md' : 'border-slate-100 text-slate-300'}`}
-            title={isSpeaking ? "Mute Ava" : "Unmute Ava"}
           >
             {isSpeaking ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
