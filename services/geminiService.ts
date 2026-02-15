@@ -1,35 +1,30 @@
-// avaChat.ts
+// geminiServices.ts
 type ChatMessage = { role: "user" | "assistant"; text: string };
-type MemoryFact = string;
 
 const OPENROUTER_API_KEY = "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";
-const OPENROUTER_URLj = "https://openrouter.ai/api/v1/chat/completions";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "deepseek/deepseek-chat";
 
 /**
- * Send a message to Ava and get a short empathetic response
+ * Get Ava's chat response
  */
 export async function getAvaResponse(
   chatHistory: ChatMessage[],
-  userName: string,
-  memoryBank: MemoryFact[] = []
+  userName: string
 ): Promise<string> {
   try {
-    const memoryContext = memoryBank.length
-      ? `THINGS YOU REMEMBER ABOUT ${userName}: ${memoryBank.join("; ")}`
-      : "";
-
-    const messages = [
-      {
-        role: "system",
-        content: `You are Ava 💕, Nestly's warm pregnancy companion.
+    const systemMessage = {
+      role: "system",
+      content: `You are Ava 💕, Nestly's warm pregnancy companion.
 USER NAME: ${userName}
-${memoryContext}
 RULES:
 - Extremely concise (1–2 sentences)
 - Warm, empathetic, supportive
-- Emergency symptoms: tell user to contact provider immediately`
-      },
+- If emergency symptoms (bleeding, severe pain), tell user to contact provider immediately`
+    };
+
+    const messages = [
+      systemMessage,
       ...chatHistory.map(m => ({
         role: m.role === "assistant" ? "assistant" : "user",
         content: m.text
@@ -59,17 +54,12 @@ RULES:
 }
 
 /**
- * Make Ava speak using browser TTS
+ * Example usage:
+ * (async () => {
+ *   const response = await getAvaResponse(
+ *     [{ role: "user", text: "Hi Ava, how am I feeling today?" }],
+ *     "Tanaka"
+ *   );
+ *   console.log("Ava:", response);
+ * })();
  */
-export function speakAva(text: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-
-  window.speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1.0;
-  utterance.pitch = 1.1;
-  utterance.lang = "en-US";
-
-  window.speechSynthesis.speak(utterance);
-}
