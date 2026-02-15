@@ -1,11 +1,8 @@
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { FoodEntry, Trimester, WaterLog, VitaminLog, PregnancyProfile, WeightLog, SleepLog } from '../types.ts';
 import { NutrientCard } from './NutrientCard.tsx';
 import { HydrationTracker } from './HydrationTracker.tsx';
 import { getBabyGrowth } from '../services/babyGrowth.ts';
-import { storage } from '../services/storageService.ts';
-import { VisualFoodScanner } from './VisualFoodScanner.tsx';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -49,7 +46,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep'>('fuel');
   const [dailyTip, setDailyTip] = useState('');
-  const [showScanner, setShowScanner] = useState(false);
   
   const [foodName, setFoodName] = useState('');
   const [foodCals, setFoodCals] = useState('');
@@ -135,13 +131,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="space-y-6 px-5 pb-36 pt-2 animate-slide-up no-scrollbar overflow-x-hidden relative z-10">
       
-      {showScanner && (
-        <VisualFoodScanner 
-          onClose={() => setShowScanner(false)} 
-          onAddEntry={onAddEntry} 
-        />
-      )}
-
       {/* Header */}
       <div className="flex justify-between items-start mb-2">
         <div className="space-y-1">
@@ -168,23 +157,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Mama Wisdom</span>
                <p className="text-xs font-bold text-slate-800 italic leading-snug">"{dailyTip}"</p>
             </div>
-         </div>
-      </div>
-
-      {/* Visual Scanner CTA */}
-      <div className="card-premium p-6 bg-[#7e1631] border-none shadow-2xl relative overflow-hidden group">
-         <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 blur-[50px] rounded-full" />
-         <div className="flex items-center justify-between relative z-10">
-            <div className="space-y-1">
-               <h3 className="text-white font-serif text-lg">Visual Meal Log</h3>
-               <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Scan food with Nestly Vision</p>
-            </div>
-            <button 
-              onClick={() => setShowScanner(true)}
-              className="w-14 h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white transition-all active:scale-90"
-            >
-               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-            </button>
          </div>
       </div>
 

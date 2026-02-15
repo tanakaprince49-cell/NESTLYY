@@ -7,11 +7,8 @@ import { SetupScreen } from './components/SetupScreen.tsx';
 import { EducationHub } from './components/EducationHub.tsx';
 import { AuthScreen } from './components/AuthScreen.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
-import { AchievementToast } from './components/AchievementToast.tsx';
 import { AvaChat } from './components/AvaChat.tsx';
-import { Logo } from './components/Logo.tsx';
 import { storage } from './services/storageService.ts';
-import { checkAchievements } from './services/achievementService.ts';
 import { subscribeUserToPush } from './services/pushService.ts';
 import { 
   Trimester, 
@@ -35,7 +32,6 @@ const App: React.FC = () => {
   const [trimester, setTrimester] = useState<Trimester>(Trimester.FIRST);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin'>('dashboard');
   const [activeToolCat, setActiveToolCat] = useState<string>('vitals');
-  const [newAchievement, setNewAchievement] = useState<Achievement | null>(null);
 
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [waterLogs, setWaterLogs] = useState<WaterLog[]>([]);
@@ -93,8 +89,6 @@ const App: React.FC = () => {
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
       <div className="max-w-4xl mx-auto px-4 py-4">
-        {/* Global Floating Bears are handled in Layout background */}
-        
         {activeTab === 'dashboard' && (
           <Dashboard 
             entries={entries} waterLogs={waterLogs} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}

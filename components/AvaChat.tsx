@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { getAvaResponse, extractMemories } from '../services/geminiService.ts';
+import { getAvaResponse } from '../services/geminiService.ts';
 import { PregnancyProfile, ChatMessage, AvaMemoryFact } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 
 export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => storage.getAvaHistory());
-  const [memoryBank, setMemoryBank] = useState<AvaMemoryFact[]>(() => storage.getAvaMemory());
+  const [memoryBank] = useState<AvaMemoryFact[]>(() => storage.getAvaMemory());
   const [showVault, setShowVault] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,39 +20,6 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
     }
   }, [messages, loading]);
 
-  useEffect(() => {
-    storage.saveAvaMemory(memoryBank);
-  }, [memoryBank]);
-
-  const updateMemory = async (currentHistory: ChatMessage[]) => {
-    try {
-      const newFacts = await extractMemories(
-        currentHistory.map(m => ({ role: m.role, text: m.text })),
-        profile.userName
-      );
-      
-      if (newFacts.length > 0) {
-        setMemoryBank(prev => {
-          const updated = [...prev];
-          newFacts.forEach(fact => {
-            // Check if we already have this fact basically
-            if (!updated.some(u => u.content.toLowerCase() === fact.content?.toLowerCase())) {
-              updated.push({
-                id: Date.now().toString() + Math.random(),
-                content: fact.content || '',
-                category: (fact.category as any) || 'info',
-                timestamp: Date.now()
-              });
-            }
-          });
-          return updated;
-        });
-      }
-    } catch (e) {
-      console.warn("Failed to update memory bank", e);
-    }
-  };
-
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
@@ -66,19 +32,16 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
     setLoading(true);
 
     try {
+      // Map AvaMemoryFact objects to strings for the new service signature
+      const memoryStrings = memoryBank.map(m => m.content);
+      
       const response = await getAvaResponse(
         newMessages.map(m => ({ role: m.role, text: m.text })),
         profile.userName,
-        memoryBank
+        memoryStrings
       );
       const modelMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: response, timestamp: Date.now() };
-      const finalMessages = [...newMessages, modelMsg];
-      setMessages(finalMessages);
-      
-      // Extract memory every 3 messages or so
-      if (finalMessages.length % 3 === 0) {
-        updateMemory(finalMessages);
-      }
+      setMessages([...newMessages, modelMsg]);
     } catch (err) {
       setMessages([...newMessages, { id: Date.now().toString(), role: 'model', text: "I'm having a quiet moment 💕. Please try again.", timestamp: Date.now() }]);
     } finally {
@@ -115,7 +78,6 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
       {/* Ava Header */}
       <div className="flex items-center justify-between py-6 px-4 mb-4 border-b border-rose-50/20 bg-white/40 backdrop-blur-xl rounded-t-[3rem]">
         <div className="flex items-center gap-4">
-          {/* Interactive Profile Picture */}
           <div 
             onClick={handleImageClick}
             className="w-12 h-12 bg-[#7e1631] rounded-2xl flex items-center justify-center overflow-hidden shadow-lg border border-white cursor-pointer group relative shrink-0 transition-transform active:scale-95"
@@ -157,7 +119,6 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-6 p-4 no-scrollbar pb-24 relative">
-        {/* Memory Vault Overlay */}
         {showVault && (
           <div className="absolute inset-0 z-50 bg-[#fffaf9]/95 backdrop-blur-md p-6 animate-in fade-in zoom-in-95 overflow-y-auto rounded-b-[2rem]">
             <div className="flex justify-between items-center mb-6">
@@ -166,7 +127,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 mb-6">Learned facts about your journey</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 mb-6">Stored journey facts</p>
             
             <div className="space-y-3">
               {memoryBank.length > 0 ? memoryBank.map(fact => (
@@ -177,13 +138,13 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-slate-700 leading-tight">{fact.content}</p>
                     <span className="text-[8px] font-black uppercase tracking-widest text-slate-300 mt-2 block">
-                      Learned {new Date(fact.timestamp).toLocaleDateString()}
+                      Saved {new Date(fact.timestamp).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
               )) : (
                 <div className="py-12 text-center text-slate-400 italic">
-                  I'm still learning about your journey, Mama. Chat with me more to help me remember!
+                  No saved memories in the vault yet.
                 </div>
               )}
             </div>
@@ -193,7 +154,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
         {messages.length === 0 && (
           <div className="py-20 text-center flex flex-col items-center animate-in fade-in duration-1000">
             <div className="w-20 h-20 bg-rose-50 rounded-[2.5rem] flex items-center justify-center text-4xl mb-6 shadow-inner border border-rose-100 animate-float">🤍</div>
-            <p className="text-sm text-slate-500 italic max-w-xs leading-relaxed">"Bonjour {profile.userName}! I'm Ava. I have a memory bank now, so I can remember our journey together. How are you feeling today?"</p>
+            <p className="text-sm text-slate-500 italic max-w-xs leading-relaxed">"Bonjour {profile.userName}! I'm Ava. How can I support you today?"</p>
           </div>
         )}
         {messages.map((m, i) => (
@@ -218,7 +179,6 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
         )}
       </div>
 
-      {/* Ava Input Area */}
       <div className="absolute bottom-4 left-4 right-4 bg-white/30 backdrop-blur-2xl p-3 rounded-[2.2rem] border border-white/60 shadow-xl">
         <form onSubmit={handleSend} className="relative">
           <input 
