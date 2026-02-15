@@ -73,31 +73,3 @@ export function speakAva(text: string) {
   utterance.lang = "en-US";
   window.speechSynthesis.speak(utterance);
 }
-
-/**
- * General chat response for other components
- */
-export async function getChatResponse(
-  chatHistory: { role: string; content: string }[],
-  systemInstruction: string
-): Promise<string> {
-  try {
-    const res = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: "system", content: systemInstruction }, ...chatHistory],
-        temperature: 0.7,
-        max_tokens: 500
-      })
-    });
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || "I'm having a quiet moment 🤍";
-  } catch (err) {
-    return "I'm having a quiet moment 🤍";
-  }
-}
