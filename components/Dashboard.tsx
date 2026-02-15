@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { FoodEntry, Trimester, WaterLog, VitaminLog, PregnancyProfile, WeightLog, SleepLog } from '../types.ts';
 import { NutrientCard } from './NutrientCard.tsx';
@@ -5,6 +6,7 @@ import { HydrationTracker } from './HydrationTracker.tsx';
 import { getBabyGrowth } from '../services/babyGrowth.ts';
 import { generateDailyReport, generateLaborReport } from '../services/reportService.ts';
 import { storage } from '../services/storageService.ts';
+import { VisualFoodScanner } from './VisualFoodScanner.tsx';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -48,6 +50,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep'>('fuel');
   const [dailyTip, setDailyTip] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
   
   // Manual food log state
   const [foodName, setFoodName] = useState('');
@@ -142,6 +145,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="space-y-6 px-5 pb-36 pt-2 animate-slide-up no-scrollbar overflow-x-hidden relative z-10">
       
+      {showScanner && (
+        <VisualFoodScanner 
+          onClose={() => setShowScanner(false)} 
+          onAddEntry={onAddEntry} 
+        />
+      )}
+
       {/* Welcome & Profile Management */}
       <div className="flex justify-between items-start mb-2">
         <div className="space-y-1">
@@ -171,185 +181,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
          </div>
       </div>
 
-      {/* Labor Quick Access (3rd Trimester Only) */}
-      {trimester === Trimester.THIRD && (
-        <div className="card-premium p-6 bg-slate-900 border-none shadow-2xl relative overflow-hidden animate-pulse">
-           <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/20 blur-[50px] rounded-full" />
-           <div className="flex items-center justify-between relative z-10">
-              <div className="space-y-1">
-                 <h3 className="text-white font-serif text-lg">Labor Preparation</h3>
-                 <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Ready to track contractions?</p>
-              </div>
-              <button 
-                onClick={() => onQuickTool('labor')}
-                className="px-6 py-3 bg-rose-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95"
-              >
-                Launch Timer
-              </button>
-           </div>
-        </div>
-      )}
-
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="card-premium p-5 flex flex-col justify-between border-2 border-white/50">
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Weight</span>
-           <div className="mt-2 flex items-baseline gap-1">
-             <span className="text-3xl font-serif text-slate-900">{latestWeight}</span>
-             <span className="text-[10px] font-black text-slate-400 uppercase">KG</span>
-           </div>
-           <div className="mt-3 pt-3 border-t border-slate-50">
-             <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">Start: {profile.startingWeight}kg</span>
-           </div>
-        </div>
-        <div className="card-premium p-5 flex flex-col justify-between border-2 border-white/50">
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Baby Age</span>
-           <div className="mt-2 flex items-baseline gap-1">
-             <span className="text-3xl font-serif text-slate-900">{weeks}</span>
-             <span className="text-[10px] font-black text-slate-400 uppercase">WEEKS</span>
-           </div>
-           <div className="mt-3 pt-3 border-t border-slate-50">
-             <span className="text-[8px] font-bold text-rose-400 uppercase tracking-widest">{trimester}</span>
-           </div>
-        </div>
-      </div>
-
-      {/* Baby Status Card */}
-      <div className="card-premium p-6 bg-white relative overflow-hidden group shadow-md border-2 border-white/50">
-        <div className="flex items-center gap-6 relative z-10">
-          <div className="w-20 h-20 bg-rose-50 rounded-[2rem] flex items-center justify-center text-4xl shadow-inner border border-rose-100 animate-float shrink-0">{baby.image}</div>
-          <div className="flex-1 space-y-1">
-            <h2 className="text-xl font-serif text-slate-900 leading-tight">Size of a {baby.size}</h2>
-            <p className="text-[10px] text-slate-500 font-medium italic leading-relaxed">"{baby.description}"</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Trends Section */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center px-1">
-          <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Wellness Trends</h3>
-          <div className="flex gap-1.5">
-            {(['fuel', 'water', 'weight', 'sleep'] as const).map(m => (
-              <button key={m} onClick={() => setActiveMetric(m)} className={`w-9 h-9 rounded-2xl flex items-center justify-center text-base border-2 transition-all ${activeMetric === m ? 'bg-rose-500 text-white border-rose-400 shadow-lg shadow-rose-100 scale-110' : 'bg-white text-slate-300 border-slate-50'}`}>
-                {m === 'fuel' ? '🍎' : m === 'water' ? '💧' : m === 'weight' ? '⚖️' : '😴'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="card-premium p-5 bg-white shadow-sm h-60 relative overflow-hidden border-2 border-white/50">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
-              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8', fontWeight: 800}} />
-              <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1', fontWeight: 700}} />
-              <Tooltip 
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.05)', fontSize: '10px', fontWeight: 'bold' }} 
-                labelStyle={{ display: 'none' }}
-              />
-              <Area type="monotone" dataKey={activeMetric} stroke={metricConfig[activeMetric].color} fillOpacity={0.06} fill={metricConfig[activeMetric].color} strokeWidth={3} animationDuration={1000} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <NutrientCard title="Calories" current={totals.calories} target={profile.customTargets?.cals || 2000} unit="kcal" gradient="from-rose-400 to-rose-600" />
-        <NutrientCard title="Protein" current={totals.protein} target={profile.customTargets?.protein || 75} unit="g" gradient="from-emerald-400 to-emerald-600" />
-      </div>
-
-      {/* Manual Food Quick Log */}
-      <div className="card-premium p-6 bg-white border-2 border-white/50 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Quick Food Log</h3>
-          <span className="text-[9px] text-slate-400 font-bold italic">Fuel your nest</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input 
-            type="text" 
-            placeholder="What did you eat?" 
-            value={foodName}
-            onChange={(e) => setFoodName(e.target.value)}
-            className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-sm font-semibold placeholder:text-slate-300"
-          />
-          <div className="flex gap-2">
-            <input 
-              type="number" 
-              placeholder="Kcal" 
-              value={foodCals}
-              onChange={(e) => setFoodCals(e.target.value)}
-              className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-sm font-semibold placeholder:text-slate-300"
-            />
-            <input 
-              type="number" 
-              placeholder="Protein (g)" 
-              value={foodProtein}
-              onChange={(e) => setFoodProtein(e.target.value)}
-              className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-sm font-semibold placeholder:text-slate-300"
-            />
-            <button 
-              onClick={handleManualFoodLog}
-              disabled={!foodName || !foodCals}
-              className="px-6 h-12 bg-[#7e1631] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md active:scale-95 disabled:opacity-30 transition-all shrink-0"
-            >
-              Log
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <HydrationTracker logs={waterLogs} onAddWater={onAddWater} />
-
-      {/* PDF Export Section at the Bottom - Updated with History selection */}
-      <div className="pt-12 pb-6 space-y-6">
-        <div className="text-center">
-          <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 mb-2">History Records</h3>
-          <p className="text-[10px] text-slate-300 font-medium italic">Securely download your pregnancy history for clinic visits</p>
-        </div>
-        
-        <div className="space-y-4">
-          <div className="card-premium p-4 bg-white/40 border border-slate-100 flex flex-col gap-3">
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Select Report Date</label>
-            <div className="flex gap-2">
-              <select 
-                value={selectedReportDate}
-                onChange={(e) => setSelectedReportDate(e.target.value)}
-                className="flex-1 h-12 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold appearance-none"
-              >
-                {!availableDates.includes(new Date().toISOString().split('T')[0]) && (
-                   <option value={new Date().toISOString().split('T')[0]}>
-                     Today ({new Date().toLocaleDateString()})
-                   </option>
-                )}
-                {availableDates.map(date => (
-                  <option key={date} value={date}>
-                    {new Date(date).toLocaleDateString()}
-                  </option>
-                ))}
-              </select>
-              <button 
-                onClick={() => generateDailyReport(new Date(selectedReportDate))}
-                className="px-6 h-12 bg-[#7e1631] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
-              >
-                Download PDF
-              </button>
-            </div>
-          </div>
-          
-          {trimester === Trimester.THIRD && (
-            <button 
-              onClick={() => generateLaborReport(new Date())}
-              className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3"
-            >
-              ⏱️ Download Labor Summary
-            </button>
-          )}
-        </div>
-      </div>
-
-      <footer className="text-center py-8 opacity-40">
-        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Nestly: Encrypted Private Nest</p>
-      </footer>
-    </div>
-  );
-};
+      {/* Visual Food Logger Quick Access */}
+      <div className="card-premium p-6 bg-[#7e1631] border-none shadow-2xl relative overflow-hidden">
+         <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 blur-[50px] rounded-full" />
+         <div className="flex items-center justify-between relative z-10">
+            <div className="space-y-1">
+               <h3 className="text-white font-serif text-lg">Visual Meal Log</h3>
+               <p className

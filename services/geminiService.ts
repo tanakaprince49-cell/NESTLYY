@@ -1,128 +1,172 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
 import { FoodResearchResult, AvaMemoryFact } from "../types.ts";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// ---------------------------
+// 🔑 Obtain API Key from environment variable
+// ---------------------------
+const OPENROUTER_API_KEY = process.env.API_KEY;
 
-/**
- * Provides responses for the Ava chat companion using Gemini 3 Flash.
- */
+// ---------------------------
+// 🔥 Helper: Call OpenRouter
+// ---------------------------
+async function callOpenRouter(messages: any[], model = "deepseek/deepseek-chat", max_tokens = 500) {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://nestly-app.pages.dev",
+      "X-Title": "Nestly Ava"
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.7,
+      max_tokens
+    })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("OpenRouter API Error:", data);
+    throw new Error(data.error?.message || "OpenRouter API call failed");
+  }
+
+  return data.choices[0].message.content;
+}
+
+// ---------------------------
+// 💕 Ava Chat With Memory
+// ---------------------------
 export async function getAvaResponse(
   chatHistory: { role: string; text: string }[],
   userName: string,
   memoryBank: AvaMemoryFact[] = []
 ): Promise<string> {
   try {
-    const memoryContext = memoryBank.length > 0 
-      ? `THINGS YOU REMEMBER ABOUT ${userName}: ${memoryBank.map(f => f.content).join('; ')}`
+    const memoryContext = memoryBank.length > 0
+      ? `THINGS YOU REMEMBER ABOUT ${userName}: ${memoryBank.map(f => f.content).join("; ")}`
       : "";
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: [
-        {
-          role: 'user',
-          parts: [{
-            text: `You are Ava 💕, Nestly's intelligent and warm pregnancy companion.
-            USER NAME: ${userName}
-            ${memoryContext}
-            CORE RULES:
-            1. med-responsible but OBGYN reminder.
-            2. Warm, intelligent tone.
-            3. BE EXTREMELY CONCISE (max 1-2 sentences).
-            4. If medical emergency symptoms (bleeding, etc) tell them to call a provider NOW.
-            
-            Current conversation history follows.`
-          }]
-        },
-        ...chatHistory.map(m => ({
-          role: m.role === 'model' ? 'model' : 'user',
-          parts: [{ text: m.text }]
-        }))
-      ]
-    });
+    const messages = [
+      {
+        role: "system",
+        content: `You are Ava 💕, Nestly's intelligent pregnancy companion.
+USER NAME: ${userName}
+${memoryContext}
 
-    return response.text || "I'm having a quiet moment 💕. Please try again.";
+RULES:
+- Extremely concise (1–2 sentences max)
+- Warm, intelligent tone
+- If emergency symptoms (bleeding, severe pain, etc) → tell them to contact provider immediately`
+      },
+      ...chatHistory.map(m => ({
+        role: m.role === "model" ? "assistant" : "user",
+        content: m.text
+      }))
+    ];
+
+    return await callOpenRouter(messages, "deepseek/deepseek-chat", 200);
   } catch (error) {
-    console.error("Ava Gemini Error:", error);
-    return "I'm having a quiet moment 💕. Please try again in a moment.";
+    console.error("Ava Error:", error);
+    return "I'm having a quiet moment 💕 Please try again.";
   }
 }
 
-/**
- * Extracts key facts from a conversation to update Ava's memory.
- */
+// ---------------------------
+// 👁️ Visual Food Analysis (Uses Vision Model via OpenRouter)
+// ---------------------------
+export async function analyzeFoodImage(base64Image: string): Promise<FoodResearchResult> {
+  try {
+    const messages = [
+      {
+        role: "user",
+        content: [
+          { 
+            type: "text", 
+            text: "Analyze this meal for a pregnant woman. Identify the food and provide estimated nutritional values (calories, protein, folate, iron, calcium). Also provide a safety rating (Safe, Caution, Avoid) and brief advice. Return ONLY valid JSON matching this structure: { \"name\": string, \"calories\": number, \"protein\": number, \"folate\": number, \"iron\": number, \"calcium\": number, \"safetyRating\": string, \"advice\": string, \"benefits\": string[] }" 
+          },
+          { 
+            type: "image_url", 
+            image_url: { url: base64Image } 
+          }
+        ]
+      }
+    ];
+
+    const result = await callOpenRouter(messages, "google/gemini-2.0-flash-001", 800);
+    const cleanJson = result.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error("Visual Analysis Error:", error);
+    throw error;
+  }
+}
+
+// ---------------------------
+// 🧠 Memory Extraction
+// ---------------------------
 export async function extractMemories(
   chatHistory: { role: string; text: string }[],
   userName: string
 ): Promise<Partial<AvaMemoryFact>[]> {
   try {
-    const prompt = `Analyze this conversation between Ava (AI) and ${userName}. 
-    Extract any persistent facts about ${userName}'s pregnancy, health, cravings, or milestones.
-    Ignore general greetings or small talk.
-    Return ONLY a JSON array of objects with keys: content (string), category (one of: preference, symptom, milestone, info).`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: prompt + "\n\nConversation:\n" + chatHistory.map(m => `${m.role}: ${m.text}`).join('\n') }]
-        }
-      ],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              content: { type: Type.STRING },
-              category: { type: Type.STRING }
-            },
-            required: ["content", "category"]
-          }
-        }
+    const messages = [
+      {
+        role: "system",
+        content: `Extract persistent pregnancy-related facts about ${userName}. 
+Return ONLY valid JSON array:
+[
+  { "content": "...", "category": "preference | symptom | milestone | info" }
+]`
+      },
+      {
+        role: "user",
+        content: chatHistory.map(m => `${m.role}: ${m.text}`).join("\n")
       }
-    });
+    ];
 
-    return JSON.parse(response.text || "[]");
+    const result = await callOpenRouter(messages, "deepseek/deepseek-chat", 400);
+    const cleanJson = result.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleanJson);
   } catch (e) {
     console.error("Memory Extraction Error:", e);
     return [];
   }
 }
 
-/**
- * AI Research for food safety and nutrition during pregnancy.
- */
+// ---------------------------
+// 🍎 Food Research
+// ---------------------------
 export async function getFoodResearch(food: string): Promise<FoodResearchResult> {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Analyze this food for a pregnant person: "${food}". 
-      Provide a detailed report including calorie count, protein, folate, iron, calcium, and a safety rating.`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            calories: { type: Type.NUMBER },
-            protein: { type: Type.NUMBER },
-            folate: { type: Type.NUMBER },
-            iron: { type: Type.NUMBER },
-            calcium: { type: Type.NUMBER },
-            safetyRating: { type: Type.STRING, description: '"Safe", "Caution", or "Avoid"' },
-            advice: { type: Type.STRING },
-            benefits: { type: Type.ARRAY, items: { type: Type.STRING } }
-          },
-          required: ["name", "calories", "protein", "folate", "iron", "calcium", "safetyRating", "advice", "benefits"]
-        }
-      }
-    });
+    const messages = [
+      {
+        role: "system",
+        content: "You are a pregnancy nutrition assistant. Return ONLY valid JSON."
+      },
+      {
+        role: "user",
+        content: `Analyze "${food}" for pregnancy safety.
 
-    return JSON.parse(response.text || "{}");
+Return JSON:
+{
+  "name": string,
+  "calories": number,
+  "protein": number,
+  "folate": number,
+  "iron": number,
+  "calcium": number,
+  "safetyRating": "Safe" | "Caution" | "Avoid",
+  "advice": string,
+  "benefits": string[]
+}`
+      }
+    ];
+
+    const result = await callOpenRouter(messages, "deepseek/deepseek-chat", 500);
+    const cleanJson = result.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleanJson);
   } catch (error) {
     console.error("Food Research Error:", error);
     return {
@@ -132,34 +176,29 @@ export async function getFoodResearch(food: string): Promise<FoodResearchResult>
       folate: 0,
       iron: 0,
       calcium: 0,
-      safetyRating: 'Caution',
-      advice: "Research unavailable right now. Please check with your healthcare provider for safety advice.",
-      benefits: ["N/A"]
-    } as FoodResearchResult;
+      safetyRating: "Caution",
+      advice: "Unavailable right now. Please check with provider.",
+      benefits: []
+    };
   }
 }
 
-/**
- * General purpose chat response.
- */
+// ---------------------------
+// 💬 General Chat
+// ---------------------------
 export async function getChatResponse(
   history: { role: string; content: string }[],
   systemInstruction: string
 ): Promise<string> {
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: [
-        { role: 'user', parts: [{ text: systemInstruction }] },
-        ...history.map(h => ({
-          role: h.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: h.content }]
-        }))
-      ]
-    });
-    return response.text || "I'm having a quiet moment 🤍. Please try again.";
+    const messages = [
+      { role: "system", content: systemInstruction },
+      ...history
+    ];
+
+    return await callOpenRouter(messages, "deepseek/deepseek-chat", 400);
   } catch (error) {
     console.error("Chat Error:", error);
-    return "I'm having a quiet moment 🤍. Please try again.";
+    return "I'm having a quiet moment 🤍 Please try again.";
   }
 }
