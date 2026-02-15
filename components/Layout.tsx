@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { storage } from '../services/storageService.ts';
 import { Logo } from './Logo.tsx';
@@ -13,17 +14,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden h-screen bg-[#fffaf9]">
-      {/* Persistent Floating Teddy Bears Background Throughout the App */}
+      {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.08]">
         <div className="absolute top-[10%] left-[15%] text-6xl animate-float-teddy" style={{ animationDelay: '0s' }}>🧸</div>
         <div className="absolute top-[30%] right-[10%] text-7xl animate-float-teddy" style={{ animationDelay: '2.5s' }}>🧸</div>
         <div className="absolute bottom-[20%] left-[20%] text-5xl animate-float-teddy" style={{ animationDelay: '5s' }}>🧸</div>
         <div className="absolute top-[55%] left-[40%] text-4xl animate-float-teddy" style={{ animationDelay: '1.2s' }}>🧸</div>
         <div className="absolute bottom-[40%] right-[30%] text-8xl animate-float-teddy" style={{ animationDelay: '3.8s' }}>🧸</div>
-        <div className="absolute top-[75%] left-[10%] text-5xl animate-float-teddy" style={{ animationDelay: '6s' }}>🧸</div>
       </div>
 
-      {/* Persistent App Header with Nestly Logo */}
+      {/* Header */}
       <header className="relative z-[110] px-6 pt-6 pb-2 flex items-center gap-3 shrink-0 bg-[#fffaf9]/60 backdrop-blur-md">
         <Logo className="w-10 h-10" />
         <h1 className="text-2xl font-serif text-[#7e1631] tracking-tight">Nestly</h1>
@@ -35,9 +35,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         </div>
       </main>
 
-      {/* Modern Floating Bottom Navigation - Ultra Transparent Nestly UI */}
+      {/* Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-[calc(1rem + var(--safe-area-inset-bottom))]">
-        <nav className="mx-auto w-full max-w-[440px] bg-white/10 backdrop-blur-3xl px-2 py-2 rounded-[2.5rem] flex justify-between items-center shadow-[0_20px_50px_rgba(126,22,49,0.06)] border border-white/20">
+        <nav className="mx-auto w-full max-w-[440px] bg-white/30 backdrop-blur-3xl px-2 py-2 rounded-[2.5rem] flex justify-between items-center shadow-[0_20px_50px_rgba(126,22,49,0.06)] border border-white/20">
           <NavItem active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} label="Nest" icon="🏠" />
           <NavItem active={activeTab === 'baby'} onClick={() => setActiveTab('baby')} label="Growth" icon="👶" />
           <NavItem active={activeTab === 'ava'} onClick={() => setActiveTab('ava')} label="Ava" icon="✨" isSpecial />

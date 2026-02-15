@@ -4,7 +4,6 @@ import { FoodEntry, Trimester, WaterLog, VitaminLog, PregnancyProfile, WeightLog
 import { NutrientCard } from './NutrientCard.tsx';
 import { HydrationTracker } from './HydrationTracker.tsx';
 import { getBabyGrowth } from '../services/babyGrowth.ts';
-import { generateDailyReport, generateLaborReport } from '../services/reportService.ts';
 import { storage } from '../services/storageService.ts';
 import { VisualFoodScanner } from './VisualFoodScanner.tsx';
 import { 
@@ -52,14 +51,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [dailyTip, setDailyTip] = useState('');
   const [showScanner, setShowScanner] = useState(false);
   
-  // Manual food log state
   const [foodName, setFoodName] = useState('');
   const [foodCals, setFoodCals] = useState('');
   const [foodProtein, setFoodProtein] = useState('');
-
-  // Report selection state
-  const [selectedReportDate, setSelectedReportDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const availableDates = useMemo(() => storage.getAvailableReportDates(), [entries]);
 
   useEffect(() => {
     const day = new Date().getDate();
@@ -72,11 +66,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [profile]);
 
   const baby = useMemo(() => getBabyGrowth(weeks), [weeks]);
-
-  const latestWeight = useMemo(() => {
-    if (weightLogs.length > 0) return weightLogs[0].weight;
-    return profile.startingWeight || 0;
-  }, [weightLogs, profile]);
 
   const today = new Date().setHours(0, 0, 0, 0);
   const todaysEntries = useMemo(() => 
@@ -135,11 +124,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   }, [entries, waterLogs, weightLogs, sleepLogs, profile.startingWeight]);
 
-  const metricConfig = {
-    fuel: { label: 'Calories', unit: 'kcal', color: '#f43f5e' },
-    water: { label: 'Hydration', unit: 'ml', color: '#0ea5e9' },
-    weight: { label: 'Weight', unit: 'kg', color: '#8b5cf6' },
-    sleep: { label: 'Rest', unit: 'hrs', color: '#10b981' },
+  const targets = profile.customTargets || {
+    cals: 2200,
+    protein: 75,
+    folate: 600,
+    iron: 27,
+    calcium: 1000
   };
 
   return (
@@ -152,7 +142,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         />
       )}
 
-      {/* Welcome & Profile Management */}
+      {/* Header */}
       <div className="flex justify-between items-start mb-2">
         <div className="space-y-1">
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">Your Journey</span>
@@ -166,14 +156,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </button>
       </div>
 
-      {/* Clinician Reviewed Daily Tip */}
+      {/* Tip Card */}
       <div className="p-5 bg-gradient-to-br from-rose-50 to-white rounded-[2.5rem] border border-rose-100/50 shadow-sm relative overflow-hidden group">
          <div className="absolute top-0 right-0 px-3 py-1 bg-emerald-500 text-white text-[7px] font-black uppercase tracking-widest rounded-bl-xl flex items-center gap-1 shadow-sm">
            <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
            Clinician Verified
          </div>
          <div className="flex items-center gap-4 mt-2">
-            <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-rose-200 shrink-0">✨</div>
+            <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-rose-200 shrink-0 animate-float">✨</div>
             <div className="space-y-1">
                <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Mama Wisdom</span>
                <p className="text-xs font-bold text-slate-800 italic leading-snug">"{dailyTip}"</p>
@@ -181,10 +171,113 @@ export const Dashboard: React.FC<DashboardProps> = ({
          </div>
       </div>
 
-      {/* Visual Food Logger Quick Access */}
-      <div className="card-premium p-6 bg-[#7e1631] border-none shadow-2xl relative overflow-hidden">
+      {/* Visual Scanner CTA */}
+      <div className="card-premium p-6 bg-[#7e1631] border-none shadow-2xl relative overflow-hidden group">
          <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 blur-[50px] rounded-full" />
          <div className="flex items-center justify-between relative z-10">
             <div className="space-y-1">
                <h3 className="text-white font-serif text-lg">Visual Meal Log</h3>
-               <p className
+               <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Scan food with Nestly Vision</p>
+            </div>
+            <button 
+              onClick={() => setShowScanner(true)}
+              className="w-14 h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white transition-all active:scale-90"
+            >
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            </button>
+         </div>
+      </div>
+
+      {/* Nutrient Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <NutrientCard title="Daily Fuel" current={totals.calories} target={targets.cals} unit="kcal" gradient="from-rose-400 to-rose-600" />
+        <NutrientCard title="Protein" current={totals.protein} target={targets.protein} unit="g" gradient="from-emerald-400 to-emerald-600" />
+      </div>
+
+      {/* Hydration */}
+      <HydrationTracker logs={waterLogs} onAddWater={onAddWater} />
+
+      {/* Baby Status */}
+      <div className="card-premium p-8 bg-white border-2 border-slate-50 relative overflow-hidden group">
+        <div className="flex items-center gap-6">
+          <div className="w-20 h-20 bg-rose-50 rounded-[2rem] flex items-center justify-center text-5xl shadow-inner border border-rose-100 group-hover:scale-110 transition-transform">
+            {baby.image}
+          </div>
+          <div className="space-y-1">
+            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Baby's Current Size</span>
+            <h3 className="text-2xl font-serif text-slate-900 leading-none">Size of a {baby.size}</h3>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">{weeks} Weeks Pregnant</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Manual Entry */}
+      <div className="card-premium p-6 bg-white border-2 border-slate-50 space-y-4">
+        <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Quick Log Food</h4>
+        <div className="space-y-3">
+          <input 
+            value={foodName} 
+            onChange={e => setFoodName(e.target.value)} 
+            placeholder="Food Name (e.g., Avocado Toast)" 
+            className="text-sm bg-slate-50 border-none rounded-2xl h-12"
+          />
+          <div className="flex gap-3">
+            <input 
+              type="number" 
+              value={foodCals} 
+              onChange={e => setFoodCals(e.target.value)} 
+              placeholder="Kcal" 
+              className="text-sm bg-slate-50 border-none rounded-2xl h-12 flex-1"
+            />
+            <input 
+              type="number" 
+              value={foodProtein} 
+              onChange={e => setFoodProtein(e.target.value)} 
+              placeholder="Prot (g)" 
+              className="text-sm bg-slate-50 border-none rounded-2xl h-12 flex-1"
+            />
+            <button 
+              onClick={handleManualFoodLog}
+              className="px-6 bg-[#7e1631] text-white font-black rounded-2xl text-[10px] uppercase tracking-widest active:scale-95"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Analytics Chart */}
+      <div className="card-premium p-6 bg-white border-2 border-slate-50 h-80">
+        <div className="flex justify-between items-center mb-6">
+          <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Weekly Analytics</h4>
+          <div className="flex gap-2">
+            {(['fuel', 'water', 'weight', 'sleep'] as const).map(m => (
+              <button 
+                key={m} 
+                onClick={() => setActiveMetric(m)}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
+              >
+                {m === 'fuel' ? '🍎' : m === 'water' ? '💧' : m === 'weight' ? '⚖️' : '😴'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height="80%">
+          <AreaChart data={chartData}>
+            <defs>
+              <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+            <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+            <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+            <Area type="monotone" dataKey={activeMetric} stroke="#f43f5e" fillOpacity={1} fill="url(#colorMetric)" strokeWidth={3} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
