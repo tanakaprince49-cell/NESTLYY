@@ -46,6 +46,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep'>('fuel');
   const [dailyTip, setDailyTip] = useState('');
+  const [showWidgetHelper, setShowWidgetHelper] = useState(true);
   
   const [foodName, setFoodName] = useState('');
   const [foodCals, setFoodCals] = useState('');
@@ -150,6 +151,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
           Edit Profile
         </button>
       </div>
+
+      {/* Widget Integration Helper - Only for mobile PWA context */}
+      {showWidgetHelper && (
+        <div className="bg-[#7e1631] p-4 rounded-3xl text-white relative overflow-hidden shadow-lg shadow-rose-900/20">
+          <button onClick={() => setShowWidgetHelper(false)} className="absolute top-3 right-3 opacity-50 text-[10px] font-black uppercase">Close</button>
+          <div className="flex gap-4 items-center">
+            <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-xl shrink-0">📱</div>
+            <div className="space-y-0.5">
+              <h4 className="text-[10px] font-black uppercase tracking-widest">Enable Home Widget</h4>
+              <p className="text-[9px] font-medium opacity-80 leading-snug">To see stats on your home screen: Uninstall & Reinstall via Chrome's "Install App" menu.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* NEW Summary Widgets Section */}
       <div className="space-y-3">
