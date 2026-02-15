@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getAvaResponse } from '../services/geminiService.ts';
+import { getAvaResponse, speakAva } from '../services/geminiService.ts';
 import { PregnancyProfile, ChatMessage, AvaMemoryFact } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 
@@ -9,6 +9,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
   const [showVault, setShowVault] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [avaImage, setAvaImage] = useState<string | null>(() => storage.getAvaImage());
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,16 +33,27 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
     setLoading(true);
 
     try {
-      // Map AvaMemoryFact objects to strings for the new service signature
       const memoryStrings = memoryBank.map(m => m.content);
       
+      // Map app ChatMessage role ('model') to service ChatMessage role ('assistant')
+      const historyForApi = newMessages.map(m => ({
+        role: (m.role === 'model' ? 'assistant' : 'user') as "user" | "assistant",
+        text: m.text
+      }));
+
       const response = await getAvaResponse(
-        newMessages.map(m => ({ role: m.role, text: m.text })),
+        historyForApi,
         profile.userName,
         memoryStrings
       );
+
       const modelMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: response, timestamp: Date.now() };
       setMessages([...newMessages, modelMsg]);
+      
+      // Optionally speak the response
+      if (isSpeaking) {
+        speakAva(response);
+      }
     } catch (err) {
       setMessages([...newMessages, { id: Date.now().toString(), role: 'model', text: "I'm having a quiet moment 💕. Please try again.", timestamp: Date.now() }]);
     } finally {
@@ -70,6 +82,13 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
     if (confirm("Would you like to clear our conversation? I will still remember the things in my memory bank.")) {
       setMessages([]);
       storage.saveAvaHistory([]);
+    }
+  };
+
+  const toggleSpeech = () => {
+    setIsSpeaking(!isSpeaking);
+    if (isSpeaking) {
+      window.speechSynthesis?.cancel();
     }
   };
 
@@ -103,6 +122,17 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
         </div>
         
         <div className="flex gap-2">
+          <button 
+            onClick={toggleSpeech}
+            className={`p-3 rounded-2xl bg-white border-2 transition-all active:scale-90 flex items-center justify-center ${isSpeaking ? 'border-rose-400 text-rose-500 shadow-md' : 'border-slate-100 text-slate-300'}`}
+            title={isSpeaking ? "Mute Ava" : "Unmute Ava"}
+          >
+            {isSpeaking ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+            )}
+          </button>
           <button 
             onClick={() => setShowVault(!showVault)}
             className={`p-3 rounded-2xl bg-white border-2 transition-all active:scale-90 flex items-center justify-center ${showVault ? 'border-rose-400 text-rose-500 shadow-md' : 'border-slate-100 text-slate-300'}`}

@@ -1,75 +1,75 @@
 // avaChat.ts
-// Simple Ava chat companion using OpenRouter DeepSeek API
+type ChatMessage = { role: "user" | "assistant"; text: string };
+type MemoryFact = string;
 
-// ---------------------------
-// 🔑 Hardcoded OpenRouter API Key
-// ---------------------------
-const OPENROUTER_API_KEY = "sk-or-v1-25398675a6cf8583ea3a5fc88084f3b409a881aea8e947d9c75cbffb122";
+const OPENROUTER_API_KEY = "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";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL = "deepseek/deepseek-chat";
 
-// ---------------------------
-// 🔥 Helper: Call OpenRouter
-// ---------------------------
-async function callOpenRouter(messages: { role: string; content: string }[], max_tokens = 300) {
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "http://localhost:3000",
-      "X-Title": "Nestly Ava"
-    },
-    body: JSON.stringify({
-      model: "deepseek/deepseek-chat",
-      messages,
-      temperature: 0.7,
-      max_tokens
-    })
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    console.error("OpenRouter API Error:", data);
-    throw new Error("OpenRouter API call failed");
-  }
-
-  return data.choices[0].message.content;
-}
-
-// ---------------------------
-// 💕 Ava Chat With Memory
-// ---------------------------
+/**
+ * Send a message to Ava and get a short empathetic response
+ */
 export async function getAvaResponse(
-  chatHistory: { role: string; text: string }[],
+  chatHistory: ChatMessage[],
   userName: string,
-  memoryBank: string[] = []
+  memoryBank: MemoryFact[] = []
 ): Promise<string> {
   try {
-    const memoryContext = memoryBank.length > 0
+    const memoryContext = memoryBank.length
       ? `THINGS YOU REMEMBER ABOUT ${userName}: ${memoryBank.join("; ")}`
       : "";
 
     const messages = [
       {
         role: "system",
-        content: `You are Ava 💕, Nestly's warm and intelligent pregnancy companion.
+        content: `You are Ava 💕, Nestly's warm pregnancy companion.
 USER NAME: ${userName}
 ${memoryContext}
-
 RULES:
-- Be concise (1–2 sentences max)
-- Warm, empathetic tone
-- If emergency symptoms occur, tell the user to contact their provider immediately`
+- Extremely concise (1–2 sentences)
+- Warm, empathetic, supportive
+- Emergency symptoms: tell user to contact provider immediately`
       },
       ...chatHistory.map(m => ({
-        role: m.role === "model" ? "assistant" : "user",
+        role: m.role === "assistant" ? "assistant" : "user",
         content: m.text
       }))
     ];
 
-    return await callOpenRouter(messages, 200);
-  } catch (error) {
-    console.error("Ava Chat Error:", error);
-    return "I'm having a quiet moment 💕 Please try again.";
+    const res = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages,
+        temperature: 0.7,
+        max_tokens: 200
+      })
+    });
+
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || "Ava is taking a quiet moment 💕";
+  } catch (err) {
+    console.error("Ava API Error:", err);
+    return "Ava is taking a quiet moment 💕";
   }
+}
+
+/**
+ * Make Ava speak using browser TTS
+ */
+export function speakAva(text: string) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 1.0;
+  utterance.pitch = 1.1;
+  utterance.lang = "en-US";
+
+  window.speechSynthesis.speak(utterance);
 }
