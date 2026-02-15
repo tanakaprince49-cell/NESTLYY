@@ -10,13 +10,12 @@ import {
   CalendarEvent,
   UserLog,
   WeightLog,
-  MemoryPhoto,
   MemoryAlbums,
-  Achievement,
   SleepLog,
   KickLog,
   ChatMessage,
-  PeriodLog
+  PeriodLog,
+  AvaMemoryFact
 } from '../types.ts';
 
 const KEYS = {
@@ -35,6 +34,8 @@ const KEYS = {
   SLEEP: 'sleep_logs',
   KICKS: 'kick_logs',
   CHAT_HISTORY: 'chat_history',
+  AVA_HISTORY: 'ava_history_v2',
+  AVA_MEMORY: 'ava_memory_bank',
   PERIOD_LOGS: 'period_logs',
   UNLOCKED_IDS: 'unlocked_achievement_ids',
   AVA_IMAGE: 'ava_custom_image'
@@ -130,6 +131,12 @@ class StorageService {
 
   getPeriodLogs(): PeriodLog[] { return this.getItem<PeriodLog[]>(KEYS.PERIOD_LOGS, []); }
   addPeriodLog(log: PeriodLog): void { this.setItem(KEYS.PERIOD_LOGS, [log, ...this.getPeriodLogs()]); }
+
+  getAvaHistory(): ChatMessage[] { return this.getItem<ChatMessage[]>(KEYS.AVA_HISTORY, []); }
+  saveAvaHistory(history: ChatMessage[]): void { this.setItem(KEYS.AVA_HISTORY, history); }
+
+  getAvaMemory(): AvaMemoryFact[] { return this.getItem<AvaMemoryFact[]>(KEYS.AVA_MEMORY, []); }
+  saveAvaMemory(facts: AvaMemoryFact[]): void { this.setItem(KEYS.AVA_MEMORY, facts); }
 
   getChatHistory(): ChatMessage[] { return this.getItem<ChatMessage[]>(KEYS.CHAT_HISTORY, []); }
   saveChatHistory(history: ChatMessage[]): void { this.setItem(KEYS.CHAT_HISTORY, history); }

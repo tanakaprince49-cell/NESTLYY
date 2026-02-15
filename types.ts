@@ -138,7 +138,13 @@ export interface PeriodLog {
   timestamp: number;
 }
 
-// Added missing FoodResearchResult interface
+export interface AvaMemoryFact {
+  id: string;
+  content: string;
+  category: 'preference' | 'symptom' | 'milestone' | 'info';
+  timestamp: number;
+}
+
 export interface FoodResearchResult {
   name: string;
   calories: number;
@@ -151,7 +157,6 @@ export interface FoodResearchResult {
   benefits: string[];
 }
 
-// Added missing FertilityPrediction interface
 export interface FertilityPrediction {
   nextPeriod: string;
   ovulationDay: string;

@@ -1,137 +1,128 @@
-import { FoodResearchResult } from "../types.ts";
 
-/* ==========================================
-   AVA – Nestly Smart AI Companion
-   Powered by DeepSeek (OpenRouter)
-========================================== */
+import { GoogleGenAI, Type } from "@google/genai";
+import { FoodResearchResult, AvaMemoryFact } from "../types.ts";
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "deepseek/deepseek-chat";
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
- * Standard fetch wrapper for OpenRouter API calls.
- * Uses process.env.API_KEY for authorization.
- */
-async function callOpenRouter(messages: any[], jsonMode = false) {
-  const response = await fetch(OPENROUTER_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.API_KEY}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://nestly.app",
-      "X-Title": "Nestly Ava",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: messages,
-      temperature: 0.7,
-      response_format: jsonMode ? { type: "json_object" } : undefined
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenRouter Error: ${errorText}`);
-  }
-
-  const data = await response.json();
-  return data.choices[0].message.content;
-}
-
-/* ==========================================
-   PUBLIC API – ADAPTERS FOR NESTLY
-========================================== */
-
-/**
- * Provides responses for the Ava chat companion.
- * Maps Gemini-style history to OpenRouter format.
+ * Provides responses for the Ava chat companion using Gemini 3 Flash.
  */
 export async function getAvaResponse(
   chatHistory: { role: string; text: string }[],
-  userName: string
+  userName: string,
+  memoryBank: AvaMemoryFact[] = []
 ): Promise<string> {
   try {
-    const messages = [
-      {
-        role: "system",
-        content: `
-          You are Ava 💕, a warm, intelligent pregnancy companion for Nestly.
-          USER NAME: ${userName}
-          TONE: Caring, supportive, and slightly feminine.
-          CORE RULES:
-          1. Give medically responsible advice but ALWAYS remind users to consult their OBGYN/Midwife.
-          2. Keep responses clear and emotionally supportive.
-          3. Be EXTREMELY concise (maximum 1-2 sentences). 
-          4. Use emojis like 🤍 or 🌸 sparingly but warmly.
-          5. If a user mentions red-flag symptoms (high blood pressure, bleeding, reduced movement), tell them to call their provider IMMEDIATELY.
-        `,
-      },
-      ...chatHistory.map(m => ({
-        role: m.role === "model" ? "assistant" : "user",
-        content: m.text
-      }))
-    ];
+    const memoryContext = memoryBank.length > 0 
+      ? `THINGS YOU REMEMBER ABOUT ${userName}: ${memoryBank.map(f => f.content).join('; ')}`
+      : "";
 
-    return await callOpenRouter(messages);
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: [
+        {
+          role: 'user',
+          parts: [{
+            text: `You are Ava 💕, Nestly's intelligent and warm pregnancy companion.
+            USER NAME: ${userName}
+            ${memoryContext}
+            CORE RULES:
+            1. med-responsible but OBGYN reminder.
+            2. Warm, intelligent tone.
+            3. BE EXTREMELY CONCISE (max 1-2 sentences).
+            4. If medical emergency symptoms (bleeding, etc) tell them to call a provider NOW.
+            
+            Current conversation history follows.`
+          }]
+        },
+        ...chatHistory.map(m => ({
+          role: m.role === 'model' ? 'model' : 'user',
+          parts: [{ text: m.text }]
+        }))
+      ]
+    });
+
+    return response.text || "I'm having a quiet moment 💕. Please try again.";
   } catch (error) {
-    console.error("Ava Error:", error);
+    console.error("Ava Gemini Error:", error);
     return "I'm having a quiet moment 💕. Please try again in a moment.";
   }
 }
 
 /**
- * General purpose chat response for "Mama AI" concierge.
+ * Extracts key facts from a conversation to update Ava's memory.
  */
-export async function getChatResponse(
-  history: { role: string; content: string }[],
-  systemInstruction: string
-): Promise<string> {
+export async function extractMemories(
+  chatHistory: { role: string; text: string }[],
+  userName: string
+): Promise<Partial<AvaMemoryFact>[]> {
   try {
-    const messages = [
-      { role: "system", content: systemInstruction },
-      ...history.map(h => ({
-        role: h.role === "assistant" ? "assistant" : "user",
-        content: h.content
-      }))
-    ];
-    return await callOpenRouter(messages);
-  } catch (error) {
-    console.error("Chat Error:", error);
-    return "I'm having a quiet moment 🤍. Please try again.";
+    const prompt = `Analyze this conversation between Ava (AI) and ${userName}. 
+    Extract any persistent facts about ${userName}'s pregnancy, health, cravings, or milestones.
+    Ignore general greetings or small talk.
+    Return ONLY a JSON array of objects with keys: content (string), category (one of: preference, symptom, milestone, info).`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: prompt + "\n\nConversation:\n" + chatHistory.map(m => `${m.role}: ${m.text}`).join('\n') }]
+        }
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              content: { type: Type.STRING },
+              category: { type: Type.STRING }
+            },
+            required: ["content", "category"]
+          }
+        }
+      }
+    });
+
+    return JSON.parse(response.text || "[]");
+  } catch (e) {
+    console.error("Memory Extraction Error:", e);
+    return [];
   }
 }
 
 /**
  * AI Research for food safety and nutrition during pregnancy.
- * Returns structured JSON data.
  */
 export async function getFoodResearch(food: string): Promise<FoodResearchResult> {
   try {
-    const messages = [
-      {
-        role: "system",
-        content: "You are a pregnancy nutrition expert. Return ONLY valid JSON matching the requested schema. Do not include markdown blocks."
-      },
-      {
-        role: "user",
-        content: `Analyze this food for a pregnant person: "${food}". 
-        Provide a JSON object with exactly these keys: 
-        name (string), 
-        calories (number), 
-        protein (number), 
-        folate (number), 
-        iron (number), 
-        calcium (number), 
-        safetyRating (string: "Safe", "Caution", or "Avoid"), 
-        advice (string), 
-        benefits (array of strings).`
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Analyze this food for a pregnant person: "${food}". 
+      Provide a detailed report including calorie count, protein, folate, iron, calcium, and a safety rating.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            calories: { type: Type.NUMBER },
+            protein: { type: Type.NUMBER },
+            folate: { type: Type.NUMBER },
+            iron: { type: Type.NUMBER },
+            calcium: { type: Type.NUMBER },
+            safetyRating: { type: Type.STRING, description: '"Safe", "Caution", or "Avoid"' },
+            advice: { type: Type.STRING },
+            benefits: { type: Type.ARRAY, items: { type: Type.STRING } }
+          },
+          required: ["name", "calories", "protein", "folate", "iron", "calcium", "safetyRating", "advice", "benefits"]
+        }
       }
-    ];
+    });
 
-    const result = await callOpenRouter(messages, true);
-    // Cleanup potential markdown wrappers if the model ignores the prompt instruction
-    const cleanJson = result.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
-    return JSON.parse(cleanJson);
+    return JSON.parse(response.text || "{}");
   } catch (error) {
     console.error("Food Research Error:", error);
     return {
@@ -145,5 +136,30 @@ export async function getFoodResearch(food: string): Promise<FoodResearchResult>
       advice: "Research unavailable right now. Please check with your healthcare provider for safety advice.",
       benefits: ["N/A"]
     } as FoodResearchResult;
+  }
+}
+
+/**
+ * General purpose chat response.
+ */
+export async function getChatResponse(
+  history: { role: string; content: string }[],
+  systemInstruction: string
+): Promise<string> {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: [
+        { role: 'user', parts: [{ text: systemInstruction }] },
+        ...history.map(h => ({
+          role: h.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: h.content }]
+        }))
+      ]
+    });
+    return response.text || "I'm having a quiet moment 🤍. Please try again.";
+  } catch (error) {
+    console.error("Chat Error:", error);
+    return "I'm having a quiet moment 🤍. Please try again.";
   }
 }
