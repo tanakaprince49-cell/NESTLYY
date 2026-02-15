@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Nestly - Pregnancy Companion",
+  "description": "A comprehensive pregnancy nutrition companion featuring trimester-specific tracking, baby growth visualization, and personal wellness tools.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

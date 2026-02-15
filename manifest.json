@@ -1,0 +1,33 @@
+{
+  "name": "Nestly Pregnancy Companion",
+  "short_name": "Nestly",
+  "description": "Premium pregnancy nutrition and wellness tracker.",
+  "id": "com.nestly.app.v4",
+  "start_url": "/?pwa=true",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7e1631",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "maskable"
+    }
+  ],
+  "orientation": "portrait",
+  "prefer_related_applications": false
+}

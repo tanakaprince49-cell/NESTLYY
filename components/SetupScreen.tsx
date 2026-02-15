@@ -1,0 +1,220 @@
+import React, { useState, useEffect } from 'react';
+import { PregnancyProfile, NutritionTargets, MemoryAlbums } from '../types.ts';
+import { Logo } from './Logo.tsx';
+
+interface SetupScreenProps {
+  onComplete: (profile: PregnancyProfile) => void;
+  initialProfile?: PregnancyProfile | null;
+}
+
+type SetupStep = 'welcome' | 'name' | 'lmp' | 'calculation' | 'weight' | 'baby_name' | 'nutrition' | 'photo' | 'final';
+
+export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialProfile }) => {
+  const [step, setStep] = useState<SetupStep>(initialProfile ? 'name' : 'welcome');
+  const [userName, setUserName] = useState(initialProfile?.userName || '');
+  const [lmp, setLmp] = useState(initialProfile?.lmpDate ? initialProfile.lmpDate.split('T')[0] : '');
+  const [babyNickName, setBabyNickName] = useState(initialProfile?.babyName || '');
+  const [weight, setWeight] = useState(initialProfile?.startingWeight?.toString() || '');
+  const [profileImage, setProfileImage] = useState(initialProfile?.profileImage || '');
+  
+  // Nutrition Targets
+  const [useCustomTargets, setUseCustomTargets] = useState(!!initialProfile?.customTargets);
+  const [targets, setTargets] = useState<NutritionTargets>(initialProfile?.customTargets || {
+    cals: 2200,
+    protein: 75,
+    folate: 600,
+    iron: 27,
+    calcium: 1000
+  });
+
+  const [dueDate, setDueDate] = useState<string>('');
+  const [remainingWeeks, setRemainingWeeks] = useState<number>(0);
+
+  useEffect(() => {
+    if (lmp) {
+      const lmpDate = new Date(lmp);
+      const estDueDate = new Date(lmpDate.getTime() + (280 * 24 * 60 * 60 * 1000));
+      setDueDate(estDueDate.toISOString().split('T')[0]);
+      const diff = estDueDate.getTime() - new Date().getTime();
+      setRemainingWeeks(Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24 * 7))));
+    }
+  }, [lmp]);
+
+  const goTo = (next: SetupStep) => setStep(next);
+
+  const handleFinish = () => {
+    const emptyAlbums: MemoryAlbums = { ultrasound: [], family: [], favorites: [] };
+    onComplete({ 
+      userName,
+      lmpDate: new Date(lmp).toISOString(), 
+      dueDate: new Date(dueDate).toISOString(), 
+      babyName: babyNickName,
+      profileImage,
+      startingWeight: parseFloat(weight) || 0,
+      customTargets: useCustomTargets ? targets : undefined,
+      albums: initialProfile?.albums || emptyAlbums
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-[#fffaf9] flex flex-col relative overflow-hidden p-6 sm:p-8">
+      {/* Persistent Floating Teddy Bears */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.05]">
+        <div className="absolute top-[10%] left-[15%] text-6xl animate-float-teddy">🧸</div>
+        <div className="absolute bottom-[20%] right-[10%] text-7xl animate-float-teddy">🧸</div>
+      </div>
+
+      <div className="max-w-lg mx-auto w-full flex-1 flex flex-col justify-center gap-10 relative z-10">
+        
+        {step === 'welcome' && (
+          <div className="animate-slide-up space-y-10 text-center">
+            <Logo className="w-24 h-24 mx-auto" />
+            <div className="space-y-4">
+              <h1 className="text-5xl font-serif text-slate-900 leading-tight">Bonjour, <br/>Mama.</h1>
+              <p className="text-slate-400 font-medium px-4">Let's set up your private nest.</p>
+            </div>
+            <button onClick={() => goTo('name')} className="w-full py-6 bg-[#7e1631] text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Start Setup</button>
+          </div>
+        )}
+
+        {step === 'name' && (
+          <div className="animate-slide-up space-y-8 w-full text-center">
+            <h2 className="text-4xl font-serif text-slate-900">What's your name?</h2>
+            <input autoFocus value={userName} onChange={e => setUserName(e.target.value)} placeholder="Mama's Name" className="w-full text-center text-2xl font-serif border-b-2 border-rose-100 p-4 focus:border-rose-500 outline-none bg-transparent" />
+            <button onClick={() => goTo('lmp')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Next</button>
+          </div>
+        )}
+
+        {step === 'lmp' && (
+          <div className="animate-slide-up space-y-8 w-full text-center">
+            <h2 className="text-4xl font-serif text-slate-900">Last Period (LMP)</h2>
+            <input type="date" value={lmp} onChange={e => setLmp(e.target.value)} className="w-full bg-white border-2 border-rose-50 rounded-[2rem] px-8 py-6 text-xl font-bold text-center outline-none" />
+            <button onClick={() => goTo('calculation')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Calculate Due Date</button>
+          </div>
+        )}
+
+        {step === 'calculation' && (
+          <div className="animate-slide-up space-y-10 w-full text-center">
+            <div className="space-y-2">
+              <h2 className="text-sm font-black text-rose-500 uppercase tracking-[0.3em]">Estimated Due Date</h2>
+              <div className="text-4xl font-serif text-slate-900 py-4">
+                {new Date(dueDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+              </div>
+            </div>
+            <div className="p-8 bg-rose-50 rounded-[3rem] border-2 border-white shadow-inner">
+               <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Time Remaining</span>
+               <div className="text-3xl font-bold text-rose-900">{remainingWeeks} Weeks Left</div>
+            </div>
+            <button onClick={() => goTo('weight')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Continue</button>
+          </div>
+        )}
+
+        {step === 'weight' && (
+          <div className="animate-slide-up space-y-8 w-full text-center">
+            <h2 className="text-4xl font-serif text-slate-900">Starting Weight</h2>
+            <div className="flex items-center justify-center gap-4 bg-white/50 p-8 rounded-[3rem] border-2 border-rose-50">
+              <input type="number" step="0.1" autoFocus value={weight} onChange={e => setWeight(e.target.value)} placeholder="00.0" className="w-32 text-4xl font-serif text-center bg-transparent border-b-2 border-rose-200 focus:border-rose-500 outline-none p-0" />
+              <span className="text-2xl font-serif text-rose-400 italic">kg</span>
+            </div>
+            <button onClick={() => goTo('baby_name')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Next</button>
+          </div>
+        )}
+
+        {step === 'baby_name' && (
+          <div className="animate-slide-up space-y-8 w-full text-center">
+            <h2 className="text-4xl font-serif text-slate-900">Baby's Nickname</h2>
+            <input value={babyNickName} onChange={e => setBabyNickName(e.target.value)} placeholder="e.g. Peanut" className="w-full text-center text-2xl font-serif border-b-2 border-rose-100 p-4 focus:border-rose-500 outline-none bg-transparent" />
+            <button onClick={() => goTo('nutrition')} className="w-full py-6 bg-slate-900 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Continue</button>
+          </div>
+        )}
+
+        {step === 'nutrition' && (
+          <div className="animate-slide-up space-y-6 w-full text-center">
+            <h2 className="text-3xl font-serif text-slate-900">Nutrition Targets</h2>
+            
+            <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 shadow-sm space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-50">
+                <div className="text-left">
+                  <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Personalized Plan</span>
+                  <span className="text-sm font-bold text-slate-800">Custom Mama Goals</span>
+                </div>
+                <button 
+                  onClick={() => setUseCustomTargets(!useCustomTargets)}
+                  className={`w-14 h-8 rounded-full transition-all relative ${useCustomTargets ? 'bg-[#7e1631]' : 'bg-slate-200'}`}
+                >
+                  <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${useCustomTargets ? 'right-1' : 'left-1'}`} />
+                </button>
+              </div>
+
+              {useCustomTargets ? (
+                <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-500">
+                  <div className="space-y-1 text-left">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Calories</label>
+                    <input type="number" value={targets.cals} onChange={e => setTargets({...targets, cals: +e.target.value})} className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1 text-left">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Protein (g)</label>
+                    <input type="number" value={targets.protein} onChange={e => setTargets({...targets, protein: +e.target.value})} className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1 text-left">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Iron (mg)</label>
+                    <input type="number" value={targets.iron} onChange={e => setTargets({...targets, iron: +e.target.value})} className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-sm font-bold" />
+                  </div>
+                  <div className="space-y-1 text-left">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Folate (mcg)</label>
+                    <input type="number" value={targets.folate} onChange={e => setTargets({...targets, folate: +e.target.value})} className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-sm font-bold" />
+                  </div>
+                </div>
+              ) : (
+                <div className="py-6 px-4 bg-rose-50/50 rounded-2xl border border-rose-100/50">
+                  <p className="text-[11px] text-rose-800 font-medium italic leading-relaxed">
+                    Nestly will automatically apply clinician-standardized daily targets optimized for your specific trimester.
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <button onClick={() => goTo('photo')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest shadow-lg">Confirm Goals</button>
+          </div>
+        )}
+
+        {step === 'photo' && (
+          <div className="animate-slide-up space-y-8 w-full text-center">
+            <h2 className="text-4xl font-serif text-slate-900">Profile Glow</h2>
+            <div className="w-48 h-48 bg-rose-50 rounded-[3rem] border-4 border-white shadow-xl mx-auto flex items-center justify-center overflow-hidden cursor-pointer group" onClick={() => document.getElementById('p-up-setup')?.click()}>
+              {profileImage ? (
+                <img src={profileImage} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-4xl">📸</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-rose-300">Upload Photo</span>
+                </div>
+              )}
+              <input id="p-up-setup" type="file" className="hidden" accept="image/*" onChange={e => {
+                const f = e.target.files?.[0];
+                if (f) {
+                  const r = new FileReader();
+                  r.onloadend = () => setProfileImage(r.result as string);
+                  r.readAsDataURL(f);
+                }
+              }} />
+            </div>
+            <button onClick={() => goTo('final')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Almost Done</button>
+          </div>
+        )}
+
+        {step === 'final' && (
+          <div className="animate-slide-up space-y-10 w-full text-center">
+            <div className="text-8xl animate-float">🕊️</div>
+            <div className="space-y-4">
+              <h2 className="text-5xl font-serif text-slate-900">{initialProfile ? "Profile Updated" : "Nest is ready."}</h2>
+              <p className="text-slate-400 font-medium">Your data is stored securely on your device.</p>
+            </div>
+            <button onClick={handleFinish} className="w-full py-6 bg-[#7e1631] text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Enter My Nest</button>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
