@@ -12,6 +12,7 @@ import {
   MemoryAlbums
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
+import { ReportCenter } from './ReportCenter.tsx';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
@@ -159,10 +160,12 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   return (
     <div className="space-y-6 pb-24">
       <div className="flex gap-2 overflow-x-auto no-scrollbar py-3 sticky top-0 z-50 bg-[#fffaf9]/90 backdrop-blur-md">
-        {['vitals', 'sleep', 'memories', 'kegels', 'progress', 'journal', 'labor'].map(cat => (
+        {['vitals', 'sleep', 'memories', 'kegels', 'progress', 'journal', 'labor', 'reports'].map(cat => (
           <button key={cat} onClick={() => setActiveCategory(cat)} className={`flex-none px-6 py-3 rounded-2xl border transition-all text-[9px] font-black uppercase tracking-widest ${activeCategory === cat ? 'bg-rose-500 text-white border-rose-400' : 'bg-white text-gray-400'}`}>{cat}</button>
         ))}
       </div>
+
+      {activeCategory === 'reports' && <ReportCenter />}
 
       {activeCategory === 'vitals' && (
         <div className="space-y-6 animate-in fade-in">
