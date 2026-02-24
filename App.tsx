@@ -8,6 +8,7 @@ import { EducationHub } from './components/EducationHub.tsx';
 import { AuthScreen } from './components/AuthScreen.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
 import { AvaChat } from './components/AvaChat.tsx';
+import { SplashScreen } from './components/SplashScreen.tsx';
 import { storage } from './services/storageService.ts';
 import { subscribeUserToPush } from './services/pushService.ts';
 import { 
@@ -26,6 +27,7 @@ import {
 
 const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
+  const [showSplash, setShowSplash] = useState(true);
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [trimester, setTrimester] = useState<Trimester>(Trimester.FIRST);
@@ -71,6 +73,13 @@ const App: React.FC = () => {
     setSleepLogs(storage.getSleepLogs());
   }, [authEmail]);
 
+  const handleLogout = () => {
+    storage.logout();
+    setAuthEmail(null);
+    setProfile(null);
+    setActiveTab('dashboard');
+  };
+
   useEffect(() => { loadUserData(); }, [loadUserData]);
 
   useEffect(() => {
@@ -82,6 +91,28 @@ const App: React.FC = () => {
       else setTrimester(Trimester.THIRD);
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (profile?.themeColor) {
+      const root = document.documentElement;
+      if (profile.themeColor === 'blue') {
+        root.style.setProperty('--rose-main', '#3b82f6');
+        root.style.setProperty('--nestly-burgundy', '#1e3a8a');
+        root.style.setProperty('--soft-bg', '#eff6ff');
+        root.style.setProperty('--body-bg', '#dbeafe');
+      } else if (profile.themeColor === 'pink') {
+        root.style.setProperty('--rose-main', '#f43f5e');
+        root.style.setProperty('--nestly-burgundy', '#7e1631');
+        root.style.setProperty('--soft-bg', '#fffaf9');
+        root.style.setProperty('--body-bg', '#fdf8f7');
+      } else {
+        root.style.setProperty('--rose-main', '#64748b');
+        root.style.setProperty('--nestly-burgundy', '#1e293b');
+        root.style.setProperty('--soft-bg', '#f8fafc');
+        root.style.setProperty('--body-bg', '#f1f5f9');
+      }
+    }
+  }, [profile?.themeColor]);
 
   if (!authEmail) return <AuthScreen onAuthComplete={(e) => setAuthEmail(e)} />;
   
@@ -101,7 +132,9 @@ const App: React.FC = () => {
   const isAdmin = authEmail === 'tanakaprince49@gmail.com';
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+    <>
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
       <div className="max-w-4xl mx-auto px-4 py-4">
         {activeTab === 'dashboard' && (
           <Dashboard 
@@ -113,6 +146,7 @@ const App: React.FC = () => {
             onLogVitamin={(n) => { storage.addVitamin({id: Date.now().toString(), name: n, timestamp: Date.now()}); setVitamins(storage.getVitamins()); }}
             onQuickTool={(cat) => { setActiveTab('tools'); setActiveToolCat(cat); }}
             onEditProfile={() => setIsEditingProfile(true)}
+            onUpdateProfile={(p) => { storage.saveProfile(p); setProfile(p); }}
           />
         )}
         {activeTab === 'baby' && <BabyProgress profile={profile} />}
@@ -136,6 +170,7 @@ const App: React.FC = () => {
         {activeTab === 'admin' && isAdmin && <AdminDashboard />}
       </div>
     </Layout>
+    </>
   );
 };
 

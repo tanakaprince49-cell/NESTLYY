@@ -7,9 +7,10 @@ interface LayoutProps {
   children: React.ReactNode;
   activeTab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin';
   setActiveTab: (tab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin') => void;
+  onLogout: () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLogout }) => {
   const isAdmin = storage.getAuthEmail() === 'tanakaprince49@gmail.com';
 
   return (
@@ -24,9 +25,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       </div>
 
       {/* Header */}
-      <header className="relative z-[110] px-6 pt-6 pb-2 flex items-center gap-3 shrink-0 bg-[#fffaf9]/60 backdrop-blur-md">
-        <Logo className="w-10 h-10" />
-        <h1 className="text-2xl font-serif text-[#7e1631] tracking-tight">Nestly</h1>
+      <header className="relative z-[110] px-6 pt-6 pb-2 flex items-center justify-between shrink-0 bg-[#fffaf9]/60 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <Logo className="w-10 h-10" />
+          <h1 className="text-2xl font-serif text-rose-900 tracking-tight">Nestly</h1>
+        </div>
+        <button 
+          onClick={onLogout}
+          className="p-2 text-slate-400 hover:text-rose-900 transition-colors"
+          title="Logout"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
       </header>
 
       <main className="flex-1 relative z-10 overflow-y-auto no-scrollbar pb-safe">
@@ -60,11 +70,11 @@ const NavItem = ({ active, onClick, label, icon, isSpecial }: any) => (
     <div className={`text-xl mb-0.5 ${isSpecial && !active ? 'animate-pulse' : ''}`}>
       {icon}
     </div>
-    <span className={`text-[7px] font-black uppercase tracking-[0.1em] ${active ? 'text-[#7e1631]' : 'text-slate-500'}`}>
+    <span className={`text-[7px] font-black uppercase tracking-[0.1em] ${active ? 'text-rose-900' : 'text-slate-500'}`}>
       {label}
     </span>
     {active && (
-      <div className="absolute -bottom-1 w-1 h-1 bg-[#7e1631] rounded-full" />
+      <div className="absolute -bottom-1 w-1 h-1 bg-rose-900 rounded-full" />
     )}
   </button>
 );

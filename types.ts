@@ -39,15 +39,35 @@ export interface SleepLog {
   timestamp: number;
 }
 
+export interface BabyAvatar {
+  id: string;
+  name: string;
+  skinTone: string;
+  gender: 'boy' | 'girl' | 'surprise';
+}
+
 export interface PregnancyProfile {
   userName: string;
   lmpDate: string;
   dueDate: string;
-  babyName?: string;
+  isManualDueDate: boolean;
+  pregnancyType: 'singleton' | 'twins' | 'triplets';
+  babies: BabyAvatar[];
+  themeColor: 'pink' | 'blue' | 'neutral';
   profileImage?: string;
   startingWeight?: number;
   customTargets?: NutritionTargets;
   albums: MemoryAlbums;
+}
+
+export interface ArchivedPregnancy {
+  id: string;
+  startDate: string;
+  endDate?: string;
+  type: 'singleton' | 'twins' | 'triplets';
+  outcome: 'birth' | 'loss' | 'other';
+  notes?: string;
+  babies: string[];
 }
 
 export interface FoodEntry {
@@ -118,6 +138,7 @@ export interface ChecklistItem {
   id: string;
   text: string;
   completed: boolean;
+  category: 'hospital_bag' | 'birth_plan' | 'nursery' | 'general';
 }
 
 export interface KickLog {
@@ -142,6 +163,17 @@ export interface AvaMemoryFact {
   id: string;
   content: string;
   category: 'preference' | 'symptom' | 'milestone' | 'info';
+  timestamp: number;
+}
+
+export interface Article {
+  id: string;
+  title: string;
+  imageUrl: string;
+  source: string;
+  summary: string;
+  link: string;
+  stage: Trimester | 'General';
   timestamp: number;
 }
 

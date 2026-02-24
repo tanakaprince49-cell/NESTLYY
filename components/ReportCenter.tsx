@@ -18,7 +18,7 @@ export const ReportCenter: React.FC = () => {
     <div className="space-y-6 animate-in fade-in">
       <div className="card-premium p-8 bg-white border-2 border-white shadow-sm space-y-8">
         <div className="space-y-2">
-          <h3 className="text-2xl font-serif text-[#7e1631]">Report Center</h3>
+          <h3 className="text-2xl font-serif text-rose-900">Report Center</h3>
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Archive and export your journey</p>
         </div>
 
@@ -48,7 +48,7 @@ export const ReportCenter: React.FC = () => {
           <div className="grid gap-4 pt-4">
             <button 
               onClick={handleDownloadDaily}
-              className="w-full py-5 bg-[#7e1631] text-white font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-rose-900/10 active:scale-95 transition-all flex items-center justify-center gap-3"
+              className="w-full py-5 bg-rose-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-rose-900/10 active:scale-95 transition-all flex items-center justify-center gap-3"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Daily Progress PDF

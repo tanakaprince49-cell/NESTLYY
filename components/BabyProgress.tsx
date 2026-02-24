@@ -76,10 +76,37 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile }> = ({ profile 
       <div className="card-premium p-8 sm:p-10 bg-white border-2 border-white shadow-xl relative overflow-hidden group">
         <div className="absolute -top-12 -right-12 w-48 h-48 bg-rose-50 rounded-full blur-3xl opacity-50" />
         <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
-          <div className="w-40 h-40 bg-rose-50/50 rounded-[2.5rem] flex items-center justify-center text-8xl shadow-inner border border-rose-100 shrink-0 animate-in zoom-in-50 duration-500">{baby.image}</div>
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex justify-center gap-2">
+              {profile.pregnancyType === 'singleton' ? (
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-40 h-40 bg-rose-50/50 rounded-[2.5rem] flex items-center justify-center text-8xl shadow-inner border border-rose-100 shrink-0 animate-in zoom-in-50 duration-500">
+                    {baby.image}
+                  </div>
+                  <div className="text-4xl animate-bounce">
+                    {profile.babies[0].gender === 'boy' ? '👦' : profile.babies[0].gender === 'girl' ? '👧' : '👶'}{profile.babies[0].skinTone}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap justify-center gap-4 max-w-[300px]">
+                  {profile.babies.map((b, i) => (
+                    <div key={i} className="flex flex-col items-center gap-2">
+                      <div className="w-24 h-24 bg-rose-50/50 rounded-2xl flex items-center justify-center text-5xl shadow-inner border border-rose-100 animate-in zoom-in-50 duration-500">
+                        {baby.image}
+                      </div>
+                      <div className="text-2xl">
+                        {b.gender === 'boy' ? '👦' : b.gender === 'girl' ? '👧' : '👶'}{b.skinTone}
+                      </div>
+                      <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">{b.name || `Baby ${i+1}`}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
           <div className="flex-1 space-y-4 text-center sm:text-left">
             <div>
-              <h3 className="text-2xl font-serif text-rose-900 leading-tight">Size of a {baby.size}</h3>
+              <h3 className="text-2xl font-serif text-rose-900 leading-tight">Size of {profile.pregnancyType === 'singleton' ? 'a' : profile.pregnancyType === 'twins' ? 'two' : 'three'} {baby.size}</h3>
               <p className="text-sm text-gray-500 italic mt-1 leading-relaxed">"{baby.description}"</p>
             </div>
             <div className="grid grid-cols-2 gap-4">

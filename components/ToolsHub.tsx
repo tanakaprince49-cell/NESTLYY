@@ -49,6 +49,25 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   const [sleepHours, setSleepHours] = useState('8');
   const [sleepQuality, setSleepQuality] = useState<SleepLog['quality']>('good');
   
+  const [activeToolCat, setActiveToolCat] = useState('hospital_bag');
+  
+  // Checklists
+  const [checklists, setChecklists] = useState<{ [key: string]: any[] }>({
+    hospital_bag: storage.getChecklist('hospital_bag'),
+    birth_plan: storage.getChecklist('birth_plan'),
+    nursery: storage.getChecklist('nursery'),
+    general: storage.getChecklist('general')
+  });
+  const [newChecklistItem, setNewChecklistItem] = useState('');
+
+  // Archive
+  const [archive, setArchive] = useState(storage.getArchive());
+
+  // Calendar
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [eventType, setEventType] = useState<CalendarEvent['type']>('appointment');
+  
   // Kegels
   const [isKegelActive, setIsKegelActive] = useState(false);
   const [kegelTimer, setKegelTimer] = useState(0);
@@ -160,12 +179,136 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   return (
     <div className="space-y-6 pb-24">
       <div className="flex gap-2 overflow-x-auto no-scrollbar py-3 sticky top-0 z-50 bg-[#fffaf9]/90 backdrop-blur-md">
-        {['vitals', 'sleep', 'memories', 'kegels', 'progress', 'journal', 'labor', 'reports'].map(cat => (
+        {['vitals', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'archive', 'reports'].map(cat => (
           <button key={cat} onClick={() => setActiveCategory(cat)} className={`flex-none px-6 py-3 rounded-2xl border transition-all text-[9px] font-black uppercase tracking-widest ${activeCategory === cat ? 'bg-rose-500 text-white border-rose-400' : 'bg-white text-gray-400'}`}>{cat}</button>
         ))}
       </div>
 
-      {activeCategory === 'reports' && <ReportCenter />}
+      {activeCategory === 'calendar' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Appointment Calendar</h3>
+            <div className="space-y-4">
+              <input 
+                value={eventTitle} 
+                onChange={e => setEventTitle(e.target.value)} 
+                placeholder="Event Title (e.g. Ultrasound)" 
+                className="w-full px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" 
+              />
+              <div className="flex gap-3">
+                <input 
+                  type="date" 
+                  value={eventDate} 
+                  onChange={e => setEventDate(e.target.value)} 
+                  className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" 
+                />
+                <select 
+                  value={eventType} 
+                  onChange={e => setEventType(e.target.value as any)}
+                  className="px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold outline-none"
+                >
+                  <option value="appointment">Appointment</option>
+                  <option value="reminder">Reminder</option>
+                  <option value="milestone">Milestone</option>
+                </select>
+              </div>
+              <button 
+                onClick={() => {
+                  if (eventTitle && eventDate) {
+                    onAddEvent(eventTitle, eventDate, eventType);
+                    setEventTitle('');
+                    setEventDate('');
+                  }
+                }}
+                className="w-full py-5 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl"
+              >
+                Add to Calendar
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {calendarEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(event => (
+              <div key={event.id} className="card-premium p-6 bg-white border-2 border-white shadow-sm flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${event.type === 'appointment' ? 'bg-blue-50 text-blue-500' : event.type === 'milestone' ? 'bg-amber-50 text-amber-500' : 'bg-rose-50 text-rose-500'}`}>
+                    {event.type === 'appointment' ? '🏥' : event.type === 'milestone' ? '🏆' : '🔔'}
+                  </div>
+                  <div>
+                    <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{new Date(event.date).toLocaleDateString()}</div>
+                    <div className="text-sm font-bold text-slate-900">{event.title}</div>
+                  </div>
+                </div>
+                <button onClick={() => onRemoveEvent(event.id)} className="text-[10px] text-rose-300 hover:text-rose-500 font-bold">Delete</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'checklists' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+            {(['hospital_bag', 'birth_plan', 'nursery', 'general'] as const).map(cat => (
+              <button 
+                key={cat} 
+                onClick={() => setActiveToolCat(cat)}
+                className={`flex-none px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all ${activeToolCat === cat ? 'bg-slate-900 text-white' : 'bg-white text-slate-400 border border-slate-100'}`}
+              >
+                {cat.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800 capitalize">{activeToolCat.replace('_', ' ')}</h3>
+            <div className="flex gap-3">
+              <input 
+                value={newChecklistItem} 
+                onChange={e => setNewChecklistItem(e.target.value)} 
+                placeholder="Add item..." 
+                className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" 
+              />
+              <button 
+                onClick={() => {
+                  if (newChecklistItem) {
+                    const item: any = { id: Date.now().toString(), text: newChecklistItem, completed: false, category: activeToolCat };
+                    storage.saveChecklistItem(item);
+                    setChecklists({ ...checklists, [activeToolCat]: storage.getChecklist(activeToolCat as any) });
+                    setNewChecklistItem('');
+                  }
+                }}
+                className="px-6 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest"
+              >
+                Add
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {checklists[activeToolCat]?.map(item => (
+                <div key={item.id} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => {
+                        const updated = { ...item, completed: !item.completed };
+                        storage.saveChecklistItem(updated);
+                        setChecklists({ ...checklists, [activeToolCat]: storage.getChecklist(activeToolCat as any) });
+                      }}
+                      className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${item.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-white'}`}
+                    >
+                      {item.completed && '✓'}
+                    </button>
+                    <span className={`text-sm font-medium ${item.completed ? 'text-slate-300 line-through' : 'text-slate-700'}`}>{item.text}</span>
+                  </div>
+                  <button onClick={() => { storage.removeChecklistItem(item.id); setChecklists({ ...checklists, [activeToolCat]: storage.getChecklist(activeToolCat as any) }); }} className="text-rose-300 hover:text-rose-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeCategory === 'vitals' && (
         <div className="space-y-6 animate-in fade-in">
@@ -346,10 +489,60 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         </div>
       )}
 
+      {activeCategory === 'archive' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Pregnancy Archive</h3>
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-relaxed">Preserve your journey, every step of the way.</p>
+            
+            <button 
+              onClick={() => {
+                const entry: any = {
+                  id: Date.now().toString(),
+                  startDate: profile.lmpDate,
+                  endDate: new Date().toISOString(),
+                  type: profile.pregnancyType,
+                  outcome: 'birth',
+                  babies: profile.babies.map(b => b.name)
+                };
+                storage.addToArchive(entry);
+                setArchive(storage.getArchive());
+              }}
+              className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl"
+            >
+              Archive Current Pregnancy
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {archive.map(entry => (
+              <div key={entry.id} className="card-premium p-6 bg-white border-2 border-white shadow-sm space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="text-[8px] font-black text-rose-400 uppercase tracking-widest">{new Date(entry.startDate).getFullYear()} Journey</div>
+                    <div className="text-lg font-serif text-slate-900 capitalize">{entry.type} Pregnancy</div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${entry.outcome === 'birth' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
+                    {entry.outcome}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {entry.babies.map((name, i) => (
+                    <span key={i} className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-bold text-slate-600">
+                      {name || 'Baby'}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {activeCategory === 'journal' && (
         <div className="space-y-8 animate-in fade-in">
            <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
-              <h3 className="text-xl font-serif text-rose-800">Mama's Reflections</h3>
+              <h3 className="text-xl font-serif text-rose-800">Parent's Reflections</h3>
               <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
                  {['✨', '🌸', '😴', '🤰', '🤍', '🍰', '💪'].map(m => (
                    <button 
@@ -364,12 +557,12 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               <textarea 
                 value={journalInput}
                 onChange={e => setJournalInput(e.target.value)}
-                placeholder="How are you feeling today, Mama?"
+                placeholder="How are you feeling today?"
                 className="w-full h-32 bg-slate-50 border-none rounded-[1.5rem] p-5 text-sm font-medium resize-none focus:bg-white transition-all shadow-inner"
               />
               <button 
                 onClick={() => { if(journalInput) { onAddJournal(journalInput, selectedMood); setJournalInput(''); } }}
-                className="w-full py-5 bg-[#7e1631] text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl"
+                className="w-full py-5 bg-rose-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl"
               >
                 Save Reflection
               </button>

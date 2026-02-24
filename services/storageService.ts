@@ -15,7 +15,10 @@ import {
   KickLog,
   ChatMessage,
   PeriodLog,
-  AvaMemoryFact
+  AvaMemoryFact,
+  Article,
+  ArchivedPregnancy,
+  ChecklistItem
 } from '../types.ts';
 
 const KEYS = {
@@ -38,7 +41,10 @@ const KEYS = {
   AVA_MEMORY: 'ava_memory_bank',
   PERIOD_LOGS: 'period_logs',
   UNLOCKED_IDS: 'unlocked_achievement_ids',
-  AVA_IMAGE: 'ava_custom_image'
+  AVA_IMAGE: 'ava_custom_image',
+  ARTICLES: 'nestly_global_articles',
+  ARCHIVE: 'pregnancy_archive',
+  CHECKLISTS: 'checklists'
 };
 
 class StorageService {
@@ -153,6 +159,50 @@ class StorageService {
 
   saveAvaImage(dataUrl: string): void {
     this.setItem(KEYS.AVA_IMAGE, dataUrl);
+  }
+
+  getArticles(): Article[] {
+    return this.getItem<Article[]>(KEYS.ARTICLES, [], true);
+  }
+
+  addArticle(article: Article): void {
+    const articles = this.getArticles();
+    this.setItem(KEYS.ARTICLES, [article, ...articles], true);
+  }
+
+  removeArticle(id: string): void {
+    const articles = this.getArticles();
+    this.setItem(KEYS.ARTICLES, articles.filter(a => a.id !== id), true);
+  }
+
+  getArchive(): ArchivedPregnancy[] {
+    return this.getItem<ArchivedPregnancy[]>(KEYS.ARCHIVE, []);
+  }
+
+  addToArchive(entry: ArchivedPregnancy): void {
+    const archive = this.getArchive();
+    this.setItem(KEYS.ARCHIVE, [entry, ...archive]);
+  }
+
+  getChecklist(category: ChecklistItem['category']): ChecklistItem[] {
+    const all = this.getItem<ChecklistItem[]>(KEYS.CHECKLISTS, []);
+    return all.filter(item => item.category === category);
+  }
+
+  saveChecklistItem(item: ChecklistItem): void {
+    const all = this.getItem<ChecklistItem[]>(KEYS.CHECKLISTS, []);
+    const index = all.findIndex(i => i.id === item.id);
+    if (index >= 0) {
+      all[index] = item;
+      this.setItem(KEYS.CHECKLISTS, all);
+    } else {
+      this.setItem(KEYS.CHECKLISTS, [...all, item]);
+    }
+  }
+
+  removeChecklistItem(id: string): void {
+    const all = this.getItem<ChecklistItem[]>(KEYS.CHECKLISTS, []);
+    this.setItem(KEYS.CHECKLISTS, all.filter(i => i.id !== id));
   }
 }
 

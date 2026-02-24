@@ -27,6 +27,7 @@ interface DashboardProps {
   onLogVitamin: (name: string) => void;
   onQuickTool: (cat: string) => void;
   onEditProfile: () => void;
+  onUpdateProfile?: (profile: PregnancyProfile) => void;
 }
 
 const DAILY_TIPS = [
@@ -42,11 +43,10 @@ const DAILY_TIPS = [
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
   entries, waterLogs, vitamins, weightLogs, sleepLogs, trimester, profile, 
-  onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile
+  onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile
 }) => {
   const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep'>('fuel');
   const [dailyTip, setDailyTip] = useState('');
-  const [showWidgetHelper, setShowWidgetHelper] = useState(true);
   
   const [foodName, setFoodName] = useState('');
   const [foodCals, setFoodCals] = useState('');
@@ -144,30 +144,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">Your Journey</span>
           <h2 className="text-4xl font-serif text-slate-900 leading-tight">Bonjour, <br/>{profile.userName}</h2>
         </div>
-        <button 
-          onClick={onEditProfile}
-          className="bg-white/50 backdrop-blur-md border border-white px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-[#7e1631] transition-all active:scale-95"
-        >
-          Edit Profile
-        </button>
-      </div>
-
-      {/* Widget Integration Helper - Specifically for the user's issue */}
-      {showWidgetHelper && (
-        <div className="bg-[#7e1631] p-6 rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl shadow-rose-900/20 border border-white/10">
-          <button onClick={() => setShowWidgetHelper(false)} className="absolute top-4 right-5 opacity-40 text-[9px] font-black uppercase">Dismiss</button>
-          <div className="flex gap-5 items-center">
-            <div className="w-14 h-14 bg-white/10 rounded-3xl flex items-center justify-center text-3xl shrink-0 border border-white/10">📱</div>
-            <div className="space-y-1">
-              <h4 className="text-[11px] font-black uppercase tracking-widest text-rose-300">Activate Home Widget</h4>
-              <p className="text-[10px] font-medium opacity-90 leading-relaxed">
-                To see widgets, you must <strong>Uninstall</strong> then <strong>Install App</strong> from Chrome's ⋮ menu. 
-                Shortcuts added via "Add to home screen" do not support widgets.
-              </p>
-            </div>
+        <div className="flex flex-col items-end gap-2">
+          <button 
+            onClick={onEditProfile}
+            className="bg-white/50 backdrop-blur-md border border-white px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-900 transition-all active:scale-95"
+          >
+            Edit Profile
+          </button>
+          <div className="flex gap-1 bg-white/30 p-1 rounded-xl border border-white/50 relative z-50">
+            {(['pink', 'blue', 'neutral'] as const).map(c => (
+              <button
+                key={c}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const updatedProfile = { ...profile, themeColor: c };
+                  onUpdateProfile?.(updatedProfile);
+                }}
+                className={`w-6 h-6 rounded-lg border transition-all cursor-pointer ${profile.themeColor === c ? 'border-rose-500 scale-110 shadow-sm' : 'border-transparent opacity-40 hover:opacity-100'}`}
+                style={{ backgroundColor: c === 'pink' ? '#f43f5e' : c === 'blue' ? '#3b82f6' : '#64748b' }}
+              />
+            ))}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Summary Widgets Section */}
       <div className="space-y-3">
@@ -191,11 +190,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          <div onClick={() => onQuickTool('progress')} className="card-premium p-5 bg-[#7e1631] text-white flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
+          <div onClick={() => onQuickTool('progress')} className="card-premium p-5 bg-rose-900 text-white flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
              <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Baby Growth</span>
              <div className="mt-2 text-center">
-               <span className="text-3xl block mb-1">{baby.image}</span>
-               <span className="text-[10px] font-serif block leading-tight">Size of a {baby.size}</span>
+               <div className="flex justify-center gap-1 mb-1">
+                 {profile.babies.map((b, i) => (
+                   <span key={i} className="text-2xl">
+                     {b.gender === 'boy' ? '👦' : b.gender === 'girl' ? '👧' : '👶'}{b.skinTone}
+                   </span>
+                 ))}
+               </div>
+               <span className="text-[10px] font-serif block leading-tight">Size of {profile.pregnancyType === 'singleton' ? 'a' : profile.pregnancyType === 'twins' ? 'two' : 'three'} {baby.size}</span>
                <span className="text-[8px] uppercase tracking-widest opacity-60 mt-2 block">Week {weeks}</span>
              </div>
           </div>
@@ -211,7 +216,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
          <div className="flex items-center gap-4 mt-2">
             <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-rose-200 shrink-0 animate-float">✨</div>
             <div className="space-y-1">
-               <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Mama Wisdom</span>
+               <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Parent Wisdom</span>
                <p className="text-xs font-bold text-slate-800 italic leading-snug">"{dailyTip}"</p>
             </div>
          </div>
@@ -253,7 +258,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             />
             <button 
               onClick={handleManualFoodLog}
-              className="px-6 bg-[#7e1631] text-white font-black rounded-2xl text-[10px] uppercase tracking-widest active:scale-95"
+              className="px-6 bg-rose-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest active:scale-95"
             >
               Add
             </button>

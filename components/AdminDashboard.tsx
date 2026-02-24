@@ -1,12 +1,44 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { storage } from '../services/storageService.ts';
+import { Trimester } from '../types.ts';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 
 export const AdminDashboard: React.FC = () => {
   const logs = storage.getAuthActivity();
   const totalUsers = new Set(logs.map(l => l.email)).size;
   
+  const [headline, setHeadline] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [source, setSource] = useState('');
+  const [summary, setSummary] = useState('');
+  const [link, setLink] = useState('');
+  const [stage, setStage] = useState<Trimester | 'General'>('General');
+
+  const handlePostArticle = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!headline || !summary || !link) return;
+
+    storage.addArticle({
+      id: Date.now().toString(),
+      title: headline,
+      imageUrl: imageUrl || 'https://picsum.photos/seed/nestly/800/400',
+      source,
+      summary,
+      link,
+      stage,
+      timestamp: Date.now()
+    });
+
+    setHeadline('');
+    setImageUrl('');
+    setSource('');
+    setSummary('');
+    setLink('');
+    setStage('General');
+    alert('Article posted successfully!');
+  };
+
   const stats = useMemo(() => ({
     activation: 94, // % users with LMP set
     usage: 82,      // DAU %
@@ -53,6 +85,66 @@ export const AdminDashboard: React.FC = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      <div className="card-premium p-8 bg-white shadow-sm space-y-6">
+        <div>
+          <h3 className="text-xl font-serif text-slate-900">Post Expert Article</h3>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Share knowledge with all Nestlings</p>
+        </div>
+
+        <form onSubmit={handlePostArticle} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input 
+              placeholder="Headline" 
+              value={headline} 
+              onChange={e => setHeadline(e.target.value)}
+              className="text-sm"
+            />
+            <input 
+              placeholder="Image URL (optional)" 
+              value={imageUrl} 
+              onChange={e => setImageUrl(e.target.value)}
+              className="text-sm"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input 
+              placeholder="Source (e.g. Mayo Clinic)" 
+              value={source} 
+              onChange={e => setSource(e.target.value)}
+              className="text-sm"
+            />
+            <select 
+              value={stage} 
+              onChange={e => setStage(e.target.value as any)}
+              className="text-sm"
+            >
+              <option value="General">General</option>
+              <option value={Trimester.FIRST}>{Trimester.FIRST}</option>
+              <option value={Trimester.SECOND}>{Trimester.SECOND}</option>
+              <option value={Trimester.THIRD}>{Trimester.THIRD}</option>
+            </select>
+          </div>
+          <textarea 
+            placeholder="Expert Summary" 
+            value={summary} 
+            onChange={e => setSummary(e.target.value)}
+            className="text-sm min-h-[120px]"
+          />
+          <input 
+            placeholder="Real Article Link (URL)" 
+            value={link} 
+            onChange={e => setLink(e.target.value)}
+            className="text-sm"
+          />
+          <button 
+            type="submit"
+            className="w-full bg-[#7e1631] text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+          >
+            Broadcast Article
+          </button>
+        </form>
       </div>
     </div>
   );

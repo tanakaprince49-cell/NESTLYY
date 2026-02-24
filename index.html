@@ -13,6 +13,26 @@
     
     <title>Nestly - Pregnancy Companion</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              rose: {
+                50: 'var(--soft-bg)',
+                100: 'rgba(244, 63, 94, 0.1)', // Fallback or dynamic
+                400: 'var(--rose-main)',
+                500: 'var(--rose-main)',
+                600: 'var(--rose-main)',
+                700: 'var(--nestly-burgundy)',
+                800: 'var(--nestly-burgundy)',
+                900: 'var(--nestly-burgundy)',
+              }
+            }
+          }
+        }
+      }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
       // Global process polyfill with injected API key for browser runtime
@@ -31,6 +51,7 @@
         --rose-main: #f43f5e;
         --nestly-burgundy: #7e1631;
         --soft-bg: #fffaf9;
+        --body-bg: #fdf8f7;
       }
       * {
         box-sizing: border-box;
@@ -42,7 +63,7 @@
 
       body {
         font-family: 'Plus Jakarta Sans', sans-serif;
-        background: #fdf8f7;
+        background: var(--body-bg);
         margin: 0;
         display: flex;
         justify-content: center;
@@ -155,9 +176,13 @@
       }
     }
     </script>
-  </head>
+    <!-- Privacy-friendly analytics by Plausible -->
+    <script async src="https://plausible.io/js/pa-qu38XzloqDhefv3GNak5F.js"></script>
+  <link rel="stylesheet" href="/index.css">
+</head>
   <body>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
-  </body>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>
