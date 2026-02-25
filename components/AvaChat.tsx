@@ -98,7 +98,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
         <div className="flex items-center gap-4">
           <div 
             onClick={handleImageClick}
-            className="w-12 h-12 bg-[#7e1631] rounded-2xl flex items-center justify-center overflow-hidden shadow-lg border border-white cursor-pointer group relative shrink-0 transition-transform active:scale-95"
+            className="w-12 h-12 bg-rose-900 rounded-2xl flex items-center justify-center overflow-hidden shadow-lg border border-white cursor-pointer group relative shrink-0 transition-transform active:scale-95"
           >
             {avaImage ? (
               <img src={avaImage} alt="Ava" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
@@ -150,7 +150,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
         {showVault && (
           <div className="absolute inset-0 z-50 bg-[#fffaf9]/95 backdrop-blur-md p-6 animate-in fade-in zoom-in-95 overflow-y-auto rounded-b-[2rem]">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-serif text-[#7e1631]">Ava's Memory Vault</h3>
+              <h3 className="text-xl font-serif text-rose-900">Ava's Memory Vault</h3>
               <button onClick={() => setShowVault(false)} className="text-slate-400 hover:text-slate-900 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
@@ -189,7 +189,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}>
             <div className={`max-w-[85%] px-6 py-4 rounded-[1.8rem] text-[15px] leading-relaxed shadow-sm ${
               m.role === 'user' 
-                ? 'bg-[#7e1631] text-white rounded-br-none shadow-[#7e1631]/20 font-medium' 
+                ? 'bg-rose-900 text-white rounded-br-none shadow-rose-900/20 font-medium' 
                 : 'bg-white/90 border border-slate-50 text-slate-800 rounded-bl-none font-medium'
             }`}>
               {m.text}
@@ -213,12 +213,12 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="Talk to Ava... 🧸"
-            className="w-full h-14 pl-6 pr-20 bg-white border-none rounded-[2rem] shadow-inner text-base font-medium outline-none focus:ring-4 focus:ring-[#7e1631]/5 transition-all"
+            className="w-full h-14 pl-6 pr-20 bg-white border-none rounded-[2rem] shadow-inner text-base font-medium outline-none focus:ring-4 focus:ring-rose-900/5 transition-all"
           />
           <button 
             type="submit"
             disabled={!input.trim() || loading}
-            className="absolute right-2 top-2 bottom-2 px-6 bg-[#7e1631] text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-40 transition-all"
+            className="absolute right-2 top-2 bottom-2 px-6 bg-rose-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-40 transition-all"
           >
             Send
           </button>

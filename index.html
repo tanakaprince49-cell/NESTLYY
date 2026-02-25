@@ -35,13 +35,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
-      // Global process polyfill with injected API key for browser runtime
-      window.process = {
-        env: {
-          API_KEY: "sk-or-v1-25398675a6cf8583ea3a5fc88084f3b409a881aea8e947d9c75cbffb122",
-          NODE_ENV: "production"
-        }
-      };
+      window.process = { env: { NODE_ENV: 'production' } };
     </script>
     <style>
       :root {
@@ -163,26 +157,11 @@
         user-select: none;
       }
     </style>
-    <script type="importmap">
-    {
-      "imports": {
-        "react/": "https://esm.sh/react@^19.2.4/",
-        "react": "https://esm.sh/react@^19.2.4",
-        "recharts": "https://esm.sh/recharts@^3.7.0",
-        "react-dom": "https://esm.sh/react-dom@^19.2.4",
-        "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-        "jspdf": "https://esm.sh/jspdf@^2.5.1",
-        "@google/genai": "https://esm.sh/@google/genai@^1.40.0"
-      }
-    }
-    </script>
     <!-- Privacy-friendly analytics by Plausible -->
     <script async src="https://plausible.io/js/pa-qu38XzloqDhefv3GNak5F.js"></script>
-  <link rel="stylesheet" href="/index.css">
 </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="./index.tsx"></script>
-  <script type="module" src="/index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>

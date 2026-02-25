@@ -14,7 +14,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   const isAdmin = storage.getAuthEmail() === 'tanakaprince49@gmail.com';
 
   return (
-    <div className="flex-1 flex flex-col relative overflow-hidden h-screen bg-[#fffaf9]">
+    <div className="flex-1 flex flex-col relative overflow-hidden h-screen bg-rose-50">
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.08]">
         <div className="absolute top-[10%] left-[15%] text-6xl animate-float-teddy" style={{ animationDelay: '0s' }}>🧸</div>
@@ -25,7 +25,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       </div>
 
       {/* Header */}
-      <header className="relative z-[110] px-6 pt-6 pb-2 flex items-center justify-between shrink-0 bg-[#fffaf9]/60 backdrop-blur-md">
+      <header className="relative z-[110] px-6 pt-6 pb-2 flex items-center justify-between shrink-0 bg-rose-50/60 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <Logo className="w-10 h-10" />
           <h1 className="text-2xl font-serif text-rose-900 tracking-tight">Nestly</h1>

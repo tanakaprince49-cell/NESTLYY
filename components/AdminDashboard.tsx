@@ -140,7 +140,7 @@ export const AdminDashboard: React.FC = () => {
           />
           <button 
             type="submit"
-            className="w-full bg-[#7e1631] text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+            className="w-full bg-rose-900 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all"
           >
             Broadcast Article
           </button>

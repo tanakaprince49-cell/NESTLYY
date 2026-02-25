@@ -13,7 +13,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(onComplete, 800); // Wait for exit animation
-    }, 2500);
+    }, 8000);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -25,7 +25,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#fffaf9]"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-rose-50"
           style={{ maxWidth: 'var(--app-width)', margin: '0 auto' }}
         >
           {/* Background Decorative Elements */}
@@ -71,7 +71,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-                className="text-5xl font-serif text-[#7e1631] tracking-tight"
+                className="text-5xl font-serif text-rose-900 tracking-tight"
               >
                 Nestly
               </motion.h1>
@@ -82,11 +82,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 transition={{ duration: 1, delay: 1 }}
                 className="flex items-center gap-3"
               >
-                <div className="h-[1px] w-8 bg-[#7e1631]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#7e1631]">
+                <div className="h-[1px] w-8 bg-rose-900" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-rose-900">
                   Pregnancy Companion
                 </span>
-                <div className="h-[1px] w-8 bg-[#7e1631]" />
+                <div className="h-[1px] w-8 bg-rose-900" />
               </motion.div>
             </div>
           </div>

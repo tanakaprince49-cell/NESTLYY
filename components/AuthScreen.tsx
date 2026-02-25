@@ -97,7 +97,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-[#fffaf9]">
+    <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-rose-50">
       <div className="w-full max-w-[480px] z-10 animate-slide-up">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-10">
@@ -107,7 +107,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
               </div>
             </div>
           </div>
-          <h1 className="text-6xl font-serif text-[#7e1631] tracking-tight mb-4">Nestly</h1>
+          <h1 className="text-6xl font-serif text-rose-900 tracking-tight mb-4">Nestly</h1>
           <p className="text-[12px] text-[#94a3b8] font-medium uppercase tracking-[0.4em]">
             {isLogin ? 'WELCOME BACK' : 'CREATE YOUR NEST'}
           </p>
@@ -159,7 +159,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
               <button 
                 type="submit"
                 disabled={loading}
-                className="w-full h-16 bg-[#7e1631] text-white font-black rounded-[1.8rem] shadow-lg hover:shadow-xl active:scale-95 transition-all text-[11px] uppercase tracking-[0.3em] mt-6 flex justify-center items-center gap-3 disabled:opacity-40"
+                className="w-full h-16 bg-rose-900 text-white font-black rounded-[1.8rem] shadow-lg hover:shadow-xl active:scale-95 transition-all text-[11px] uppercase tracking-[0.3em] mt-6 flex justify-center items-center gap-3 disabled:opacity-40"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
