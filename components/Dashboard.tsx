@@ -194,7 +194,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
              <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Baby Growth</span>
              <div className="mt-2 text-center">
                <div className="flex justify-center gap-1 mb-1">
-                 {profile.babies.map((b, i) => (
+                 {profile.babies?.map((b, i) => (
                    <span key={i} className="text-2xl">
                      {b.gender === 'boy' ? '👦' : b.gender === 'girl' ? '👧' : '👶'}{b.skinTone}
                    </span>

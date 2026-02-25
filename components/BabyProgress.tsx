@@ -84,12 +84,12 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile }> = ({ profile 
                     {baby.image}
                   </div>
                   <div className="text-4xl animate-bounce">
-                    {profile.babies[0].gender === 'boy' ? '👦' : profile.babies[0].gender === 'girl' ? '👧' : '👶'}{profile.babies[0].skinTone}
+                    {profile.babies?.[0]?.gender === 'boy' ? '👦' : profile.babies?.[0]?.gender === 'girl' ? '👧' : '👶'}{profile.babies?.[0]?.skinTone}
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-wrap justify-center gap-4 max-w-[300px]">
-                  {profile.babies.map((b, i) => (
+                  {profile.babies?.map((b, i) => (
                     <div key={i} className="flex flex-col items-center gap-2">
                       <div className="w-24 h-24 bg-rose-50/50 rounded-2xl flex items-center justify-center text-5xl shadow-inner border border-rose-100 animate-in zoom-in-50 duration-500">
                         {baby.image}

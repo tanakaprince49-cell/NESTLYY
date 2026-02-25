@@ -503,7 +503,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   endDate: new Date().toISOString(),
                   type: profile.pregnancyType,
                   outcome: 'birth',
-                  babies: profile.babies.map(b => b.name)
+                  babies: (profile.babies || []).map(b => b.name)
                 };
                 storage.addToArchive(entry);
                 setArchive(storage.getArchive());

@@ -33,10 +33,10 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
     setLoading(true);
 
     try {
-      const memoryStrings = memoryBank.map(m => m.content);
+      const memoryStrings = (memoryBank || []).map(m => m.content);
       
       // Map local 'model' role to service expected 'assistant' role
-      const historyForApi = newMessages.map(m => ({
+      const historyForApi = (newMessages || []).map(m => ({
         role: (m.role === 'model' ? 'assistant' : 'user') as "user" | "assistant",
         text: m.text
       }));
@@ -158,7 +158,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 mb-6">Stored journey facts</p>
             
             <div className="space-y-3">
-              {memoryBank.length > 0 ? memoryBank.map(fact => (
+              {memoryBank?.length > 0 ? memoryBank.map(fact => (
                 <div key={fact.id} className="p-4 bg-white border border-rose-50 rounded-2xl shadow-sm flex items-start gap-4">
                   <span className="text-xl">
                     {fact.category === 'preference' ? '🍓' : fact.category === 'symptom' ? '🩺' : fact.category === 'milestone' ? '🎉' : '📝'}
@@ -185,7 +185,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             <p className="text-sm text-slate-500 italic max-w-xs leading-relaxed">"Bonjour {profile.userName}! I'm Ava. How can I support you today?"</p>
           </div>
         )}
-        {messages.map((m, i) => (
+        {messages?.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}>
             <div className={`max-w-[85%] px-6 py-4 rounded-[1.8rem] text-[15px] leading-relaxed shadow-sm ${
               m.role === 'user' 

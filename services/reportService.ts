@@ -17,7 +17,7 @@ export const generateDailyReport = (date: Date) => {
   }).toUpperCase();
   
   const parentName = profile.userName || 'Parent';
-  const babyNames = profile.babies.map(b => b.name || 'Baby').join(', ');
+  const babyNames = (profile.babies || []).map(b => b.name || 'Baby').join(', ');
   const pregnancyType = profile.pregnancyType.charAt(0).toUpperCase() + profile.pregnancyType.slice(1);
 
   const startOfDay = new Date(date).setHours(0, 0, 0, 0);
@@ -209,7 +209,7 @@ export const generateLaborReport = (date: Date) => {
   }).toUpperCase();
   
   const parentName = profile.userName || 'Parent';
-  const babyNames = profile.babies.map(b => b.name || 'Baby').join(', ');
+  const babyNames = (profile.babies || []).map(b => b.name || 'Baby').join(', ');
   const startOfDay = new Date(date).setHours(0, 0, 0, 0);
   const endOfDay = new Date(date).setHours(23, 59, 59, 999);
   
