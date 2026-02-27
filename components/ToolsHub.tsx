@@ -9,7 +9,12 @@ import {
   Trimester,
   PregnancyProfile,
   MemoryPhoto,
-  MemoryAlbums
+  MemoryAlbums,
+  FeedingLog,
+  MilestoneLog,
+  HealthLog,
+  ReactionLog,
+  KickLog
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { ReportCenter } from './ReportCenter.tsx';
@@ -33,6 +38,16 @@ interface ToolsHubProps {
   sleepLogs: SleepLog[];
   onAddSleep: (hours: number, quality: SleepLog['quality']) => void;
   onRemoveSleep: (id: string) => void;
+  feedingLogs: FeedingLog[];
+  onAddFeeding: (feeding: Omit<FeedingLog, 'id' | 'timestamp'>) => void;
+  milestones: MilestoneLog[];
+  onAddMilestone: (milestone: Omit<MilestoneLog, 'id' | 'timestamp'>) => void;
+  healthLogs: HealthLog[];
+  onAddHealth: (health: Omit<HealthLog, 'id' | 'timestamp'>) => void;
+  reactions: ReactionLog[];
+  onAddReaction: (reaction: Omit<ReactionLog, 'id' | 'timestamp'>) => void;
+  kickLogs: KickLog[];
+  onAddKick: (kick: Omit<KickLog, 'id' | 'timestamp'>) => void;
   trimester: Trimester;
   profile: PregnancyProfile;
   activeCategory: string;
@@ -42,7 +57,10 @@ interface ToolsHubProps {
 export const ToolsHub: React.FC<ToolsHubProps> = ({ 
   symptoms, onLogSymptom, contractions, onUpdateContractions, 
   journalEntries, onAddJournal, onRemoveJournal, calendarEvents, onAddEvent, onRemoveEvent,
-  weightLogs, onAddWeight, sleepLogs, onAddSleep, onRemoveSleep, trimester, profile,
+  weightLogs, onAddWeight, sleepLogs, onAddSleep, onRemoveSleep, 
+  feedingLogs, onAddFeeding, milestones, onAddMilestone, healthLogs, onAddHealth, 
+  reactions, onAddReaction, kickLogs, onAddKick,
+  trimester, profile,
   activeCategory, setActiveCategory
 }) => {
   const [weightInput, setWeightInput] = useState('');
@@ -50,6 +68,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   const [sleepQuality, setSleepQuality] = useState<SleepLog['quality']>('good');
   
   const [activeToolCat, setActiveToolCat] = useState('hospital_bag');
+  const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies[0]?.id || '');
   
   // Checklists
   const [checklists, setChecklists] = useState<{ [key: string]: any[] }>({
@@ -179,10 +198,222 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   return (
     <div className="space-y-6 pb-24">
       <div className="flex gap-2 overflow-x-auto no-scrollbar py-3 sticky top-0 z-50 bg-[#fffaf9]/90 backdrop-blur-md">
-        {['vitals', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'archive', 'reports'].map(cat => (
+        {['vitals', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'feeding', 'milestones', 'health', 'archive', 'reports', 'settings'].map(cat => (
           <button key={cat} onClick={() => setActiveCategory(cat)} className={`flex-none px-6 py-3 rounded-2xl border transition-all text-[9px] font-black uppercase tracking-widest ${activeCategory === cat ? 'bg-rose-500 text-white border-rose-400' : 'bg-white text-gray-400'}`}>{cat}</button>
         ))}
       </div>
+
+      {activeCategory === 'kicks' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Kick Counter</h3>
+            <div className="flex justify-center gap-4">
+              {profile.babies.map((baby, idx) => (
+                <button
+                  key={baby.id}
+                  onClick={() => setSelectedBabyId(baby.id)}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${selectedBabyId === baby.id ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-slate-400 border-slate-50'}`}
+                >
+                  {baby.name || `Baby ${idx + 1}`}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-col items-center gap-6">
+              <button 
+                onClick={() => onAddKick({ babyId: selectedBabyId || profile.babies[0].id, count: 1 })}
+                className="w-40 h-40 bg-rose-100 rounded-full flex items-center justify-center text-5xl shadow-inner border-4 border-white active:scale-90 transition-all"
+              >
+                🦶
+              </button>
+              <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Tap for each kick</span>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {kickLogs.filter(k => k.babyId === (selectedBabyId || profile.babies[0].id)).slice(0, 5).map(log => (
+              <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
+                <span className="text-sm font-bold text-slate-700">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                <span className="text-sm font-black text-rose-500">{log.count} Kick</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'reactions' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Baby Reactions</h3>
+            <div className="space-y-4">
+              <select 
+                className="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold outline-none"
+                onChange={(e) => setSelectedBabyId(e.target.value)}
+                value={selectedBabyId}
+              >
+                {profile.babies.map((baby, idx) => (
+                  <option key={baby.id} value={baby.id}>{baby.name || `Baby ${idx + 1}`}</option>
+                ))}
+              </select>
+              <div className="grid grid-cols-2 gap-3">
+                {['Music', 'Food', 'Voice', 'Touch'].map(stim => (
+                  <button 
+                    key={stim}
+                    onClick={() => onAddReaction({ babyId: selectedBabyId || profile.babies[0].id, stimulus: stim, reaction: 'Positive', mood: 'Happy' })}
+                    className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all"
+                  >
+                    {stim}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {reactions.filter(r => r.babyId === (selectedBabyId || profile.babies[0].id)).map(log => (
+              <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
+                <div>
+                  <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.stimulus}</div>
+                  <div className="text-sm font-bold text-slate-700">{log.reaction}</div>
+                </div>
+                <span className="text-xl">😊</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'feeding' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Feeding Log</h3>
+            <div className="space-y-4">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                {profile.babies.map((baby, idx) => (
+                  <button
+                    key={baby.id}
+                    onClick={() => setSelectedBabyId(baby.id)}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${selectedBabyId === baby.id ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-slate-400 border-slate-50'}`}
+                  >
+                    {baby.name || `Baby ${idx + 1}`}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(['breast', 'bottle', 'solid'] as const).map(type => (
+                  <button 
+                    key={type}
+                    onClick={() => onAddFeeding({ babyId: selectedBabyId || profile.babies[0].id, type, amount: 120 })}
+                    className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all"
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {feedingLogs.filter(f => f.babyId === (selectedBabyId || profile.babies[0].id)).map(log => (
+              <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
+                <div>
+                  <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.type}</div>
+                  <div className="text-sm font-bold text-slate-700">{log.amount} ml</div>
+                </div>
+                <span className="text-xs font-bold text-slate-400">{new Date(log.timestamp).toLocaleTimeString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'milestones' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Milestones</h3>
+            <div className="flex gap-3">
+              <input 
+                placeholder="New Milestone..." 
+                className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    onAddMilestone({ babyId: selectedBabyId || profile.babies[0].id, title: (e.target as HTMLInputElement).value, date: new Date().toISOString() });
+                    (e.target as HTMLInputElement).value = '';
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="space-y-4">
+            {milestones.filter(m => m.babyId === (selectedBabyId || profile.babies[0].id)).map(log => (
+              <div key={log.id} className="card-premium p-6 bg-white border-2 border-white shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-2xl">🏆</div>
+                <div>
+                  <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{new Date(log.date).toLocaleDateString()}</div>
+                  <div className="text-sm font-bold text-slate-900">{log.title}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'health' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Health Logs</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {(['temperature', 'medication', 'vaccination', 'symptom'] as const).map(type => (
+                <button 
+                  key={type}
+                  onClick={() => onAddHealth({ babyId: selectedBabyId || profile.babies[0].id, type, value: 'Normal', notes: '' })}
+                  className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-500 transition-all"
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            {healthLogs.filter(h => h.babyId === (selectedBabyId || profile.babies[0].id)).map(log => (
+              <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
+                <div>
+                  <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.type}</div>
+                  <div className="text-sm font-bold text-slate-700">{log.value}</div>
+                </div>
+                <span className="text-xs font-bold text-slate-400">{new Date(log.timestamp).toLocaleDateString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'settings' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Account Settings</h3>
+            <div className="space-y-4">
+              <div className="p-6 bg-rose-50 rounded-[2rem] border border-rose-100 space-y-4">
+                <h4 className="text-sm font-bold text-rose-900">Danger Zone</h4>
+                <p className="text-[10px] text-rose-700 leading-relaxed">Deleting your account will permanently remove all your data, including pregnancy history, baby profiles, and journal entries. This action cannot be undone.</p>
+                <button 
+                  onClick={() => {
+                    if (window.confirm("Are you absolutely sure? This will delete ALL your data permanently.")) {
+                      storage.deleteAccount();
+                      window.location.reload();
+                    }
+                  }}
+                  className="w-full py-4 bg-rose-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-rose-100"
+                >
+                  Delete My Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'reports' && (
+        <div className="space-y-8 animate-in fade-in">
+          <ReportCenter />
+        </div>
+      )}
 
       {activeCategory === 'calendar' && (
         <div className="space-y-8 animate-in fade-in">

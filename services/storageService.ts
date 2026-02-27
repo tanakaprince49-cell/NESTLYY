@@ -18,7 +18,11 @@ import {
   AvaMemoryFact,
   Article,
   ArchivedPregnancy,
-  ChecklistItem
+  ChecklistItem,
+  ReactionLog,
+  FeedingLog,
+  MilestoneLog,
+  HealthLog
 } from '../types.ts';
 
 const KEYS = {
@@ -44,7 +48,11 @@ const KEYS = {
   AVA_IMAGE: 'ava_custom_image',
   ARTICLES: 'nestly_global_articles',
   ARCHIVE: 'pregnancy_archive',
-  CHECKLISTS: 'checklists'
+  CHECKLISTS: 'checklists',
+  REACTIONS: 'baby_reactions',
+  FEEDING: 'feeding_logs',
+  MILESTONES: 'baby_milestones',
+  HEALTH: 'baby_health_logs'
 };
 
 class StorageService {
@@ -93,6 +101,18 @@ class StorageService {
 
   getKickLogs(): KickLog[] { return this.getItem<KickLog[]>(KEYS.KICKS, []); }
   addKickLog(log: KickLog): void { this.setItem(KEYS.KICKS, [log, ...this.getKickLogs()]); }
+
+  getReactions(): ReactionLog[] { return this.getItem<ReactionLog[]>(KEYS.REACTIONS, []); }
+  addReaction(log: ReactionLog): void { this.setItem(KEYS.REACTIONS, [log, ...this.getReactions()]); }
+
+  getFeedingLogs(): FeedingLog[] { return this.getItem<FeedingLog[]>(KEYS.FEEDING, []); }
+  addFeedingLog(log: FeedingLog): void { this.setItem(KEYS.FEEDING, [log, ...this.getFeedingLogs()]); }
+
+  getMilestones(): MilestoneLog[] { return this.getItem<MilestoneLog[]>(KEYS.MILESTONES, []); }
+  addMilestone(log: MilestoneLog): void { this.setItem(KEYS.MILESTONES, [log, ...this.getMilestones()]); }
+
+  getHealthLogs(): HealthLog[] { return this.getItem<HealthLog[]>(KEYS.HEALTH, []); }
+  addHealthLog(log: HealthLog): void { this.setItem(KEYS.HEALTH, [log, ...this.getHealthLogs()]); }
 
   getJournalEntries(): JournalEntry[] { return this.getItem<JournalEntry[]>(KEYS.JOURNAL, []); }
   addJournalEntry(entry: JournalEntry): void { this.setItem(KEYS.JOURNAL, [entry, ...this.getJournalEntries()]); }
@@ -173,6 +193,28 @@ class StorageService {
   removeArticle(id: string): void {
     const articles = this.getArticles();
     this.setItem(KEYS.ARTICLES, articles.filter(a => a.id !== id), true);
+  }
+
+  updateArticle(article: Article): void {
+    const articles = this.getArticles();
+    const index = articles.findIndex(a => a.id === article.id);
+    if (index >= 0) {
+      articles[index] = article;
+      this.setItem(KEYS.ARTICLES, articles, true);
+    }
+  }
+
+  deleteAccount(): void {
+    const email = this.getAuthEmail();
+    if (!email) return;
+
+    // Remove all user-specific keys
+    Object.values(KEYS).forEach(key => {
+      localStorage.removeItem(`${email}_${key}`);
+    });
+    
+    // Also remove the auth email itself
+    localStorage.removeItem(KEYS.AUTH);
   }
 
   getArchive(): ArchivedPregnancy[] {

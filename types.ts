@@ -1,4 +1,13 @@
 
+export enum LifecycleStage {
+  PRE_PREGNANCY = 'pre_pregnancy',
+  PREGNANCY = 'pregnancy',
+  BIRTH = 'birth',
+  NEWBORN = 'newborn',
+  INFANT = 'infant',
+  TODDLER = 'toddler'
+}
+
 export enum Trimester {
   FIRST = 'First Trimester',
   SECOND = 'Second Trimester',
@@ -44,6 +53,10 @@ export interface BabyAvatar {
   name: string;
   skinTone: string;
   gender: 'boy' | 'girl' | 'surprise';
+  birthDate?: string;
+  birthWeight?: number;
+  birthLength?: number;
+  notes?: string;
 }
 
 export interface PregnancyProfile {
@@ -58,6 +71,7 @@ export interface PregnancyProfile {
   startingWeight?: number;
   customTargets?: NutritionTargets;
   albums: MemoryAlbums;
+  lifecycleStage: LifecycleStage;
 }
 
 export interface ArchivedPregnancy {
@@ -143,6 +157,42 @@ export interface ChecklistItem {
 
 export interface KickLog {
   id: string;
+  babyId: string;
+  timestamp: number;
+  count: number;
+}
+
+export interface ReactionLog {
+  id: string;
+  babyId: string;
+  stimulus: string; // e.g., 'Music', 'Food', 'Voice'
+  reaction: string; // e.g., 'Active', 'Calm', 'Hiccups'
+  mood: string;
+  timestamp: number;
+}
+
+export interface FeedingLog {
+  id: string;
+  babyId: string;
+  type: 'breast' | 'bottle' | 'solid';
+  amount: number; // ml or grams
+  timestamp: number;
+}
+
+export interface MilestoneLog {
+  id: string;
+  babyId: string;
+  title: string;
+  date: string;
+  timestamp: number;
+}
+
+export interface HealthLog {
+  id: string;
+  babyId: string;
+  type: 'temperature' | 'medication' | 'vaccination' | 'symptom';
+  value: string;
+  notes: string;
   timestamp: number;
 }
 

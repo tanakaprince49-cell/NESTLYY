@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { storage } from '../services/storageService.ts';
-import { generateDailyReport, generateLaborReport } from '../services/reportService.ts';
+import { generateDailyReport, generateLaborReport, generateFullPregnancyReport } from '../services/reportService.ts';
 
 export const ReportCenter: React.FC = () => {
   const availableDates = storage.getAvailableReportDates();
@@ -60,6 +60,14 @@ export const ReportCenter: React.FC = () => {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Labor Summary PDF
+            </button>
+
+            <button 
+              onClick={() => generateFullPregnancyReport()}
+              className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Full Pregnancy Archive PDF
             </button>
           </div>
         </div>

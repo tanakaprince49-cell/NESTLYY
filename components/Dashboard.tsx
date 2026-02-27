@@ -1,5 +1,18 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { FoodEntry, Trimester, WaterLog, VitaminLog, PregnancyProfile, WeightLog, SleepLog } from '../types.ts';
+import { 
+  FoodEntry, 
+  Trimester, 
+  WaterLog, 
+  VitaminLog, 
+  PregnancyProfile, 
+  WeightLog, 
+  SleepLog,
+  LifecycleStage,
+  FeedingLog,
+  MilestoneLog,
+  HealthLog,
+  ReactionLog
+} from '../types.ts';
 import { NutrientCard } from './NutrientCard.tsx';
 import { HydrationTracker } from './HydrationTracker.tsx';
 import { getBabyGrowth } from '../services/babyGrowth.ts';
@@ -19,6 +32,10 @@ interface DashboardProps {
   vitamins: VitaminLog[];
   weightLogs: WeightLog[];
   sleepLogs: SleepLog[];
+  feedingLogs: FeedingLog[];
+  milestones: MilestoneLog[];
+  healthLogs: HealthLog[];
+  reactions: ReactionLog[];
   trimester: Trimester;
   profile: PregnancyProfile;
   onAddEntry: (entry: Omit<FoodEntry, 'id' | 'timestamp'>) => void;
@@ -42,10 +59,13 @@ const DAILY_TIPS = [
 ];
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
-  entries, waterLogs, vitamins, weightLogs, sleepLogs, trimester, profile, 
+  entries, waterLogs, vitamins, weightLogs, sleepLogs, 
+  feedingLogs, milestones, healthLogs, reactions,
+  trimester, profile, 
   onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile
 }) => {
   const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep'>('fuel');
+  const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies[0]?.id || '');
   const [dailyTip, setDailyTip] = useState('');
   
   const [foodName, setFoodName] = useState('');
@@ -57,12 +77,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setDailyTip(DAILY_TIPS[day % DAILY_TIPS.length]);
   }, []);
 
+  const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
+
   const weeks = useMemo(() => {
+    if (isPostpartum) return 0;
     const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
     return Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24 * 7)));
-  }, [profile]);
+  }, [profile, isPostpartum]);
 
-  const baby = useMemo(() => getBabyGrowth(weeks), [weeks]);
+  const baby = useMemo(() => isPostpartum ? null : getBabyGrowth(weeks), [weeks, isPostpartum]);
 
   const today = new Date().setHours(0, 0, 0, 0);
   const todaysEntries = useMemo(() => 
@@ -141,7 +164,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Header */}
       <div className="flex justify-between items-start mb-2">
         <div className="space-y-1">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">Your Journey</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">
+            {isPostpartum ? 'Newborn Journey' : 'Pregnancy Journey'}
+          </span>
           <h2 className="text-4xl font-serif text-slate-900 leading-tight">Bonjour, <br/>{profile.userName}</h2>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -168,30 +193,67 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
+      {isPostpartum && profile.babies.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar py-2">
+          {profile.babies.map((b, idx) => (
+            <button
+              key={b.id}
+              onClick={() => setSelectedBabyId(b.id)}
+              className={`flex-none px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedBabyId === b.id ? 'bg-slate-900 text-white' : 'bg-white text-slate-400 border border-slate-100'}`}
+            >
+              {b.name || `Baby ${idx + 1}`}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Summary Widgets Section */}
       <div className="space-y-3">
         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 ml-1">Daily Glance</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div onClick={() => onQuickTool('vitals')} className="card-premium p-5 bg-white border-2 border-slate-50 flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
-            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Vital Stats</span>
+          <div onClick={() => onQuickTool(isPostpartum ? 'health' : 'vitals')} className="card-premium p-5 bg-white border-2 border-slate-50 flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
+            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">
+              {isPostpartum ? 'Baby Health' : 'Vital Stats'}
+            </span>
             <div className="space-y-2 mt-2">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] text-slate-400 font-bold">Weight</span>
-                <span className="text-sm font-bold text-slate-800">{weightLogs[0]?.weight || profile.startingWeight || '--'} <span className="text-[8px] font-normal">kg</span></span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] text-slate-400 font-bold">Sleep</span>
-                <span className="text-sm font-bold text-slate-800">{sleepLogs[0]?.hours || '--'} <span className="text-[8px] font-normal">hrs</span></span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] text-slate-400 font-bold">Water</span>
-                <span className="text-sm font-bold text-slate-800">{todayWater} <span className="text-[8px] font-normal">ml</span></span>
-              </div>
+              {isPostpartum ? (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-slate-400 font-bold">Feeding</span>
+                    <span className="text-sm font-bold text-slate-800">{feedingLogs.filter(f => f.babyId === selectedBabyId).length} <span className="text-[8px] font-normal">times</span></span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-slate-400 font-bold">Health</span>
+                    <span className="text-sm font-bold text-slate-800">{healthLogs.filter(h => h.babyId === selectedBabyId).length} <span className="text-[8px] font-normal">logs</span></span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-slate-400 font-bold">Sleep</span>
+                    <span className="text-sm font-bold text-slate-800">{sleepLogs[0]?.hours || '--'} <span className="text-[8px] font-normal">hrs</span></span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-slate-400 font-bold">Weight</span>
+                    <span className="text-sm font-bold text-slate-800">{weightLogs[0]?.weight || profile.startingWeight || '--'} <span className="text-[8px] font-normal">kg</span></span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-slate-400 font-bold">Sleep</span>
+                    <span className="text-sm font-bold text-slate-800">{sleepLogs[0]?.hours || '--'} <span className="text-[8px] font-normal">hrs</span></span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-slate-400 font-bold">Water</span>
+                    <span className="text-sm font-bold text-slate-800">{todayWater} <span className="text-[8px] font-normal">ml</span></span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
-          <div onClick={() => onQuickTool('progress')} className="card-premium p-5 bg-rose-900 text-white flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
-             <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Baby Growth</span>
+          <div onClick={() => onQuickTool(isPostpartum ? 'milestones' : 'progress')} className="card-premium p-5 bg-rose-900 text-white flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
+             <span className="text-[9px] font-black uppercase tracking-widest opacity-60">
+               {isPostpartum ? 'Baby Milestones' : 'Baby Growth'}
+             </span>
              <div className="mt-2 text-center">
                <div className="flex justify-center gap-1 mb-1">
                  {profile.babies?.map((b, i) => (
@@ -200,8 +262,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
                    </span>
                  ))}
                </div>
-               <span className="text-[10px] font-serif block leading-tight">Size of {profile.pregnancyType === 'singleton' ? 'a' : profile.pregnancyType === 'twins' ? 'two' : 'three'} {baby.size}</span>
-               <span className="text-[8px] uppercase tracking-widest opacity-60 mt-2 block">Week {weeks}</span>
+               {isPostpartum ? (
+                 <>
+                   <span className="text-[10px] font-serif block leading-tight">
+                     {milestones.filter(m => m.babyId === selectedBabyId).length > 0 
+                       ? milestones.filter(m => m.babyId === selectedBabyId)[0].title 
+                       : 'No milestones yet'}
+                   </span>
+                   <span className="text-[8px] uppercase tracking-widest opacity-60 mt-2 block">Latest Achievement</span>
+                 </>
+               ) : (
+                 <>
+                   <span className="text-[10px] font-serif block leading-tight">Size of {profile.pregnancyType === 'singleton' ? 'a' : profile.pregnancyType === 'twins' ? 'two' : 'three'} {baby?.size}</span>
+                   <span className="text-[8px] uppercase tracking-widest opacity-60 mt-2 block">Week {weeks}</span>
+                 </>
+               )}
              </div>
           </div>
         </div>

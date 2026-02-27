@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PregnancyProfile, NutritionTargets, MemoryAlbums } from '../types.ts';
+import { PregnancyProfile, NutritionTargets, MemoryAlbums, LifecycleStage } from '../types.ts';
 import { Logo } from './Logo.tsx';
 
 interface SetupScreenProps {
@@ -7,10 +7,11 @@ interface SetupScreenProps {
   initialProfile?: PregnancyProfile | null;
 }
 
-type SetupStep = 'welcome' | 'name' | 'lmp' | 'calculation' | 'multiples' | 'baby_details' | 'theme' | 'weight' | 'nutrition' | 'photo' | 'final';
+type SetupStep = 'welcome' | 'lifecycle' | 'name' | 'lmp' | 'calculation' | 'multiples' | 'baby_details' | 'theme' | 'weight' | 'nutrition' | 'photo' | 'final';
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialProfile }) => {
   const [step, setStep] = useState<SetupStep>(initialProfile ? 'name' : 'welcome');
+  const [lifecycleStage, setLifecycleStage] = useState<LifecycleStage>(initialProfile?.lifecycleStage || LifecycleStage.PREGNANCY);
   const [userName, setUserName] = useState(initialProfile?.userName || '');
   const [lmp, setLmp] = useState(initialProfile?.lmpDate ? initialProfile.lmpDate.split('T')[0] : '');
   const [pregnancyType, setPregnancyType] = useState<'singleton' | 'twins' | 'triplets'>(initialProfile?.pregnancyType || 'singleton');
@@ -58,7 +59,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
       profileImage,
       startingWeight: parseFloat(weight) || 0,
       customTargets: useCustomTargets ? targets : undefined,
-      albums: initialProfile?.albums || emptyAlbums
+      albums: initialProfile?.albums || emptyAlbums,
+      lifecycleStage
     });
   };
 
@@ -79,7 +81,33 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
               <h1 className="text-5xl font-serif text-slate-900 leading-tight">Welcome, <br/>Parent.</h1>
               <p className="text-slate-400 font-medium px-4">Let's set up your private nest.</p>
             </div>
-            <button onClick={() => goTo('name')} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Start Setup</button>
+            <button onClick={() => goTo('lifecycle')} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Start Setup</button>
+          </div>
+        )}
+
+        {step === 'lifecycle' && (
+          <div className="animate-slide-up space-y-8 w-full text-center">
+            <h2 className="text-4xl font-serif text-slate-900">Where are you in your journey?</h2>
+            <div className="grid grid-cols-1 gap-4">
+              {[
+                { id: LifecycleStage.PRE_PREGNANCY, label: 'Planning', icon: '✨' },
+                { id: LifecycleStage.PREGNANCY, label: 'Pregnant', icon: '🤰' },
+                { id: LifecycleStage.NEWBORN, label: 'Newborn (0-3m)', icon: '🍼' },
+                { id: LifecycleStage.INFANT, label: 'Infant (3-12m)', icon: '🧸' }
+              ].map(stage => (
+                <button
+                  key={stage.id}
+                  onClick={() => {
+                    setLifecycleStage(stage.id);
+                    goTo('name');
+                  }}
+                  className={`p-6 rounded-[2rem] border-2 transition-all flex items-center gap-6 ${lifecycleStage === stage.id ? 'bg-rose-500 text-white border-rose-500' : 'bg-white border-rose-50 text-slate-400'}`}
+                >
+                  <span className="text-3xl">{stage.icon}</span>
+                  <span className="text-sm font-black uppercase tracking-widest">{stage.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -212,6 +240,38 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                       placeholder="Nickname (e.g. Peanut)" 
                       className="w-full text-center text-xl font-serif border-b-2 border-rose-100 p-2 focus:border-rose-500 outline-none bg-transparent" 
                     />
+                    
+                    {lifecycleStage !== LifecycleStage.PREGNANCY && lifecycleStage !== LifecycleStage.PRE_PREGNANCY && (
+                      <div className="grid grid-cols-2 gap-3 mt-4 animate-in fade-in">
+                        <div className="space-y-1 text-left">
+                          <label className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Birth Weight (kg)</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={baby.birthWeight || ''} 
+                            onChange={e => {
+                              const newBabies = [...babies];
+                              newBabies[idx].birthWeight = parseFloat(e.target.value);
+                              setBabies(newBabies);
+                            }}
+                            className="w-full h-10 bg-slate-50 rounded-xl px-3 text-xs font-bold"
+                          />
+                        </div>
+                        <div className="space-y-1 text-left">
+                          <label className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Birth Date</label>
+                          <input 
+                            type="date" 
+                            value={baby.birthDate || ''} 
+                            onChange={e => {
+                              const newBabies = [...babies];
+                              newBabies[idx].birthDate = e.target.value;
+                              setBabies(newBabies);
+                            }}
+                            className="w-full h-10 bg-slate-50 rounded-xl px-3 text-xs font-bold"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

@@ -22,7 +22,12 @@ import {
   JournalEntry, 
   CalendarEvent,
   WeightLog,
-  SleepLog
+  SleepLog,
+  FeedingLog,
+  MilestoneLog,
+  HealthLog,
+  ReactionLog,
+  KickLog
 } from './types.ts';
 
 const App: React.FC = () => {
@@ -43,6 +48,11 @@ const App: React.FC = () => {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [weightLogs, setWeightLogs] = useState<WeightLog[]>([]);
   const [sleepLogs, setSleepLogs] = useState<SleepLog[]>([]);
+  const [feedingLogs, setFeedingLogs] = useState<FeedingLog[]>([]);
+  const [milestones, setMilestones] = useState<MilestoneLog[]>([]);
+  const [healthLogs, setHealthLogs] = useState<HealthLog[]>([]);
+  const [reactions, setReactions] = useState<ReactionLog[]>([]);
+  const [kickLogs, setKickLogs] = useState<KickLog[]>([]);
 
   // Handle deep linking from Shortcuts / Widgets
   useEffect(() => {
@@ -71,6 +81,11 @@ const App: React.FC = () => {
     setCalendarEvents(storage.getCalendarEvents());
     setWeightLogs(storage.getWeightLogs());
     setSleepLogs(storage.getSleepLogs());
+    setFeedingLogs(storage.getFeedingLogs());
+    setMilestones(storage.getMilestones());
+    setHealthLogs(storage.getHealthLogs());
+    setReactions(storage.getReactions());
+    setKickLogs(storage.getKickLogs());
   }, [authEmail]);
 
   const handleLogout = () => {
@@ -139,6 +154,7 @@ const App: React.FC = () => {
         {activeTab === 'dashboard' && (
           <Dashboard 
             entries={entries} waterLogs={waterLogs} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
+            feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
             trimester={trimester} profile={profile}
             onAddEntry={(e) => { storage.addFoodEntry({...e, id: Date.now().toString(), timestamp: Date.now()} as any); setEntries(storage.getFoodEntries()); }}
             onRemoveEntry={(id) => { storage.removeFoodEntry(id); setEntries(storage.getFoodEntries()); }}
@@ -163,6 +179,11 @@ const App: React.FC = () => {
             weightLogs={weightLogs} onAddWeight={(w) => { storage.addWeightLog({id: Date.now().toString(), weight: w, timestamp: Date.now()}); setWeightLogs(storage.getWeightLogs()); }}
             sleepLogs={sleepLogs} onAddSleep={(h, q) => { storage.addSleepLog({id: Date.now().toString(), hours: h, quality: q, timestamp: Date.now()}); setSleepLogs(storage.getSleepLogs()); }}
             onRemoveSleep={(id) => { storage.removeSleepLog(id); setSleepLogs(storage.getSleepLogs()); }}
+            feedingLogs={feedingLogs} onAddFeeding={(f) => { storage.addFeedingLog({id: Date.now().toString(), ...f, timestamp: Date.now()}); setFeedingLogs(storage.getFeedingLogs()); }}
+            milestones={milestones} onAddMilestone={(m) => { storage.addMilestone({id: Date.now().toString(), ...m, timestamp: Date.now()}); setMilestones(storage.getMilestones()); }}
+            healthLogs={healthLogs} onAddHealth={(h) => { storage.addHealthLog({id: Date.now().toString(), ...h, timestamp: Date.now()}); setHealthLogs(storage.getHealthLogs()); }}
+            reactions={reactions} onAddReaction={(r) => { storage.addReaction({id: Date.now().toString(), ...r, timestamp: Date.now()}); setReactions(storage.getReactions()); }}
+            kickLogs={kickLogs} onAddKick={(k) => { storage.addKickLog({id: Date.now().toString(), ...k, timestamp: Date.now()}); setKickLogs(storage.getKickLogs()); }}
             trimester={trimester} profile={profile}
             activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}
           />

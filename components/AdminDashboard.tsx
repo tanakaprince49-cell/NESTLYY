@@ -1,12 +1,13 @@
 
 import React, { useMemo, useState } from 'react';
 import { storage } from '../services/storageService.ts';
-import { Trimester } from '../types.ts';
+import { Trimester, Article } from '../types.ts';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 
 export const AdminDashboard: React.FC = () => {
   const logs = storage.getAuthActivity();
   const totalUsers = new Set(logs.map(l => l.email)).size;
+  const articles = storage.getArticles();
   
   const [headline, setHeadline] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -14,13 +15,14 @@ export const AdminDashboard: React.FC = () => {
   const [summary, setSummary] = useState('');
   const [link, setLink] = useState('');
   const [stage, setStage] = useState<Trimester | 'General'>('General');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const handlePostArticle = (e: React.FormEvent) => {
     e.preventDefault();
     if (!headline || !summary || !link) return;
 
-    storage.addArticle({
-      id: Date.now().toString(),
+    const articleData: Article = {
+      id: editingId || Date.now().toString(),
       title: headline,
       imageUrl: imageUrl || 'https://picsum.photos/seed/nestly/800/400',
       source,
@@ -28,7 +30,13 @@ export const AdminDashboard: React.FC = () => {
       link,
       stage,
       timestamp: Date.now()
-    });
+    };
+
+    if (editingId) {
+      storage.updateArticle(articleData);
+    } else {
+      storage.addArticle(articleData);
+    }
 
     setHeadline('');
     setImageUrl('');
@@ -36,7 +44,26 @@ export const AdminDashboard: React.FC = () => {
     setSummary('');
     setLink('');
     setStage('General');
-    alert('Article posted successfully!');
+    setEditingId(null);
+    alert(editingId ? 'Article updated!' : 'Article posted!');
+  };
+
+  const handleEdit = (article: Article) => {
+    setEditingId(article.id);
+    setHeadline(article.title);
+    setImageUrl(article.imageUrl);
+    setSource(article.source);
+    setSummary(article.summary);
+    setLink(article.link);
+    setStage(article.stage as any);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Delete this article?')) {
+      storage.removeArticle(id);
+      window.location.reload(); // Simple refresh to update list
+    }
   };
 
   const stats = useMemo(() => ({
@@ -142,9 +169,50 @@ export const AdminDashboard: React.FC = () => {
             type="submit"
             className="w-full bg-rose-900 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all"
           >
-            Broadcast Article
+            {editingId ? 'Update Article' : 'Broadcast Article'}
           </button>
+          {editingId && (
+            <button 
+              type="button"
+              onClick={() => {
+                setEditingId(null);
+                setHeadline('');
+                setImageUrl('');
+                setSource('');
+                setSummary('');
+                setLink('');
+                setStage('General');
+              }}
+              className="w-full bg-slate-100 text-slate-400 font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+            >
+              Cancel Edit
+            </button>
+          )}
         </form>
+      </div>
+
+      <div className="card-premium p-8 bg-white shadow-sm space-y-6">
+        <div>
+          <h3 className="text-xl font-serif text-slate-900">Manage Articles</h3>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Edit or remove existing content</p>
+        </div>
+        <div className="space-y-4">
+          {articles.map(article => (
+            <div key={article.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="flex items-center gap-4">
+                <img src={article.imageUrl} className="w-12 h-12 rounded-xl object-cover" />
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900 line-clamp-1">{article.title}</h4>
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{article.stage} • {article.source}</span>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => handleEdit(article)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all">✏️</button>
+                <button onClick={() => handleDelete(article.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all">🗑️</button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
