@@ -87,13 +87,11 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
 
         {step === 'lifecycle' && (
           <div className="animate-slide-up space-y-8 w-full text-center">
-            <h2 className="text-4xl font-serif text-slate-900">Where are you in your journey?</h2>
+            <h2 className="text-4xl font-serif text-slate-900">Choose your journey mode</h2>
             <div className="grid grid-cols-1 gap-4">
               {[
-                { id: LifecycleStage.PRE_PREGNANCY, label: 'Planning', icon: '✨' },
-                { id: LifecycleStage.PREGNANCY, label: 'Pregnant', icon: '🤰' },
-                { id: LifecycleStage.NEWBORN, label: 'Newborn (0-3m)', icon: '🍼' },
-                { id: LifecycleStage.INFANT, label: 'Infant (3-12m)', icon: '🧸' }
+                { id: LifecycleStage.PREGNANCY, label: 'Pregnancy Mode', icon: '🤰', desc: 'Track growth, symptoms, and health' },
+                { id: LifecycleStage.NEWBORN, label: 'After Pregnancy (Newborn)', icon: '🍼', desc: 'Track feeding, sleep, and milestones' }
               ].map(stage => (
                 <button
                   key={stage.id}
@@ -101,10 +99,11 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                     setLifecycleStage(stage.id);
                     goTo('name');
                   }}
-                  className={`p-6 rounded-[2rem] border-2 transition-all flex items-center gap-6 ${lifecycleStage === stage.id ? 'bg-rose-500 text-white border-rose-500' : 'bg-white border-rose-50 text-slate-400'}`}
+                  className={`p-8 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-2 ${lifecycleStage === stage.id ? 'bg-rose-500 text-white border-rose-500 shadow-xl' : 'bg-white border-rose-50 text-slate-400'}`}
                 >
-                  <span className="text-3xl">{stage.icon}</span>
+                  <span className="text-4xl">{stage.icon}</span>
                   <span className="text-sm font-black uppercase tracking-widest">{stage.label}</span>
+                  <span className={`text-[10px] ${lifecycleStage === stage.id ? 'text-rose-100' : 'text-slate-300'}`}>{stage.desc}</span>
                 </button>
               ))}
             </div>

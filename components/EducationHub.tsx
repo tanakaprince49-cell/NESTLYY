@@ -1,13 +1,13 @@
 
 import React, { useState, useMemo } from 'react';
-import { Trimester, Article as GlobalArticle } from '../types';
+import { Trimester, Article as GlobalArticle, LifecycleStage } from '../types';
 import { storage } from '../services/storageService';
 
 interface LocalArticle {
   id: string;
   title: string;
-  category: 'nutrition' | 'safety' | 'wellness' | 'faq';
-  trimester: Trimester | 'General';
+  category: 'nutrition' | 'safety' | 'wellness' | 'faq' | 'development';
+  trimester: Trimester | 'General' | 'Newborn';
   content: string;
 }
 
@@ -53,11 +53,39 @@ const educationalContent: LocalArticle[] = [
     category: 'faq',
     trimester: 'General',
     content: 'Most experts agree that limiting caffeine to 200mg per day (about one 12oz cup of coffee) is safe during pregnancy.'
+  },
+  {
+    id: 'nb1',
+    title: 'Newborn Sleep Patterns',
+    category: 'wellness',
+    trimester: 'Newborn',
+    content: 'Newborns sleep about 14-17 hours a day but in short bursts. They don’t have a circadian rhythm yet. Try to sleep when they sleep and keep nighttime feedings quiet and dim.'
+  },
+  {
+    id: 'nb2',
+    title: 'Breastfeeding Basics',
+    category: 'nutrition',
+    trimester: 'Newborn',
+    content: 'Ensure a good latch to prevent soreness. Feed on demand (usually every 2-3 hours). Stay hydrated and eat a balanced diet to support your milk supply.'
+  },
+  {
+    id: 'nb3',
+    title: 'Tummy Time Importance',
+    category: 'development',
+    trimester: 'Newborn',
+    content: 'Start tummy time early for short periods (3-5 mins) a few times a day. It helps strengthen neck and shoulder muscles and prevents flat spots on the head.'
+  },
+  {
+    id: 'nb4',
+    title: 'Safe Sleep Environment',
+    category: 'safety',
+    trimester: 'Newborn',
+    content: 'Always place baby on their back to sleep on a firm, flat surface. Keep the crib free of blankets, pillows, and toys to reduce the risk of SIDS.'
   }
 ];
 
-export const EducationHub: React.FC<{ trimester: Trimester }> = ({ trimester }) => {
-  const [filter, setFilter] = useState<Trimester | 'General' | 'All'>('All');
+export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolean }> = ({ trimester, isPostpartum }) => {
+  const [filter, setFilter] = useState<Trimester | 'General' | 'Newborn' | 'All'>(isPostpartum ? 'Newborn' : 'All');
   const [activeLocalArticle, setActiveLocalArticle] = useState<LocalArticle | null>(null);
   const [activeGlobalArticle, setActiveGlobalArticle] = useState<GlobalArticle | null>(null);
 
@@ -95,7 +123,10 @@ export const EducationHub: React.FC<{ trimester: Trimester }> = ({ trimester }) 
       </div>
 
       <div className="flex flex-wrap gap-2 justify-center mb-6 px-4">
-        {['All', Trimester.FIRST, Trimester.SECOND, Trimester.THIRD, 'General'].map(t => (
+        {(isPostpartum 
+          ? ['All', 'Newborn', 'General'] 
+          : ['All', Trimester.FIRST, Trimester.SECOND, Trimester.THIRD, 'General']
+        ).map(t => (
           <button
             key={t}
             onClick={() => setFilter(t as any)}

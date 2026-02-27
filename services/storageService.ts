@@ -82,7 +82,11 @@ class StorageService {
   setAuthEmail(email: string): void { localStorage.setItem(KEYS.AUTH, email); }
   logout(): void { localStorage.removeItem(KEYS.AUTH); }
 
-  getProfile(): PregnancyProfile | null { return this.getItem<PregnancyProfile | null>(KEYS.PROFILE, null); }
+  getProfile(): PregnancyProfile | null { 
+    const p = this.getItem<PregnancyProfile | null>(KEYS.PROFILE, null);
+    if (p && !p.babies) p.babies = [];
+    return p;
+  }
   saveProfile(profile: PregnancyProfile): void { this.setItem(KEYS.PROFILE, profile); }
 
   getFoodEntries(): FoodEntry[] { return this.getItem<FoodEntry[]>(KEYS.FOOD, []); }

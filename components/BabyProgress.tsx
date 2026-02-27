@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { PregnancyProfile, Trimester } from '../types';
+import { PregnancyProfile, Trimester, LifecycleStage } from '../types';
 import { babyGrowthData, getBabyGrowth, DevelopmentInfo } from '../services/babyGrowth';
 import { ARVisualizer } from './ARVisualizer';
 
@@ -33,6 +33,68 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile }> = ({ profile 
       ritual: "Evening kick counts as a bonding ritual."
     };
   }, [selectedWeek]);
+
+  const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
+
+  if (isPostpartum) {
+    return (
+      <div className="space-y-8 pb-12 animate-in fade-in duration-700">
+        <div className="text-center">
+          <h2 className="text-3xl font-serif text-rose-800 text-glow">Baby Growth</h2>
+          <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Postpartum Journey</p>
+        </div>
+
+        {profile.babies?.map((b, idx) => (
+          <div key={b.id} className="card-premium p-8 bg-white border-2 border-white shadow-xl space-y-8">
+            <div className="flex items-center gap-6">
+              <div className="w-24 h-24 bg-rose-50 rounded-[2rem] flex items-center justify-center text-5xl shadow-inner border border-rose-100">
+                {b.gender === 'boy' ? '👦' : b.gender === 'girl' ? '👧' : '👶'}{b.skinTone}
+              </div>
+              <div>
+                <h3 className="text-2xl font-serif text-rose-900">{b.name || `Baby ${idx + 1}`}</h3>
+                <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{b.gender} • {b.birthWeight}kg at birth</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-emerald-50 rounded-2xl">
+                <span className="block text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Current Weight</span>
+                <span className="text-xl font-bold text-emerald-900">-- kg</span>
+              </div>
+              <div className="p-4 bg-blue-50 rounded-2xl">
+                <span className="block text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Height</span>
+                <span className="text-xl font-bold text-blue-900">-- cm</span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Developmental Milestones (0-3m)</h4>
+              <div className="grid gap-3">
+                {[
+                  "Lifts head during tummy time",
+                  "Follows moving objects with eyes",
+                  "Smiles at people (social smile)",
+                  "Coos and makes gurgling sounds"
+                ].map((m, i) => (
+                  <div key={i} className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div className="w-2 h-2 bg-rose-400 rounded-full" />
+                    <span className="text-xs text-slate-700 font-medium">{m}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-6 bg-rose-50/50 rounded-[2rem] border border-rose-100">
+              <h4 className="text-[9px] font-black text-rose-700 uppercase tracking-widest mb-2">Growth Tip</h4>
+              <p className="text-xs text-gray-600 leading-relaxed font-medium">
+                Newborns grow rapidly! Expect them to double their birth weight by 5 months. Regular skin-to-skin contact and responsive feeding are key to healthy growth.
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (showAR) {
     return (

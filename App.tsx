@@ -27,7 +27,8 @@ import {
   MilestoneLog,
   HealthLog,
   ReactionLog,
-  KickLog
+  KickLog,
+  LifecycleStage
 } from './types.ts';
 
 const App: React.FC = () => {
@@ -155,6 +156,7 @@ const App: React.FC = () => {
           <Dashboard 
             entries={entries} waterLogs={waterLogs} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
             feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
+            journalEntries={journalEntries}
             trimester={trimester} profile={profile}
             onAddEntry={(e) => { storage.addFoodEntry({...e, id: Date.now().toString(), timestamp: Date.now()} as any); setEntries(storage.getFoodEntries()); }}
             onRemoveEntry={(id) => { storage.removeFoodEntry(id); setEntries(storage.getFoodEntries()); }}
@@ -167,7 +169,12 @@ const App: React.FC = () => {
         )}
         {activeTab === 'baby' && <BabyProgress profile={profile} />}
         {activeTab === 'ava' && <AvaChat profile={profile} />}
-        {activeTab === 'education' && <EducationHub trimester={trimester} />}
+        {activeTab === 'education' && (
+          <EducationHub 
+            trimester={trimester} 
+            isPostpartum={profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY} 
+          />
+        )}
         {activeTab === 'tools' && (
           <ToolsHub 
             symptoms={symptoms} onLogSymptom={(t, s) => { storage.addSymptom({id: Date.now().toString(), type: t, severity: s, timestamp: Date.now()}); setSymptoms(storage.getSymptoms()); }}

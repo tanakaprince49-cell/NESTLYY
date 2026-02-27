@@ -14,7 +14,8 @@ import {
   MilestoneLog,
   HealthLog,
   ReactionLog,
-  KickLog
+  KickLog,
+  LifecycleStage
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { ReportCenter } from './ReportCenter.tsx';
@@ -68,7 +69,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   const [sleepQuality, setSleepQuality] = useState<SleepLog['quality']>('good');
   
   const [activeToolCat, setActiveToolCat] = useState('hospital_bag');
-  const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies[0]?.id || '');
+  const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies?.[0]?.id || '');
   
   // Checklists
   const [checklists, setChecklists] = useState<{ [key: string]: any[] }>({
@@ -195,10 +196,19 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   }, [profile]);
   const progressMonths = Math.floor(progressWeeks / 4.3);
 
+  const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
+
+  const categories = useMemo(() => {
+    if (isPostpartum) {
+      return ['feeding', 'sleep', 'milestones', 'health', 'vitals', 'calendar', 'checklists', 'memories', 'journal', 'reports', 'settings'];
+    }
+    return ['vitals', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'feeding', 'milestones', 'health', 'archive', 'reports', 'settings'];
+  }, [isPostpartum]);
+
   return (
     <div className="space-y-6 pb-24">
       <div className="flex gap-2 overflow-x-auto no-scrollbar py-3 sticky top-0 z-50 bg-[#fffaf9]/90 backdrop-blur-md">
-        {['vitals', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'feeding', 'milestones', 'health', 'archive', 'reports', 'settings'].map(cat => (
+        {categories.map(cat => (
           <button key={cat} onClick={() => setActiveCategory(cat)} className={`flex-none px-6 py-3 rounded-2xl border transition-all text-[9px] font-black uppercase tracking-widest ${activeCategory === cat ? 'bg-rose-500 text-white border-rose-400' : 'bg-white text-gray-400'}`}>{cat}</button>
         ))}
       </div>
@@ -208,7 +218,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
             <h3 className="text-xl font-serif text-rose-800">Kick Counter</h3>
             <div className="flex justify-center gap-4">
-              {profile.babies.map((baby, idx) => (
+              {profile.babies?.map((baby, idx) => (
                 <button
                   key={baby.id}
                   onClick={() => setSelectedBabyId(baby.id)}
@@ -220,7 +230,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
             <div className="flex flex-col items-center gap-6">
               <button 
-                onClick={() => onAddKick({ babyId: selectedBabyId || profile.babies[0].id, count: 1 })}
+                onClick={() => onAddKick({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', count: 1 })}
                 className="w-40 h-40 bg-rose-100 rounded-full flex items-center justify-center text-5xl shadow-inner border-4 border-white active:scale-90 transition-all"
               >
                 🦶
@@ -229,7 +239,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
           </div>
           <div className="space-y-4">
-            {kickLogs.filter(k => k.babyId === (selectedBabyId || profile.babies[0].id)).slice(0, 5).map(log => (
+            {kickLogs.filter(k => k.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).slice(0, 5).map(log => (
               <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
                 <span className="text-sm font-bold text-slate-700">{new Date(log.timestamp).toLocaleTimeString()}</span>
                 <span className="text-sm font-black text-rose-500">{log.count} Kick</span>
@@ -249,7 +259,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 onChange={(e) => setSelectedBabyId(e.target.value)}
                 value={selectedBabyId}
               >
-                {profile.babies.map((baby, idx) => (
+                {profile.babies?.map((baby, idx) => (
                   <option key={baby.id} value={baby.id}>{baby.name || `Baby ${idx + 1}`}</option>
                 ))}
               </select>
@@ -257,7 +267,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 {['Music', 'Food', 'Voice', 'Touch'].map(stim => (
                   <button 
                     key={stim}
-                    onClick={() => onAddReaction({ babyId: selectedBabyId || profile.babies[0].id, stimulus: stim, reaction: 'Positive', mood: 'Happy' })}
+                    onClick={() => onAddReaction({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', stimulus: stim, reaction: 'Positive', mood: 'Happy' })}
                     className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all"
                   >
                     {stim}
@@ -267,7 +277,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
           </div>
           <div className="space-y-4">
-            {reactions.filter(r => r.babyId === (selectedBabyId || profile.babies[0].id)).map(log => (
+            {reactions.filter(r => r.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
               <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
                 <div>
                   <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.stimulus}</div>
@@ -286,7 +296,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <h3 className="text-xl font-serif text-rose-800">Feeding Log</h3>
             <div className="space-y-4">
               <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                {profile.babies.map((baby, idx) => (
+                {profile.babies?.map((baby, idx) => (
                   <button
                     key={baby.id}
                     onClick={() => setSelectedBabyId(baby.id)}
@@ -300,7 +310,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 {(['breast', 'bottle', 'solid'] as const).map(type => (
                   <button 
                     key={type}
-                    onClick={() => onAddFeeding({ babyId: selectedBabyId || profile.babies[0].id, type, amount: 120 })}
+                    onClick={() => onAddFeeding({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', type, amount: 120 })}
                     className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all"
                   >
                     {type}
@@ -310,7 +320,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
           </div>
           <div className="space-y-4">
-            {feedingLogs.filter(f => f.babyId === (selectedBabyId || profile.babies[0].id)).map(log => (
+            {feedingLogs.filter(f => f.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
               <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
                 <div>
                   <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.type}</div>
@@ -333,7 +343,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    onAddMilestone({ babyId: selectedBabyId || profile.babies[0].id, title: (e.target as HTMLInputElement).value, date: new Date().toISOString() });
+                    onAddMilestone({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', title: (e.target as HTMLInputElement).value, date: new Date().toISOString() });
                     (e.target as HTMLInputElement).value = '';
                   }
                 }}
@@ -341,7 +351,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
           </div>
           <div className="space-y-4">
-            {milestones.filter(m => m.babyId === (selectedBabyId || profile.babies[0].id)).map(log => (
+            {milestones.filter(m => m.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
               <div key={log.id} className="card-premium p-6 bg-white border-2 border-white shadow-sm flex items-center gap-4">
                 <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-2xl">🏆</div>
                 <div>
@@ -362,7 +372,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               {(['temperature', 'medication', 'vaccination', 'symptom'] as const).map(type => (
                 <button 
                   key={type}
-                  onClick={() => onAddHealth({ babyId: selectedBabyId || profile.babies[0].id, type, value: 'Normal', notes: '' })}
+                  onClick={() => onAddHealth({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', type, value: 'Normal', notes: '' })}
                   className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-500 transition-all"
                 >
                   {type}
@@ -371,7 +381,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
           </div>
           <div className="space-y-4">
-            {healthLogs.filter(h => h.babyId === (selectedBabyId || profile.babies[0].id)).map(log => (
+            {healthLogs.filter(h => h.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
               <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
                 <div>
                   <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.type}</div>
