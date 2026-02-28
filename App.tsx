@@ -11,6 +11,7 @@ import { AvaChat } from './components/AvaChat.tsx';
 import { SplashScreen } from './components/SplashScreen.tsx';
 import { storage } from './services/storageService.ts';
 import { subscribeUserToPush } from './services/pushService.ts';
+import { Analytics } from "@vercel/analytics/react";
 import { 
   Trimester, 
   FoodEntry, 
@@ -157,6 +158,7 @@ const App: React.FC = () => {
 
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
+      <Analytics />
       <div className="max-w-4xl mx-auto px-4 py-4">
         {activeTab === 'dashboard' && (
           <Dashboard 
