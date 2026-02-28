@@ -136,6 +136,8 @@ const App: React.FC = () => {
     }
   }, [profile?.themeColor]);
 
+  if (showSplash) return <SplashScreen onComplete={() => setShowSplash(false)} />;
+
   if (!authEmail) return <AuthScreen onAuthComplete={(e) => setAuthEmail(e)} />;
   
   if (!profile || isEditingProfile) {
@@ -154,9 +156,7 @@ const App: React.FC = () => {
   const isAdmin = authEmail === 'tanakaprince49@gmail.com';
 
   return (
-    <>
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
-      <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
+    <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
       <div className="max-w-4xl mx-auto px-4 py-4">
         {activeTab === 'dashboard' && (
           <Dashboard 
@@ -208,7 +208,6 @@ const App: React.FC = () => {
         {activeTab === 'admin' && isAdmin && <AdminDashboard />}
       </div>
     </Layout>
-    </>
   );
 };
 
