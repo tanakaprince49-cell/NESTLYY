@@ -262,7 +262,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
     if (isPostpartum) {
       return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'vitals', 'calendar', 'checklists', 'memories', 'journal', 'reports', 'settings'];
     }
-    return ['vitals', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'feeding', 'milestones', 'health', 'archive', 'reports', 'settings'];
+    return ['vitals', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'archive', 'reports', 'settings'];
   }, [isPostpartum]);
 
   return (

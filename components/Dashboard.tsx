@@ -198,16 +198,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="flex gap-2">
-            {isPostpartum && (
-              <button 
-                onClick={() => {
-                  onUpdateProfile?.({ ...profile, lifecycleStage: LifecycleStage.PREGNANCY });
-                }}
-                className="bg-rose-100 text-rose-900 px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-200 transition-all active:scale-95"
-              >
-                Switch to Pregnancy
-              </button>
-            )}
             <button 
               onClick={onEditProfile}
               className="bg-white/50 backdrop-blur-md border border-white px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-900 transition-all active:scale-95"
