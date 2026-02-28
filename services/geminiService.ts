@@ -1,4 +1,4 @@
-//* ==========================================
+/* ==========================================
    AVA – Fast, Short, Smart, With Memory + Voice
 ========================================== */
 
@@ -68,7 +68,7 @@ No long explanations.
    PUBLIC CHAT FUNCTION (With Memory)
 ========================================== */
 
-export async function getAvaResponse(userMessage: string) {
+export async function getAvaResponse(userMessage: string, _history?: any, _userName?: string, _memory?: any) {
   try {
     let memory = loadMemory();
 
@@ -96,7 +96,7 @@ export async function getAvaResponse(userMessage: string) {
    VOICE: TEXT → SPEECH
 ========================================== */
 
-export function speak(text: string) {
+export function speakAva(text: string) {
   const speech = new SpeechSynthesisUtterance(text);
   speech.rate = 1;
   speech.pitch = 1.1;
@@ -112,6 +112,11 @@ export function listen(callback: (text: string) => void) {
   const SpeechRecognition =
     (window as any).SpeechRecognition ||
     (window as any).webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    console.error("Speech recognition not supported");
+    return;
+  }
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";

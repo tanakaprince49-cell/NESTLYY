@@ -42,6 +42,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
       }));
 
       const response = await getAvaResponse(
+        userText,
         historyForApi,
         profile.userName,
         memoryStrings
