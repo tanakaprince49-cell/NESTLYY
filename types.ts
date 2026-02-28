@@ -43,8 +43,13 @@ export interface WeightLog {
 
 export interface SleepLog {
   id: string;
+  babyId?: string;
   hours: number;
-  quality: 'poor' | 'average' | 'good';
+  quality: number; // 1-5 scale
+  type: 'nap' | 'night';
+  startTime: number;
+  endTime?: number;
+  notes?: string;
   timestamp: number;
 }
 
@@ -125,6 +130,8 @@ export interface JournalEntry {
   id: string;
   content: string;
   mood?: string;
+  tags?: string[];
+  photo?: string;
   timestamp: number;
 }
 
@@ -175,7 +182,10 @@ export interface FeedingLog {
   id: string;
   babyId: string;
   type: 'breast' | 'bottle' | 'solid';
+  subType?: 'formula' | 'milk';
+  side?: 'left' | 'right' | 'both';
   amount: number; // ml or grams
+  duration?: number; // minutes
   timestamp: number;
 }
 
@@ -184,6 +194,8 @@ export interface MilestoneLog {
   babyId: string;
   title: string;
   date: string;
+  notes?: string;
+  photo?: string;
   timestamp: number;
 }
 
@@ -193,6 +205,23 @@ export interface HealthLog {
   type: 'temperature' | 'medication' | 'vaccination' | 'symptom';
   value: string;
   notes: string;
+  timestamp: number;
+}
+
+export interface BabyGrowthLog {
+  id: string;
+  babyId: string;
+  weight: number; // kg
+  height: number; // cm
+  headCircumference?: number; // cm
+  timestamp: number;
+}
+
+export interface DiaperLog {
+  id: string;
+  babyId: string;
+  type: 'wet' | 'dirty' | 'mixed';
+  notes?: string;
   timestamp: number;
 }
 

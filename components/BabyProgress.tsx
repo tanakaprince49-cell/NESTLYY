@@ -1,10 +1,10 @@
 
 import React, { useMemo, useState } from 'react';
-import { PregnancyProfile, Trimester, LifecycleStage } from '../types';
+import { PregnancyProfile, Trimester, LifecycleStage, BabyGrowthLog } from '../types';
 import { babyGrowthData, getBabyGrowth, DevelopmentInfo } from '../services/babyGrowth';
 import { ARVisualizer } from './ARVisualizer';
 
-export const BabyProgress: React.FC<{ profile: PregnancyProfile }> = ({ profile }) => {
+export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?: BabyGrowthLog[] }> = ({ profile, babyGrowthLogs = [] }) => {
   const [showAR, setShowAR] = useState(false);
   
   const currentWeeks = useMemo(() => {
@@ -59,11 +59,15 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile }> = ({ profile 
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-emerald-50 rounded-2xl">
                 <span className="block text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Current Weight</span>
-                <span className="text-xl font-bold text-emerald-900">-- kg</span>
+                <span className="text-xl font-bold text-emerald-900">
+                  {babyGrowthLogs.filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || '--'} kg
+                </span>
               </div>
               <div className="p-4 bg-blue-50 rounded-2xl">
                 <span className="block text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Height</span>
-                <span className="text-xl font-bold text-blue-900">-- cm</span>
+                <span className="text-xl font-bold text-blue-900">
+                  {babyGrowthLogs.filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.height || '--'} cm
+                </span>
               </div>
             </div>
 
@@ -172,8 +176,23 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile }> = ({ profile 
               <p className="text-sm text-gray-500 italic mt-1 leading-relaxed">"{baby.description}"</p>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/40 p-3 rounded-2xl border border-white"><span className="block text-[8px] font-black text-rose-400 uppercase tracking-widest mb-1">Length</span><span className="text-sm font-bold text-gray-800">{baby.length}</span></div>
-              <div className="bg-white/40 p-3 rounded-2xl border border-white"><span className="block text-[8px] font-black text-rose-400 uppercase tracking-widest mb-1">Weight</span><span className="text-sm font-bold text-gray-800">{baby.weight}</span></div>
+              <div className="bg-white/40 p-3 rounded-2xl border border-white">
+                <span className="block text-[8px] font-black text-rose-400 uppercase tracking-widest mb-1">Length</span>
+                <span className="text-sm font-bold text-gray-800">{baby.length}</span>
+              </div>
+              <div className="bg-white/40 p-3 rounded-2xl border border-white">
+                <span className="block text-[8px] font-black text-rose-400 uppercase tracking-widest mb-1">Weight</span>
+                <span className="text-sm font-bold text-gray-800">{baby.weight}</span>
+              </div>
+            </div>
+            <div className="p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">📏</span>
+                <div className="text-left">
+                  <span className="block text-[8px] font-black text-rose-400 uppercase tracking-widest">Size Comparison</span>
+                  <span className="text-xs font-bold text-slate-700">Comparable to a {baby.size}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

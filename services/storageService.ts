@@ -22,7 +22,9 @@ import {
   ReactionLog,
   FeedingLog,
   MilestoneLog,
-  HealthLog
+  HealthLog,
+  BabyGrowthLog,
+  DiaperLog
 } from '../types.ts';
 
 const KEYS = {
@@ -52,7 +54,9 @@ const KEYS = {
   REACTIONS: 'baby_reactions',
   FEEDING: 'feeding_logs',
   MILESTONES: 'baby_milestones',
-  HEALTH: 'baby_health_logs'
+  HEALTH: 'baby_health_logs',
+  BABY_GROWTH: 'baby_growth_logs',
+  DIAPER: 'baby_diaper_logs'
 };
 
 class StorageService {
@@ -117,6 +121,12 @@ class StorageService {
 
   getHealthLogs(): HealthLog[] { return this.getItem<HealthLog[]>(KEYS.HEALTH, []); }
   addHealthLog(log: HealthLog): void { this.setItem(KEYS.HEALTH, [log, ...this.getHealthLogs()]); }
+
+  getBabyGrowthLogs(): BabyGrowthLog[] { return this.getItem<BabyGrowthLog[]>(KEYS.BABY_GROWTH, []); }
+  addBabyGrowthLog(log: BabyGrowthLog): void { this.setItem(KEYS.BABY_GROWTH, [log, ...this.getBabyGrowthLogs()]); }
+
+  getDiaperLogs(): DiaperLog[] { return this.getItem<DiaperLog[]>(KEYS.DIAPER, []); }
+  addDiaperLog(log: DiaperLog): void { this.setItem(KEYS.DIAPER, [log, ...this.getDiaperLogs()]); }
 
   getJournalEntries(): JournalEntry[] { return this.getItem<JournalEntry[]>(KEYS.JOURNAL, []); }
   addJournalEntry(entry: JournalEntry): void { this.setItem(KEYS.JOURNAL, [entry, ...this.getJournalEntries()]); }

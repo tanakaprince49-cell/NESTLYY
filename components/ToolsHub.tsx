@@ -15,7 +15,9 @@ import {
   HealthLog,
   ReactionLog,
   KickLog,
-  LifecycleStage
+  LifecycleStage,
+  BabyGrowthLog,
+  DiaperLog
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { ReportCenter } from './ReportCenter.tsx';
@@ -37,10 +39,12 @@ interface ToolsHubProps {
   weightLogs: WeightLog[];
   onAddWeight: (weight: number) => void;
   sleepLogs: SleepLog[];
-  onAddSleep: (hours: number, quality: SleepLog['quality']) => void;
+  onAddSleep: (sleep: Omit<SleepLog, 'id' | 'timestamp'>) => void;
   onRemoveSleep: (id: string) => void;
   feedingLogs: FeedingLog[];
   onAddFeeding: (feeding: Omit<FeedingLog, 'id' | 'timestamp'>) => void;
+  diaperLogs: DiaperLog[];
+  onAddDiaper: (diaper: Omit<DiaperLog, 'id' | 'timestamp'>) => void;
   milestones: MilestoneLog[];
   onAddMilestone: (milestone: Omit<MilestoneLog, 'id' | 'timestamp'>) => void;
   healthLogs: HealthLog[];
@@ -49,25 +53,74 @@ interface ToolsHubProps {
   onAddReaction: (reaction: Omit<ReactionLog, 'id' | 'timestamp'>) => void;
   kickLogs: KickLog[];
   onAddKick: (kick: Omit<KickLog, 'id' | 'timestamp'>) => void;
+  babyGrowthLogs: BabyGrowthLog[];
+  onAddBabyGrowth: (log: Omit<BabyGrowthLog, 'id' | 'timestamp'>) => void;
   trimester: Trimester;
   profile: PregnancyProfile;
   activeCategory: string;
   setActiveCategory: (cat: string) => void;
+  onUpdateProfile?: (profile: PregnancyProfile) => void;
 }
 
 export const ToolsHub: React.FC<ToolsHubProps> = ({ 
   symptoms, onLogSymptom, contractions, onUpdateContractions, 
   journalEntries, onAddJournal, onRemoveJournal, calendarEvents, onAddEvent, onRemoveEvent,
   weightLogs, onAddWeight, sleepLogs, onAddSleep, onRemoveSleep, 
-  feedingLogs, onAddFeeding, milestones, onAddMilestone, healthLogs, onAddHealth, 
-  reactions, onAddReaction, kickLogs, onAddKick,
+  feedingLogs, onAddFeeding, diaperLogs, onAddDiaper, milestones, onAddMilestone, healthLogs, onAddHealth, 
+  reactions, onAddReaction, kickLogs, onAddKick, babyGrowthLogs, onAddBabyGrowth,
   trimester, profile,
-  activeCategory, setActiveCategory
+  activeCategory, setActiveCategory, onUpdateProfile
 }) => {
   const [weightInput, setWeightInput] = useState('');
+  const [babyWeightInput, setBabyWeightInput] = useState('');
+  const [babyHeightInput, setBabyHeightInput] = useState('');
   const [sleepHours, setSleepHours] = useState('8');
-  const [sleepQuality, setSleepQuality] = useState<SleepLog['quality']>('good');
+  const [sleepQuality, setSleepQuality] = useState<SleepLog['quality']>(3);
+  const [sleepType, setSleepType] = useState<'nap' | 'night'>('night');
+  const [showSleepTooltip, setShowSleepTooltip] = useState(false);
   
+  const [feedingType, setFeedingType] = useState<'breast' | 'bottle' | 'solid'>('breast');
+  const [feedingSubType, setFeedingSubType] = useState<'milk' | 'formula'>('milk');
+  const [feedingSide, setFeedingSide] = useState<'left' | 'right' | 'both'>('both');
+  const [feedingAmount, setFeedingAmount] = useState('120');
+  const [feedingDuration, setFeedingDuration] = useState('15');
+
+  const [diaperType, setDiaperType] = useState<'wet' | 'dirty' | 'mixed'>('wet');
+
+  const [isBirthOnboarding, setIsBirthOnboarding] = useState(false);
+  const [birthData, setBirthData] = useState<{
+    babies: Array<{
+      name: string;
+      dob: string;
+      gender: 'boy' | 'girl' | 'neutral';
+      weight: string;
+      height: string;
+    }>;
+  }>({
+    babies: [{
+      name: '',
+      dob: new Date().toISOString().split('T')[0],
+      gender: 'neutral',
+      weight: '',
+      height: ''
+    }]
+  });
+
+  useEffect(() => {
+    if (isBirthOnboarding) {
+      const count = profile.pregnancyType === 'twins' ? 2 : profile.pregnancyType === 'triplets' ? 3 : 1;
+      setBirthData({
+        babies: Array(count).fill(null).map(() => ({
+          name: '',
+          dob: new Date().toISOString().split('T')[0],
+          gender: 'neutral',
+          weight: '',
+          height: ''
+        }))
+      });
+    }
+  }, [isBirthOnboarding, profile.pregnancyType]);
+
   const [activeToolCat, setActiveToolCat] = useState('hospital_bag');
   const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies?.[0]?.id || '');
   
@@ -114,7 +167,14 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   const handleSleepLog = () => {
     const hrs = parseFloat(sleepHours);
     if (!isNaN(hrs)) {
-      onAddSleep(hrs, sleepQuality);
+      onAddSleep({ 
+        hours: hrs, 
+        quality: sleepQuality, 
+        type: sleepType,
+        babyId: selectedBabyId || profile.babies?.[0]?.id || '',
+        startTime: Date.now() - (hrs * 60 * 60 * 1000),
+        endTime: Date.now()
+      });
     }
   };
 
@@ -200,7 +260,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['feeding', 'sleep', 'milestones', 'health', 'vitals', 'calendar', 'checklists', 'memories', 'journal', 'reports', 'settings'];
+      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'vitals', 'calendar', 'checklists', 'memories', 'journal', 'reports', 'settings'];
     }
     return ['vitals', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'feeding', 'milestones', 'health', 'archive', 'reports', 'settings'];
   }, [isPostpartum]);
@@ -294,7 +354,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         <div className="space-y-8 animate-in fade-in">
           <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
             <h3 className="text-xl font-serif text-rose-800">Feeding Log</h3>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex gap-2 overflow-x-auto no-scrollbar">
                 {profile.babies?.map((baby, idx) => (
                   <button
@@ -306,27 +366,144 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   </button>
                 ))}
               </div>
+
               <div className="grid grid-cols-3 gap-2">
                 {(['breast', 'bottle', 'solid'] as const).map(type => (
                   <button 
                     key={type}
-                    onClick={() => onAddFeeding({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', type, amount: 120 })}
-                    className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all"
+                    onClick={() => setFeedingType(type)}
+                    className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${feedingType === type ? 'bg-rose-50 border-rose-500 text-rose-500 shadow-md' : 'bg-white border-slate-50 opacity-60'}`}
                   >
-                    {type}
+                    <span className="text-2xl">{type === 'breast' ? '🤱' : type === 'bottle' ? '🍼' : '🥣'}</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest">{type}</span>
                   </button>
                 ))}
               </div>
+
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                {feedingType === 'breast' && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['left', 'right', 'both'] as const).map(side => (
+                      <button 
+                        key={side}
+                        onClick={() => setFeedingSide(side)}
+                        className={`p-3 rounded-xl border-2 text-[8px] font-black uppercase tracking-widest transition-all ${feedingSide === side ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-slate-400 border-slate-50'}`}
+                      >
+                        {side}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {feedingType === 'bottle' && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['milk', 'formula'] as const).map(sub => (
+                      <button 
+                        key={sub}
+                        onClick={() => setFeedingSubType(sub)}
+                        className={`p-3 rounded-xl border-2 text-[8px] font-black uppercase tracking-widest transition-all ${feedingSubType === sub ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-slate-400 border-slate-50'}`}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-3">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest ml-1">Amount (ml)</label>
+                    <input type="number" value={feedingAmount} onChange={e => setFeedingAmount(e.target.value)} className="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest ml-1">Duration (min)</label>
+                    <input type="number" value={feedingDuration} onChange={e => setFeedingDuration(e.target.value)} className="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold" />
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => onAddFeeding({ 
+                  babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
+                  type: feedingType, 
+                  subType: feedingType === 'bottle' ? feedingSubType : undefined,
+                  side: feedingType === 'breast' ? feedingSide : undefined,
+                  amount: parseFloat(feedingAmount),
+                  duration: parseFloat(feedingDuration)
+                })}
+                className="w-full py-5 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+              >
+                Log Feeding Session
+              </button>
             </div>
           </div>
           <div className="space-y-4">
             {feedingLogs.filter(f => f.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
               <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
-                <div>
-                  <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.type}</div>
-                  <div className="text-sm font-bold text-slate-700">{log.amount} ml</div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{log.type === 'breast' ? '🤱' : log.type === 'bottle' ? '🍼' : '🥣'}</span>
+                  <div>
+                    <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.type} {log.side ? `(${log.side})` : ''}</div>
+                    <div className="text-sm font-bold text-slate-700">{log.amount} ml • {log.duration} min</div>
+                  </div>
                 </div>
-                <span className="text-xs font-bold text-slate-400">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                <span className="text-xs font-bold text-slate-400">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'diaper' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Diaper Tracker</h3>
+            <div className="space-y-6">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                {profile.babies?.map((baby, idx) => (
+                  <button
+                    key={baby.id}
+                    onClick={() => setSelectedBabyId(baby.id)}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${selectedBabyId === baby.id ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-50'}`}
+                  >
+                    {baby.name || `Baby ${idx + 1}`}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                {(['wet', 'dirty', 'mixed'] as const).map(type => (
+                  <button 
+                    key={type}
+                    onClick={() => setDiaperType(type)}
+                    className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${diaperType === type ? 'bg-emerald-50 border-emerald-500 text-emerald-600 shadow-md' : 'bg-white border-slate-50 opacity-60'}`}
+                  >
+                    <span className="text-3xl">{type === 'wet' ? '💧' : type === 'dirty' ? '💩' : '💦'}</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest">{type}</span>
+                  </button>
+                ))}
+              </div>
+
+              <button 
+                onClick={() => onAddDiaper({ 
+                  babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
+                  type: diaperType,
+                  notes: ''
+                })}
+                className="w-full py-5 bg-emerald-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+              >
+                Log Diaper Change
+              </button>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {diaperLogs.filter(d => d.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
+              <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{log.type === 'wet' ? '💧' : log.type === 'dirty' ? '💩' : '💦'}</span>
+                  <div>
+                    <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Diaper Change</div>
+                    <div className="text-sm font-bold text-slate-700 capitalize">{log.type}</div>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-slate-400">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             ))}
           </div>
@@ -553,8 +730,43 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
       {activeCategory === 'vitals' && (
         <div className="space-y-6 animate-in fade-in">
+          {profile.lifecycleStage === LifecycleStage.NEWBORN && (
+            <div className="card-premium p-8 bg-white space-y-6 shadow-sm border-2 border-white">
+              <h3 className="text-xl font-serif text-rose-800">Baby Growth Tracker</h3>
+              <div className="space-y-4">
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                  {profile.babies?.map(b => (
+                    <button
+                      key={b.id}
+                      onClick={() => setSelectedBabyId(b.id)}
+                      className={`flex-none px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${selectedBabyId === b.id ? 'bg-rose-500 text-white' : 'bg-slate-50 text-slate-400'}`}
+                    >
+                      {b.name || 'Baby'}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="number" step="0.1" value={babyWeightInput} onChange={e => setBabyWeightInput(e.target.value)} placeholder="Weight (kg)" className="px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
+                  <input type="number" step="0.1" value={babyHeightInput} onChange={e => setBabyHeightInput(e.target.value)} placeholder="Height (cm)" className="px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
+                </div>
+                <button 
+                  onClick={() => {
+                    if (babyWeightInput && babyHeightInput && selectedBabyId) {
+                      onAddBabyGrowth({ babyId: selectedBabyId, weight: parseFloat(babyWeightInput), height: parseFloat(babyHeightInput) });
+                      setBabyWeightInput('');
+                      setBabyHeightInput('');
+                    }
+                  }} 
+                  className="w-full py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg"
+                >
+                  Log Baby Growth
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="card-premium p-8 bg-white space-y-6 shadow-sm border-2 border-white">
-            <h3 className="text-xl font-serif text-rose-800">Weight Tracker</h3>
+            <h3 className="text-xl font-serif text-rose-800">{profile.lifecycleStage === LifecycleStage.NEWBORN ? 'Parent Weight Tracker' : 'Weight Tracker'}</h3>
             <div className="flex gap-3">
               <input type="number" step="0.1" value={weightInput} onChange={e => setWeightInput(e.target.value)} placeholder="Current weight (kg)" className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
               <button onClick={handleWeightLog} className="px-10 py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest">Log</button>
@@ -580,7 +792,27 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         <div className="space-y-6 animate-in fade-in">
           <div className="card-premium p-8 bg-white space-y-8 shadow-sm border-2 border-white">
             <div className="space-y-2">
-              <h3 className="text-xl font-serif text-rose-800">Restful Nights</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-serif text-rose-800">Restful Nights</h3>
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowSleepTooltip(!showSleepTooltip)}
+                    className="w-5 h-5 rounded-full bg-slate-100 text-slate-400 text-[10px] flex items-center justify-center hover:bg-rose-100 hover:text-rose-500 transition-colors"
+                  >
+                    i
+                  </button>
+                  {showSleepTooltip && (
+                    <div className="absolute left-0 top-full mt-2 w-48 p-3 bg-white rounded-xl shadow-xl border border-slate-100 z-50 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="space-y-2">
+                        <div className="text-[8px] font-black uppercase text-rose-500">Quality Guide</div>
+                        <p className="text-[10px] text-slate-600"><span className="font-bold">Poor:</span> Frequent wakeups, restless.</p>
+                        <p className="text-[10px] text-slate-600"><span className="font-bold">Average:</span> Some wakeups, mostly rested.</p>
+                        <p className="text-[10px] text-slate-600"><span className="font-bold">Good:</span> Deep sleep, fully refreshed.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
               <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Track your sleep quality and duration</p>
             </div>
 
@@ -595,14 +827,26 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                {(['poor', 'average', 'good'] as const).map(q => (
+              <div className="grid grid-cols-2 gap-3">
+                {(['nap', 'night'] as const).map(t => (
+                  <button 
+                    key={t}
+                    onClick={() => setSleepType(t)}
+                    className={`p-3 rounded-xl border-2 text-[8px] font-black uppercase tracking-widest transition-all ${sleepType === t ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-slate-400 border-slate-50'}`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-5 gap-2">
+                {([1, 2, 3, 4, 5] as const).map(q => (
                   <button 
                     key={q}
                     onClick={() => setSleepQuality(q)}
-                    className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${sleepQuality === q ? 'bg-indigo-50 border-indigo-500 shadow-md' : 'bg-white border-slate-50 opacity-60'}`}
+                    className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${sleepQuality === q ? 'bg-indigo-50 border-indigo-500 text-indigo-500 shadow-md' : 'bg-white border-slate-50 opacity-60'}`}
                   >
-                    <span className="text-2xl">{q === 'poor' ? '😫' : q === 'average' ? '😐' : '😴'}</span>
+                    <span className="text-lg">{q === 1 ? '😫' : q === 3 ? '😐' : q === 5 ? '😴' : '✨'}</span>
                     <span className="text-[8px] font-black uppercase tracking-widest">{q}</span>
                   </button>
                 ))}
@@ -620,9 +864,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Recent Logs</h4>
               {sleepLogs.slice(0, 3).map(log => (
                 <div key={log.id} className="flex justify-between items-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{log.quality === 'poor' ? '😫' : log.quality === 'average' ? '😐' : '😴'}</span>
-                    <span className="text-sm font-bold text-slate-700">{log.hours} Hours</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg">{log.quality <= 2 ? '😫' : log.quality === 3 ? '😐' : '😴'}</span>
+                    <span className="text-sm font-bold text-slate-700">{log.hours} Hours • {log.type}</span>
                   </div>
                   <button 
                     onClick={() => onRemoveSleep(log.id)}
@@ -732,28 +976,136 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
       {activeCategory === 'archive' && (
         <div className="space-y-8 animate-in fade-in">
-          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
-            <h3 className="text-xl font-serif text-rose-800">Pregnancy Archive</h3>
-            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-relaxed">Preserve your journey, every step of the way.</p>
-            
-            <button 
-              onClick={() => {
-                const entry: any = {
-                  id: Date.now().toString(),
-                  startDate: profile.lmpDate,
-                  endDate: new Date().toISOString(),
-                  type: profile.pregnancyType,
-                  outcome: 'birth',
-                  babies: (profile.babies || []).map(b => b.name)
-                };
-                storage.addToArchive(entry);
-                setArchive(storage.getArchive());
-              }}
-              className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl"
-            >
-              Archive Current Pregnancy
-            </button>
-          </div>
+          {isBirthOnboarding ? (
+            <div className="card-premium p-8 bg-white border-2 border-rose-100 space-y-6 animate-in zoom-in-95 max-h-[80vh] overflow-y-auto no-scrollbar">
+              <div className="text-center space-y-2">
+                <span className="text-3xl">🎉</span>
+                <h3 className="text-xl font-serif text-rose-800">Welcome, Little One{birthData.babies.length > 1 ? 's' : ''}!</h3>
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Let's set up your baby profile{birthData.babies.length > 1 ? 's' : ''}</p>
+              </div>
+
+              <div className="space-y-8">
+                {birthData.babies.map((baby, idx) => (
+                  <div key={idx} className="space-y-4 p-6 bg-rose-50/30 rounded-3xl border border-rose-100/50">
+                    <h4 className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Baby {birthData.babies.length > 1 ? idx + 1 : ''}</h4>
+                    <div className="space-y-1">
+                      <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest ml-1">Baby's Name</label>
+                      <input value={baby.name} onChange={e => {
+                        const newBabies = [...birthData.babies];
+                        newBabies[idx].name = e.target.value;
+                        setBirthData({...birthData, babies: newBabies});
+                      }} placeholder="Enter name..." className="w-full p-4 bg-white rounded-2xl text-sm font-bold border border-slate-100" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest ml-1">Date of Birth</label>
+                        <input type="date" value={baby.dob} onChange={e => {
+                          const newBabies = [...birthData.babies];
+                          newBabies[idx].dob = e.target.value;
+                          setBirthData({...birthData, babies: newBabies});
+                        }} className="w-full p-4 bg-white rounded-2xl text-sm font-bold border border-slate-100" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest ml-1">Gender</label>
+                        <select value={baby.gender} onChange={e => {
+                          const newBabies = [...birthData.babies];
+                          newBabies[idx].gender = e.target.value as any;
+                          setBirthData({...birthData, babies: newBabies});
+                        }} className="w-full p-4 bg-white rounded-2xl text-sm font-bold outline-none border border-slate-100">
+                          <option value="neutral">Neutral</option>
+                          <option value="boy">Boy</option>
+                          <option value="girl">Girl</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest ml-1">Weight (kg)</label>
+                        <input type="number" step="0.1" value={baby.weight} onChange={e => {
+                          const newBabies = [...birthData.babies];
+                          newBabies[idx].weight = e.target.value;
+                          setBirthData({...birthData, babies: newBabies});
+                        }} placeholder="3.5" className="w-full p-4 bg-white rounded-2xl text-sm font-bold border border-slate-100" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest ml-1">Height (cm)</label>
+                        <input type="number" step="0.1" value={baby.height} onChange={e => {
+                          const newBabies = [...birthData.babies];
+                          newBabies[idx].height = e.target.value;
+                          setBirthData({...birthData, babies: newBabies});
+                        }} placeholder="50" className="w-full p-4 bg-white rounded-2xl text-sm font-bold border border-slate-100" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <div className="pt-4 flex gap-3 sticky bottom-0 bg-white py-4 border-t border-slate-50">
+                  <button onClick={() => setIsBirthOnboarding(false)} className="flex-1 py-4 bg-slate-50 text-slate-400 font-black rounded-2xl text-[10px] uppercase tracking-widest">Cancel</button>
+                  <button 
+                    onClick={() => {
+                      const updatedProfile: PregnancyProfile = {
+                        ...profile,
+                        lifecycleStage: LifecycleStage.NEWBORN,
+                        babies: birthData.babies.map((b, i) => ({
+                          id: (Date.now() + i).toString(),
+                          name: b.name,
+                          birthDate: b.dob,
+                          gender: b.gender,
+                          birthWeight: parseFloat(b.weight),
+                          skinTone: '👶'
+                        }))
+                      };
+                      
+                      const archiveEntry: any = {
+                        id: Date.now().toString(),
+                        startDate: profile.lmpDate,
+                        endDate: new Date().toISOString(),
+                        type: profile.pregnancyType,
+                        outcome: 'birth',
+                        babies: birthData.babies.map(b => b.name)
+                      };
+                      
+                      storage.addToArchive(archiveEntry);
+                      onUpdateProfile?.(updatedProfile);
+                      setIsBirthOnboarding(false);
+                    }}
+                    className="flex-2 py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg shadow-rose-100"
+                  >
+                    Complete Birth Setup
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+              <h3 className="text-xl font-serif text-rose-800">Pregnancy Archive</h3>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-relaxed">Preserve your journey, every step of the way.</p>
+              
+              <button 
+                onClick={() => setIsBirthOnboarding(true)}
+                className="w-full py-5 bg-emerald-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-2"
+              >
+                <span>👶</span> Mark as Born & Switch to Newborn Mode
+              </button>
+              <button 
+                onClick={() => {
+                  const entry: any = {
+                    id: Date.now().toString(),
+                    startDate: profile.lmpDate,
+                    endDate: new Date().toISOString(),
+                    type: profile.pregnancyType,
+                    outcome: 'other',
+                    babies: (profile.babies || []).map(b => b.name)
+                  };
+                  storage.addToArchive(entry);
+                  setArchive(storage.getArchive());
+                }}
+                className="w-full py-4 bg-slate-100 text-slate-400 font-black rounded-2xl text-[9px] uppercase tracking-widest"
+              >
+                Archive Current Pregnancy
+              </button>
+            </div>
+          )}
 
           <div className="space-y-4">
             {archive.map(entry => (
