@@ -149,9 +149,6 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?
                   <div className="w-40 h-40 bg-rose-50/50 rounded-[2.5rem] flex items-center justify-center text-8xl shadow-inner border border-rose-100 shrink-0 animate-in zoom-in-50 duration-500">
                     {baby.image}
                   </div>
-                  <div className="text-4xl animate-bounce">
-                    {profile.babies?.[0]?.gender === 'boy' ? '👦' : profile.babies?.[0]?.gender === 'girl' ? '👧' : '👶'}{profile.babies?.[0]?.skinTone}
-                  </div>
                 </div>
               ) : (
                 <div className="flex flex-wrap justify-center gap-4 max-w-[300px]">
@@ -159,9 +156,6 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?
                     <div key={i} className="flex flex-col items-center gap-2">
                       <div className="w-24 h-24 bg-rose-50/50 rounded-2xl flex items-center justify-center text-5xl shadow-inner border border-rose-100 animate-in zoom-in-50 duration-500">
                         {baby.image}
-                      </div>
-                      <div className="text-2xl">
-                        {b.gender === 'boy' ? '👦' : b.gender === 'girl' ? '👧' : '👶'}{b.skinTone}
                       </div>
                       <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">{b.name || `Baby ${i+1}`}</span>
                     </div>

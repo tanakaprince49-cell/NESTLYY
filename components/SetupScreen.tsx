@@ -50,8 +50,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
     const emptyAlbums: MemoryAlbums = { ultrasound: [], family: [], favorites: [] };
     onComplete({ 
       userName,
-      lmpDate: new Date(lmp).toISOString(), 
-      dueDate: new Date(dueDate).toISOString(), 
+      lmpDate: lmp ? new Date(lmp).toISOString() : new Date().toISOString(), 
+      dueDate: dueDate ? new Date(dueDate).toISOString() : new Date().toISOString(), 
       isManualDueDate,
       pregnancyType,
       babies,
@@ -114,7 +114,12 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
           <div className="animate-slide-up space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">What's your name?</h2>
             <input autoFocus value={userName} onChange={e => setUserName(e.target.value)} placeholder="Your Name" className="w-full text-center text-2xl font-serif border-b-2 border-rose-100 p-4 focus:border-rose-500 outline-none bg-transparent" />
-            <button onClick={() => goTo('lmp')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Next</button>
+            <button 
+              onClick={() => goTo(lifecycleStage === LifecycleStage.NEWBORN ? 'multiples' : 'lmp')} 
+              className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4"
+            >
+              Next
+            </button>
           </div>
         )}
 

@@ -650,13 +650,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                    Baby Growth
                  </span>
                  <div className="mt-2 text-center">
-                   <div className="flex justify-center gap-1 mb-1">
-                     {profile.babies?.map((b, i) => (
-                       <span key={i} className="text-2xl">
-                         {b.gender === 'boy' ? '👦' : b.gender === 'girl' ? '👧' : '👶'}{b.skinTone}
-                       </span>
-                     ))}
-                   </div>
                    <span className="text-[10px] font-serif block leading-tight">Size of {profile.pregnancyType === 'singleton' ? 'a' : profile.pregnancyType === 'twins' ? 'two' : 'three'} {baby?.size}</span>
                    <span className="text-[8px] uppercase tracking-widest opacity-60 mt-2 block">Week {weeks}</span>
                  </div>
