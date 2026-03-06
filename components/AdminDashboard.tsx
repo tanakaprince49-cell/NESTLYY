@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { storage } from '../services/storageService.ts';
 import { Trimester, Article } from '../types.ts';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
+import { showLocalNotification } from '../services/pushService.ts';
 
 export const AdminDashboard: React.FC = () => {
   const logs = storage.getAuthActivity();
@@ -16,6 +17,41 @@ export const AdminDashboard: React.FC = () => {
   const [link, setLink] = useState('');
   const [stage, setStage] = useState<Trimester | 'General'>('General');
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Push Notification State
+  const [pushTitle, setPushTitle] = useState('');
+  const [pushBody, setPushBody] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendPush = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pushTitle || !pushBody) return;
+
+    setIsSending(true);
+    try {
+      // Simulate sending to all users by adding to global storage
+      const reminder = {
+        id: Date.now().toString(),
+        title: pushTitle,
+        body: pushBody,
+        timestamp: Date.now(),
+        type: 'broadcast'
+      };
+      
+      storage.addReminder(reminder);
+
+      // Also trigger a local notification for the admin to see it working
+      await showLocalNotification(pushTitle, pushBody);
+
+      setPushTitle('');
+      setPushBody('');
+      alert('Broadcast reminder sent to all Nestlings! 🕊️');
+    } catch (err) {
+      alert('Failed to send notification. Please check permissions.');
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const handlePostArticle = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,6 +148,37 @@ export const AdminDashboard: React.FC = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      <div className="card-premium p-8 bg-white shadow-sm space-y-6">
+        <div>
+          <h3 className="text-xl font-serif text-slate-900">Push Notification Center</h3>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Broadcast appointment reminders & alerts</p>
+        </div>
+
+        <form onSubmit={handleSendPush} className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <input 
+              placeholder="Notification Title (e.g. Appointment Reminder)" 
+              value={pushTitle} 
+              onChange={e => setPushTitle(e.target.value)}
+              className="text-sm"
+            />
+            <textarea 
+              placeholder="Message Body (e.g. Don't forget your 20-week scan tomorrow at 10 AM!)" 
+              value={pushBody} 
+              onChange={e => setPushBody(e.target.value)}
+              className="text-sm min-h-[80px]"
+            />
+          </div>
+          <button 
+            type="submit"
+            disabled={isSending}
+            className="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50"
+          >
+            {isSending ? 'Sending...' : 'Send Broadcast Notification'}
+          </button>
+        </form>
       </div>
 
       <div className="card-premium p-8 bg-white shadow-sm space-y-6">

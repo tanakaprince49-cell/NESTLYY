@@ -56,7 +56,9 @@ const KEYS = {
   MILESTONES: 'baby_milestones',
   HEALTH: 'baby_health_logs',
   BABY_GROWTH: 'baby_growth_logs',
-  DIAPER: 'baby_diaper_logs'
+  DIAPER: 'baby_diaper_logs',
+  REMINDERS: 'nestly_reminders',
+  SHOWN_REMINDERS: 'nestly_shown_reminders'
 };
 
 class StorageService {
@@ -259,6 +261,16 @@ class StorageService {
   removeChecklistItem(id: string): void {
     const all = this.getItem<ChecklistItem[]>(KEYS.CHECKLISTS, []);
     this.setItem(KEYS.CHECKLISTS, all.filter(i => i.id !== id));
+  }
+
+  getReminders(): any[] { return this.getItem<any[]>(KEYS.REMINDERS, [], true); }
+  addReminder(reminder: any): void { this.setItem(KEYS.REMINDERS, [reminder, ...this.getReminders()], true); }
+  clearReminders(): void { this.setItem(KEYS.REMINDERS, [], true); }
+
+  getShownReminderIds(): string[] { return this.getItem<string[]>(KEYS.SHOWN_REMINDERS, []); }
+  markReminderAsShown(id: string): void {
+    const ids = this.getShownReminderIds();
+    if (!ids.includes(id)) this.setItem(KEYS.SHOWN_REMINDERS, [...ids, id]);
   }
 }
 

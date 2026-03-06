@@ -75,38 +75,96 @@ export const ARVisualizer: React.FC<ARVisualizerProps> = ({ onClose, babySize, b
       {/* AR Scanning Effect Overlay */}
       {isScanning && !error && stream && (
         <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
-          <div className="w-64 h-64 border-2 border-white/20 rounded-3xl relative">
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-rose-500 rounded-tl-xl" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-rose-500 rounded-tr-xl" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-rose-500 rounded-bl-xl" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-rose-500 rounded-br-xl" />
-            <div className="absolute inset-x-0 top-0 h-0.5 bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,1)] animate-scan" />
+          <div className="w-72 h-72 border-2 border-white/10 rounded-[3rem] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-rose-500 rounded-tl-2xl" />
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-rose-500 rounded-tr-2xl" />
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-rose-500 rounded-bl-2xl" />
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-rose-500 rounded-br-2xl" />
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-rose-500 to-transparent shadow-[0_0_25px_rgba(244,63,94,1)] animate-scan" />
+            
+            {/* Inner grid lines during scan */}
+            <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 opacity-20">
+              {[...Array(16)].map((_, i) => (
+                <div key={i} className="border-[0.5px] border-white/30" />
+              ))}
+            </div>
           </div>
-          <p className="absolute bottom-1/4 text-white text-[10px] font-black uppercase tracking-[0.4em] bg-black/50 backdrop-blur-lg px-8 py-3 rounded-full border border-white/10">
-            Scanning Environment...
-          </p>
+          <div className="absolute bottom-1/4 flex flex-col items-center gap-4">
+            <div className="flex gap-1">
+              <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-bounce" />
+            </div>
+            <p className="text-white text-[10px] font-black uppercase tracking-[0.5em] bg-black/40 backdrop-blur-xl px-10 py-4 rounded-full border border-white/10 shadow-2xl">
+              Mapping Surface
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Spatial Grid Overlay (Visible after scanning) */}
+      {!isScanning && !error && stream && (
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
+          <div className="absolute inset-0" style={{ 
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: '40px 40px',
+            perspective: '1000px',
+            transform: 'rotateX(60deg) translateY(100px) scale(2)',
+            transformOrigin: 'bottom'
+          }} />
         </div>
       )}
 
       {/* AR Content Layer - The Baby Sprite */}
       {!error && stream && !isScanning && (
-        <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none animate-in zoom-in-75 duration-1000">
+        <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none animate-in zoom-in-90 duration-1000">
           <div className="animate-float-ar flex flex-col items-center">
-            <div className="relative group pointer-events-auto">
+            <div className="relative group pointer-events-auto cursor-grab active:cursor-grabbing">
               {/* Diffuse glow beneath the baby */}
-              <div className="absolute inset-0 bg-rose-400/40 blur-[80px] scale-150 animate-pulse" />
+              <div className="absolute inset-0 bg-rose-400/30 blur-[100px] scale-150 animate-pulse" />
               
-              <div className="text-[140px] sm:text-[180px] drop-shadow-[0_0_40px_rgba(255,255,255,0.8)] relative z-20">
+              <div className="text-[160px] sm:text-[220px] drop-shadow-[0_0_60px_rgba(255,255,255,0.9)] relative z-20 transition-transform hover:scale-110 duration-500">
                 {babyEmoji}
               </div>
               
               {/* Floating metadata label */}
-              <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 glass px-8 py-3 rounded-[1.8rem] border-2 border-white/90 shadow-2xl flex flex-col items-center min-w-[160px]">
-                <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-0.5">True Scale</span>
-                <span className="text-slate-900 font-bold text-base tracking-tight">{babySize}</span>
+              <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 glass px-10 py-4 rounded-[2.5rem] border-2 border-white/90 shadow-2xl flex flex-col items-center min-w-[200px] backdrop-blur-2xl">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  <span className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em]">Live Scale</span>
+                </div>
+                <span className="text-slate-900 font-bold text-xl tracking-tight">{babySize}</span>
+                <div className="mt-2 h-1 w-12 bg-rose-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-rose-500 w-2/3 rounded-full" />
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* UI Controls Overlay */}
+      {!error && stream && !isScanning && (
+        <div className="absolute bottom-12 inset-x-0 flex flex-col items-center gap-8 z-[550]">
+          <div className="flex items-center gap-6">
+            <button className="p-5 glass rounded-full text-slate-800 shadow-xl border-white/50 active:scale-90 transition-all pointer-events-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <button 
+              onClick={() => {
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                audio.play().catch(() => {});
+                alert("Snapshot saved to your Nestly Memory Album! ✨");
+              }}
+              className="w-20 h-20 bg-white rounded-full border-8 border-rose-100 shadow-2xl flex items-center justify-center active:scale-90 transition-all pointer-events-auto group"
+            >
+              <div className="w-12 h-12 bg-rose-500 rounded-full group-hover:scale-90 transition-transform" />
+            </button>
+            <button className="p-5 glass rounded-full text-slate-800 shadow-xl border-white/50 active:scale-90 transition-all pointer-events-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </button>
+          </div>
+          <p className="text-white/60 text-[9px] font-black uppercase tracking-[0.3em]">Tap to capture your baby's size</p>
         </div>
       )}
 

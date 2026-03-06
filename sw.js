@@ -61,3 +61,28 @@ async function updateWidget(widget) {
 self.addEventListener("fetch", (event) => {
   // Pass-through for installability criteria
 });
+
+self.addEventListener('push', (event) => {
+  const data = event.data ? event.data.json() : { title: 'Nestly Reminder', body: 'You have a new update.' };
+  
+  const options = {
+    body: data.body,
+    icon: '/logo.png', // Fallback if BRAND_LOGO not available
+    badge: '/logo.png',
+    vibrate: [100, 50, 100],
+    data: {
+      url: data.url || '/'
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow(event.notification.data.url)
+  );
+});
