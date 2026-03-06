@@ -1,12 +1,24 @@
 
 import React from 'react';
+import { motion } from 'motion/react';
+import { 
+  Home, 
+  TrendingUp, 
+  Sparkles, 
+  BookOpen, 
+  LayoutGrid, 
+  User, 
+  ShieldCheck,
+  LogOut,
+  ToyBrick
+} from 'lucide-react';
 import { storage } from '../services/storageService.ts';
 import { Logo } from './Logo.tsx';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeTab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin';
-  setActiveTab: (tab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin') => void;
+  activeTab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings';
+  setActiveTab: (tab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings') => void;
   onLogout: () => void;
 }
 
@@ -17,11 +29,36 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     <div className="flex-1 flex flex-col relative overflow-hidden h-screen bg-rose-50">
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.08]">
-        <div className="absolute top-[10%] left-[15%] text-6xl animate-float-teddy" style={{ animationDelay: '0s' }}>🧸</div>
-        <div className="absolute top-[30%] right-[10%] text-7xl animate-float-teddy" style={{ animationDelay: '2.5s' }}>🧸</div>
-        <div className="absolute bottom-[20%] left-[20%] text-5xl animate-float-teddy" style={{ animationDelay: '5s' }}>🧸</div>
-        <div className="absolute top-[55%] left-[40%] text-4xl animate-float-teddy" style={{ animationDelay: '1.2s' }}>🧸</div>
-        <div className="absolute bottom-[40%] right-[30%] text-8xl animate-float-teddy" style={{ animationDelay: '3.8s' }}>🧸</div>
+        <motion.div 
+          animate={{ 
+            y: [0, -20, 0],
+            rotate: [0, 5, -5, 0]
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[10%] left-[15%] text-rose-900"
+        >
+          <ToyBrick size={64} />
+        </motion.div>
+        <motion.div 
+          animate={{ 
+            y: [0, -15, 0],
+            rotate: [0, -8, 8, 0]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute top-[30%] right-[10%] text-rose-900"
+        >
+          <ToyBrick size={72} />
+        </motion.div>
+        <motion.div 
+          animate={{ 
+            y: [0, -25, 0],
+            rotate: [0, 10, -10, 0]
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-[20%] left-[20%] text-rose-900"
+        >
+          <ToyBrick size={48} />
+        </motion.div>
       </div>
 
       {/* Header */}
@@ -35,7 +72,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           className="p-2 text-slate-400 hover:text-rose-900 transition-colors"
           title="Logout"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <LogOut size={20} strokeWidth={2.5} />
         </button>
       </header>
 
@@ -48,13 +85,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       {/* Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-[100] px-4 pb-[calc(1rem + var(--safe-area-inset-bottom))]">
         <nav className="mx-auto w-full max-w-[440px] bg-white/30 backdrop-blur-3xl px-2 py-2 rounded-[2.5rem] flex justify-between items-center shadow-[0_20px_50px_rgba(126,22,49,0.06)] border border-white/20">
-          <NavItem active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} label="Nest" icon="🏠" />
-          <NavItem active={activeTab === 'baby'} onClick={() => setActiveTab('baby')} label="Growth" icon="👶" />
-          <NavItem active={activeTab === 'ava'} onClick={() => setActiveTab('ava')} label="Ava" icon="✨" isSpecial />
-          <NavItem active={activeTab === 'education'} onClick={() => setActiveTab('education')} label="Academy" icon="📚" />
-          <NavItem active={activeTab === 'tools'} onClick={() => setActiveTab('tools')} label="Tools" icon="⚙️" />
+          <NavItem active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} label="Nest" icon={Home} />
+          <NavItem active={activeTab === 'baby'} onClick={() => setActiveTab('baby')} label="Growth" icon={TrendingUp} />
+          <NavItem active={activeTab === 'ava'} onClick={() => setActiveTab('ava')} label="Ava" icon={Sparkles} isSpecial />
+          <NavItem active={activeTab === 'education'} onClick={() => setActiveTab('education')} label="Academy" icon={BookOpen} />
+          <NavItem active={activeTab === 'tools'} onClick={() => setActiveTab('tools')} label="Tools" icon={LayoutGrid} />
+          <NavItem active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} label="Settings" icon={User} />
           {isAdmin && (
-            <NavItem active={activeTab === 'admin'} onClick={() => setActiveTab('admin')} label="Admin" icon="🛠️" />
+            <NavItem active={activeTab === 'admin'} onClick={() => setActiveTab('admin')} label="Admin" icon={ShieldCheck} />
           )}
         </nav>
       </div>
@@ -62,19 +100,25 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   );
 };
 
-const NavItem = ({ active, onClick, label, icon, isSpecial }: any) => (
+const NavItem = ({ active, onClick, label, icon: Icon, isSpecial }: any) => (
   <button 
     onClick={onClick} 
-    className={`flex flex-col items-center flex-1 py-2 transition-all duration-500 rounded-2xl relative ${active ? 'bg-white/40 shadow-sm' : ''}`}
+    className={`flex flex-col items-center flex-1 py-2 transition-all duration-300 rounded-2xl relative ${active ? 'bg-white/40 shadow-sm' : ''}`}
   >
-    <div className={`text-xl mb-0.5 ${isSpecial && !active ? 'animate-pulse' : ''}`}>
-      {icon}
-    </div>
+    <motion.div 
+      animate={active ? { scale: 1.2, y: -2 } : { scale: 1, y: 0 }}
+      className={`mb-0.5 ${active ? 'text-rose-900' : 'text-slate-400'} ${isSpecial && !active ? 'animate-pulse' : ''}`}
+    >
+      <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+    </motion.div>
     <span className={`text-[7px] font-black uppercase tracking-[0.1em] ${active ? 'text-rose-900' : 'text-slate-500'}`}>
       {label}
     </span>
     {active && (
-      <div className="absolute -bottom-1 w-1 h-1 bg-rose-900 rounded-full" />
+      <motion.div 
+        layoutId="nav-indicator"
+        className="absolute -bottom-1 w-1 h-1 bg-rose-900 rounded-full" 
+      />
     )}
   </button>
 );

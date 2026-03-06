@@ -9,6 +9,8 @@ import { AuthScreen } from './components/AuthScreen.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
 import { AvaChat } from './components/AvaChat.tsx';
 import { SplashScreen } from './components/SplashScreen.tsx';
+import { Settings } from './components/Settings.tsx';
+import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders } from './services/pushService.ts';
 import { Analytics } from "@vercel/analytics/react";
@@ -41,7 +43,7 @@ const App: React.FC = () => {
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [trimester, setTrimester] = useState<Trimester>(Trimester.FIRST);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings'>('dashboard');
   const [activeToolCat, setActiveToolCat] = useState<string>('vitals');
 
   const [entries, setEntries] = useState<FoodEntry[]>([]);
@@ -85,6 +87,13 @@ const App: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [authEmail, profile, calendarEvents, vitamins, feedingLogs, sleepLogs, milestones]);
+
+  useEffect(() => {
+    if (!profile) return;
+    const isPostpartum = profile.lifecycleStage === LifecycleStage.NEWBORN;
+    const theme = profile.themeColor || 'pink';
+    document.body.className = `theme-${theme} ${isPostpartum ? 'stage-newborn' : 'stage-pregnancy'}`;
+  }, [profile?.lifecycleStage, profile?.themeColor]);
 
   // Handle deep linking from Shortcuts / Widgets
   useEffect(() => {
@@ -186,54 +195,66 @@ const App: React.FC = () => {
     <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
       <Analytics />
       <div className="max-w-4xl mx-auto px-4 py-4">
-        {activeTab === 'dashboard' && (
-          <Dashboard 
-            entries={entries} waterLogs={waterLogs} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
-            feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
-            journalEntries={journalEntries} babyGrowthLogs={babyGrowthLogs} diaperLogs={diaperLogs}
-            trimester={trimester} profile={profile}
-            onAddEntry={(e) => { storage.addFoodEntry({...e, id: Date.now().toString(), timestamp: Date.now()} as any); setEntries(storage.getFoodEntries()); }}
-            onRemoveEntry={(id) => { storage.removeFoodEntry(id); setEntries(storage.getFoodEntries()); }}
-            onAddWater={(a) => { storage.addWaterLog({amount: a, timestamp: Date.now()}); setWaterLogs(storage.getWaterLogs()); }}
-            onLogVitamin={(n) => { storage.addVitamin({id: Date.now().toString(), name: n, timestamp: Date.now()}); setVitamins(storage.getVitamins()); }}
-            onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({...g, id: Date.now().toString(), timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
-            onQuickTool={(cat) => { setActiveTab('tools'); setActiveToolCat(cat); }}
-            onEditProfile={() => setIsEditingProfile(true)}
-            onUpdateProfile={(p) => { storage.saveProfile(p); setProfile(p); }}
-          />
-        )}
-        {activeTab === 'baby' && <BabyProgress profile={profile} babyGrowthLogs={babyGrowthLogs} />}
-        {activeTab === 'ava' && <AvaChat profile={profile} />}
-        {activeTab === 'education' && (
-          <EducationHub 
-            trimester={trimester} 
-            isPostpartum={profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY} 
-          />
-        )}
-        {activeTab === 'tools' && (
-          <ToolsHub 
-            symptoms={symptoms} onLogSymptom={(t, s) => { storage.addSymptom({id: Date.now().toString(), type: t, severity: s, timestamp: Date.now()}); setSymptoms(storage.getSymptoms()); }}
-            contractions={contractions} onUpdateContractions={(c) => { storage.saveContractions(c); setContractions(c); }}
-            journalEntries={journalEntries} onAddJournal={(c, m) => { storage.addJournalEntry({id: Date.now().toString(), content: c, mood: m, timestamp: Date.now()}); setJournalEntries(storage.getJournalEntries()); }}
-            onRemoveJournal={(id) => { storage.removeJournalEntry(id); setJournalEntries(storage.getJournalEntries()); }}
-            calendarEvents={calendarEvents} onAddEvent={(t,d,ty) => { storage.addCalendarEvent({id: Date.now().toString(), title: t, date: d, type: ty}); setCalendarEvents(storage.getCalendarEvents()); }}
-            onRemoveEvent={(id) => { storage.removeCalendarEvent(id); setCalendarEvents(storage.getCalendarEvents()); }}
-            weightLogs={weightLogs} onAddWeight={(w) => { storage.addWeightLog({id: Date.now().toString(), weight: w, timestamp: Date.now()}); setWeightLogs(storage.getWeightLogs()); }}
-            sleepLogs={sleepLogs} onAddSleep={(s) => { storage.addSleepLog({id: Date.now().toString(), ...s, timestamp: Date.now()}); setSleepLogs(storage.getSleepLogs()); }}
-            onRemoveSleep={(id) => { storage.removeSleepLog(id); setSleepLogs(storage.getSleepLogs()); }}
-            feedingLogs={feedingLogs} onAddFeeding={(f) => { storage.addFeedingLog({id: Date.now().toString(), ...f, timestamp: Date.now()}); setFeedingLogs(storage.getFeedingLogs()); }}
-            diaperLogs={diaperLogs} onAddDiaper={(d) => { storage.addDiaperLog({id: Date.now().toString(), ...d, timestamp: Date.now()}); setDiaperLogs(storage.getDiaperLogs()); }}
-            milestones={milestones} onAddMilestone={(m) => { storage.addMilestone({id: Date.now().toString(), ...m, timestamp: Date.now()}); setMilestones(storage.getMilestones()); }}
-            healthLogs={healthLogs} onAddHealth={(h) => { storage.addHealthLog({id: Date.now().toString(), ...h, timestamp: Date.now()}); setHealthLogs(storage.getHealthLogs()); }}
-            reactions={reactions} onAddReaction={(r) => { storage.addReaction({id: Date.now().toString(), ...r, timestamp: Date.now()}); setReactions(storage.getReactions()); }}
-            kickLogs={kickLogs} onAddKick={(k) => { storage.addKickLog({id: Date.now().toString(), ...k, timestamp: Date.now()}); setKickLogs(storage.getKickLogs()); }}
-            babyGrowthLogs={babyGrowthLogs} onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
-            trimester={trimester} profile={profile}
-            activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}
-            onUpdateProfile={(p) => { storage.saveProfile(p); setProfile(p); }}
-          />
-        )}
-        {activeTab === 'admin' && isAdmin && <AdminDashboard />}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'dashboard' && (
+              <Dashboard 
+                entries={entries} waterLogs={waterLogs} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
+                feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
+                journalEntries={journalEntries} babyGrowthLogs={babyGrowthLogs} diaperLogs={diaperLogs}
+                trimester={trimester} profile={profile}
+                onAddEntry={(e) => { storage.addFoodEntry({...e, id: Date.now().toString(), timestamp: Date.now()} as any); setEntries(storage.getFoodEntries()); }}
+                onRemoveEntry={(id) => { storage.removeFoodEntry(id); setEntries(storage.getFoodEntries()); }}
+                onAddWater={(a) => { storage.addWaterLog({amount: a, timestamp: Date.now()}); setWaterLogs(storage.getWaterLogs()); }}
+                onLogVitamin={(n) => { storage.addVitamin({id: Date.now().toString(), name: n, timestamp: Date.now()}); setVitamins(storage.getVitamins()); }}
+                onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({...g, id: Date.now().toString(), timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
+                onQuickTool={(cat) => { setActiveTab('tools'); setActiveToolCat(cat); }}
+                onEditProfile={() => setIsEditingProfile(true)}
+                onUpdateProfile={(p) => { storage.saveProfile(p); setProfile(p); }}
+                onNavigate={(tab) => setActiveTab(tab)}
+              />
+            )}
+            {activeTab === 'baby' && <BabyProgress profile={profile} babyGrowthLogs={babyGrowthLogs} />}
+            {activeTab === 'ava' && <AvaChat profile={profile} />}
+            {activeTab === 'education' && (
+              <EducationHub 
+                trimester={trimester} 
+                isPostpartum={profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY} 
+              />
+            )}
+            {activeTab === 'tools' && (
+              <ToolsHub 
+                symptoms={symptoms} onLogSymptom={(t, s) => { storage.addSymptom({id: Date.now().toString(), type: t, severity: s, timestamp: Date.now()}); setSymptoms(storage.getSymptoms()); }}
+                contractions={contractions} onUpdateContractions={(c) => { storage.saveContractions(c); setContractions(c); }}
+                journalEntries={journalEntries} onAddJournal={(c, m) => { storage.addJournalEntry({id: Date.now().toString(), content: c, mood: m, timestamp: Date.now()}); setJournalEntries(storage.getJournalEntries()); }}
+                onRemoveJournal={(id) => { storage.removeJournalEntry(id); setJournalEntries(storage.getJournalEntries()); }}
+                calendarEvents={calendarEvents} onAddEvent={(t,d,ty) => { storage.addCalendarEvent({id: Date.now().toString(), title: t, date: d, type: ty}); setCalendarEvents(storage.getCalendarEvents()); }}
+                onRemoveEvent={(id) => { storage.removeCalendarEvent(id); setCalendarEvents(storage.getCalendarEvents()); }}
+                weightLogs={weightLogs} onAddWeight={(w) => { storage.addWeightLog({id: Date.now().toString(), weight: w, timestamp: Date.now()}); setWeightLogs(storage.getWeightLogs()); }}
+                sleepLogs={sleepLogs} onAddSleep={(s) => { storage.addSleepLog({id: Date.now().toString(), ...s, timestamp: Date.now()}); setSleepLogs(storage.getSleepLogs()); }}
+                onRemoveSleep={(id) => { storage.removeSleepLog(id); setSleepLogs(storage.getSleepLogs()); }}
+                feedingLogs={feedingLogs} onAddFeeding={(f) => { storage.addFeedingLog({id: Date.now().toString(), ...f, timestamp: Date.now()}); setFeedingLogs(storage.getFeedingLogs()); }}
+                diaperLogs={diaperLogs} onAddDiaper={(d) => { storage.addDiaperLog({id: Date.now().toString(), ...d, timestamp: Date.now()}); setDiaperLogs(storage.getDiaperLogs()); }}
+                milestones={milestones} onAddMilestone={(m) => { storage.addMilestone({id: Date.now().toString(), ...m, timestamp: Date.now()}); setMilestones(storage.getMilestones()); }}
+                healthLogs={healthLogs} onAddHealth={(h) => { storage.addHealthLog({id: Date.now().toString(), ...h, timestamp: Date.now()}); setHealthLogs(storage.getHealthLogs()); }}
+                reactions={reactions} onAddReaction={(r) => { storage.addReaction({id: Date.now().toString(), ...r, timestamp: Date.now()}); setReactions(storage.getReactions()); }}
+                kickLogs={kickLogs} onAddKick={(k) => { storage.addKickLog({id: Date.now().toString(), ...k, timestamp: Date.now()}); setKickLogs(storage.getKickLogs()); }}
+                babyGrowthLogs={babyGrowthLogs} onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
+                trimester={trimester} profile={profile}
+                activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}
+                onUpdateProfile={(p) => { storage.saveProfile(p); setProfile(p); }}
+              />
+            )}
+            {activeTab === 'settings' && <Settings profile={profile} onUpdateProfile={(p) => { storage.saveProfile(p); setProfile(p); }} />}
+            {activeTab === 'admin' && isAdmin && <AdminDashboard />}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </Layout>
   );

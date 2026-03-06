@@ -1,4 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Sparkles, 
+  Volume2, 
+  VolumeX, 
+  Database, 
+  Trash2, 
+  X, 
+  Apple, 
+  Stethoscope, 
+  PartyPopper, 
+  FileText, 
+  Heart,
+  Send
+} from 'lucide-react';
 import { getAvaResponse, speakAva } from '../services/geminiService.ts';
 import { PregnancyProfile, ChatMessage, AvaMemoryFact } from '../types.ts';
 import { storage } from '../services/storageService.ts';
@@ -104,7 +118,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             {avaImage ? (
               <img src={avaImage} alt="Ava" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
             ) : (
-              <span className="text-2xl">✨</span>
+              <span className="text-rose-200"><Sparkles size={24} /></span>
             )}
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <span className="text-[8px] text-white font-black uppercase tracking-tighter">Edit</span>
@@ -127,22 +141,22 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             className={`p-3 rounded-2xl bg-white border-2 transition-all active:scale-90 flex items-center justify-center ${isSpeaking ? 'border-rose-400 text-rose-500 shadow-md' : 'border-slate-100 text-slate-300'}`}
           >
             {isSpeaking ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <Volume2 size={20} strokeWidth={3} />
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+              <VolumeX size={20} strokeWidth={3} />
             )}
           </button>
           <button 
             onClick={() => setShowVault(!showVault)}
             className={`p-3 rounded-2xl bg-white border-2 transition-all active:scale-90 flex items-center justify-center ${showVault ? 'border-rose-400 text-rose-500 shadow-md' : 'border-slate-100 text-slate-300'}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v8"/><path d="m16 6-4 4-4-4"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01"/><path d="M10 18h.01"/></svg>
+            <Database size={20} strokeWidth={3} />
           </button>
           <button 
             onClick={clearChat} 
             className="p-3 rounded-2xl bg-white border-2 border-slate-100 text-slate-300 hover:text-rose-500 transition-all active:scale-90"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            <Trash2 size={20} strokeWidth={3} />
           </button>
         </div>
       </div>
@@ -153,7 +167,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-serif text-rose-900">Ava's Memory Vault</h3>
               <button onClick={() => setShowVault(false)} className="text-slate-400 hover:text-slate-900 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <X size={24} strokeWidth={3} />
               </button>
             </div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 mb-6">Stored journey facts</p>
@@ -161,8 +175,8 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             <div className="space-y-3">
               {memoryBank?.length > 0 ? memoryBank.map(fact => (
                 <div key={fact.id} className="p-4 bg-white border border-rose-50 rounded-2xl shadow-sm flex items-start gap-4">
-                  <span className="text-xl">
-                    {fact.category === 'preference' ? '🍓' : fact.category === 'symptom' ? '🩺' : fact.category === 'milestone' ? '🎉' : '📝'}
+                  <span className="text-rose-400">
+                    {fact.category === 'preference' ? <Apple size={20} /> : fact.category === 'symptom' ? <Stethoscope size={20} /> : fact.category === 'milestone' ? <PartyPopper size={20} /> : <FileText size={20} />}
                   </span>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-slate-700 leading-tight">{fact.content}</p>
@@ -182,7 +196,9 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
 
         {messages.length === 0 && (
           <div className="py-20 text-center flex flex-col items-center animate-in fade-in duration-1000">
-            <div className="w-20 h-20 bg-rose-50 rounded-[2.5rem] flex items-center justify-center text-4xl mb-6 shadow-inner border border-rose-100 animate-float">🤍</div>
+            <div className="w-20 h-20 bg-rose-50 rounded-[2.5rem] flex items-center justify-center text-rose-300 mb-6 shadow-inner border border-rose-100 animate-float">
+              <Heart size={40} fill="currentColor" />
+            </div>
             <p className="text-sm text-slate-500 italic max-w-xs leading-relaxed">"Bonjour {profile.userName}! I'm Ava. How can I support you today?"</p>
           </div>
         )}
@@ -213,7 +229,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
           <input 
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Talk to Ava... 🧸"
+            placeholder="Talk to Ava..."
             className="w-full h-14 pl-6 pr-20 bg-white border-none rounded-[2rem] shadow-inner text-base font-medium outline-none focus:ring-4 focus:ring-rose-900/5 transition-all"
           />
           <button 

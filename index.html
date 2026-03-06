@@ -46,14 +46,19 @@
         --nestly-burgundy: #7e1631;
         --soft-bg: #fffaf9;
         --body-bg: #fdf8f7;
+        --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       }
       * {
         box-sizing: border-box;
         -webkit-tap-highlight-color: transparent;
         scrollbar-width: none;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-timing-function: var(--transition-smooth);
       }
       *::-webkit-scrollbar { display: none; }
+
+      html {
+        scroll-behavior: smooth;
+      }
 
       body {
         font-family: 'Plus Jakarta Sans', sans-serif;
@@ -66,6 +71,7 @@
         font-size: 16px;
         overflow-x: hidden;
         overscroll-behavior-y: none;
+        transition: background-color 0.5s ease;
       }
       #root {
         width: 100%;
@@ -76,6 +82,7 @@
         display: flex;
         flex-direction: column;
         box-shadow: 0 0 100px rgba(126, 22, 49, 0.04);
+        transition: background-color 0.5s ease;
       }
       .font-serif {
         font-family: 'Fraunces', serif;
@@ -92,7 +99,11 @@
         border-radius: 2.25rem;
         box-shadow: 0 10px 25px -5px rgba(126, 22, 49, 0.03);
         border: 1px solid rgba(254, 242, 242, 0.8);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.4s var(--transition-smooth);
+      }
+      .card-premium:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 30px -5px rgba(126, 22, 49, 0.06);
       }
       .btn-nestly {
         background: var(--nestly-burgundy);
@@ -156,6 +167,32 @@
         cursor: pointer;
         user-select: none;
       }
+
+      /* Theme specific overrides */
+      .theme-pink {
+        --rose-main: #f43f5e;
+        --nestly-burgundy: #7e1631;
+        --soft-bg: #fffaf9;
+        --body-bg: #fdf8f7;
+      }
+      .theme-blue {
+        --rose-main: #3b82f6;
+        --nestly-burgundy: #1e3a8a;
+        --soft-bg: #f0f9ff;
+        --body-bg: #f8fafc;
+      }
+      .theme-neutral {
+        --rose-main: #64748b;
+        --nestly-burgundy: #1e293b;
+        --soft-bg: #f8fafc;
+        --body-bg: #f1f5f9;
+      }
+
+      /* Lifecycle specific overrides (can combine with colors) */
+      .stage-newborn {
+        /* Subtle shifts for newborn stage */
+      }
+
     </style>
     <!-- Privacy-friendly analytics by Plausible -->
     <script async src="https://plausible.io/js/pa-qu38XzloqDhefv3GNak5F.js"></script>

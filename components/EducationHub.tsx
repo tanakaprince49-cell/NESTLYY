@@ -1,5 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
+import { 
+  Stethoscope, 
+  ArrowRight, 
+  X,
+  HeartPulse
+} from 'lucide-react';
 import { Trimester, Article as GlobalArticle, LifecycleStage } from '../types';
 import { storage } from '../services/storageService';
 
@@ -103,18 +109,18 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
 
   return (
     <div className="relative space-y-8 pb-12">
-      {/* Decorative Floating Emojis */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10 opacity-20">
-        <div className="absolute top-[5%] left-[10%] text-4xl animate-float-teddy" style={{ animationDelay: '0s' }}>🧑‍⚕️</div>
-        <div className="absolute top-[25%] right-[15%] text-5xl animate-float-teddy" style={{ animationDelay: '2s' }}>🧑‍⚕️</div>
-        <div className="absolute top-[45%] left-[20%] text-3xl animate-float-teddy" style={{ animationDelay: '4s' }}>🧑‍⚕️</div>
-        <div className="absolute top-[65%] right-[10%] text-6xl animate-float-teddy" style={{ animationDelay: '1s' }}>🧑‍⚕️</div>
-        <div className="absolute bottom-[10%] left-[5%] text-4xl animate-float-teddy" style={{ animationDelay: '3s' }}>🧑‍⚕️</div>
-        <div className="absolute bottom-[25%] right-[25%] text-5xl animate-float-teddy" style={{ animationDelay: '5s' }}>🧑‍⚕️</div>
-        <div className="absolute top-[15%] left-[60%] text-3xl animate-float-teddy" style={{ animationDelay: '1.5s' }}>🧑‍⚕️</div>
-        <div className="absolute bottom-[40%] left-[30%] text-4xl animate-float-teddy" style={{ animationDelay: '2.5s' }}>🧑‍⚕️</div>
-        <div className="absolute top-[80%] left-[70%] text-5xl animate-float-teddy" style={{ animationDelay: '4.5s' }}>🧑‍⚕️</div>
-        <div className="absolute top-[40%] right-[40%] text-4xl animate-float-teddy" style={{ animationDelay: '0.5s' }}>🧑‍⚕️</div>
+      {/* Decorative Floating Icons */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10 opacity-10">
+        <div className="absolute top-[5%] left-[10%] text-rose-300 animate-float-teddy" style={{ animationDelay: '0s' }}><Stethoscope size={40} /></div>
+        <div className="absolute top-[25%] right-[15%] text-rose-300 animate-float-teddy" style={{ animationDelay: '2s' }}><HeartPulse size={50} /></div>
+        <div className="absolute top-[45%] left-[20%] text-rose-300 animate-float-teddy" style={{ animationDelay: '4s' }}><Stethoscope size={30} /></div>
+        <div className="absolute top-[65%] right-[10%] text-rose-300 animate-float-teddy" style={{ animationDelay: '1s' }}><HeartPulse size={60} /></div>
+        <div className="absolute bottom-[10%] left-[5%] text-rose-300 animate-float-teddy" style={{ animationDelay: '3s' }}><Stethoscope size={40} /></div>
+        <div className="absolute bottom-[25%] right-[25%] text-rose-300 animate-float-teddy" style={{ animationDelay: '5s' }}><HeartPulse size={50} /></div>
+        <div className="absolute top-[15%] left-[60%] text-rose-300 animate-float-teddy" style={{ animationDelay: '1.5s' }}><Stethoscope size={30} /></div>
+        <div className="absolute bottom-[40%] left-[30%] text-rose-300 animate-float-teddy" style={{ animationDelay: '2.5s' }}><HeartPulse size={40} /></div>
+        <div className="absolute top-[80%] left-[70%] text-rose-300 animate-float-teddy" style={{ animationDelay: '4.5s' }}><Stethoscope size={50} /></div>
+        <div className="absolute top-[40%] right-[40%] text-rose-300 animate-float-teddy" style={{ animationDelay: '0.5s' }}><HeartPulse size={40} /></div>
       </div>
 
       <div className="text-center mb-8 px-4">
@@ -177,7 +183,7 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
                   </p>
                   <div className="flex items-center text-[10px] font-bold text-rose-500 uppercase tracking-widest gap-2">
                     Read Expert Summary
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    <ArrowRight size={12} strokeWidth={3} />
                   </div>
                 </div>
               </div>
@@ -241,7 +247,7 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
                 onClick={() => setActiveLocalArticle(null)}
                 className="p-3 bg-white/60 rounded-full hover:bg-rose-50 text-gray-400 hover:text-rose-500 transition-all shadow-sm border border-white active:scale-90"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <X size={24} strokeWidth={3} />
               </button>
             </div>
             <div className="prose prose-rose max-w-none text-gray-700 leading-relaxed text-base sm:text-lg italic">
@@ -278,7 +284,7 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
                 onClick={() => setActiveGlobalArticle(null)}
                 className="absolute top-6 right-6 p-3 bg-white/60 backdrop-blur rounded-full hover:bg-rose-50 text-gray-400 hover:text-rose-500 transition-all shadow-sm border border-white active:scale-90"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <X size={24} strokeWidth={3} />
               </button>
             </div>
             <div className="p-8 sm:p-12 -mt-12 relative z-10">

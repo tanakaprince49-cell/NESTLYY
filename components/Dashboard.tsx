@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { NutrientCard } from './NutrientCard.tsx';
 import { HydrationTracker } from './HydrationTracker.tsx';
 import { getBabyGrowth } from '../services/babyGrowth.ts';
@@ -17,6 +18,28 @@ import {
   Line,
   Legend
 } from 'recharts';
+import { 
+  Baby,
+  Camera,
+  Settings as SettingsIcon,
+  Milk,
+  Moon,
+  Ruler,
+  Trophy,
+  FileText,
+  Heart,
+  Utensils,
+  Apple,
+  Droplets,
+  Scale,
+  Sparkles,
+  Bell,
+  Send,
+  Smile,
+  Frown,
+  Meh,
+  PenLine
+} from 'lucide-react';
 import { 
   FoodEntry, 
   Trimester, 
@@ -58,17 +81,18 @@ interface DashboardProps {
   onEditProfile: () => void;
   onUpdateProfile?: (profile: PregnancyProfile) => void;
   onAddBabyGrowth?: (log: Omit<BabyGrowthLog, 'id' | 'timestamp'>) => void;
+  onNavigate?: (tab: any) => void;
 }
 
 const DAILY_TIPS = [
-  "Stay hydrated! Your baby needs fluid to support the growing placenta. 💧",
-  "Gentle stretching for 10 minutes can significantly reduce lower back pain. 🧘‍♀️",
-  "Eat small, frequent meals to help manage morning sickness or heartburn. 🍎",
-  "Iron-rich foods like spinach and lean meats support your increasing blood volume. 🥩",
-  "Take a moment to talk or sing to your baby—they can hear you soon! 🎶",
-  "Sleep on your left side to maximize blood flow to the placenta. 🌙",
-  "Don't forget your Kegels today! Strong pelvic floor muscles help during labor. ✨",
-  "Pack a 'hospital bag' early—it’s one less thing to worry about later! 👜"
+  "Stay hydrated! Your baby needs fluid to support the growing placenta.",
+  "Gentle stretching for 10 minutes can significantly reduce lower back pain.",
+  "Eat small, frequent meals to help manage morning sickness or heartburn.",
+  "Iron-rich foods like spinach and lean meats support your increasing blood volume.",
+  "Take a moment to talk or sing to your baby—they can hear you soon!",
+  "Sleep on your left side to maximize blood flow to the placenta.",
+  "Don't forget your Kegels today! Strong pelvic floor muscles help during labor.",
+  "Pack a 'hospital bag' early—it’s one less thing to worry about later!"
 ];
 
 import { subscribeUserToPush } from '../services/pushService.ts';
@@ -77,7 +101,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   entries, waterLogs, vitamins, weightLogs, sleepLogs, 
   feedingLogs, milestones, healthLogs, reactions, journalEntries, babyGrowthLogs, diaperLogs,
   trimester, profile, 
-  onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth
+  onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onNavigate
 }) => {
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
   const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep'>('fuel');
@@ -95,7 +119,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (sub) {
       setShowPushPrompt(false);
       onUpdateProfile?.({ ...profile, notificationsEnabled: true });
-      alert("Notifications enabled! You'll receive appointment reminders here. 🕊️");
+      alert("Notifications enabled! You'll receive appointment reminders here.");
     }
   };
 
@@ -198,7 +222,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="space-y-6 px-5 pb-36 pt-2 animate-slide-up no-scrollbar overflow-x-hidden relative z-10">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6 px-5 pb-36 pt-2 no-scrollbar overflow-x-hidden relative z-10"
+    >
       
       {/* Header */}
       <div className="flex justify-between items-start mb-2">
@@ -210,17 +238,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="flex gap-2">
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={onEditProfile}
-              className="bg-white/50 backdrop-blur-md border border-white px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-900 transition-all active:scale-95"
+              className="bg-white/50 backdrop-blur-md border border-white px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-900 transition-all"
             >
               Edit Profile
-            </button>
+            </motion.button>
           </div>
           <div className="flex gap-1 bg-white/30 p-1 rounded-xl border border-white/50 relative z-50">
             {(['pink', 'blue', 'neutral'] as const).map(c => (
-              <button
+              <motion.button
                 key={c}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   const updatedProfile = { ...profile, themeColor: c };
@@ -239,8 +271,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Baby Age & Quick Summary */}
           <div className="flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/60 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-rose-100 rounded-[1.5rem] flex items-center justify-center text-3xl shadow-inner border border-white">
-                {profile.babies?.[0]?.gender === 'boy' ? '👦' : profile.babies?.[0]?.gender === 'girl' ? '👧' : '👶'}
+              <div className="w-16 h-16 bg-rose-100 rounded-[1.5rem] flex items-center justify-center text-rose-500 shadow-inner border border-white">
+                <Baby size={32} />
               </div>
               <div>
                 <h3 className="text-xl font-serif text-slate-900">{profile.babies?.[0]?.name || 'Baby'}</h3>
@@ -248,8 +280,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => onQuickTool('memories')} className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-50">📸</button>
-              <button onClick={() => onQuickTool('settings')} className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-50">⚙️</button>
+              <button onClick={() => onQuickTool('memories')} className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-50 text-slate-400 hover:text-rose-500 transition-colors">
+                <Camera size={20} />
+              </button>
+              <button onClick={() => onNavigate?.('settings')} className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-50 text-slate-400 hover:text-rose-500 transition-colors">
+                <SettingsIcon size={20} />
+              </button>
             </div>
           </div>
 
@@ -301,7 +337,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span className="text-2xl font-bold text-slate-900">
                   {journalEntries.filter(j => new Date(j.timestamp).setHours(0,0,0,0) === today && j.mood).length > 0 
                     ? journalEntries.filter(j => new Date(j.timestamp).setHours(0,0,0,0) === today && j.mood)[0].mood 
-                    : '😊'}
+                    : <Smile className="text-amber-400" size={24} />}
                 </span>
               </div>
               <div className="text-[8px] text-slate-300 font-bold uppercase mt-1">Daily Vibe</div>
@@ -311,19 +347,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Quick Add Buttons */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { id: 'feeding', icon: '🍼', label: 'Feed' },
-              { id: 'sleep', icon: '😴', label: 'Sleep' },
-              { id: 'diaper', icon: '🧷', label: 'Diaper' },
-              { id: 'vitals', icon: '📏', label: 'Growth' },
-              { id: 'milestones', icon: '🏆', label: 'Milestone' },
-              { id: 'journal', icon: '📝', label: 'Notes' }
+              { id: 'feeding', icon: Milk, label: 'Feed', color: 'text-rose-400' },
+              { id: 'sleep', icon: Moon, label: 'Sleep', color: 'text-indigo-400' },
+              { id: 'diaper', icon: Droplets, label: 'Diaper', color: 'text-emerald-400' },
+              { id: 'vitals', icon: Ruler, label: 'Growth', color: 'text-blue-400' },
+              { id: 'milestones', icon: Trophy, label: 'Milestone', color: 'text-amber-400' },
+              { id: 'journal', icon: FileText, label: 'Notes', color: 'text-slate-400' }
             ].map(btn => (
               <button
                 key={btn.id}
                 onClick={() => onQuickTool(btn.id)}
                 className="flex flex-col items-center gap-2 p-4 bg-white/60 backdrop-blur-sm rounded-[2rem] border border-white shadow-sm active:scale-95 transition-all group"
               >
-                <span className="text-2xl group-hover:scale-110 transition-transform">{btn.icon}</span>
+                <span className={`transition-transform group-hover:scale-110 ${btn.color}`}>
+                  <btn.icon size={24} />
+                </span>
                 <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{btn.label}</span>
               </button>
             ))}
@@ -401,7 +439,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       ).length;
                       return (
                         <div key={type} className="p-4 bg-slate-50 rounded-2xl text-center">
-                          <div className="text-xl mb-1">{type === 'breast' ? '🤱' : type === 'bottle' ? '🍼' : '🥣'}</div>
+                          <div className="flex justify-center mb-1 text-rose-400">
+                            {type === 'breast' ? <Heart size={24} /> : type === 'bottle' ? <Milk size={24} /> : <Utensils size={24} />}
+                          </div>
                           <div className="text-[8px] font-black uppercase text-slate-400">{type}</div>
                           <div className="text-lg font-bold text-slate-900">{count}</div>
                         </div>
@@ -418,7 +458,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="card-premium p-6 bg-white border-2 border-white space-y-4">
                   <h3 className="text-lg font-serif text-rose-800">Sleep Summary</h3>
                   <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-2xl">
-                    <div className="text-4xl">😴</div>
+                    <div className="text-indigo-400">
+                      <Moon size={40} />
+                    </div>
                     <div className="text-right">
                       <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Total Rest</div>
                       <div className="text-2xl font-bold text-indigo-900">
@@ -441,7 +483,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       .slice(0, 3)
                       .map(m => (
                         <div key={m.id} className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl">
-                          <span className="text-xl">🏆</span>
+                          <span className="text-amber-400"><Trophy size={20} /></span>
                           <div>
                             <div className="text-sm font-bold text-slate-900">{m.title}</div>
                             <div className="text-[8px] font-black text-amber-400 uppercase">{new Date(m.date).toLocaleDateString()}</div>
@@ -480,7 +522,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             {newbornTab === 'growth' && (
               <div className="space-y-4">
-                <div className="card-premium p-6 bg-white border-2 border-white space-y-6">
+                <motion.div 
+                  whileHover={{ y: -5 }}
+                  className="card-premium p-6 bg-white border-2 border-white space-y-6"
+                >
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-serif text-rose-800">Growth & Profile</h3>
                     {selectedBabyId !== 'combined' && (
@@ -520,7 +565,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       {profile.babies.map(b => (
                         <div key={b.id} className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
                           <div className="flex items-center gap-3">
-                            <span className="text-2xl">{b.gender === 'boy' ? '👦' : b.gender === 'girl' ? '👧' : '👶'}{b.skinTone}</span>
+                            <span className="text-rose-400"><Baby size={24} /></span>
                             <span className="font-bold text-slate-900">{b.name || 'Baby'}</span>
                           </div>
                           <div className="text-right">
@@ -535,9 +580,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   ) : (
                     <div className="space-y-6">
                       <div className="flex justify-center">
-                        <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center text-5xl shadow-inner border-4 border-white">
-                          {profile.babies.find(b => b.id === selectedBabyId)?.gender === 'boy' ? '👦' : profile.babies.find(b => b.id === selectedBabyId)?.gender === 'girl' ? '👧' : '👶'}
-                          {profile.babies.find(b => b.id === selectedBabyId)?.skinTone}
+                        <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 shadow-inner border-4 border-white">
+                          <Baby size={48} />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -563,7 +607,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </div>
                     </div>
                   )}
-                </div>
+                </motion.div>
                 <button onClick={() => onQuickTool('vitals')} className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg">Update Growth Data</button>
               </div>
             )}
@@ -576,7 +620,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     {journalEntries.slice(0, 3).map(entry => (
                       <div key={entry.id} className="p-4 bg-rose-50/50 rounded-2xl border border-rose-100/50">
                         <div className="flex justify-between items-center mb-1">
-                          <span className="text-lg">{entry.mood || '📝'}</span>
+                          <span className="text-rose-400">
+                            {entry.mood ? <span>{entry.mood}</span> : <FileText size={18} />}
+                          </span>
                           <span className="text-[8px] font-black text-rose-300 uppercase">{new Date(entry.timestamp).toLocaleDateString()}</span>
                         </div>
                         <p className="text-xs text-slate-700 italic leading-relaxed">"{entry.content}"</p>
@@ -586,7 +632,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 </div>
                 <button onClick={() => onQuickTool('journal')} className="w-full py-8 bg-white border-2 border-dashed border-rose-200 rounded-[2.5rem] text-rose-400 flex flex-col items-center gap-2">
-                  <span className="text-3xl">✍️</span>
+                  <span className="text-rose-400"><PenLine size={32} /></span>
                   <span className="text-[10px] font-black uppercase tracking-widest">Write a Reflection</span>
                 </button>
               </div>
@@ -672,11 +718,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Tip Card */}
           <div className="p-5 bg-gradient-to-br from-rose-50 to-white rounded-[2.5rem] border border-rose-100/50 shadow-sm relative overflow-hidden group">
              <div className="absolute top-0 right-0 px-3 py-1 bg-emerald-500 text-white text-[7px] font-black uppercase tracking-widest rounded-bl-xl flex items-center gap-1 shadow-sm">
-               <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+               <Check size={8} strokeWidth={4} />
                Clinician Verified
              </div>
              <div className="flex items-center gap-4 mt-2">
-                <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-rose-200 shrink-0 animate-float">✨</div>
+                <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-200 shrink-0 animate-float">
+                  <Sparkles size={24} />
+                </div>
                 <div className="space-y-1">
                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Parent Wisdom</span>
                    <p className="text-xs font-bold text-slate-800 italic leading-snug">"{dailyTip}"</p>
@@ -687,7 +735,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {showPushPrompt && (
             <div className="p-6 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 shadow-sm animate-in fade-in slide-in-from-bottom-4">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-emerald-200 shrink-0">🔔</div>
+                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200 shrink-0">
+                  <Bell size={24} />
+                </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Stay Updated</h3>
                   <p className="text-[10px] text-slate-500">Enable notifications for appointment reminders.</p>
@@ -755,9 +805,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <button 
                     key={m} 
                     onClick={() => setActiveMetric(m)}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
                   >
-                    {m === 'fuel' ? '🍎' : m === 'water' ? '💧' : m === 'weight' ? '⚖️' : '😴'}
+                    {m === 'fuel' ? <Apple size={16} /> : m === 'water' ? <Droplets size={16} /> : m === 'weight' ? <Scale size={16} /> : <Moon size={16} />}
                   </button>
                 ))}
               </div>
@@ -780,6 +830,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 };

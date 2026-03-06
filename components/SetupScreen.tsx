@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  ToyBrick, 
+  Heart, 
+  Milk, 
+  Baby, 
+  Camera, 
+  Sparkles,
+  ChevronRight,
+  Check
+} from 'lucide-react';
 import { PregnancyProfile, NutritionTargets, MemoryAlbums, LifecycleStage } from '../types.ts';
 import { Logo } from './Logo.tsx';
 
@@ -70,50 +81,72 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
     <div className="min-h-screen bg-[#fffaf9] flex flex-col relative overflow-hidden p-6 sm:p-8">
       {/* Persistent Floating Teddy Bears */}
       <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.05]">
-        <div className="absolute top-[10%] left-[15%] text-6xl animate-float-teddy">🧸</div>
-        <div className="absolute bottom-[20%] right-[10%] text-7xl animate-float-teddy">🧸</div>
+        <motion.div 
+          animate={{ y: [0, -20, 0], rotate: [0, 5, -5, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[10%] left-[15%] text-rose-900"
+        >
+          <ToyBrick size={64} />
+        </motion.div>
+        <motion.div 
+          animate={{ y: [0, -25, 0], rotate: [0, -10, 10, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-[20%] right-[10%] text-rose-900"
+        >
+          <ToyBrick size={72} />
+        </motion.div>
       </div>
 
       <div className="max-w-lg mx-auto w-full flex-1 flex flex-col justify-center gap-10 relative z-10">
-        
-        {step === 'welcome' && (
-          <div className="animate-slide-up space-y-10 text-center">
-            <Logo className="w-24 h-24 mx-auto" />
-            <div className="space-y-4">
-              <h1 className="text-5xl font-serif text-slate-900 leading-tight">Welcome, <br/>Parent.</h1>
-              <p className="text-slate-400 font-medium px-4">Let's set up your private nest.</p>
-            </div>
-            <button onClick={() => goTo('lifecycle')} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Start Setup</button>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="w-full"
+          >
+            {step === 'welcome' && (
+              <div className="space-y-10 text-center">
+                <Logo className="w-24 h-24 mx-auto" />
+                <div className="space-y-4">
+                  <h1 className="text-5xl font-serif text-slate-900 leading-tight">Welcome, <br/>Parent.</h1>
+                  <p className="text-slate-400 font-medium px-4">Let's set up your private nest.</p>
+                </div>
+                <button onClick={() => goTo('lifecycle')} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Start Setup</button>
+              </div>
+            )}
 
-        {step === 'lifecycle' && (
-          <div className="animate-slide-up space-y-8 w-full text-center">
-            <h2 className="text-4xl font-serif text-slate-900">Choose your journey mode</h2>
-            <div className="grid grid-cols-1 gap-4">
-              {[
-                { id: LifecycleStage.PREGNANCY, label: 'Pregnancy Mode', icon: '🤰', desc: 'Track growth, symptoms, and health' },
-                { id: LifecycleStage.NEWBORN, label: 'After Pregnancy (Newborn)', icon: '🍼', desc: 'Track feeding, sleep, and milestones' }
-              ].map(stage => (
-                <button
-                  key={stage.id}
-                  onClick={() => {
-                    setLifecycleStage(stage.id);
-                    goTo('name');
-                  }}
-                  className={`p-8 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-2 ${lifecycleStage === stage.id ? 'bg-rose-500 text-white border-rose-500 shadow-xl' : 'bg-white border-rose-50 text-slate-400'}`}
-                >
-                  <span className="text-4xl">{stage.icon}</span>
-                  <span className="text-sm font-black uppercase tracking-widest">{stage.label}</span>
-                  <span className={`text-[10px] ${lifecycleStage === stage.id ? 'text-rose-100' : 'text-slate-300'}`}>{stage.desc}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+            {step === 'lifecycle' && (
+              <div className="space-y-8 w-full text-center">
+                <h2 className="text-4xl font-serif text-slate-900">Choose your journey mode</h2>
+                <div className="grid grid-cols-1 gap-4">
+                  {[
+                    { id: LifecycleStage.PREGNANCY, label: 'Pregnancy Mode', icon: Heart, desc: 'Track growth, symptoms, and health' },
+                    { id: LifecycleStage.NEWBORN, label: 'After Pregnancy (Newborn)', icon: Milk, desc: 'Track feeding, sleep, and milestones' }
+                  ].map(stage => (
+                    <button
+                      key={stage.id}
+                      onClick={() => {
+                        setLifecycleStage(stage.id);
+                        goTo('name');
+                      }}
+                      className={`p-8 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-2 ${lifecycleStage === stage.id ? 'bg-rose-500 text-white border-rose-500 shadow-xl' : 'bg-white border-rose-50 text-slate-400'}`}
+                    >
+                      <span className={`${lifecycleStage === stage.id ? 'text-white' : 'text-rose-400'}`}>
+                        <stage.icon size={40} />
+                      </span>
+                      <span className="text-sm font-black uppercase tracking-widest">{stage.label}</span>
+                      <span className={`text-[10px] ${lifecycleStage === stage.id ? 'text-rose-100' : 'text-slate-300'}`}>{stage.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
         {step === 'name' && (
-          <div className="animate-slide-up space-y-8 w-full text-center">
+          <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">What's your name?</h2>
             <input autoFocus value={userName} onChange={e => setUserName(e.target.value)} placeholder="Your Name" className="w-full text-center text-2xl font-serif border-b-2 border-rose-100 p-4 focus:border-rose-500 outline-none bg-transparent" />
             <button 
@@ -126,7 +159,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         )}
 
         {step === 'lmp' && (
-          <div className="animate-slide-up space-y-8 w-full text-center">
+          <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">Last Period (LMP)</h2>
             <input type="date" value={lmp} onChange={e => setLmp(e.target.value)} className="w-full bg-white border-2 border-rose-50 rounded-[2rem] px-8 py-6 text-xl font-bold text-center outline-none" />
             <button onClick={() => goTo('calculation')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Calculate Due Date</button>
@@ -134,7 +167,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         )}
 
         {step === 'calculation' && (
-          <div className="animate-slide-up space-y-10 w-full text-center">
+          <div className="space-y-10 w-full text-center">
             <div className="space-y-2">
               <h2 className="text-sm font-black text-rose-500 uppercase tracking-[0.3em]">Estimated Due Date</h2>
               <div className="flex flex-col items-center gap-4">
@@ -167,7 +200,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         )}
 
         {step === 'multiples' && (
-          <div className="animate-slide-up space-y-8 w-full text-center">
+          <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">How many babies?</h2>
             <div className="grid grid-cols-3 gap-4">
               {(['singleton', 'twins', 'triplets'] as const).map(type => (
@@ -180,8 +213,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                   }}
                   className={`p-6 rounded-[2rem] border-2 transition-all ${pregnancyType === type ? 'bg-rose-500 text-white border-rose-500' : 'bg-white border-rose-50 text-slate-400'}`}
                 >
-                  <div className="text-2xl mb-2">
-                    {type === 'singleton' ? '👶' : type === 'twins' ? '👶👶' : '👶👶👶'}
+                  <div className={`flex justify-center gap-1 mb-2 ${pregnancyType === type ? 'text-white' : 'text-rose-400'}`}>
+                    {type === 'singleton' ? <Baby size={24} /> : type === 'twins' ? <><Baby size={24} /><Baby size={24} /></> : <><Baby size={20} /><Baby size={20} /><Baby size={20} /></>}
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-widest">{type}</span>
                 </button>
@@ -192,7 +225,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         )}
 
         {step === 'baby_details' && (
-          <div className="animate-slide-up space-y-8 w-full text-center">
+          <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">Baby Details</h2>
             <div className="space-y-6 max-h-[40vh] overflow-y-auto no-scrollbar p-2">
               {babies.map((baby, idx) => (
@@ -287,7 +320,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         )}
 
         {step === 'theme' && (
-          <div className="animate-slide-up space-y-8 w-full text-center">
+          <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">Choose your theme</h2>
             <div className="grid grid-cols-3 gap-4">
               {(['pink', 'blue', 'neutral'] as const).map(color => (
@@ -306,7 +339,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         )}
 
         {step === 'weight' && (
-          <div className="animate-slide-up space-y-8 w-full text-center">
+          <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">Starting Weight</h2>
             <div className="flex items-center justify-center gap-4 bg-white/50 p-8 rounded-[3rem] border-2 border-rose-50">
               <input type="number" step="0.1" autoFocus value={weight} onChange={e => setWeight(e.target.value)} placeholder="00.0" className="w-32 text-4xl font-serif text-center bg-transparent border-b-2 border-rose-200 focus:border-rose-500 outline-none p-0" />
@@ -317,7 +350,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         )}
 
         {step === 'nutrition' && (
-          <div className="animate-slide-up space-y-6 w-full text-center">
+          <div className="space-y-6 w-full text-center">
             <h2 className="text-3xl font-serif text-slate-900">Nutrition Targets</h2>
             
             <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 shadow-sm space-y-6">
@@ -367,14 +400,14 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         )}
 
         {step === 'photo' && (
-          <div className="animate-slide-up space-y-8 w-full text-center">
+          <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">Profile Glow</h2>
             <div className="w-48 h-48 bg-rose-50 rounded-[3rem] border-4 border-white shadow-xl mx-auto flex items-center justify-center overflow-hidden cursor-pointer group" onClick={() => document.getElementById('p-up-setup')?.click()}>
               {profileImage ? (
                 <img src={profileImage} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
               ) : (
                 <div className="flex flex-col items-center gap-2">
-                  <span className="text-4xl">📸</span>
+                  <span className="text-rose-300"><Camera size={40} /></span>
                   <span className="text-[9px] font-black uppercase tracking-widest text-rose-300">Upload Photo</span>
                 </div>
               )}
@@ -392,8 +425,10 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         )}
 
         {step === 'final' && (
-          <div className="animate-slide-up space-y-10 w-full text-center">
-            <div className="text-8xl animate-float">🕊️</div>
+          <div className="space-y-10 w-full text-center">
+            <div className="flex justify-center text-rose-500">
+              <Sparkles size={80} className="animate-float" />
+            </div>
             <div className="space-y-4">
               <h2 className="text-5xl font-serif text-slate-900">{initialProfile ? "Profile Updated" : "Nest is ready."}</h2>
               <p className="text-slate-400 font-medium">Your data is stored securely on your device.</p>
@@ -415,8 +450,9 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
             <button onClick={handleFinish} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Enter My Nest</button>
           </div>
         )}
-
-      </div>
-    </div>
-  );
+      </motion.div>
+    </AnimatePresence>
+  </div>
+</div>
+);
 };

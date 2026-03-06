@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { storage } from '../services/storageService.ts';
 import { generateDailyReport, generateLaborReport, generateFullPregnancyReport } from '../services/reportService.ts';
+import { Download, ChevronDown } from 'lucide-react';
 
 export const ReportCenter: React.FC = () => {
   const availableDates = storage.getAvailableReportDates();
@@ -40,7 +41,7 @@ export const ReportCenter: React.FC = () => {
                 )}
               </select>
               <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <ChevronDown size={16} strokeWidth={3} />
               </div>
             </div>
           </div>
@@ -50,7 +51,7 @@ export const ReportCenter: React.FC = () => {
               onClick={handleDownloadDaily}
               className="w-full py-5 bg-rose-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-rose-900/10 active:scale-95 transition-all flex items-center justify-center gap-3"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <Download size={18} strokeWidth={3} />
               Daily Progress PDF
             </button>
 
@@ -58,7 +59,7 @@ export const ReportCenter: React.FC = () => {
               onClick={handleDownloadLabor}
               className="w-full py-5 bg-white border-2 border-rose-100 text-rose-500 font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-rose-50 active:scale-95 transition-all flex items-center justify-center gap-3"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <Download size={18} strokeWidth={3} />
               Labor Summary PDF
             </button>
 
@@ -66,7 +67,7 @@ export const ReportCenter: React.FC = () => {
               onClick={() => generateFullPregnancyReport()}
               className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <Download size={18} strokeWidth={3} />
               Full Pregnancy Archive PDF
             </button>
           </div>

@@ -24,6 +24,31 @@ import { ReportCenter } from './ReportCenter.tsx';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
+import { 
+  Sparkles, 
+  Footprints, 
+  Smile, 
+  Heart, 
+  Milk, 
+  Soup, 
+  Droplet, 
+  Droplets, 
+  Trash2, 
+  Trophy, 
+  Hospital, 
+  Bell,
+  Check,
+  Plus,
+  Trash,
+  Clock,
+  Activity,
+  Calendar as CalendarIcon,
+  Moon,
+  Thermometer,
+  Pill,
+  Syringe,
+  Stethoscope
+} from 'lucide-react';
 
 interface ToolsHubProps {
   symptoms: SymptomLog[];
@@ -148,7 +173,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   // Journal
   const [journalInput, setJournalInput] = useState('');
-  const [selectedMood, setSelectedMood] = useState('✨');
+  const [selectedMood, setSelectedMood] = useState('sparkles');
 
   // Labor / Contractions
   const [isContractionActive, setIsContractionActive] = useState(false);
@@ -291,9 +316,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <div className="flex flex-col items-center gap-6">
               <button 
                 onClick={() => onAddKick({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', count: 1 })}
-                className="w-40 h-40 bg-rose-100 rounded-full flex items-center justify-center text-5xl shadow-inner border-4 border-white active:scale-90 transition-all"
+                className="w-40 h-40 bg-rose-100 rounded-full flex items-center justify-center text-rose-500 shadow-inner border-4 border-white active:scale-90 transition-all"
               >
-                🦶
+                <Footprints size={64} />
               </button>
               <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Tap for each kick</span>
             </div>
@@ -343,7 +368,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.stimulus}</div>
                   <div className="text-sm font-bold text-slate-700">{log.reaction}</div>
                 </div>
-                <span className="text-xl">😊</span>
+                <div className="text-rose-400">
+                  <Smile size={24} />
+                </div>
               </div>
             ))}
           </div>
@@ -374,7 +401,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                     onClick={() => setFeedingType(type)}
                     className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${feedingType === type ? 'bg-rose-50 border-rose-500 text-rose-500 shadow-md' : 'bg-white border-slate-50 opacity-60'}`}
                   >
-                    <span className="text-2xl">{type === 'breast' ? '🤱' : type === 'bottle' ? '🍼' : '🥣'}</span>
+                    <span className="text-rose-400">
+                      {type === 'breast' ? <Heart size={24} /> : type === 'bottle' ? <Milk size={24} /> : <Soup size={24} />}
+                    </span>
                     <span className="text-[8px] font-black uppercase tracking-widest">{type}</span>
                   </button>
                 ))}
@@ -438,7 +467,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             {feedingLogs.filter(f => f.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
               <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">{log.type === 'breast' ? '🤱' : log.type === 'bottle' ? '🍼' : '🥣'}</span>
+                  <span className="text-rose-400">
+                    {log.type === 'breast' ? <Heart size={20} /> : log.type === 'bottle' ? <Milk size={20} /> : <Soup size={20} />}
+                  </span>
                   <div>
                     <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.type} {log.side ? `(${log.side})` : ''}</div>
                     <div className="text-sm font-bold text-slate-700">{log.amount} ml • {log.duration} min</div>
@@ -475,7 +506,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                     onClick={() => setDiaperType(type)}
                     className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${diaperType === type ? 'bg-emerald-50 border-emerald-500 text-emerald-600 shadow-md' : 'bg-white border-slate-50 opacity-60'}`}
                   >
-                    <span className="text-3xl">{type === 'wet' ? '💧' : type === 'dirty' ? '💩' : '💦'}</span>
+                    <span className="text-emerald-500">
+                      {type === 'wet' ? <Droplet size={32} /> : type === 'dirty' ? <Trash2 size={32} /> : <Droplets size={32} />}
+                    </span>
                     <span className="text-[9px] font-black uppercase tracking-widest">{type}</span>
                   </button>
                 ))}
@@ -497,7 +530,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             {diaperLogs.filter(d => d.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
               <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">{log.type === 'wet' ? '💧' : log.type === 'dirty' ? '💩' : '💦'}</span>
+                  <span className="text-emerald-500">
+                    {log.type === 'wet' ? <Droplet size={20} /> : log.type === 'dirty' ? <Trash2 size={20} /> : <Droplets size={20} />}
+                  </span>
                   <div>
                     <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Diaper Change</div>
                     <div className="text-sm font-bold text-slate-700 capitalize">{log.type}</div>
@@ -530,7 +565,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           <div className="space-y-4">
             {milestones.filter(m => m.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
               <div key={log.id} className="card-premium p-6 bg-white border-2 border-white shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-2xl">🏆</div>
+                <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500">
+                  <Trophy size={24} />
+                </div>
                 <div>
                   <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{new Date(log.date).toLocaleDateString()}</div>
                   <div className="text-sm font-bold text-slate-900">{log.title}</div>
@@ -546,13 +583,19 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
             <h3 className="text-xl font-serif text-rose-800">Health Logs</h3>
             <div className="grid grid-cols-2 gap-3">
-              {(['temperature', 'medication', 'vaccination', 'symptom'] as const).map(type => (
+              {[
+                { type: 'temperature', icon: Thermometer },
+                { type: 'medication', icon: Pill },
+                { type: 'vaccination', icon: Syringe },
+                { type: 'symptom', icon: Stethoscope }
+              ].map(item => (
                 <button 
-                  key={type}
-                  onClick={() => onAddHealth({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', type, value: 'Normal', notes: '' })}
-                  className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-500 transition-all"
+                  key={item.type}
+                  onClick={() => onAddHealth({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', type: item.type, value: 'Normal', notes: '' })}
+                  className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-500 transition-all flex flex-col items-center gap-2"
                 >
-                  {type}
+                  <item.icon size={20} />
+                  {item.type}
                 </button>
               ))}
             </div>
@@ -649,8 +692,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             {calendarEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(event => (
               <div key={event.id} className="card-premium p-6 bg-white border-2 border-white shadow-sm flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${event.type === 'appointment' ? 'bg-blue-50 text-blue-500' : event.type === 'milestone' ? 'bg-amber-50 text-amber-500' : 'bg-rose-50 text-rose-500'}`}>
-                    {event.type === 'appointment' ? '🏥' : event.type === 'milestone' ? '🏆' : '🔔'}
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${event.type === 'appointment' ? 'bg-blue-50 text-blue-500' : event.type === 'milestone' ? 'bg-amber-50 text-amber-500' : 'bg-rose-50 text-rose-500'}`}>
+                    {event.type === 'appointment' ? <Hospital size={20} /> : event.type === 'milestone' ? <Trophy size={20} /> : <Bell size={20} />}
                   </div>
                   <div>
                     <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{new Date(event.date).toLocaleDateString()}</div>
@@ -846,7 +889,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                     onClick={() => setSleepQuality(q)}
                     className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${sleepQuality === q ? 'bg-indigo-50 border-indigo-500 text-indigo-500 shadow-md' : 'bg-white border-slate-50 opacity-60'}`}
                   >
-                    <span className="text-lg">{q === 1 ? '😫' : q === 3 ? '😐' : q === 5 ? '😴' : '✨'}</span>
+                    <span className="text-indigo-400">
+                      {q === 1 ? <Frown size={20} /> : q === 3 ? <Meh size={20} /> : q === 5 ? <Moon size={20} /> : <Sparkles size={20} />}
+                    </span>
                     <span className="text-[8px] font-black uppercase tracking-widest">{q}</span>
                   </button>
                 ))}
@@ -864,8 +909,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Recent Logs</h4>
               {sleepLogs.slice(0, 3).map(log => (
                 <div key={log.id} className="flex justify-between items-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg">{log.quality <= 2 ? '😫' : log.quality === 3 ? '😐' : '😴'}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-indigo-400">
+                      {log.quality <= 2 ? <Frown size={18} /> : log.quality === 3 ? <Meh size={18} /> : <Moon size={18} />}
+                    </span>
                     <span className="text-sm font-bold text-slate-700">{log.hours} Hours • {log.type}</span>
                   </div>
                   <button 
@@ -941,7 +988,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                    </>
                  ) : (
                    <>
-                    <span className="text-4xl">🌸</span>
+                    <Flower size={48} />
                     <span className="text-[10px] font-black uppercase tracking-widest">Press & Hold</span>
                    </>
                  )}
@@ -979,7 +1026,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           {isBirthOnboarding ? (
             <div className="card-premium p-8 bg-white border-2 border-rose-100 space-y-6 animate-in zoom-in-95 max-h-[80vh] overflow-y-auto no-scrollbar">
               <div className="text-center space-y-2">
-                <span className="text-3xl">🎉</span>
+                <div className="flex justify-center text-rose-500">
+                  <PartyPopper size={40} />
+                </div>
                 <h3 className="text-xl font-serif text-rose-800">Welcome, Little One{birthData.babies.length > 1 ? 's' : ''}!</h3>
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Let's set up your baby profile{birthData.babies.length > 1 ? 's' : ''}</p>
               </div>
@@ -1085,7 +1134,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 onClick={() => setIsBirthOnboarding(true)}
                 className="w-full py-5 bg-emerald-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-2"
               >
-                <span>👶</span> Mark as Born & Switch to Newborn Mode
+                <Baby size={18} /> Mark as Born & Switch to Newborn Mode
               </button>
               <button 
                 onClick={() => {
@@ -1137,13 +1186,20 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
            <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
               <h3 className="text-xl font-serif text-rose-800">Parent's Reflections</h3>
               <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-                 {['✨', '🌸', '😴', '🤰', '🤍', '🍰', '💪'].map(m => (
+                 {[
+                   { id: 'sparkles', icon: Sparkles },
+                   { id: 'flower', icon: Flower },
+                   { id: 'moon', icon: Moon },
+                   { id: 'heart', icon: Heart },
+                   { id: 'smile', icon: Smile },
+                   { id: 'activity', icon: Activity }
+                 ].map(m => (
                    <button 
-                    key={m} 
-                    onClick={() => setSelectedMood(m)}
-                    className={`flex-none w-10 h-10 rounded-xl text-lg flex items-center justify-center transition-all ${selectedMood === m ? 'bg-rose-500 shadow-md scale-110' : 'bg-slate-50'}`}
+                    key={m.id} 
+                    onClick={() => setSelectedMood(m.id)}
+                    className={`flex-none w-10 h-10 rounded-xl flex items-center justify-center transition-all ${selectedMood === m.id ? 'bg-rose-500 text-white shadow-md scale-110' : 'bg-slate-50 text-slate-400'}`}
                    >
-                    {m}
+                    <m.icon size={20} />
                    </button>
                  ))}
               </div>
@@ -1160,11 +1216,19 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 Save Reflection
               </button>
            </div>
-
+ 
            <div className="space-y-4">
               {journalEntries.map(entry => (
                 <div key={entry.id} className="card-premium p-6 bg-white border-2 border-white shadow-sm flex gap-4 items-start">
-                   <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-xl shrink-0">{entry.mood || '📝'}</div>
+                   <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500 shrink-0">
+                     {entry.mood === 'sparkles' ? <Sparkles size={20} /> : 
+                      entry.mood === 'flower' ? <Flower size={20} /> :
+                      entry.mood === 'moon' ? <Moon size={20} /> :
+                      entry.mood === 'heart' ? <Heart size={20} /> :
+                      entry.mood === 'smile' ? <Smile size={20} /> :
+                      entry.mood === 'activity' ? <Activity size={20} /> :
+                      <FileText size={20} />}
+                   </div>
                    <div className="flex-1 space-y-1">
                       <div className="flex justify-between items-center">
                         <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{new Date(entry.timestamp).toLocaleDateString()}</span>
@@ -1190,7 +1254,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 onClick={handleContractionToggle}
                 className={`w-56 h-56 mx-auto rounded-[4rem] flex flex-col items-center justify-center gap-2 transition-all duration-500 shadow-2xl border-8 ${isContractionActive ? 'bg-rose-500 border-rose-200 animate-pulse scale-105' : 'bg-slate-900 border-slate-700'}`}
               >
-                 <span className="text-white text-4xl">{isContractionActive ? '⏹️' : '▶️'}</span>
+                 <div className="text-white">
+                   {isContractionActive ? <Square size={48} fill="currentColor" /> : <Play size={48} fill="currentColor" />}
+                 </div>
                  <span className="text-white text-[10px] font-black uppercase tracking-[0.2em]">{isContractionActive ? 'Stop' : 'Start'}</span>
               </button>
 
@@ -1222,10 +1288,12 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               ))}
            </div>
 
-           <div className="p-6 bg-amber-50 rounded-[2rem] border border-amber-100 flex items-center gap-5">
-              <span className="text-3xl">⚠️</span>
-              <p className="text-[10px] text-amber-700 font-bold uppercase tracking-widest leading-relaxed">If contractions are 5 mins apart and last 1 min for 1 hour, contact your provider.</p>
-           </div>
+            <div className="p-6 bg-amber-50 rounded-[2rem] border border-amber-100 flex items-center gap-5">
+               <div className="text-amber-500">
+                 <Bell size={32} />
+               </div>
+               <p className="text-[10px] text-amber-700 font-bold uppercase tracking-widest leading-relaxed">If contractions are 5 mins apart and last 1 min for 1 hour, contact your provider.</p>
+            </div>
         </div>
       )}
     </div>
