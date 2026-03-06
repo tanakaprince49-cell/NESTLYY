@@ -94,6 +94,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const sub = await subscribeUserToPush();
     if (sub) {
       setShowPushPrompt(false);
+      onUpdateProfile?.({ ...profile, notificationsEnabled: true });
       alert("Notifications enabled! You'll receive appointment reminders here. 🕊️");
     }
   };

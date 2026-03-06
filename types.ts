@@ -77,6 +77,7 @@ export interface PregnancyProfile {
   customTargets?: NutritionTargets;
   albums: MemoryAlbums;
   lifecycleStage: LifecycleStage;
+  notificationsEnabled?: boolean;
 }
 
 export interface ArchivedPregnancy {

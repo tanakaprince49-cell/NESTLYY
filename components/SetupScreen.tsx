@@ -20,6 +20,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
   const [isManualDueDate, setIsManualDueDate] = useState(initialProfile?.isManualDueDate || false);
   const [weight, setWeight] = useState(initialProfile?.startingWeight?.toString() || '');
   const [profileImage, setProfileImage] = useState(initialProfile?.profileImage || '');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(initialProfile?.notificationsEnabled ?? true);
   
   // Nutrition Targets
   const [useCustomTargets, setUseCustomTargets] = useState(!!initialProfile?.customTargets);
@@ -60,7 +61,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
       startingWeight: parseFloat(weight) || 0,
       customTargets: useCustomTargets ? targets : undefined,
       albums: initialProfile?.albums || emptyAlbums,
-      lifecycleStage
+      lifecycleStage,
+      notificationsEnabled
     });
   };
 
@@ -396,6 +398,20 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
               <h2 className="text-5xl font-serif text-slate-900">{initialProfile ? "Profile Updated" : "Nest is ready."}</h2>
               <p className="text-slate-400 font-medium">Your data is stored securely on your device.</p>
             </div>
+            
+            <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 flex items-center justify-between">
+              <div className="text-left">
+                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Notifications</span>
+                <span className="text-sm font-bold text-slate-800">Reminders & Guidance</span>
+              </div>
+              <button 
+                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                className={`w-14 h-8 rounded-full transition-all relative ${notificationsEnabled ? 'bg-rose-900' : 'bg-slate-200'}`}
+              >
+                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${notificationsEnabled ? 'right-1' : 'left-1'}`} />
+              </button>
+            </div>
+
             <button onClick={handleFinish} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Enter My Nest</button>
           </div>
         )}

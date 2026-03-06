@@ -10,7 +10,7 @@ import { AdminDashboard } from './components/AdminDashboard.tsx';
 import { AvaChat } from './components/AvaChat.tsx';
 import { SplashScreen } from './components/SplashScreen.tsx';
 import { storage } from './services/storageService.ts';
-import { subscribeUserToPush, showLocalNotification } from './services/pushService.ts';
+import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders } from './services/pushService.ts';
 import { Analytics } from "@vercel/analytics/react";
 import { 
   Trimester, 
@@ -38,32 +38,6 @@ const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
   const [showSplash, setShowSplash] = useState(true);
 
-  // Notification Polling
-  useEffect(() => {
-    if (!authEmail) return;
-
-    const checkReminders = async () => {
-      const allReminders = storage.getReminders();
-      const shownIds = storage.getShownReminderIds();
-      
-      const newReminders = allReminders.filter(r => !shownIds.includes(r.id));
-      
-      for (const reminder of newReminders) {
-        try {
-          await showLocalNotification(reminder.title, reminder.body);
-          storage.markReminderAsShown(reminder.id);
-        } catch (e) {
-          console.error("Failed to show notification", e);
-        }
-      }
-    };
-
-    const interval = setInterval(checkReminders, 10000); // Check every 10 seconds
-    checkReminders(); // Initial check
-
-    return () => clearInterval(interval);
-  }, [authEmail]);
-
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [trimester, setTrimester] = useState<Trimester>(Trimester.FIRST);
@@ -86,6 +60,31 @@ const App: React.FC = () => {
   const [babyGrowthLogs, setBabyGrowthLogs] = useState<BabyGrowthLog[]>([]);
   const [kickLogs, setKickLogs] = useState<KickLog[]>([]);
   const [diaperLogs, setDiaperLogs] = useState<DiaperLog[]>([]);
+
+  // Notification Polling
+  useEffect(() => {
+    if (!authEmail || !profile) return;
+
+    const runReminders = async () => {
+      // 1. Schedule new ones based on current state
+      scheduleReminders(
+        profile,
+        calendarEvents,
+        vitamins,
+        feedingLogs,
+        sleepLogs,
+        milestones
+      );
+      
+      // 2. Process and show due ones
+      await processReminders();
+    };
+
+    const interval = setInterval(runReminders, 10000); // Check every 10 seconds
+    runReminders(); // Initial check
+
+    return () => clearInterval(interval);
+  }, [authEmail, profile, calendarEvents, vitamins, feedingLogs, sleepLogs, milestones]);
 
   // Handle deep linking from Shortcuts / Widgets
   useEffect(() => {

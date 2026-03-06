@@ -41,11 +41,16 @@ export const AdminDashboard: React.FC = () => {
       storage.addReminder(reminder);
 
       // Also trigger a local notification for the admin to see it working
-      await showLocalNotification(pushTitle, pushBody);
-
+      const result = await showLocalNotification(pushTitle, pushBody);
+      
       setPushTitle('');
       setPushBody('');
-      alert('Broadcast reminder sent to all Nestlings! 🕊️');
+      
+      if (result.success) {
+        alert('Broadcast reminder sent to all Nestlings! 🕊️');
+      } else {
+        alert('Broadcast sent to all Nestlings! 🕊️ (Note: You didn\'t see the preview because your notifications are disabled)');
+      }
     } catch (err) {
       alert('Failed to send notification. Please check permissions.');
     } finally {

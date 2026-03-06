@@ -19,6 +19,9 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 const BRAND_LOGO = "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp";
 
+import { storage } from './storageService.ts';
+import { PregnancyProfile, CalendarEvent, VitaminLog, FeedingLog, SleepLog, MilestoneLog, LifecycleStage } from '../types.ts';
+
 /**
  * Ensure Service Worker is registered from SAME origin using relative paths
  */
@@ -85,10 +88,8 @@ export async function showLocalNotification(
 ) {
   try {
     if (Notification.permission !== 'granted') {
-      const res = await Notification.requestPermission();
-      if (res !== 'granted') {
-        throw new Error('Notification permission denied');
-      }
+      // Don't request permission automatically in background tasks
+      return { success: false, error: 'Permission not granted' };
     }
 
     const registration = await getServiceWorkerRegistration();
@@ -106,6 +107,126 @@ export async function showLocalNotification(
     return { success: true };
   } catch (error) {
     console.error('Notification error:', error);
-    throw error;
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/**
+ * Generate and schedule reminders based on user data
+ */
+export function scheduleReminders(
+  profile: PregnancyProfile,
+  calendarEvents: CalendarEvent[],
+  vitamins: VitaminLog[],
+  feedingLogs: FeedingLog[],
+  sleepLogs: SleepLog[],
+  milestones: MilestoneLog[]
+) {
+  if (!profile.notificationsEnabled) return;
+
+  const reminders: any[] = [];
+  const now = Date.now();
+
+  // 1. Weekly Pregnancy Guidance (if pregnant)
+  if (profile.lifecycleStage === LifecycleStage.PREGNANCY) {
+    const lmpDate = new Date(profile.lmpDate);
+    const weeks = Math.floor((now - lmpDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
+    
+    // Schedule for next week
+    const nextWeekTime = now + (7 * 24 * 60 * 60 * 1000);
+    reminders.push({
+      id: `weekly-guidance-${weeks + 1}`,
+      title: `Week ${weeks + 1} Guidance 🤰`,
+      body: `You're entering week ${weeks + 1}! Check out your new baby size and tips.`,
+      timestamp: nextWeekTime,
+      type: 'guidance'
+    });
+  }
+
+  // 2. Doctor Appointments
+  calendarEvents.forEach(event => {
+    if (event.type === 'appointment') {
+      const eventTime = new Date(event.date).getTime();
+      // Reminder 2 hours before
+      const reminderTime = eventTime - (2 * 60 * 60 * 1000);
+      if (reminderTime > now) {
+        reminders.push({
+          id: `appointment-${event.id}`,
+          title: `Upcoming Appointment: ${event.title} 🏥`,
+          body: `Don't forget your appointment at ${new Date(eventTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
+          timestamp: reminderTime,
+          type: 'appointment'
+        });
+      }
+    }
+  });
+
+  // 3. Vitamin Reminders (Daily at 9 AM if not taken)
+  const today = new Date().setHours(0, 0, 0, 0);
+  const vitaminTakenToday = vitamins.some(v => new Date(v.timestamp).setHours(0, 0, 0, 0) === today);
+  if (!vitaminTakenToday) {
+    const tomorrow9AM = new Date();
+    tomorrow9AM.setDate(tomorrow9AM.getDate() + 1);
+    tomorrow9AM.setHours(9, 0, 0, 0);
+    reminders.push({
+      id: `vitamin-reminder-${tomorrow9AM.getTime()}`,
+      title: `Vitamin Reminder 💊`,
+      body: `Time to take your prenatal vitamins for a healthy baby!`,
+      timestamp: tomorrow9AM.getTime(),
+      type: 'vitamin'
+    });
+  }
+
+  // 4. Newborn Tracking (Feeding/Sleep)
+  if (profile.lifecycleStage === LifecycleStage.NEWBORN || profile.lifecycleStage === LifecycleStage.INFANT) {
+    // Feeding: Every 3 hours
+    const lastFeeding = feedingLogs[0];
+    if (lastFeeding) {
+      const nextFeedingTime = lastFeeding.timestamp + (3 * 60 * 60 * 1000);
+      if (nextFeedingTime > now) {
+        reminders.push({
+          id: `feeding-reminder-${nextFeedingTime}`,
+          title: `Feeding Time 🍼`,
+          body: `It's been 3 hours since the last feeding. Time for a refill!`,
+          timestamp: nextFeedingTime,
+          type: 'feeding'
+        });
+      }
+    }
+  }
+
+  // Add to storage if not already present
+  const existingReminders = storage.getReminders();
+  reminders.forEach(r => {
+    if (!existingReminders.find(er => er.id === r.id)) {
+      storage.addReminder(r);
+    }
+  });
+}
+
+/**
+ * Process and show due reminders
+ */
+export async function processReminders() {
+  if (Notification.permission !== 'granted') return;
+
+  const allReminders = storage.getReminders();
+  const shownIds = storage.getShownReminderIds();
+  const now = Date.now();
+
+  const dueReminders = allReminders.filter(r => 
+    !shownIds.includes(r.id) && 
+    r.timestamp <= now
+  );
+
+  for (const reminder of dueReminders) {
+    try {
+      const result = await showLocalNotification(reminder.title, reminder.body);
+      if (result.success) {
+        storage.markReminderAsShown(reminder.id);
+      }
+    } catch (e) {
+      // Silent fail
+    }
   }
 }
