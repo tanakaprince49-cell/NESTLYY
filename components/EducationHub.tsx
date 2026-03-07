@@ -1,12 +1,17 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Stethoscope, 
   ArrowRight, 
   X,
-  HeartPulse
+  HeartPulse,
+  BookOpen,
+  Video as VideoIcon,
+  PlayCircle,
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
-import { Trimester, Article as GlobalArticle, LifecycleStage } from '../types';
+import { Trimester, Article as GlobalArticle, LifecycleStage, Video } from '../types';
 import { storage } from '../services/storageService';
 
 interface LocalArticle {
@@ -95,7 +100,17 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
   const [activeLocalArticle, setActiveLocalArticle] = useState<LocalArticle | null>(null);
   const [activeGlobalArticle, setActiveGlobalArticle] = useState<GlobalArticle | null>(null);
 
+  // Sync filter when isPostpartum changes
+  useEffect(() => {
+    if (isPostpartum) {
+      setFilter('Newborn');
+    } else {
+      setFilter('All');
+    }
+  }, [isPostpartum]);
+
   const globalArticles = useMemo(() => storage.getArticles(), []);
+  const videos = useMemo(() => storage.getVideos(), []);
 
   const filteredLocalArticles = educationalContent.filter(a => {
     if (filter === 'All') return true;
@@ -105,6 +120,11 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
   const filteredGlobalArticles = globalArticles.filter(a => {
     if (filter === 'All') return true;
     return a.stage === filter;
+  });
+
+  const filteredVideos = videos.filter(v => {
+    if (filter === 'All') return true;
+    return v.stage === filter;
   });
 
   return (
@@ -146,6 +166,52 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
           </button>
         ))}
       </div>
+
+      {/* Expert Videos Section */}
+      {filteredVideos.length > 0 && (
+        <div className="space-y-6 px-4">
+          <div className="flex items-center gap-3">
+            <div className="h-[1px] flex-1 bg-rose-100" />
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">Expert Videos</h3>
+            <div className="h-[1px] flex-1 bg-rose-100" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {filteredVideos.map(video => (
+              <a 
+                key={video.id} 
+                href={video.youtubeUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group relative bg-white rounded-[2.5rem] overflow-hidden border border-rose-50 shadow-sm hover:shadow-md hover:border-rose-200 transition-all active:scale-[0.98]"
+              >
+                <div className="aspect-video relative overflow-hidden">
+                  <img 
+                    src={video.thumbnailUrl} 
+                    alt={video.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                    <div className="w-14 h-14 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-xl transform group-hover:scale-110 transition-transform">
+                      <PlayCircle className="text-rose-500 w-10 h-10" />
+                    </div>
+                  </div>
+                  <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[9px] font-black text-white uppercase tracking-widest">
+                    YouTube
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h4 className="text-base font-serif text-rose-900 line-clamp-2 leading-tight group-hover:text-rose-600 transition-colors">{video.title}</h4>
+                  <div className="flex items-center gap-2 mt-3">
+                    <span className="text-[9px] font-black text-rose-300 uppercase tracking-widest">{video.stage.replace(' Trimester', '')}</span>
+                    <ExternalLink size={12} className="text-rose-200" />
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Global Expert Articles Section */}
       {filteredGlobalArticles.length > 0 && (

@@ -38,7 +38,8 @@ import {
   Smile,
   Frown,
   Meh,
-  PenLine
+  PenLine,
+  Check
 } from 'lucide-react';
 import { 
   FoodEntry, 

@@ -269,6 +269,15 @@ export interface FoodResearchResult {
   benefits: string[];
 }
 
+export interface Video {
+  id: string;
+  title: string;
+  youtubeUrl: string;
+  thumbnailUrl: string;
+  stage: Trimester | 'General' | 'Newborn';
+  timestamp: number;
+}
+
 export interface FertilityPrediction {
   nextPeriod: string;
   ovulationDay: string;

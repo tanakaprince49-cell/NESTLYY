@@ -24,7 +24,8 @@ import {
   MilestoneLog,
   HealthLog,
   BabyGrowthLog,
-  DiaperLog
+  DiaperLog,
+  Video
 } from '../types.ts';
 
 const KEYS = {
@@ -58,7 +59,8 @@ const KEYS = {
   BABY_GROWTH: 'baby_growth_logs',
   DIAPER: 'baby_diaper_logs',
   REMINDERS: 'nestly_reminders',
-  SHOWN_REMINDERS: 'nestly_shown_reminders'
+  SHOWN_REMINDERS: 'nestly_shown_reminders',
+  VIDEOS: 'nestly_global_videos'
 };
 
 class StorageService {
@@ -271,6 +273,29 @@ class StorageService {
   markReminderAsShown(id: string): void {
     const ids = this.getShownReminderIds();
     if (!ids.includes(id)) this.setItem(KEYS.SHOWN_REMINDERS, [...ids, id]);
+  }
+
+  getVideos(): Video[] {
+    return this.getItem<Video[]>(KEYS.VIDEOS, [], true);
+  }
+
+  addVideo(video: Video): void {
+    const videos = this.getVideos();
+    this.setItem(KEYS.VIDEOS, [video, ...videos], true);
+  }
+
+  removeVideo(id: string): void {
+    const videos = this.getVideos();
+    this.setItem(KEYS.VIDEOS, videos.filter(v => v.id !== id), true);
+  }
+
+  updateVideo(video: Video): void {
+    const videos = this.getVideos();
+    const index = videos.findIndex(v => v.id === video.id);
+    if (index >= 0) {
+      videos[index] = video;
+      this.setItem(KEYS.VIDEOS, videos, true);
+    }
   }
 }
 

@@ -47,7 +47,15 @@ import {
   Thermometer,
   Pill,
   Syringe,
-  Stethoscope
+  Stethoscope,
+  Frown,
+  Meh,
+  Flower,
+  PartyPopper,
+  Baby,
+  FileText,
+  Square,
+  Play
 } from 'lucide-react';
 
 interface ToolsHubProps {

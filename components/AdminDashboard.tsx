@@ -1,22 +1,43 @@
 
 import React, { useMemo, useState } from 'react';
 import { storage } from '../services/storageService.ts';
-import { Trimester, Article } from '../types.ts';
+import { Trimester, Article, Video } from '../types.ts';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 import { showLocalNotification } from '../services/pushService.ts';
+import { 
+  ShieldCheck, 
+  Bell, 
+  BookOpen, 
+  Video as VideoIcon, 
+  Trash2, 
+  Edit2, 
+  Plus, 
+  CheckCircle2, 
+  AlertCircle,
+  TrendingUp,
+  Users,
+  Activity
+} from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const logs = storage.getAuthActivity();
   const totalUsers = new Set(logs.map(l => l.email)).size;
   const articles = storage.getArticles();
+  const videos = storage.getVideos();
   
   const [headline, setHeadline] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [source, setSource] = useState('');
   const [summary, setSummary] = useState('');
   const [link, setLink] = useState('');
-  const [stage, setStage] = useState<Trimester | 'General'>('General');
+  const [stage, setStage] = useState<Trimester | 'General' | 'Newborn'>('General');
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Video State
+  const [videoTitle, setVideoTitle] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [videoStage, setVideoStage] = useState<Trimester | 'General' | 'Newborn'>('General');
+  const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
 
   // Push Notification State
   const [pushTitle, setPushTitle] = useState('');
@@ -65,11 +86,11 @@ export const AdminDashboard: React.FC = () => {
     const articleData: Article = {
       id: editingId || Date.now().toString(),
       title: headline,
-      imageUrl: imageUrl || 'https://picsum.photos/seed/nestly/800/400',
+      imageUrl: imageUrl || `https://picsum.photos/seed/${headline.length}/800/400`,
       source,
       summary,
       link,
-      stage,
+      stage: stage as any,
       timestamp: Date.now()
     };
 
@@ -87,6 +108,60 @@ export const AdminDashboard: React.FC = () => {
     setStage('General');
     setEditingId(null);
     alert(editingId ? 'Article updated!' : 'Article posted!');
+  };
+
+  const handlePostVideo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!videoTitle || !youtubeUrl) return;
+
+    // Extract YouTube ID for thumbnail
+    let videoId = '';
+    try {
+      const url = new URL(youtubeUrl);
+      if (url.hostname === 'youtu.be') {
+        videoId = url.pathname.slice(1);
+      } else {
+        videoId = url.searchParams.get('v') || '';
+      }
+    } catch (e) {
+      // Fallback if URL is invalid
+    }
+
+    const videoData: Video = {
+      id: editingVideoId || Date.now().toString(),
+      title: videoTitle,
+      youtubeUrl,
+      thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : 'https://picsum.photos/seed/video/800/400',
+      stage: videoStage,
+      timestamp: Date.now()
+    };
+
+    if (editingVideoId) {
+      storage.updateVideo(videoData);
+    } else {
+      storage.addVideo(videoData);
+    }
+
+    setVideoTitle('');
+    setYoutubeUrl('');
+    setVideoStage('General');
+    setEditingVideoId(null);
+    alert(editingVideoId ? 'Video updated!' : 'Video posted!');
+  };
+
+  const handleEditVideo = (video: Video) => {
+    setEditingVideoId(video.id);
+    setVideoTitle(video.title);
+    setYoutubeUrl(video.youtubeUrl);
+    setVideoStage(video.stage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteVideo = (id: string) => {
+    if (window.confirm('Delete this video?')) {
+      storage.removeVideo(id);
+      window.location.reload();
+    }
   };
 
   const handleEdit = (article: Article) => {
@@ -130,10 +205,10 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Total Nestlings" value={totalUsers + 48} trend="+12%" />
-        <MetricCard label="NPS Score" value={stats.nps} trend="+0.2" />
-        <MetricCard label="Active Now" value={Math.floor(Math.random() * 8) + 3} />
-        <MetricCard label="Health Alert" value="Normal" status="safe" />
+        <MetricCard label="Total Nestlings" value={totalUsers + 48} trend="+12%" icon={Users} />
+        <MetricCard label="NPS Score" value={stats.nps} trend="+0.2" icon={TrendingUp} />
+        <MetricCard label="Active Now" value={Math.floor(Math.random() * 8) + 3} icon={Activity} />
+        <MetricCard label="Health Alert" value="Normal" status="safe" icon={ShieldCheck} />
       </div>
 
       <div className="card-premium p-8 bg-white shadow-sm">
@@ -223,6 +298,7 @@ export const AdminDashboard: React.FC = () => {
               <option value={Trimester.FIRST}>{Trimester.FIRST}</option>
               <option value={Trimester.SECOND}>{Trimester.SECOND}</option>
               <option value={Trimester.THIRD}>{Trimester.THIRD}</option>
+              <option value="Newborn">Newborn</option>
             </select>
           </div>
           <textarea 
@@ -265,34 +341,121 @@ export const AdminDashboard: React.FC = () => {
 
       <div className="card-premium p-8 bg-white shadow-sm space-y-6">
         <div>
-          <h3 className="text-xl font-serif text-slate-900">Manage Articles</h3>
-          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Edit or remove existing content</p>
+          <h3 className="text-xl font-serif text-slate-900">Post Academy Video</h3>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Share YouTube videos with Nestlings</p>
         </div>
-        <div className="space-y-4">
-          {articles.map(article => (
-            <div key={article.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-              <div className="flex items-center gap-4">
-                <img src={article.imageUrl} className="w-12 h-12 rounded-xl object-cover" />
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 line-clamp-1">{article.title}</h4>
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{article.stage} • {article.source}</span>
+
+        <form onSubmit={handlePostVideo} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input 
+              placeholder="Video Title" 
+              value={videoTitle} 
+              onChange={e => setVideoTitle(e.target.value)}
+              className="text-sm"
+            />
+            <input 
+              placeholder="YouTube URL (e.g. https://www.youtube.com/watch?v=...)" 
+              value={youtubeUrl} 
+              onChange={e => setYoutubeUrl(e.target.value)}
+              className="text-sm"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            <select 
+              value={videoStage} 
+              onChange={e => setVideoStage(e.target.value as any)}
+              className="text-sm"
+            >
+              <option value="General">General</option>
+              <option value={Trimester.FIRST}>{Trimester.FIRST}</option>
+              <option value={Trimester.SECOND}>{Trimester.SECOND}</option>
+              <option value={Trimester.THIRD}>{Trimester.THIRD}</option>
+              <option value="Newborn">Newborn</option>
+            </select>
+          </div>
+          <button 
+            type="submit"
+            className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+          >
+            {editingVideoId ? 'Update Video' : 'Post Video'}
+          </button>
+          {editingVideoId && (
+            <button 
+              type="button"
+              onClick={() => {
+                setEditingVideoId(null);
+                setVideoTitle('');
+                setYoutubeUrl('');
+                setVideoStage('General');
+              }}
+              className="w-full bg-slate-100 text-slate-400 font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+            >
+              Cancel Edit
+            </button>
+          )}
+        </form>
+      </div>
+
+      <div className="card-premium p-8 bg-white shadow-sm space-y-6">
+        <div>
+          <h3 className="text-xl font-serif text-slate-900">Manage Content</h3>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Edit or remove existing articles and videos</p>
+        </div>
+        
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-2">
+              <BookOpen size={14} /> Articles
+            </h4>
+            {articles.map(article => (
+              <div key={article.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-center gap-4">
+                  <img src={article.imageUrl} className="w-12 h-12 rounded-xl object-cover" referrerPolicy="no-referrer" />
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 line-clamp-1">{article.title}</h4>
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{article.stage} • {article.source}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => handleEdit(article)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
+                  <button onClick={() => handleDelete(article.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={16} /></button>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => handleEdit(article)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all">✏️</button>
-                <button onClick={() => handleDelete(article.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all">🗑️</button>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-2">
+              <VideoIcon size={14} /> Videos
+            </h4>
+            {videos.map(video => (
+              <div key={video.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-center gap-4">
+                  <img src={video.thumbnailUrl} className="w-12 h-12 rounded-xl object-cover" referrerPolicy="no-referrer" />
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 line-clamp-1">{video.title}</h4>
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{video.stage}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => handleEditVideo(video)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
+                  <button onClick={() => handleDeleteVideo(video.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={16} /></button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-const MetricCard = ({ label, value, trend, status }: any) => (
+const MetricCard = ({ label, value, trend, status, icon: Icon }: any) => (
   <div className="card-premium p-6 bg-white border-2 border-slate-50">
-    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{label}</span>
+    <div className="flex justify-between items-start">
+      <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{label}</span>
+      {Icon && <Icon size={14} className="text-slate-200" />}
+    </div>
     <div className="mt-2 flex items-baseline gap-2">
       <span className="text-3xl font-serif text-slate-900">{value}</span>
       {trend && <span className="text-[9px] font-black text-emerald-500">{trend}</span>}
