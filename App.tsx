@@ -12,7 +12,7 @@ import { SplashScreen } from './components/SplashScreen.tsx';
 import { Settings } from './components/Settings.tsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
-import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders } from './services/pushService.ts';
+import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders, setupForegroundMessaging } from './services/pushService.ts';
 import { auth, db, syncProfileToFirestore } from './firebase.ts';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -43,6 +43,10 @@ const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
   const [userUid, setUserUid] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    setupForegroundMessaging();
+  }, []);
 
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);

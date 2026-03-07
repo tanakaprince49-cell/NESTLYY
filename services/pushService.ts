@@ -17,20 +17,21 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
-const BRAND_LOGO = "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp";
-
 import { storage } from './storageService.ts';
 import { PregnancyProfile, CalendarEvent, VitaminLog, FeedingLog, SleepLog, MilestoneLog, LifecycleStage } from '../types.ts';
+import { messaging, auth } from '../firebase.ts';
+import { getToken, onMessage } from 'firebase/messaging';
+
+const BRAND_LOGO = "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp";
 
 /**
- * Ensure Service Worker is registered from SAME origin using relative paths
+ * Ensure Service Worker is registered
  */
 async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
   if (!('serviceWorker' in navigator)) {
     throw new Error('Service Workers not supported');
   }
 
-  // Use relative detection to prevent origin mismatch errors
   let registration = await navigator.serviceWorker.getRegistration();
 
   if (!registration) {
@@ -41,14 +42,11 @@ async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration
 }
 
 /**
- * Subscribe user to push notifications
+ * Subscribe user to Firebase Push Notifications
  */
 export async function subscribeUserToPush() {
   try {
-    if (!('PushManager' in window)) {
-      console.warn('PushManager not supported');
-      return null;
-    }
+    if (!messaging) return null;
 
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
@@ -56,27 +54,50 @@ export async function subscribeUserToPush() {
       return null;
     }
 
-    const registration = await getServiceWorkerRegistration();
-
-    const existingSubscription =
-      await registration.pushManager.getSubscription();
-
-    if (existingSubscription) {
-      return existingSubscription;
-    }
-
-    const VAPID_PUBLIC_KEY = 'BE67BfD_y2rY_T3K5qYnBqS6_E1Y-y8_2Z8_8Z-Y_Y8_Y8-Y8_Y8_Y8-Y8_Y8_Y8';
-
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    // Get FCM Token
+    const currentToken = await getToken(messaging, {
+      vapidKey: process.env.VITE_FIREBASE_VAPID_KEY
     });
 
-    return subscription;
+    if (currentToken) {
+      console.log('FCM Token:', currentToken);
+      
+      // Send token to server
+      if (auth.currentUser) {
+        await fetch('/api/push/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: currentToken,
+            userId: auth.currentUser.uid,
+            email: auth.currentUser.email
+          })
+        });
+      }
+      
+      return currentToken;
+    } else {
+      console.warn('No registration token available. Request permission to generate one.');
+      return null;
+    }
   } catch (error) {
-    console.error('Push subscription failed:', error);
+    console.error('Firebase Push subscription failed:', error);
     return null;
   }
+}
+
+/**
+ * Listen for foreground messages
+ */
+export function setupForegroundMessaging() {
+  if (!messaging) return;
+  
+  onMessage(messaging, (payload) => {
+    console.log('Message received in foreground:', payload);
+    if (payload.notification) {
+      showLocalNotification(payload.notification.title || 'Nestly', payload.notification.body || '');
+    }
+  });
 }
 
 /**
