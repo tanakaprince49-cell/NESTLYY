@@ -61,7 +61,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile }) 
 
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h3 className="font-bold text-slate-800">Notifications</h3>
+            <h3 className="font-bold text-slate-800">Push Notifications</h3>
             <p className="text-xs text-slate-400">Reminders & Guidance</p>
           </div>
           <button 
@@ -69,6 +69,21 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile }) 
             className={`w-14 h-8 rounded-full transition-all relative ${profile.notificationsEnabled ? 'bg-rose-900' : 'bg-slate-200'}`}
           >
             <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${profile.notificationsEnabled ? 'right-1' : 'left-1'}`} />
+          </button>
+        </div>
+
+        <div className="h-px bg-slate-50" />
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h3 className="font-bold text-slate-800">Email Updates</h3>
+            <p className="text-xs text-slate-400">Daily personalized guidance</p>
+          </div>
+          <button 
+            onClick={() => onUpdateProfile({ ...profile, emailNotifications: !profile.emailNotifications })}
+            className={`w-14 h-8 rounded-full transition-all relative ${profile.emailNotifications ? 'bg-rose-900' : 'bg-slate-200'}`}
+          >
+            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${profile.emailNotifications ? 'right-1' : 'left-1'}`} />
           </button>
         </div>
       </div>

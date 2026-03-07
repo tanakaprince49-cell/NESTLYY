@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profile",
+      "description": "Stores user pregnancy/postpartum profile and email preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "name": { "type": "string", "description": "User's preferred name" },
+        "lifecycleStage": { "type": "string", "enum": ["PRE_PREGNANCY", "PREGNANCY", "POSTPARTUM", "TODDLER"], "description": "Current stage" },
+        "lmpDate": { "type": "string", "format": "date", "description": "Last Menstrual Period date" },
+        "dueDate": { "type": "string", "format": "date", "description": "Estimated due date" },
+        "emailNotifications": { "type": "boolean", "description": "Whether user wants daily emails" },
+        "lastEmailSent": { "type": "string", "format": "date-time", "description": "Timestamp of last daily email" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation time" }
+      },
+      "required": ["uid", "email", "name", "lifecycleStage"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "User profile document"
+    }
+  }
+}

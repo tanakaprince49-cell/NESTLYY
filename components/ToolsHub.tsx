@@ -156,7 +156,13 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const [activeToolCat, setActiveToolCat] = useState('hospital_bag');
   const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies?.[0]?.id || '');
-  
+
+  useEffect(() => {
+    if (!selectedBabyId && profile.babies?.length) {
+      setSelectedBabyId(profile.babies[0].id);
+    }
+  }, [profile.babies, selectedBabyId]);
+
   // Checklists
   const [checklists, setChecklists] = useState<{ [key: string]: any[] }>({
     hospital_bag: storage.getChecklist('hospital_bag'),
@@ -247,6 +253,18 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
     }));
   }, [weightLogs]);
+
+  const babyGrowthChartData = useMemo(() => {
+    const filtered = babyGrowthLogs
+      .filter(l => l.babyId === selectedBabyId)
+      .sort((a, b) => a.timestamp - b.timestamp);
+    
+    return filtered.map(l => ({
+      weight: l.weight,
+      height: l.height,
+      date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
+    }));
+  }, [babyGrowthLogs, selectedBabyId]);
 
   // Labor Logic
   const handleContractionToggle = () => {
@@ -812,6 +830,35 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 >
                   Log Baby Growth
                 </button>
+
+                {babyGrowthChartData.length > 0 && (
+                  <div className="pt-6 border-t border-slate-50 space-y-8">
+                    <div className="h-48">
+                      <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-4 block">Weight Trend (kg)</span>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={babyGrowthChartData}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                          <YAxis domain={['dataMin - 0.5', 'dataMax + 0.5']} axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                          <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                          <Line type="monotone" dataKey="weight" stroke="#10b981" strokeWidth={4} dot={{r: 4, fill: '#10b981'}} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="h-48">
+                      <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-4 block">Height Trend (cm)</span>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={babyGrowthChartData}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                          <YAxis domain={['dataMin - 2', 'dataMax + 2']} axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                          <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                          <Line type="monotone" dataKey="height" stroke="#3b82f6" strokeWidth={4} dot={{r: 4, fill: '#3b82f6'}} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

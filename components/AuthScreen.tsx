@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Logo } from './Logo.tsx';
 import { storage } from '../services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification } from '../services/pushService.ts';
+import { auth, googleProvider } from '../firebase.ts';
+import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 interface AuthScreenProps {
   onAuthComplete: (email: string) => void;
@@ -53,15 +55,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
     }
 
     try {
-      await fetch('https://formspree.io/f/mbddlaep', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: normalizedEmail,
-          action: isLogin ? 'Mama Login' : 'Mama Joined the Nest',
-          timestamp: new Date().toISOString()
-        })
-      });
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, normalizedEmail, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+      }
 
       storage.logActivity(normalizedEmail, isLogin ? 'login' : 'signup');
       storage.setAuthEmail(normalizedEmail);
@@ -86,11 +84,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
       }
 
       onAuthComplete(normalizedEmail);
-    } catch (err) {
-      // Graceful fallback if network fails
-      storage.logActivity(normalizedEmail, isLogin ? 'login' : 'signup');
-      storage.setAuthEmail(normalizedEmail);
-      onAuthComplete(normalizedEmail);
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      if (user.email) {
+        storage.logActivity(user.email, 'login');
+        storage.setAuthEmail(user.email);
+        onAuthComplete(user.email);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Google Login failed.');
     } finally {
       setLoading(false);
     }
@@ -166,6 +179,25 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
                 ) : (
                   <span>{isLogin ? 'Sign In' : 'Join Nestly'}</span>
                 )}
+              </button>
+
+              <div className="relative my-8">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-100"></div>
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
+                  <span className="px-4 bg-white text-slate-300">Or</span>
+                </div>
+              </div>
+
+              <button 
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full h-16 bg-white text-slate-600 font-black rounded-[1.8rem] border-2 border-slate-50 shadow-sm hover:shadow-md active:scale-95 transition-all text-[11px] uppercase tracking-[0.3em] flex justify-center items-center gap-3 disabled:opacity-40"
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" />
+                <span>Continue with Google</span>
               </button>
             </form>
 

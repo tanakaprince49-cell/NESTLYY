@@ -13,6 +13,9 @@ import { Settings } from './components/Settings.tsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders } from './services/pushService.ts';
+import { auth, db, syncProfileToFirestore } from './firebase.ts';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { Analytics } from "@vercel/analytics/react";
 import { 
   Trimester, 
@@ -38,6 +41,7 @@ import {
 
 const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
+  const [userUid, setUserUid] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(true);
 
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
@@ -62,6 +66,37 @@ const App: React.FC = () => {
   const [babyGrowthLogs, setBabyGrowthLogs] = useState<BabyGrowthLog[]>([]);
   const [kickLogs, setKickLogs] = useState<KickLog[]>([]);
   const [diaperLogs, setDiaperLogs] = useState<DiaperLog[]>([]);
+
+  // Firebase Auth Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setAuthEmail(user.email);
+        setUserUid(user.uid);
+        storage.setAuthEmail(user.email || '');
+      } else {
+        setAuthEmail(null);
+        setUserUid(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Firestore Profile Sync
+  useEffect(() => {
+    if (!userUid) return;
+    
+    const unsubscribe = onSnapshot(doc(db, 'users', userUid), (doc) => {
+      if (doc.exists()) {
+        const firestoreProfile = doc.data() as PregnancyProfile;
+        // Merge with local profile if needed, or just overwrite
+        setProfile(prev => ({ ...prev, ...firestoreProfile }));
+        storage.saveProfile({ ...storage.getProfile(), ...firestoreProfile } as any);
+      }
+    });
+    
+    return () => unsubscribe();
+  }, [userUid]);
 
   // Notification Polling
   useEffect(() => {
@@ -132,8 +167,10 @@ const App: React.FC = () => {
   }, [authEmail]);
 
   const handleLogout = () => {
+    auth.signOut();
     storage.logout();
     setAuthEmail(null);
+    setUserUid(null);
     setProfile(null);
     setActiveTab('dashboard');
   };
@@ -248,10 +285,18 @@ const App: React.FC = () => {
                 babyGrowthLogs={babyGrowthLogs} onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
                 trimester={trimester} profile={profile}
                 activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}
-                onUpdateProfile={(p) => { storage.saveProfile(p); setProfile(p); }}
+                onUpdateProfile={(p) => { 
+                  storage.saveProfile(p); 
+                  setProfile(p); 
+                  if (userUid) syncProfileToFirestore(userUid, p);
+                }}
               />
             )}
-            {activeTab === 'settings' && <Settings profile={profile} onUpdateProfile={(p) => { storage.saveProfile(p); setProfile(p); }} />}
+            {activeTab === 'settings' && <Settings profile={profile} onUpdateProfile={(p) => { 
+              storage.saveProfile(p); 
+              setProfile(p); 
+              if (userUid) syncProfileToFirestore(userUid, p);
+            }} />}
             {activeTab === 'admin' && isAdmin && <AdminDashboard />}
           </motion.div>
         </AnimatePresence>

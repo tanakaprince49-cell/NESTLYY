@@ -139,7 +139,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const babyAge = useMemo(() => {
     if (!isPostpartum || !profile.babies?.[0]?.birthDate) return null;
-    const birth = new Date(profile.babies[0].birthDate);
+    const birth = new Date(profile.babies[0]!.birthDate!);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birth.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -531,7 +531,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <h3 className="text-lg font-serif text-rose-800">Growth & Profile</h3>
                     {selectedBabyId !== 'combined' && (
                       <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">
-                        {profile.babies.find(b => b.id === selectedBabyId)?.gender}
+                        {profile.babies?.find(b => b.id === selectedBabyId)?.gender}
                       </span>
                     )}
                   </div>
@@ -563,20 +563,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   
                   {selectedBabyId === 'combined' ? (
                     <div className="grid grid-cols-1 gap-3">
-                      {profile.babies.map(b => (
-                        <div key={b.id} className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
-                          <div className="flex items-center gap-3">
-                            <span className="text-rose-400"><Baby size={24} /></span>
-                            <span className="font-bold text-slate-900">{b.name || 'Baby'}</span>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-[8px] font-black text-slate-400 uppercase">Latest Weight</div>
-                            <div className="text-sm font-bold text-rose-600">
-                              {babyGrowthLogs.filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || b.birthWeight || '--'} kg
-                            </div>
-                          </div>
+                  {profile.babies?.map(b => (
+                    <div key={b.id} className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <span className="text-rose-400"><Baby size={24} /></span>
+                        <span className="font-bold text-slate-900">{b.name || 'Baby'}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[8px] font-black text-slate-400 uppercase">Latest Weight</div>
+                        <div className="text-sm font-bold text-rose-600">
+                          {babyGrowthLogs.filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || b.birthWeight || '--'} kg
                         </div>
-                      ))}
+                      </div>
+                    </div>
+                  ))}
                     </div>
                   ) : (
                     <div className="space-y-6">
@@ -589,7 +589,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <div className="p-4 bg-emerald-50 rounded-2xl text-center">
                           <div className="text-[8px] font-black text-emerald-400 uppercase">Weight</div>
                           <div className="text-xl font-bold text-emerald-900">
-                            {babyGrowthLogs.filter(l => l.babyId === selectedBabyId).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || profile.babies.find(b => b.id === selectedBabyId)?.birthWeight || '--'} kg
+                            {babyGrowthLogs.filter(l => l.babyId === selectedBabyId).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || profile.babies?.find(b => b.id === selectedBabyId)?.birthWeight || '--'} kg
                           </div>
                         </div>
                         <div className="p-4 bg-blue-50 rounded-2xl text-center">
@@ -602,8 +602,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <div className="p-4 bg-slate-50 rounded-2xl">
                         <div className="text-[8px] font-black text-slate-400 uppercase mb-1">Birth Details</div>
                         <div className="text-sm font-bold text-slate-900">
-                          {profile.babies.find(b => b.id === selectedBabyId)?.birthDate ? new Date(profile.babies.find(b => b.id === selectedBabyId)!.birthDate!).toLocaleDateString() : 'Not set'} 
-                          {profile.babies.find(b => b.id === selectedBabyId)?.birthWeight ? ` • ${profile.babies.find(b => b.id === selectedBabyId)?.birthWeight}kg` : ''}
+                          {profile.babies?.find(b => b.id === selectedBabyId)?.birthDate ? new Date(profile.babies.find(b => b.id === selectedBabyId)!.birthDate!).toLocaleDateString() : 'Not set'} 
+                          {profile.babies?.find(b => b.id === selectedBabyId)?.birthWeight ? ` • ${profile.babies.find(b => b.id === selectedBabyId)?.birthWeight}kg` : ''}
                         </div>
                       </div>
                     </div>

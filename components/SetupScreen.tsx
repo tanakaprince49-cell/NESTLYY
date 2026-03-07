@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { PregnancyProfile, NutritionTargets, MemoryAlbums, LifecycleStage } from '../types.ts';
 import { Logo } from './Logo.tsx';
+import { auth, syncProfileToFirestore } from '../firebase.ts';
 
 interface SetupScreenProps {
   onComplete: (profile: PregnancyProfile) => void;
@@ -32,6 +33,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
   const [weight, setWeight] = useState(initialProfile?.startingWeight?.toString() || '');
   const [profileImage, setProfileImage] = useState(initialProfile?.profileImage || '');
   const [notificationsEnabled, setNotificationsEnabled] = useState(initialProfile?.notificationsEnabled ?? true);
+  const [emailNotifications, setEmailNotifications] = useState(initialProfile?.emailNotifications ?? true);
   
   // Nutrition Targets
   const [useCustomTargets, setUseCustomTargets] = useState(!!initialProfile?.customTargets);
@@ -60,7 +62,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
 
   const handleFinish = () => {
     const emptyAlbums: MemoryAlbums = { ultrasound: [], family: [], favorites: [] };
-    onComplete({ 
+    const newProfile: PregnancyProfile = { 
       userName,
       lmpDate: lmp ? new Date(lmp).toISOString() : new Date().toISOString(), 
       dueDate: dueDate ? new Date(dueDate).toISOString() : new Date().toISOString(), 
@@ -73,8 +75,19 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
       customTargets: useCustomTargets ? targets : undefined,
       albums: initialProfile?.albums || emptyAlbums,
       lifecycleStage,
-      notificationsEnabled
-    });
+      notificationsEnabled,
+      emailNotifications
+    };
+
+    if (auth.currentUser) {
+      syncProfileToFirestore(auth.currentUser.uid, {
+        ...newProfile,
+        email: auth.currentUser.email,
+        name: userName
+      });
+    }
+
+    onComplete(newProfile);
   };
 
   return (
@@ -434,17 +447,32 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
               <p className="text-slate-400 font-medium">Your data is stored securely on your device.</p>
             </div>
             
-            <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 flex items-center justify-between">
-              <div className="text-left">
-                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Notifications</span>
-                <span className="text-sm font-bold text-slate-800">Reminders & Guidance</span>
+            <div className="space-y-4">
+              <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 flex items-center justify-between">
+                <div className="text-left">
+                  <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Push Notifications</span>
+                  <span className="text-sm font-bold text-slate-800">Reminders & Guidance</span>
+                </div>
+                <button 
+                  onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                  className={`w-14 h-8 rounded-full transition-all relative ${notificationsEnabled ? 'bg-rose-900' : 'bg-slate-200'}`}
+                >
+                  <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${notificationsEnabled ? 'right-1' : 'left-1'}`} />
+                </button>
               </div>
-              <button 
-                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                className={`w-14 h-8 rounded-full transition-all relative ${notificationsEnabled ? 'bg-rose-900' : 'bg-slate-200'}`}
-              >
-                <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${notificationsEnabled ? 'right-1' : 'left-1'}`} />
-              </button>
+
+              <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 flex items-center justify-between">
+                <div className="text-left">
+                  <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Email Updates</span>
+                  <span className="text-sm font-bold text-slate-800">Daily Personalized Guidance</span>
+                </div>
+                <button 
+                  onClick={() => setEmailNotifications(!emailNotifications)}
+                  className={`w-14 h-8 rounded-full transition-all relative ${emailNotifications ? 'bg-rose-900' : 'bg-slate-200'}`}
+                >
+                  <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${emailNotifications ? 'right-1' : 'left-1'}`} />
+                </button>
+              </div>
             </div>
 
             <button onClick={handleFinish} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Enter My Nest</button>

@@ -78,6 +78,7 @@ export interface PregnancyProfile {
   albums: MemoryAlbums;
   lifecycleStage: LifecycleStage;
   notificationsEnabled?: boolean;
+  emailNotifications?: boolean;
 }
 
 export interface ArchivedPregnancy {
