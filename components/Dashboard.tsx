@@ -39,7 +39,11 @@ import {
   Frown,
   Meh,
   PenLine,
-  Check
+  Check,
+  Download,
+  Stethoscope,
+  Activity,
+  Droplet
 } from 'lucide-react';
 import { 
   FoodEntry, 
@@ -349,334 +353,35 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          {/* Quick Add Buttons */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { id: 'feeding', icon: Milk, label: 'Feed', color: 'text-rose-400' },
-              { id: 'sleep', icon: Moon, label: 'Sleep', color: 'text-indigo-400' },
-              { id: 'diaper', icon: Droplets, label: 'Diaper', color: 'text-emerald-400' },
-              { id: 'vitals', icon: Ruler, label: 'Growth', color: 'text-blue-400' },
-              { id: 'milestones', icon: Trophy, label: 'Milestone', color: 'text-amber-400' },
-              { id: 'journal', icon: FileText, label: 'Notes', color: 'text-slate-400' }
-            ].map(btn => (
-              <button
-                key={btn.id}
-                onClick={() => onQuickTool(btn.id)}
-                className="flex flex-col items-center gap-2 p-4 bg-white/60 backdrop-blur-sm rounded-[2rem] border border-white shadow-sm active:scale-95 transition-all group"
-              >
-                <span className={`transition-transform group-hover:scale-110 ${btn.color}`}>
-                  <btn.icon size={24} />
-                </span>
-                <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{btn.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Newborn Navigation Tabs */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 sticky top-0 z-40 bg-[#fffaf9]/80 backdrop-blur-sm">
-            {(['growth', 'feeding', 'sleep', 'milestones', 'health', 'journal'] as const).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setNewbornTab(tab)}
-                className={`flex-none px-5 py-2.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border-2 ${newbornTab === tab ? 'bg-rose-500 text-white border-rose-500 shadow-lg' : 'bg-white text-slate-400 border-white'}`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          {/* Baby Selector (Individual vs Combined) */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar">
-            {profile.babies?.length > 1 && (
-              <button
-                onClick={() => setSelectedBabyId('combined')}
-                className={`flex-none px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${selectedBabyId === 'combined' ? 'bg-slate-900 text-white' : 'bg-white text-slate-400 border border-slate-100'}`}
-              >
-                Combined View
-              </button>
-            )}
-            {profile.babies?.map((b, idx) => (
-              <button
-                key={b.id}
-                onClick={() => setSelectedBabyId(b.id)}
-                className={`flex-none px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${selectedBabyId === b.id ? 'bg-slate-900 text-white' : 'bg-white text-slate-400 border border-slate-100'}`}
-              >
-                {b.name || `Baby ${idx + 1}`}
-              </button>
-            ))}
-          </div>
-
-          {/* Newborn Tab Content */}
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {newbornTab === 'feeding' && (
-              <div className="space-y-4">
-                <div className="card-premium p-6 bg-white border-2 border-white space-y-4">
-                  <h3 className="text-lg font-serif text-rose-800">Feeding Overview</h3>
-                  
-                  {/* Feeding Bar Chart */}
-                  <div className="h-48 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={['breast', 'bottle', 'solid'].map(type => ({
-                        type,
-                        amount: (feedingLogs || [])
-                          .filter(f => (selectedBabyId === 'combined' || f.babyId === selectedBabyId) && f.type === type)
-                          .reduce((acc, curr) => acc + curr.amount, 0)
-                      }))}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="type" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#cbd5e1'}} />
-                        <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
-                        <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                          {['breast', 'bottle', 'solid'].map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={index === 0 ? '#f43f5e' : index === 1 ? '#3b82f6' : '#10b981'} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    {['breast', 'bottle', 'solid'].map(type => {
-                      const count = (feedingLogs || []).filter(f => 
-                        (selectedBabyId === 'combined' || f.babyId === selectedBabyId) && 
-                        f.type === type && 
-                        new Date(f.timestamp).setHours(0,0,0,0) === today
-                      ).length;
-                      return (
-                        <div key={type} className="p-4 bg-slate-50 rounded-2xl text-center">
-                          <div className="flex justify-center mb-1 text-rose-400">
-                            {type === 'breast' ? <Heart size={24} /> : type === 'bottle' ? <Milk size={24} /> : <Utensils size={24} />}
-                          </div>
-                          <div className="text-[8px] font-black uppercase text-slate-400">{type}</div>
-                          <div className="text-lg font-bold text-slate-900">{count}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                <button onClick={() => onQuickTool('feeding')} className="w-full py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg">Log New Feeding</button>
-              </div>
-            )}
-
-            {newbornTab === 'sleep' && (
-              <div className="space-y-4">
-                <div className="card-premium p-6 bg-white border-2 border-white space-y-4">
-                  <h3 className="text-lg font-serif text-rose-800">Sleep Summary</h3>
-                  <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-2xl">
-                    <div className="text-indigo-400">
-                      <Moon size={40} />
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Total Rest</div>
-                      <div className="text-2xl font-bold text-indigo-900">
-                        {(sleepLogs || []).filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).reduce((acc, curr) => acc + curr.hours, 0).toFixed(1)} hrs
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <button onClick={() => onQuickTool('sleep')} className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg">Log Sleep</button>
-              </div>
-            )}
-
-            {newbornTab === 'milestones' && (
-              <div className="space-y-4">
-                <div className="card-premium p-6 bg-white border-2 border-white space-y-4">
-                  <h3 className="text-lg font-serif text-rose-800">Latest Milestones</h3>
-                  <div className="space-y-3">
-                    {(milestones || [])
-                      .filter(m => selectedBabyId === 'combined' || m.babyId === selectedBabyId)
-                      .slice(0, 3)
-                      .map(m => (
-                        <div key={m.id} className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl">
-                          <span className="text-amber-400"><Trophy size={20} /></span>
-                          <div>
-                            <div className="text-sm font-bold text-slate-900">{m.title}</div>
-                            <div className="text-[8px] font-black text-amber-400 uppercase">{new Date(m.date).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                      ))}
-                    {(milestones || []).length === 0 && <p className="text-xs text-slate-400 italic text-center py-4">No milestones recorded yet.</p>}
-                  </div>
-                </div>
-                <button onClick={() => onQuickTool('milestones')} className="w-full py-4 bg-amber-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg">Add Milestone</button>
-              </div>
-            )}
-
-            {newbornTab === 'health' && (
-              <div className="space-y-4">
-                <div className="card-premium p-6 bg-white border-2 border-white space-y-4">
-                  <h3 className="text-lg font-serif text-rose-800">Health Logs</h3>
-                  <div className="space-y-3">
-                    {(healthLogs || [])
-                      .filter(h => selectedBabyId === 'combined' || h.babyId === selectedBabyId)
-                      .slice(0, 3)
-                      .map(h => (
-                        <div key={h.id} className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
-                          <div>
-                            <div className="text-[8px] font-black text-blue-400 uppercase">{h.type}</div>
-                            <div className="text-sm font-bold text-slate-900">{h.value}</div>
-                          </div>
-                          <span className="text-[8px] font-black text-slate-300 uppercase">{new Date(h.timestamp).toLocaleDateString()}</span>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-                <button onClick={() => onQuickTool('health')} className="w-full py-4 bg-blue-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg">Log Health Event</button>
-              </div>
-            )}
-
-            {newbornTab === 'growth' && (
-              <div className="space-y-4">
-                <motion.div 
-                  whileHover={{ y: -5 }}
-                  className="card-premium p-6 bg-white border-2 border-white space-y-6"
-                >
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-serif text-rose-800">Growth & Profile</h3>
-                    {selectedBabyId !== 'combined' && (
-                      <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">
-                        {profile.babies?.find(b => b.id === selectedBabyId)?.gender}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Growth Trend Chart */}
-                  {selectedBabyId !== 'combined' && (
-                    <div className="h-48 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={(babyGrowthLogs || [])
-                          .filter(l => l.babyId === selectedBabyId)
-                          .sort((a, b) => a.timestamp - b.timestamp)
-                          .map(l => ({
-                            date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }),
-                            weight: l.weight,
-                            height: l.height
-                          }))}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
-                          <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#10b981'}} />
-                          <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#3b82f6'}} />
-                          <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
-                          <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                          <Line yAxisId="left" type="monotone" dataKey="weight" stroke="#10b981" strokeWidth={3} dot={{r: 3}} name="Weight (kg)" />
-                          <Line yAxisId="right" type="monotone" dataKey="height" stroke="#3b82f6" strokeWidth={3} dot={{r: 3}} name="Height (cm)" />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                  
-                  {selectedBabyId === 'combined' ? (
-                    <div className="grid grid-cols-1 gap-3">
-                  {profile.babies?.map(b => (
-                    <div key={b.id} className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <span className="text-rose-400"><Baby size={24} /></span>
-                        <span className="font-bold text-slate-900">{b.name || 'Baby'}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[8px] font-black text-slate-400 uppercase">Latest Weight</div>
-                        <div className="text-sm font-bold text-rose-600">
-                          {(babyGrowthLogs || []).filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || b.birthWeight || '--'} kg
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      <div className="flex justify-center">
-                        <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 shadow-inner border-4 border-white">
-                          <Baby size={48} />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="p-4 bg-emerald-50 rounded-2xl text-center">
-                          <div className="text-[8px] font-black text-emerald-400 uppercase">Weight</div>
-                          <div className="text-xl font-bold text-emerald-900">
-                            {(babyGrowthLogs || []).filter(l => l.babyId === selectedBabyId).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || profile.babies?.find(b => b.id === selectedBabyId)?.birthWeight || '--'} kg
-                          </div>
-                        </div>
-                        <div className="p-4 bg-blue-50 rounded-2xl text-center">
-                          <div className="text-[8px] font-black text-blue-400 uppercase">Height</div>
-                          <div className="text-xl font-bold text-blue-900">
-                            {(babyGrowthLogs || []).filter(l => l.babyId === selectedBabyId).sort((a, b) => b.timestamp - a.timestamp)[0]?.height || '--'} cm
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-4 bg-slate-50 rounded-2xl">
-                        <div className="text-[8px] font-black text-slate-400 uppercase mb-1">Birth Details</div>
-                        <div className="text-sm font-bold text-slate-900">
-                          {profile.babies?.find(b => b.id === selectedBabyId)?.birthDate ? new Date(profile.babies.find(b => b.id === selectedBabyId)!.birthDate!).toLocaleDateString() : 'Not set'} 
-                          {profile.babies?.find(b => b.id === selectedBabyId)?.birthWeight ? ` • ${profile.babies.find(b => b.id === selectedBabyId)?.birthWeight}kg` : ''}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-                <button onClick={() => onQuickTool('vitals')} className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg">Update Growth Data</button>
-              </div>
-            )}
-
-            {newbornTab === 'journal' && (
-              <div className="space-y-4">
-                <div className="card-premium p-6 bg-white border-2 border-white space-y-4">
-                  <h3 className="text-lg font-serif text-rose-800">Recent Reflections</h3>
-                  <div className="space-y-3">
-                    {(journalEntries || []).slice(0, 3).map(entry => (
-                      <div key={entry.id} className="p-4 bg-rose-50/50 rounded-2xl border border-rose-100/50">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-rose-400">
-                            {entry.mood ? <span>{entry.mood}</span> : <FileText size={18} />}
-                          </span>
-                          <span className="text-[8px] font-black text-rose-300 uppercase">{new Date(entry.timestamp).toLocaleDateString()}</span>
-                        </div>
-                        <p className="text-xs text-slate-700 italic leading-relaxed">"{entry.content}"</p>
-                      </div>
-                    ))}
-                    {(journalEntries || []).length === 0 && <p className="text-xs text-slate-400 italic text-center py-4">No reflections yet.</p>}
-                  </div>
-                </div>
-                <button onClick={() => onQuickTool('journal')} className="w-full py-8 bg-white border-2 border-dashed border-rose-200 rounded-[2.5rem] text-rose-400 flex flex-col items-center gap-2">
-                  <span className="text-rose-400"><PenLine size={32} /></span>
-                  <span className="text-[10px] font-black uppercase tracking-widest">Write a Reflection</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Newborn Insights Section */}
+          {/* Newborn Tools Grid */}
           <div className="space-y-4 pt-4">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 ml-1">Newborn Insights</h3>
-            <div className="grid grid-cols-1 gap-4">
-              {/* Sleep Pattern Analysis */}
-              <div className="card-premium p-6 bg-white border-2 border-white h-64">
-                <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Weekly Sleep Patterns</h4>
-                <ResponsiveContainer width="100%" height="80%">
-                  <AreaChart data={[...Array(7)].map((_, i) => {
-                    const d = new Date();
-                    d.setDate(d.getDate() - (6 - i));
-                    const dayStart = d.setHours(0,0,0,0);
-                    const dayEnd = d.setHours(23,59,59,999);
-                    const daySleep = (sleepLogs || []).filter(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
-                    return {
-                      date: d.toLocaleDateString([], { weekday: 'short' }),
-                      hours: daySleep.reduce((acc, curr) => acc + curr.hours, 0)
-                    };
-                  })}>
-                    <defs>
-                      <linearGradient id="colorSleep" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
-                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
-                    <Area type="monotone" dataKey="hours" stroke="#6366f1" fillOpacity={1} fill="url(#colorSleep)" strokeWidth={3} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 ml-1">Newborn Tools</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { id: 'feeding', icon: Milk, label: 'Feed', color: 'text-rose-400' },
+                { id: 'sleep', icon: Moon, label: 'Sleep', color: 'text-indigo-400' },
+                { id: 'diaper', icon: Droplets, label: 'Diaper', color: 'text-emerald-400' },
+                { id: 'vitals', icon: Ruler, label: 'Growth', color: 'text-blue-400' },
+                { id: 'milestones', icon: Trophy, label: 'Milestone', color: 'text-amber-400' },
+                { id: 'health', icon: Stethoscope, label: 'Health', color: 'text-red-400' },
+                { id: 'tummy_time', icon: Activity, label: 'Tummy Time', color: 'text-orange-400' },
+                { id: 'bath', icon: Droplet, label: 'Bath', color: 'text-cyan-400' },
+                { id: 'pumping', icon: Droplets, label: 'Pumping', color: 'text-pink-400' },
+                { id: 'teething', icon: Smile, label: 'Teething', color: 'text-yellow-400' },
+                { id: 'journal', icon: FileText, label: 'Notes', color: 'text-slate-400' },
+                { id: 'export', icon: Download, label: 'Export PDF', color: 'text-purple-400' }
+              ].map(btn => (
+                <button
+                  key={btn.id}
+                  onClick={() => onQuickTool(btn.id)}
+                  className="flex flex-col items-center gap-2 p-4 bg-white/60 backdrop-blur-sm rounded-[2rem] border border-white shadow-sm active:scale-95 transition-all group hover:bg-white"
+                >
+                  <span className={`transition-transform group-hover:scale-110 ${btn.color}`}>
+                    <btn.icon size={24} />
+                  </span>
+                  <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{btn.label}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>

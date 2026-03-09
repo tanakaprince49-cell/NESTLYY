@@ -53,19 +53,26 @@ const App: React.FC = () => {
     if (!userUid) return;
     const q = query(collection(db, 'broadcasts'), orderBy('timestamp', 'desc'));
     
-    // Keep track of the last timestamp to only show new notifications
-    let lastTimestamp = Date.now();
+    // Keep track of shown broadcast IDs to avoid duplicates
+    const shownBroadcasts = new Set<string>();
+    let isInitialLoad = true;
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === 'added') {
           const broadcast = change.doc.data();
-          if (broadcast.timestamp > lastTimestamp) {
+          const broadcastId = change.doc.id;
+          
+          if (!isInitialLoad && !shownBroadcasts.has(broadcastId)) {
             showLocalNotification(broadcast.title, broadcast.body);
-            lastTimestamp = broadcast.timestamp;
+            shownBroadcasts.add(broadcastId);
+          } else if (isInitialLoad) {
+            // Mark existing broadcasts as shown so we don't alert on reload
+            shownBroadcasts.add(broadcastId);
           }
         }
       });
+      isInitialLoad = false;
     });
     return () => unsubscribe();
   }, [userUid]);

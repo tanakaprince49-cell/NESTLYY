@@ -112,6 +112,9 @@ export function setupForegroundMessaging() {
   });
 }
 
+// Keep a global reference to prevent garbage collection during playback
+const activeAudio: HTMLAudioElement[] = [];
+
 /**
  * Show a LOCAL notification (client only)
  */
@@ -131,6 +134,11 @@ export async function showLocalNotification(
     try {
       const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
       audio.volume = 0.5;
+      activeAudio.push(audio);
+      audio.onended = () => {
+        const index = activeAudio.indexOf(audio);
+        if (index > -1) activeAudio.splice(index, 1);
+      };
       await audio.play();
     } catch (e) {
       console.warn("Audio playback failed", e);

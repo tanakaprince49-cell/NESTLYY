@@ -101,13 +101,22 @@ class StorageService {
   }
   saveProfile(profile: PregnancyProfile): void { this.setItem(KEYS.PROFILE, profile); }
 
-  getBabyNames(): {name: string, gender: string, rating: number}[] { return this.getItem(KEYS.BABY_NAMES, []); }
+  getBabyNames(): {name: string, gender: string, rating: number}[] { 
+    const val = this.getItem(KEYS.BABY_NAMES, []);
+    return Array.isArray(val) ? val : [];
+  }
   saveBabyNames(names: {name: string, gender: string, rating: number}[]): void { this.setItem(KEYS.BABY_NAMES, names); }
 
-  getWaterIntake(): number { return this.getItem(KEYS.WATER_INTAKE, 0); }
+  getWaterIntake(): number { 
+    const val = this.getItem(KEYS.WATER_INTAKE, 0);
+    return typeof val === 'number' ? val : 0;
+  }
   saveWaterIntake(intake: number): void { this.setItem(KEYS.WATER_INTAKE, intake); }
 
-  getBumpPhotos(): {id: string, url: string, date: string, week: number}[] { return this.getItem(KEYS.BUMP_PHOTOS, []); }
+  getBumpPhotos(): {id: string, url: string, date: string, week: number}[] { 
+    const val = this.getItem(KEYS.BUMP_PHOTOS, []);
+    return Array.isArray(val) ? val : [];
+  }
   saveBumpPhotos(photos: {id: string, url: string, date: string, week: number}[]): void { this.setItem(KEYS.BUMP_PHOTOS, photos); }
 
   getFoodEntries(): FoodEntry[] { return this.getItem<FoodEntry[]>(KEYS.FOOD, []); }

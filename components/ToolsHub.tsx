@@ -21,9 +21,12 @@ import {
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { ReportCenter } from './ReportCenter.tsx';
+import { ExportReport } from './ExportReport.tsx';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
+import { motion, AnimatePresence } from 'motion/react';
+import html2pdf from 'html2pdf.js';
 import { 
   Sparkles, 
   Footprints, 
@@ -326,16 +329,28 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'vitals', 'calendar', 'checklists', 'memories', 'journal', 'reports', 'settings'];
+      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'reports', 'settings'];
     }
     return ['vitals', 'water', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'archive', 'reports', 'settings'];
   }, [isPostpartum]);
 
   return (
-    <div className="space-y-6 pb-24">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6 pb-24"
+    >
       <div className="flex gap-2 overflow-x-auto no-scrollbar py-3 sticky top-0 z-50 bg-[#fffaf9]/90 backdrop-blur-md">
         {categories.map(cat => (
-          <button key={cat} onClick={() => setActiveCategory(cat)} className={`flex-none px-6 py-3 rounded-2xl border transition-all text-[9px] font-black uppercase tracking-widest ${activeCategory === cat ? 'bg-rose-500 text-white border-rose-400' : 'bg-white text-gray-400'}`}>{cat}</button>
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            key={cat} 
+            onClick={() => setActiveCategory(cat)} 
+            className={`flex-none px-6 py-3 rounded-2xl border transition-all text-[9px] font-black uppercase tracking-widest ${activeCategory === cat ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-200' : 'bg-white text-gray-400 hover:bg-rose-50'}`}
+          >
+            {cat}
+          </motion.button>
         ))}
       </div>
 
@@ -347,12 +362,20 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             
             <div className="flex flex-col items-center gap-6">
               <div className="relative w-48 h-48 rounded-full bg-blue-50 flex items-center justify-center overflow-hidden border-8 border-blue-100 shadow-inner">
-                <div 
-                  className="absolute bottom-0 left-0 right-0 bg-blue-400 transition-all duration-1000 ease-in-out opacity-80"
-                  style={{ height: `${Math.min((waterIntake / 10) * 100, 100)}%` }}
+                <motion.div 
+                  className="absolute bottom-0 left-0 right-0 bg-blue-400 opacity-80"
+                  animate={{ height: `${Math.min((waterIntake / 10) * 100, 100)}%` }}
+                  transition={{ type: "spring", stiffness: 50, damping: 15 }}
                 />
                 <div className="relative z-10 flex flex-col items-center">
-                  <span className="text-4xl font-black text-blue-900">{waterIntake}</span>
+                  <motion.span 
+                    key={waterIntake}
+                    initial={{ scale: 1.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-4xl font-black text-blue-900"
+                  >
+                    {waterIntake}
+                  </motion.span>
                   <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Glasses</span>
                 </div>
               </div>
@@ -426,46 +449,58 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           </div>
 
           <div className="space-y-3">
-            {babyNames.map((item, idx) => (
-              <div key={idx} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${item.gender === 'boy' ? 'bg-blue-400' : item.gender === 'girl' ? 'bg-pink-400' : 'bg-emerald-400'}`} />
-                  <span className="font-bold text-slate-700">{item.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <button 
-                        key={star}
-                        onClick={() => {
-                          const newNames = [...babyNames];
-                          newNames[idx].rating = star;
-                          setBabyNames(newNames);
-                          storage.saveBabyNames(newNames);
-                        }}
-                        className={`text-lg ${star <= item.rating ? 'text-amber-400' : 'text-slate-200'}`}
-                      >
-                        ★
-                      </button>
-                    ))}
+            <AnimatePresence>
+              {babyNames.map((item, idx) => (
+                <motion.div 
+                  key={`${item.name}-${idx}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${item.gender === 'boy' ? 'bg-blue-400' : item.gender === 'girl' ? 'bg-pink-400' : 'bg-emerald-400'}`} />
+                    <span className="font-bold text-slate-700">{item.name}</span>
                   </div>
-                  <button 
-                    onClick={() => {
-                      const newNames = babyNames.filter((_, i) => i !== idx);
-                      setBabyNames(newNames);
-                      storage.saveBabyNames(newNames);
-                    }}
-                    className="p-2 text-rose-300 hover:text-rose-500 transition-colors ml-2"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button 
+                          key={star}
+                          onClick={() => {
+                            const newNames = [...babyNames];
+                            newNames[idx].rating = star;
+                            setBabyNames(newNames);
+                            storage.saveBabyNames(newNames);
+                          }}
+                          className={`text-lg transition-colors ${star <= item.rating ? 'text-amber-400' : 'text-slate-200 hover:text-amber-200'}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const newNames = babyNames.filter((_, i) => i !== idx);
+                        setBabyNames(newNames);
+                        storage.saveBabyNames(newNames);
+                      }}
+                      className="p-2 text-rose-300 hover:text-rose-500 transition-colors ml-2"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {babyNames.length === 0 && (
-              <div className="text-center py-8 text-slate-400 text-sm font-medium">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-8 text-slate-400 text-sm font-medium"
+              >
                 No names added yet. Start brainstorming!
-              </div>
+              </motion.div>
             )}
           </div>
         </div>
@@ -511,29 +546,41 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {bumpPhotos.map((photo) => (
-              <div key={photo.id} className="card-premium bg-white border-2 border-white overflow-hidden group relative">
-                <img src={photo.url} alt={`Week ${photo.week}`} className="w-full aspect-[3/4] object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
-                  <span className="text-white font-black text-lg">Week {photo.week}</span>
-                  <span className="text-white/80 text-[10px] uppercase tracking-widest">{new Date(photo.date).toLocaleDateString()}</span>
-                </div>
-                <button 
-                  onClick={() => {
-                    const newPhotos = bumpPhotos.filter(p => p.id !== photo.id);
-                    setBumpPhotos(newPhotos);
-                    storage.saveBumpPhotos(newPhotos);
-                  }}
-                  className="absolute top-2 right-2 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500"
+            <AnimatePresence>
+              {bumpPhotos.map((photo) => (
+                <motion.div 
+                  key={photo.id} 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="card-premium bg-white border-2 border-white overflow-hidden group relative"
                 >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
+                  <img src={photo.url} alt={`Week ${photo.week}`} className="w-full aspect-[3/4] object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
+                    <span className="text-white font-black text-lg">Week {photo.week}</span>
+                    <span className="text-white/80 text-[10px] uppercase tracking-widest">{new Date(photo.date).toLocaleDateString()}</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const newPhotos = bumpPhotos.filter(p => p.id !== photo.id);
+                      setBumpPhotos(newPhotos);
+                      storage.saveBumpPhotos(newPhotos);
+                    }}
+                    className="absolute top-2 right-2 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {bumpPhotos.length === 0 && (
-              <div className="col-span-2 text-center py-8 text-slate-400 text-sm font-medium">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="col-span-2 text-center py-8 text-slate-400 text-sm font-medium"
+              >
                 No photos added yet. Start your diary!
-              </div>
+              </motion.div>
             )}
           </div>
         </div>
@@ -1566,6 +1613,118 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
         </div>
       )}
-    </div>
+      {activeCategory === 'tummy_time' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
+            <h3 className="text-xl font-serif text-orange-800">Tummy Time Tracker</h3>
+            <p className="text-xs text-slate-400 font-medium">Log your baby's daily tummy time to help build neck and shoulder strength.</p>
+            <div className="flex gap-4">
+              <input 
+                type="number" 
+                placeholder="Duration (mins)" 
+                className="flex-1 p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-orange-200 text-sm"
+                id="tummyTimeInput"
+              />
+              <button 
+                onClick={() => {
+                  const val = (document.getElementById('tummyTimeInput') as HTMLInputElement).value;
+                  if (val) {
+                    onAddJournal(`[Tummy Time] ${val} mins`, 'activity');
+                    (document.getElementById('tummyTimeInput') as HTMLInputElement).value = '';
+                  }
+                }}
+                className="px-6 bg-orange-500 text-white rounded-2xl font-bold shadow-lg shadow-orange-200 hover:bg-orange-600 transition-colors"
+              >
+                Log
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'bath' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
+            <h3 className="text-xl font-serif text-cyan-800">Bath Tracker</h3>
+            <p className="text-xs text-slate-400 font-medium">Keep track of your baby's bath schedule.</p>
+            <button 
+              onClick={() => onAddJournal(`[Bath] Given a bath`, 'clean')}
+              className="w-full py-4 bg-cyan-500 text-white rounded-2xl font-bold shadow-lg shadow-cyan-200 hover:bg-cyan-600 transition-colors"
+            >
+              Log Bath Today
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'pumping' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
+            <h3 className="text-xl font-serif text-pink-800">Pumping Log</h3>
+            <p className="text-xs text-slate-400 font-medium">Track your pumping sessions and amounts.</p>
+            <div className="flex gap-4">
+              <input 
+                type="number" 
+                placeholder="Amount (ml)" 
+                className="flex-1 p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-pink-200 text-sm"
+                id="pumpingInput"
+              />
+              <button 
+                onClick={() => {
+                  const val = (document.getElementById('pumpingInput') as HTMLInputElement).value;
+                  if (val) {
+                    onAddJournal(`[Pumping] ${val} ml`, 'milk');
+                    (document.getElementById('pumpingInput') as HTMLInputElement).value = '';
+                  }
+                }}
+                className="px-6 bg-pink-500 text-white rounded-2xl font-bold shadow-lg shadow-pink-200 hover:bg-pink-600 transition-colors"
+              >
+                Log
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'teething' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
+            <h3 className="text-xl font-serif text-yellow-800">Teething Tracker</h3>
+            <p className="text-xs text-slate-400 font-medium">Log teething symptoms and milestones.</p>
+            <div className="flex gap-4">
+              <input 
+                type="text" 
+                placeholder="Symptoms or tooth spotted..." 
+                className="flex-1 p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-yellow-200 text-sm"
+                id="teethingInput"
+              />
+              <button 
+                onClick={() => {
+                  const val = (document.getElementById('teethingInput') as HTMLInputElement).value;
+                  if (val) {
+                    onAddJournal(`[Teething] ${val}`, 'tooth');
+                    (document.getElementById('teethingInput') as HTMLInputElement).value = '';
+                  }
+                }}
+                className="px-6 bg-yellow-500 text-white rounded-2xl font-bold shadow-lg shadow-yellow-200 hover:bg-yellow-600 transition-colors"
+              >
+                Log
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'export' && (
+        <ExportReport 
+          profile={profile}
+          feedingLogs={feedingLogs}
+          sleepLogs={sleepLogs}
+          diaperLogs={diaperLogs}
+          babyGrowthLogs={babyGrowthLogs}
+          milestones={milestones}
+        />
+      )}
+    </motion.div>
   );
 };

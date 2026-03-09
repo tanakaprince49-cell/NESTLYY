@@ -1,0 +1,179 @@
+import React, { useRef } from 'react';
+import html2pdf from 'html2pdf.js';
+import { Download, Baby, Ruler, Milk, Moon, Droplets } from 'lucide-react';
+import { PregnancyProfile, FeedingLog, SleepLog, DiaperLog, BabyGrowthLog, MilestoneLog } from '../types.ts';
+
+interface ExportReportProps {
+  profile: PregnancyProfile;
+  feedingLogs: FeedingLog[];
+  sleepLogs: SleepLog[];
+  diaperLogs: DiaperLog[];
+  babyGrowthLogs: BabyGrowthLog[];
+  milestones: MilestoneLog[];
+}
+
+export const ExportReport: React.FC<ExportReportProps> = ({
+  profile,
+  feedingLogs,
+  sleepLogs,
+  diaperLogs,
+  babyGrowthLogs,
+  milestones
+}) => {
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const handleExport = () => {
+    if (!reportRef.current) return;
+    
+    const opt = {
+      margin:       10,
+      filename:     'nestly-baby-report.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(reportRef.current).save();
+  };
+
+  const recentFeedings = feedingLogs.slice(0, 5);
+  const recentSleep = sleepLogs.slice(0, 5);
+  const recentDiapers = diaperLogs.slice(0, 5);
+
+  return (
+    <div className="space-y-6 animate-in fade-in">
+      <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
+        <h3 className="text-xl font-serif text-rose-800">Export Baby Report</h3>
+        <p className="text-xs text-slate-400 font-medium">Download a comprehensive PDF report of your baby's recent activities, growth, and milestones.</p>
+        
+        <button 
+          onClick={handleExport}
+          className="w-full py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-600 transition-colors flex items-center justify-center gap-2"
+        >
+          <Download size={20} />
+          Download PDF Report
+        </button>
+      </div>
+
+      {/* Hidden Report Content for PDF Generation */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        <div ref={reportRef} className="p-8 bg-white text-slate-800 font-sans" style={{ width: '800px' }}>
+          {/* Header */}
+          <div className="flex items-center justify-between border-b-2 border-rose-100 pb-6 mb-6">
+            <div>
+              <h1 className="text-3xl font-serif text-rose-600">Nestly Baby Report</h1>
+              <p className="text-sm text-slate-500 mt-1">Generated on {new Date().toLocaleDateString()}</p>
+            </div>
+            <div className="text-right">
+              <h2 className="text-xl font-bold text-slate-700">{profile.name}'s Dashboard</h2>
+              {profile.babies && profile.babies.length > 0 && (
+                <p className="text-sm text-slate-500 mt-1">Baby: {profile.babies.map(b => b.name).join(', ')}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Content Grid */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Feeding Summary */}
+            <div className="bg-rose-50 p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-3 text-rose-600">
+                <Milk size={20} />
+                <h3 className="font-bold">Recent Feedings</h3>
+              </div>
+              <div className="space-y-2">
+                {recentFeedings.length > 0 ? recentFeedings.map(log => (
+                  <div key={log.id} className="text-sm flex justify-between border-b border-rose-100 pb-1">
+                    <span>{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    <span className="font-medium">{log.type} {log.amount ? `${log.amount}ml` : ''} {log.duration ? `${log.duration}m` : ''}</span>
+                  </div>
+                )) : <p className="text-sm text-slate-500">No recent feedings logged.</p>}
+              </div>
+            </div>
+
+            {/* Sleep Summary */}
+            <div className="bg-indigo-50 p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-3 text-indigo-600">
+                <Moon size={20} />
+                <h3 className="font-bold">Recent Sleep</h3>
+              </div>
+              <div className="space-y-2">
+                {recentSleep.length > 0 ? recentSleep.map(log => (
+                  <div key={log.id} className="text-sm flex justify-between border-b border-indigo-100 pb-1">
+                    <span>{new Date(log.timestamp).toLocaleDateString()}</span>
+                    <span className="font-medium">{log.hours} hrs ({log.type})</span>
+                  </div>
+                )) : <p className="text-sm text-slate-500">No recent sleep logged.</p>}
+              </div>
+            </div>
+
+            {/* Diaper Summary */}
+            <div className="bg-emerald-50 p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-3 text-emerald-600">
+                <Droplets size={20} />
+                <h3 className="font-bold">Recent Diapers</h3>
+              </div>
+              <div className="space-y-2">
+                {recentDiapers.length > 0 ? recentDiapers.map(log => (
+                  <div key={log.id} className="text-sm flex justify-between border-b border-emerald-100 pb-1">
+                    <span>{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    <span className="font-medium capitalize">{log.type}</span>
+                  </div>
+                )) : <p className="text-sm text-slate-500">No recent diapers logged.</p>}
+              </div>
+            </div>
+
+            {/* Growth Summary */}
+            <div className="bg-blue-50 p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-3 text-blue-600">
+                <Ruler size={20} />
+                <h3 className="font-bold">Latest Growth</h3>
+              </div>
+              <div className="space-y-2">
+                {babyGrowthLogs.length > 0 ? (
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Weight:</span>
+                      <span className="font-bold">{babyGrowthLogs[0].weight} kg</span>
+                    </div>
+                    {babyGrowthLogs[0].height && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Height:</span>
+                        <span className="font-bold">{babyGrowthLogs[0].height} cm</span>
+                      </div>
+                    )}
+                    <div className="text-xs text-slate-400 mt-2 text-right">
+                      Recorded on {new Date(babyGrowthLogs[0].timestamp).toLocaleDateString()}
+                    </div>
+                  </div>
+                ) : <p className="text-sm text-slate-500">No growth data logged.</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Milestones */}
+          {milestones.length > 0 && (
+            <div className="mt-6 bg-amber-50 p-4 rounded-xl">
+              <div className="flex items-center gap-2 mb-3 text-amber-600">
+                <Baby size={20} />
+                <h3 className="font-bold">Recent Milestones</h3>
+              </div>
+              <div className="space-y-2">
+                {milestones.slice(0, 5).map(m => (
+                  <div key={m.id} className="text-sm flex justify-between border-b border-amber-100 pb-1">
+                    <span className="font-medium">{m.title}</span>
+                    <span className="text-slate-500">{new Date(m.timestamp).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="mt-8 pt-4 border-t border-slate-200 text-center text-xs text-slate-400">
+            <p>This report is generated by Nestly - Your companion for pregnancy and newborn care.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
