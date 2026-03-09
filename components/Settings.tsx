@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import { PregnancyProfile, LifecycleStage } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { syncProfileToFirestore } from '../firebase.ts';
+import { Camera } from 'lucide-react';
 
 interface SettingsProps {
   profile: PregnancyProfile;
@@ -12,19 +13,50 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, userUid }) => {
-  const [name, setName] = useState(profile.name || '');
+  const [name, setName] = useState(profile.userName || '');
+  const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveProfile = async () => {
     setSaving(true);
-    const updatedProfile = { ...profile, name };
+    const updatedProfile = { ...profile, userName: name };
     storage.saveProfile(updatedProfile);
     onUpdateProfile(updatedProfile);
     if (userUid) {
       await syncProfileToFirestore(userUid, updatedProfile);
     }
+    
+    // Update local password if applicable
+    const email = storage.getAuthEmail();
+    if (email && password) {
+      const localUsers = JSON.parse(localStorage.getItem('nestly_local_users') || '{}');
+      if (localUsers[email]) {
+        localUsers[email].password = password;
+        localStorage.setItem('nestly_local_users', JSON.stringify(localUsers));
+      }
+    }
+    
     setSaving(false);
     alert('Profile updated!');
+    setPassword('');
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        const updatedProfile = { ...profile, profileImage: base64String };
+        storage.saveProfile(updatedProfile);
+        onUpdateProfile(updatedProfile);
+        if (userUid) {
+          syncProfileToFirestore(userUid, updatedProfile);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -39,19 +71,63 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
       </div>
 
       <div className="card-premium p-6 space-y-6">
-        <div className="space-y-2">
+        <div className="space-y-4">
           <h3 className="font-bold text-slate-800">Profile</h3>
-          <input 
-            type="text" 
-            value={name} 
-            onChange={e => setName(e.target.value)} 
-            className="w-full p-3 border rounded-xl text-sm"
-            placeholder="Your Name"
-          />
+          
+          <div className="flex flex-col items-center gap-4">
+            <div 
+              className="w-24 h-24 rounded-full bg-slate-100 border-4 border-white shadow-lg overflow-hidden relative cursor-pointer group"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {profile.profileImage ? (
+                <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                  <Camera size={32} />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera size={24} className="text-white" />
+              </div>
+            </div>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleImageUpload} 
+              accept="image/*" 
+              className="hidden" 
+            />
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1">Name</label>
+              <input 
+                type="text" 
+                value={name} 
+                onChange={e => setName(e.target.value)} 
+                className="w-full p-3 bg-slate-50 border-2 border-transparent rounded-xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all"
+                placeholder="Your Name"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1">New Password (Optional)</label>
+              <input 
+                type="password" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                className="w-full p-3 bg-slate-50 border-2 border-transparent rounded-xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all"
+                placeholder="••••••••"
+              />
+              <p className="text-[10px] text-slate-400 ml-2 mt-1">Only applies if you signed up with Email & Password.</p>
+            </div>
+          </div>
+
           <button 
             onClick={handleSaveProfile}
             disabled={saving}
-            className="w-full py-2 bg-rose-900 text-white rounded-xl text-xs font-black uppercase tracking-widest"
+            className="w-full py-3 bg-rose-900 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md hover:shadow-lg active:scale-95 transition-all"
           >
             {saving ? 'Saving...' : 'Save Profile'}
           </button>

@@ -135,18 +135,22 @@ const App: React.FC = () => {
             'food_entries', 'water_logs', 'symptoms', 'vitamins', 'contractions', 
             'journal', 'calendar', 'weight_logs', 'sleep_logs', 'feeding_logs', 
             'baby_milestones', 'baby_health_logs', 'baby_growth_logs', 'baby_diaper_logs',
-            'kick_logs', 'baby_reactions'
+            'kick_logs', 'baby_reactions', 'baby_names', 'water_intake', 'bump_photos'
           ];
           
           for (const col of collections) {
             const dataRef = doc(db, 'users', user.uid, col, 'data');
             const snap = await getDoc(dataRef);
             if (snap.exists()) {
-              const items = snap.data().items || [];
+              const items = snap.data().items;
               // Update local storage with Firestore data
               // This is a simple merge: Firestore wins
-              if (items.length > 0) {
-                localStorage.setItem(`${identifier}_${col}`, JSON.stringify(items));
+              if (items !== undefined && items !== null) {
+                if (Array.isArray(items) && items.length > 0) {
+                  localStorage.setItem(`${identifier}_${col}`, JSON.stringify(items));
+                } else if (!Array.isArray(items)) {
+                  localStorage.setItem(`${identifier}_${col}`, JSON.stringify(items));
+                }
               }
             }
           }
@@ -180,6 +184,9 @@ const App: React.FC = () => {
     syncDataToFirestore(uid, 'baby_diaper_logs', storage.getDiaperLogs());
     syncDataToFirestore(uid, 'kick_logs', storage.getKickLogs());
     syncDataToFirestore(uid, 'baby_reactions', storage.getReactions());
+    syncDataToFirestore(uid, 'baby_names', storage.getBabyNames());
+    syncDataToFirestore(uid, 'water_intake', storage.getWaterIntake());
+    syncDataToFirestore(uid, 'bump_photos', storage.getBumpPhotos());
   }, []);
 
   // Firestore Profile Sync

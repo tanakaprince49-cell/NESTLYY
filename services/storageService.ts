@@ -61,7 +61,10 @@ const KEYS = {
   REMINDERS: 'nestly_reminders',
   BROADCASTS: 'nestly_global_broadcasts',
   SHOWN_REMINDERS: 'nestly_shown_reminders',
-  VIDEOS: 'nestly_global_videos'
+  VIDEOS: 'nestly_global_videos',
+  BABY_NAMES: 'baby_names',
+  WATER_INTAKE: 'water_intake',
+  BUMP_PHOTOS: 'bump_photos'
 };
 
 class StorageService {
@@ -97,6 +100,15 @@ class StorageService {
     return p;
   }
   saveProfile(profile: PregnancyProfile): void { this.setItem(KEYS.PROFILE, profile); }
+
+  getBabyNames(): {name: string, gender: string, rating: number}[] { return this.getItem(KEYS.BABY_NAMES, []); }
+  saveBabyNames(names: {name: string, gender: string, rating: number}[]): void { this.setItem(KEYS.BABY_NAMES, names); }
+
+  getWaterIntake(): number { return this.getItem(KEYS.WATER_INTAKE, 0); }
+  saveWaterIntake(intake: number): void { this.setItem(KEYS.WATER_INTAKE, intake); }
+
+  getBumpPhotos(): {id: string, url: string, date: string, week: number}[] { return this.getItem(KEYS.BUMP_PHOTOS, []); }
+  saveBumpPhotos(photos: {id: string, url: string, date: string, week: number}[]): void { this.setItem(KEYS.BUMP_PHOTOS, photos); }
 
   getFoodEntries(): FoodEntry[] { return this.getItem<FoodEntry[]>(KEYS.FOOD, []); }
   addFoodEntry(entry: FoodEntry): void { this.setItem(KEYS.FOOD, [entry, ...this.getFoodEntries()]); }

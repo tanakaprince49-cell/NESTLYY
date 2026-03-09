@@ -55,7 +55,10 @@ import {
   Baby,
   FileText,
   Square,
-  Play
+  Play,
+  Droplets as WaterIcon,
+  ListHeart,
+  Camera as CameraIcon
 } from 'lucide-react';
 
 interface ToolsHubProps {
@@ -196,6 +199,18 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   // Albums
   const [albums, setAlbums] = useState<MemoryAlbums>(profile.albums || { ultrasound: [], family: [], favorites: [] });
 
+  // Baby Names
+  const [babyNames, setBabyNames] = useState<{name: string, gender: string, rating: number}[]>(storage.getBabyNames() || []);
+  const [newNameInput, setNewNameInput] = useState('');
+  const [newNameGender, setNewNameGender] = useState('neutral');
+
+  // Water Intake
+  const [waterIntake, setWaterIntake] = useState<number>(storage.getWaterIntake() || 0); // in glasses (e.g. 8 glasses a day)
+
+  // Bump Photos
+  const [bumpPhotos, setBumpPhotos] = useState<{id: string, url: string, date: string, week: number}[]>(storage.getBumpPhotos() || []);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleWeightLog = () => {
     if (weightInput) {
       onAddWeight(parseFloat(weightInput));
@@ -313,7 +328,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
     if (isPostpartum) {
       return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'vitals', 'calendar', 'checklists', 'memories', 'journal', 'reports', 'settings'];
     }
-    return ['vitals', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'archive', 'reports', 'settings'];
+    return ['vitals', 'water', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'archive', 'reports', 'settings'];
   }, [isPostpartum]);
 
   return (
@@ -323,6 +338,206 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           <button key={cat} onClick={() => setActiveCategory(cat)} className={`flex-none px-6 py-3 rounded-2xl border transition-all text-[9px] font-black uppercase tracking-widest ${activeCategory === cat ? 'bg-rose-500 text-white border-rose-400' : 'bg-white text-gray-400'}`}>{cat}</button>
         ))}
       </div>
+
+      {activeCategory === 'water' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Hydration Tracker</h3>
+            <p className="text-xs text-slate-400 font-medium">Aim for at least 8-10 glasses of water a day during pregnancy.</p>
+            
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative w-48 h-48 rounded-full bg-blue-50 flex items-center justify-center overflow-hidden border-8 border-blue-100 shadow-inner">
+                <div 
+                  className="absolute bottom-0 left-0 right-0 bg-blue-400 transition-all duration-1000 ease-in-out opacity-80"
+                  style={{ height: `${Math.min((waterIntake / 10) * 100, 100)}%` }}
+                />
+                <div className="relative z-10 flex flex-col items-center">
+                  <span className="text-4xl font-black text-blue-900">{waterIntake}</span>
+                  <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Glasses</span>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => {
+                    const newIntake = Math.max(0, waterIntake - 1);
+                    setWaterIntake(newIntake);
+                    storage.saveWaterIntake(newIntake);
+                  }}
+                  className="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-black text-xl hover:bg-slate-200 transition-all"
+                >
+                  -
+                </button>
+                <button 
+                  onClick={() => {
+                    const newIntake = waterIntake + 1;
+                    setWaterIntake(newIntake);
+                    storage.saveWaterIntake(newIntake);
+                  }}
+                  className="w-14 h-14 rounded-full bg-blue-500 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-blue-200 hover:bg-blue-600 active:scale-95 transition-all"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'names' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Baby Names</h3>
+            <p className="text-xs text-slate-400 font-medium">Keep track of your favorite baby names.</p>
+            
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={newNameInput} 
+                  onChange={e => setNewNameInput(e.target.value)} 
+                  placeholder="Enter a name..." 
+                  className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" 
+                />
+                <select 
+                  value={newNameGender} 
+                  onChange={e => setNewNameGender(e.target.value)}
+                  className="px-4 py-4 bg-slate-50 rounded-2xl text-sm font-bold outline-none"
+                >
+                  <option value="neutral">Neutral</option>
+                  <option value="boy">Boy</option>
+                  <option value="girl">Girl</option>
+                </select>
+              </div>
+              <button 
+                onClick={() => {
+                  if (newNameInput.trim()) {
+                    const newNames = [...babyNames, { name: newNameInput.trim(), gender: newNameGender, rating: 0 }];
+                    setBabyNames(newNames);
+                    storage.saveBabyNames(newNames);
+                    setNewNameInput('');
+                  }
+                }}
+                className="w-full py-4 bg-rose-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl"
+              >
+                Add Name
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {babyNames.map((item, idx) => (
+              <div key={idx} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${item.gender === 'boy' ? 'bg-blue-400' : item.gender === 'girl' ? 'bg-pink-400' : 'bg-emerald-400'}`} />
+                  <span className="font-bold text-slate-700">{item.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button 
+                        key={star}
+                        onClick={() => {
+                          const newNames = [...babyNames];
+                          newNames[idx].rating = star;
+                          setBabyNames(newNames);
+                          storage.saveBabyNames(newNames);
+                        }}
+                        className={`text-lg ${star <= item.rating ? 'text-amber-400' : 'text-slate-200'}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const newNames = babyNames.filter((_, i) => i !== idx);
+                      setBabyNames(newNames);
+                      storage.saveBabyNames(newNames);
+                    }}
+                    className="p-2 text-rose-300 hover:text-rose-500 transition-colors ml-2"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {babyNames.length === 0 && (
+              <div className="text-center py-8 text-slate-400 text-sm font-medium">
+                No names added yet. Start brainstorming!
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'bump' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Bump Photo Diary</h3>
+            <p className="text-xs text-slate-400 font-medium">Document your growing bump week by week.</p>
+            
+            <div className="flex justify-center">
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-12 border-4 border-dashed border-rose-100 rounded-[2rem] flex flex-col items-center justify-center gap-4 text-rose-400 hover:bg-rose-50 hover:border-rose-300 transition-all"
+              >
+                <CameraIcon size={48} />
+                <span className="text-[10px] font-black uppercase tracking-widest">Add New Photo</span>
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const base64String = reader.result as string;
+                      const newPhotos = [
+                        { id: Date.now().toString(), url: base64String, date: new Date().toISOString(), week: progressWeeks },
+                        ...bumpPhotos
+                      ];
+                      setBumpPhotos(newPhotos);
+                      storage.saveBumpPhotos(newPhotos);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }} 
+                accept="image/*" 
+                className="hidden" 
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {bumpPhotos.map((photo) => (
+              <div key={photo.id} className="card-premium bg-white border-2 border-white overflow-hidden group relative">
+                <img src={photo.url} alt={`Week ${photo.week}`} className="w-full aspect-[3/4] object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
+                  <span className="text-white font-black text-lg">Week {photo.week}</span>
+                  <span className="text-white/80 text-[10px] uppercase tracking-widest">{new Date(photo.date).toLocaleDateString()}</span>
+                </div>
+                <button 
+                  onClick={() => {
+                    const newPhotos = bumpPhotos.filter(p => p.id !== photo.id);
+                    setBumpPhotos(newPhotos);
+                    storage.saveBumpPhotos(newPhotos);
+                  }}
+                  className="absolute top-2 right-2 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            {bumpPhotos.length === 0 && (
+              <div className="col-span-2 text-center py-8 text-slate-400 text-sm font-medium">
+                No photos added yet. Start your diary!
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {activeCategory === 'kicks' && (
         <div className="space-y-8 animate-in fade-in">
