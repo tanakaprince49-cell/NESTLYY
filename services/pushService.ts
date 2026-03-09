@@ -116,6 +116,15 @@ export async function showLocalNotification(
 
     const registration = await getServiceWorkerRegistration();
 
+    // Play notification sound
+    try {
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.volume = 0.5;
+      await audio.play();
+    } catch (e) {
+      console.warn("Audio playback failed", e);
+    }
+
     await registration.showNotification(title, {
       body,
       icon: BRAND_LOGO,

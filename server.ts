@@ -140,6 +140,39 @@ async function startServer() {
     });
   });
 
+  // Weekly Email (Mondays at 10:00 AM)
+  cron.schedule("0 10 * * 1", async () => {
+    console.log("Processing weekly emails...");
+    try {
+      const usersSnapshot = await db.collection('users').get();
+      const now = new Date();
+
+      for (const doc of usersSnapshot.docs) {
+        const userData = doc.data();
+        if (!userData.email || userData.emailNotifications === false) continue;
+
+        let subject = "Your Nestly Weekly Update ❤️";
+        let body = "";
+
+        if (userData.lifecycleStage === 'PREGNANCY' && userData.lmpDate) {
+          const lmpDate = new Date(userData.lmpDate);
+          const weeks = Math.floor((now.getTime() - lmpDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
+          subject = `Week ${weeks} of your Pregnancy Journey 🤰`;
+          body = `Hi ${userData.name || 'Mama'}, you are now ${weeks} weeks along! Your baby is growing fast. Check Nestly for this week's tips and baby size update.`;
+        } else if (userData.lifecycleStage === 'NEWBORN' || userData.lifecycleStage === 'INFANT') {
+          subject = "Your Baby's Development This Week 👶";
+          body = `Hi ${userData.name || 'Mama'}, we hope you and your little one are doing well. Check Nestly for new milestones and tracking tips for this week.`;
+        } else {
+          body = `Hi ${userData.name || 'Mama'}, here's your weekly check-in from Nestly. We're here to support you on your journey!`;
+        }
+
+        await sendEmail(userData.email, subject, body);
+      }
+    } catch (error) {
+      console.error("Error sending weekly emails:", error);
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -272,6 +305,26 @@ async function sendDailyEmail(user: any) {
     });
   } catch (error) {
     console.error(`Failed to send email to ${email}:`, error);
+  }
+}
+
+async function sendEmail(to: string, subject: string, body: string) {
+  try {
+    await resend.emails.send({
+      from: "Nestly <updates@nestly.run.app>",
+      to: to,
+      subject: subject,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+          <h2 style="color: #e11d48;">Nestly Update</h2>
+          <p style="font-size: 16px; color: #333;">${body}</p>
+          <p style="font-weight: bold; color: #e11d48;">— Nestly 🌱</p>
+        </div>
+      `
+    });
+    console.log(`[EMAIL SENT] To: ${to} | Subject: ${subject}`);
+  } catch (error) {
+    console.error(`Failed to send email to ${to}:`, error);
   }
 }
 

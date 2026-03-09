@@ -4,6 +4,7 @@ import { storage } from '../services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification } from '../services/pushService.ts';
 import { auth, googleProvider, syncProfileToFirestore } from '../firebase.ts';
 import { signInWithPopup, signInAnonymously, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import PhoneInput from 'react-phone-input-2';
 
 interface AuthScreenProps {
   onAuthComplete: (email: string) => void;
@@ -19,30 +20,51 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !window.recaptchaVerifier) {
+      auth.useDeviceLanguage();
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         'size': 'invisible',
         'callback': () => {
           // reCAPTCHA solved, allow signInWithPhoneNumber.
+        },
+        'expired-callback': () => {
+          setError('reCAPTCHA expired. Please try again.');
         }
       });
     }
+    
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+    };
   }, []);
 
   const handleAuthSuccess = async (user: any) => {
     const identifier = user.email || user.phoneNumber || `anon-${user.uid}`;
+    const name = user.displayName || (user.phoneNumber ? `User ${user.phoneNumber.slice(-4)}` : 'Guest');
+    
     storage.logActivity(identifier, 'login');
     storage.setAuthEmail(identifier);
     
     // Initial profile sync if it doesn't exist
     await syncProfileToFirestore(user.uid, {
       email: user.email || '',
-      name: user.displayName || (user.phoneNumber ? `User ${user.phoneNumber.slice(-4)}` : 'Guest'),
+      name: name,
       lifecycleStage: 'PREGNANCY',
       createdAt: new Date().toISOString()
     });
 
     try {
       await subscribeUserToPush();
+      
+      // Founder's welcome message
+      setTimeout(async () => {
+        await showLocalNotification(
+          "A Welcome from Nestly ❤️",
+          `HEY ${name.split(' ')[0]}, this is Tanaka Gaadzikwa from NESTLY. We're so glad you're here!`
+        );
+      }, 2000);
     } catch (pushErr) {
       console.warn("Push subscription skipped or failed", pushErr);
     }
@@ -81,14 +103,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
       setError('Please enter a phone number');
       return;
     }
+    
+    const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+
     setLoading(true);
     setError('');
     try {
       const appVerifier = window.recaptchaVerifier;
-      const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+      const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(result);
     } catch (err: any) {
-      setError(err.message || 'Failed to send code.');
+      console.error("Phone auth error:", err);
+      setError(err.message || 'Failed to send code. Check your number format.');
+      // Reset reCAPTCHA on error
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.render().then((widgetId: any) => {
+          if (window.grecaptcha) window.grecaptcha.reset(widgetId);
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -186,12 +218,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Phone Number</label>
-                        <input 
-                          type="tel" 
-                          placeholder="+1 234 567 8900" 
+                        <PhoneInput
+                          country={'zw'}
                           value={phoneNumber}
-                          onChange={e => setPhoneNumber(e.target.value)}
-                          className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.5rem] focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all" 
+                          onChange={setPhoneNumber}
+                          containerClass="nestly-phone-input"
+                          inputClass="!w-full !h-16 !bg-slate-50 !border-2 !border-transparent !rounded-[1.5rem] !focus:border-rose-100 !focus:bg-white !outline-none !text-sm !font-semibold !transition-all !pl-16"
+                          buttonClass="!bg-transparent !border-none !rounded-[1.5rem] !pl-4"
+                          dropdownClass="!rounded-[1.5rem] !shadow-xl !border-none"
                         />
                       </div>
                       <button 
@@ -243,5 +277,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
 declare global {
   interface Window {
     recaptchaVerifier: any;
+    grecaptcha: any;
   }
 }
