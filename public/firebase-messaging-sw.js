@@ -1,5 +1,37 @@
-// sw.js - Nestly Premium Service Worker
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
+// Initialize the Firebase app in the service worker by passing in
+// your app's Firebase config object.
+// https://firebase.google.com/docs/web/setup#config-object
+firebase.initializeApp({
+  apiKey: "AIzaSyDm6OvIZb714N5JkHzWCCFeEsWyBHayB90",
+  authDomain: "plasma-ripple-467908-e7.firebaseapp.com",
+  projectId: "plasma-ripple-467908-e7",
+  storageBucket: "plasma-ripple-467908-e7.firebasestorage.app",
+  messagingSenderId: "250549049447",
+  appId: "1:250549049447:web:2c04341af1867201061cc2",
+  measurementId: "G-Y6EQPDNY95"
+});
+
+// Retrieve an instance of Firebase Messaging so that it can handle background
+// messages.
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  // Customize notification here
+  const notificationTitle = payload.notification?.title || 'Nestly';
+  const notificationOptions = {
+    body: payload.notification?.body || '',
+    icon: '/logo.png',
+    data: payload.data
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// --- WIDGET & GENERIC PUSH LOGIC (from sw.js) ---
 const WIDGET_TAG = 'nestly-stats';
 
 self.addEventListener("install", (event) => {
@@ -10,10 +42,6 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-/**
- * WIDGET LIFECYCLE
- * These events are handled by Chromium/Android to render the system widgets.
- */
 self.addEventListener('widgetinstall', event => {
   event.waitUntil(updateWidget(event.widget));
 });
@@ -43,7 +71,6 @@ async function updateWidget(widget) {
     const templateResponse = await fetch('./nestly-widget-adaptive-card.json');
     const template = await templateResponse.json();
     
-    // Send standard data to the Adaptive Card template
     await self.widgets.updateByTag(WIDGET_TAG, {
       template: template,
       data: {
@@ -58,31 +85,10 @@ async function updateWidget(widget) {
   }
 }
 
-self.addEventListener("fetch", (event) => {
-  // Pass-through for installability criteria
-});
-
-self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : { title: 'Nestly Reminder', body: 'You have a new update.' };
-  
-  const options = {
-    body: data.body,
-    icon: '/logo.png', // Fallback if BRAND_LOGO not available
-    badge: '/logo.png',
-    vibrate: [100, 50, 100],
-    data: {
-      url: data.url || '/'
-    }
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
-});
-
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const url = event.notification.data?.url || '/';
   event.waitUntil(
-    clients.openWindow(event.notification.data.url)
+    clients.openWindow(url)
   );
 });

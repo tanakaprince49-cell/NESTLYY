@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Logo } from './Logo.tsx';
 import { storage } from '../services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification } from '../services/pushService.ts';
-import { auth, googleProvider } from '../firebase.ts';
+import { auth, googleProvider, syncProfileToFirestore } from '../firebase.ts';
 import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 interface AuthScreenProps {
@@ -24,41 +24,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Admin Access Check
-    if (normalizedEmail === 'tanakaprince49@gmail.com') {
-      if (password === 'tanaka') {
-        storage.setAuthEmail(normalizedEmail);
-        onAuthComplete(normalizedEmail);
-        return;
-      } else {
-        setError('The golden key didn\'t match. Try again, Admin.');
-        setLoading(false);
-        return;
-      }
-    }
-
-    const logs = storage.getActivityLogs();
-    const accountExists = logs.some(log => log.email.toLowerCase() === normalizedEmail);
-
-    if (isLogin) {
-      if (!accountExists) {
-        setError('We couldn\'t find your nest. Would you like to sign up instead?');
-        setLoading(false);
-        return;
-      }
-    } else {
-      if (accountExists) {
-        setError('A nest already exists for this email. Please log in.');
-        setLoading(false);
-        return;
-      }
-    }
-
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, normalizedEmail, password);
       } else {
-        await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+        // Initial profile sync for new users
+        if (userCredential.user) {
+          await syncProfileToFirestore(userCredential.user.uid, {
+            email: normalizedEmail,
+            name: normalizedEmail.split('@')[0],
+            lifecycleStage: 'PREGNANCY',
+            createdAt: new Date().toISOString()
+          });
+        }
       }
 
       storage.logActivity(normalizedEmail, isLogin ? 'login' : 'signup');
@@ -85,7 +64,21 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
 
       onAuthComplete(normalizedEmail);
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please try again.');
+      // Handle Firebase specific errors for better UX
+      let userFriendlyError = err.message || 'Authentication failed. Please try again.';
+      if (err.code === 'auth/user-not-found') {
+        userFriendlyError = 'We couldn\'t find your nest. Would you like to sign up instead?';
+      } else if (err.code === 'auth/wrong-password') {
+        userFriendlyError = 'The password you entered is incorrect. Please try again.';
+      } else if (err.code === 'auth/email-already-in-use') {
+        userFriendlyError = 'A nest already exists for this email. Please log in.';
+      } else if (err.code === 'auth/invalid-email') {
+        userFriendlyError = 'Please enter a valid email address.';
+      } else if (err.code === 'auth/weak-password') {
+        userFriendlyError = 'Your password is too weak. Please use at least 6 characters.';
+      }
+      
+      setError(userFriendlyError);
     } finally {
       setLoading(false);
     }

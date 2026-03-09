@@ -35,7 +35,7 @@ async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration
   let registration = await navigator.serviceWorker.getRegistration();
 
   if (!registration) {
-    registration = await navigator.serviceWorker.register('./sw.js');
+    registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
   }
 
   return registration;
@@ -55,8 +55,9 @@ export async function subscribeUserToPush() {
     }
 
     // Get FCM Token
+    const vapidKey = process.env.VITE_FIREBASE_VAPID_KEY || 'BHTkgWO-8sV1VPqnnq400neqyKIqN1nDAkmI_1HAr59O9wrDDbwPLR1HBI8j_JbLcMj0QYVXufaU6gl6OTjWMIM';
     const currentToken = await getToken(messaging, {
-      vapidKey: process.env.VITE_FIREBASE_VAPID_KEY
+      vapidKey
     });
 
     if (currentToken) {
