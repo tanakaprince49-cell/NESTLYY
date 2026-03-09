@@ -13,9 +13,9 @@ import { Settings } from './components/Settings.tsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders, setupForegroundMessaging } from './services/pushService.ts';
-import { auth, db, syncProfileToFirestore } from './firebase.ts';
+import { auth, db, syncProfileToFirestore, syncDataToFirestore } from './firebase.ts';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { Analytics } from "@vercel/analytics/react";
 import { 
   Trimester, 
@@ -71,19 +71,87 @@ const App: React.FC = () => {
   const [kickLogs, setKickLogs] = useState<KickLog[]>([]);
   const [diaperLogs, setDiaperLogs] = useState<DiaperLog[]>([]);
 
+  const loadUserData = useCallback(() => {
+    if (!authEmail) return;
+    setProfile(storage.getProfile());
+    setEntries(storage.getFoodEntries());
+    setWaterLogs(storage.getWaterLogs());
+    setSymptoms(storage.getSymptoms());
+    setVitamins(storage.getVitamins());
+    setContractions(storage.getContractions());
+    setJournalEntries(storage.getJournalEntries());
+    setCalendarEvents(storage.getCalendarEvents());
+    setWeightLogs(storage.getWeightLogs());
+    setSleepLogs(storage.getSleepLogs());
+    setFeedingLogs(storage.getFeedingLogs());
+    setMilestones(storage.getMilestones());
+    setHealthLogs(storage.getHealthLogs());
+    setReactions(storage.getReactions());
+    setBabyGrowthLogs(storage.getBabyGrowthLogs());
+    setKickLogs(storage.getKickLogs());
+    setDiaperLogs(storage.getDiaperLogs());
+  }, [authEmail]);
+
   // Firebase Auth Listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setAuthEmail(user.email);
+        const identifier = user.email || `anon-${user.uid}`;
+        setAuthEmail(identifier);
         setUserUid(user.uid);
-        storage.setAuthEmail(user.email || '');
+        storage.setAuthEmail(identifier);
+        
+        // Fetch data from Firestore
+        try {
+          const collections = [
+            'food_entries', 'water_logs', 'symptoms', 'vitamins', 'contractions', 
+            'journal', 'calendar', 'weight_logs', 'sleep_logs', 'feeding_logs', 
+            'baby_milestones', 'baby_health_logs', 'baby_growth_logs', 'baby_diaper_logs',
+            'kick_logs', 'baby_reactions'
+          ];
+          
+          for (const col of collections) {
+            const dataRef = doc(db, 'users', user.uid, col, 'data');
+            const snap = await getDoc(dataRef);
+            if (snap.exists()) {
+              const items = snap.data().items || [];
+              // Update local storage with Firestore data
+              // This is a simple merge: Firestore wins
+              if (items.length > 0) {
+                localStorage.setItem(`${identifier}_${col}`, JSON.stringify(items));
+              }
+            }
+          }
+          loadUserData();
+        } catch (e) {
+          console.error("Error fetching user data from Firestore:", e);
+        }
       } else {
         setAuthEmail(null);
         setUserUid(null);
       }
     });
     return () => unsubscribe();
+  }, [loadUserData]);
+
+  const syncAllToFirestore = useCallback((uid: string) => {
+    if (!uid) return;
+    syncDataToFirestore(uid, 'food_entries', storage.getFoodEntries());
+    syncDataToFirestore(uid, 'water_logs', storage.getWaterLogs());
+    syncDataToFirestore(uid, 'symptoms', storage.getSymptoms());
+    syncDataToFirestore(uid, 'vitamins', storage.getVitamins());
+    syncDataToFirestore(uid, 'contractions', storage.getContractions());
+    syncDataToFirestore(uid, 'journal', storage.getJournalEntries());
+    syncDataToFirestore(uid, 'calendar', storage.getCalendarEvents());
+    syncDataToFirestore(uid, 'weight_logs', storage.getWeightLogs());
+    syncDataToFirestore(uid, 'sleep_logs', storage.getSleepLogs());
+    syncDataToFirestore(uid, 'feeding_logs', storage.getFeedingLogs());
+    syncDataToFirestore(uid, 'baby_milestones', storage.getMilestones());
+    syncDataToFirestore(uid, 'baby_health_logs', storage.getHealthLogs());
+    syncDataToFirestore(uid, 'baby_growth_logs', storage.getBabyGrowthLogs());
+    syncDataToFirestore(uid, 'baby_diaper_logs', storage.getDiaperLogs());
+    syncDataToFirestore(uid, 'kick_logs', storage.getKickLogs());
+    syncDataToFirestore(uid, 'baby_reactions', storage.getReactions());
   }, []);
 
   // Firestore Profile Sync
@@ -149,27 +217,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const loadUserData = useCallback(() => {
-    if (!authEmail) return;
-    setProfile(storage.getProfile());
-    setEntries(storage.getFoodEntries());
-    setWaterLogs(storage.getWaterLogs());
-    setSymptoms(storage.getSymptoms());
-    setVitamins(storage.getVitamins());
-    setContractions(storage.getContractions());
-    setJournalEntries(storage.getJournalEntries());
-    setCalendarEvents(storage.getCalendarEvents());
-    setWeightLogs(storage.getWeightLogs());
-    setSleepLogs(storage.getSleepLogs());
-    setFeedingLogs(storage.getFeedingLogs());
-    setMilestones(storage.getMilestones());
-    setHealthLogs(storage.getHealthLogs());
-    setReactions(storage.getReactions());
-    setBabyGrowthLogs(storage.getBabyGrowthLogs());
-    setKickLogs(storage.getKickLogs());
-    setDiaperLogs(storage.getDiaperLogs());
-  }, [authEmail]);
-
   const handleLogout = () => {
     auth.signOut();
     storage.logout();
@@ -225,6 +272,9 @@ const App: React.FC = () => {
           storage.saveProfile(p); 
           setProfile(p); 
           setIsEditingProfile(false); 
+          if (userUid) {
+            syncProfileToFirestore(userUid, p);
+          }
         }} 
       />
     );
@@ -250,14 +300,38 @@ const App: React.FC = () => {
                 feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
                 journalEntries={journalEntries} babyGrowthLogs={babyGrowthLogs} diaperLogs={diaperLogs}
                 trimester={trimester} profile={profile}
-                onAddEntry={(e) => { storage.addFoodEntry({...e, id: Date.now().toString(), timestamp: Date.now()} as any); setEntries(storage.getFoodEntries()); }}
-                onRemoveEntry={(id) => { storage.removeFoodEntry(id); setEntries(storage.getFoodEntries()); }}
-                onAddWater={(a) => { storage.addWaterLog({amount: a, timestamp: Date.now()}); setWaterLogs(storage.getWaterLogs()); }}
-                onLogVitamin={(n) => { storage.addVitamin({id: Date.now().toString(), name: n, timestamp: Date.now()}); setVitamins(storage.getVitamins()); }}
-                onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({...g, id: Date.now().toString(), timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
+                onAddEntry={(e) => { 
+                  storage.addFoodEntry({...e, id: Date.now().toString(), timestamp: Date.now()} as any); 
+                  setEntries(storage.getFoodEntries()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                onRemoveEntry={(id) => { 
+                  storage.removeFoodEntry(id); 
+                  setEntries(storage.getFoodEntries()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                onAddWater={(a) => { 
+                  storage.addWaterLog({amount: a, timestamp: Date.now()}); 
+                  setWaterLogs(storage.getWaterLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                onLogVitamin={(n) => { 
+                  storage.addVitamin({id: Date.now().toString(), name: n, timestamp: Date.now()}); 
+                  setVitamins(storage.getVitamins()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                onAddBabyGrowth={(g) => { 
+                  storage.addBabyGrowthLog({...g, id: Date.now().toString(), timestamp: Date.now()}); 
+                  setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
                 onQuickTool={(cat) => { setActiveTab('tools'); setActiveToolCat(cat); }}
                 onEditProfile={() => setIsEditingProfile(true)}
-                onUpdateProfile={(p) => { storage.saveProfile(p); setProfile(p); }}
+                onUpdateProfile={(p) => { 
+                  storage.saveProfile(p); 
+                  setProfile(p); 
+                  syncProfileToFirestore(userUid!, p);
+                }}
                 onNavigate={(tab) => setActiveTab(tab)}
               />
             )}
@@ -271,21 +345,81 @@ const App: React.FC = () => {
             )}
             {activeTab === 'tools' && (
               <ToolsHub 
-                symptoms={symptoms} onLogSymptom={(t, s) => { storage.addSymptom({id: Date.now().toString(), type: t, severity: s, timestamp: Date.now()}); setSymptoms(storage.getSymptoms()); }}
-                contractions={contractions} onUpdateContractions={(c) => { storage.saveContractions(c); setContractions(c); }}
-                journalEntries={journalEntries} onAddJournal={(c, m) => { storage.addJournalEntry({id: Date.now().toString(), content: c, mood: m, timestamp: Date.now()}); setJournalEntries(storage.getJournalEntries()); }}
-                onRemoveJournal={(id) => { storage.removeJournalEntry(id); setJournalEntries(storage.getJournalEntries()); }}
-                calendarEvents={calendarEvents} onAddEvent={(t,d,ty) => { storage.addCalendarEvent({id: Date.now().toString(), title: t, date: d, type: ty}); setCalendarEvents(storage.getCalendarEvents()); }}
-                onRemoveEvent={(id) => { storage.removeCalendarEvent(id); setCalendarEvents(storage.getCalendarEvents()); }}
-                weightLogs={weightLogs} onAddWeight={(w) => { storage.addWeightLog({id: Date.now().toString(), weight: w, timestamp: Date.now()}); setWeightLogs(storage.getWeightLogs()); }}
-                sleepLogs={sleepLogs} onAddSleep={(s) => { storage.addSleepLog({id: Date.now().toString(), ...s, timestamp: Date.now()}); setSleepLogs(storage.getSleepLogs()); }}
-                onRemoveSleep={(id) => { storage.removeSleepLog(id); setSleepLogs(storage.getSleepLogs()); }}
-                feedingLogs={feedingLogs} onAddFeeding={(f) => { storage.addFeedingLog({id: Date.now().toString(), ...f, timestamp: Date.now()}); setFeedingLogs(storage.getFeedingLogs()); }}
-                diaperLogs={diaperLogs} onAddDiaper={(d) => { storage.addDiaperLog({id: Date.now().toString(), ...d, timestamp: Date.now()}); setDiaperLogs(storage.getDiaperLogs()); }}
-                milestones={milestones} onAddMilestone={(m) => { storage.addMilestone({id: Date.now().toString(), ...m, timestamp: Date.now()}); setMilestones(storage.getMilestones()); }}
-                healthLogs={healthLogs} onAddHealth={(h) => { storage.addHealthLog({id: Date.now().toString(), ...h, timestamp: Date.now()}); setHealthLogs(storage.getHealthLogs()); }}
-                reactions={reactions} onAddReaction={(r) => { storage.addReaction({id: Date.now().toString(), ...r, timestamp: Date.now()}); setReactions(storage.getReactions()); }}
-                kickLogs={kickLogs} onAddKick={(k) => { storage.addKickLog({id: Date.now().toString(), ...k, timestamp: Date.now()}); setKickLogs(storage.getKickLogs()); }}
+                symptoms={symptoms} onLogSymptom={(t, s) => { 
+                  storage.addSymptom({id: Date.now().toString(), type: t, severity: s, timestamp: Date.now()}); 
+                  setSymptoms(storage.getSymptoms()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                contractions={contractions} onUpdateContractions={(c) => { 
+                  storage.saveContractions(c); 
+                  setContractions(c); 
+                  syncAllToFirestore(userUid!);
+                }}
+                journalEntries={journalEntries} onAddJournal={(c, m) => { 
+                  storage.addJournalEntry({id: Date.now().toString(), content: c, mood: m, timestamp: Date.now()}); 
+                  setJournalEntries(storage.getJournalEntries()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                onRemoveJournal={(id) => { 
+                  storage.removeJournalEntry(id); 
+                  setJournalEntries(storage.getJournalEntries()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                calendarEvents={calendarEvents} onAddEvent={(t,d,ty) => { 
+                  storage.addCalendarEvent({id: Date.now().toString(), title: t, date: d, type: ty}); 
+                  setCalendarEvents(storage.getCalendarEvents()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                onRemoveEvent={(id) => { 
+                  storage.removeCalendarEvent(id); 
+                  setCalendarEvents(storage.getCalendarEvents()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                weightLogs={weightLogs} onAddWeight={(w) => { 
+                  storage.addWeightLog({id: Date.now().toString(), weight: w, timestamp: Date.now()}); 
+                  setWeightLogs(storage.getWeightLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                sleepLogs={sleepLogs} onAddSleep={(s) => { 
+                  storage.addSleepLog({id: Date.now().toString(), ...s, timestamp: Date.now()}); 
+                  setSleepLogs(storage.getSleepLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                onRemoveSleep={(id) => { 
+                  storage.removeSleepLog(id); 
+                  setSleepLogs(storage.getSleepLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                feedingLogs={feedingLogs} onAddFeeding={(f) => { 
+                  storage.addFeedingLog({id: Date.now().toString(), ...f, timestamp: Date.now()}); 
+                  setFeedingLogs(storage.getFeedingLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                diaperLogs={diaperLogs} onAddDiaper={(d) => { 
+                  storage.addDiaperLog({id: Date.now().toString(), ...d, timestamp: Date.now()}); 
+                  setDiaperLogs(storage.getDiaperLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                milestones={milestones} onAddMilestone={(m) => { 
+                  storage.addMilestone({id: Date.now().toString(), ...m, timestamp: Date.now()}); 
+                  setMilestones(storage.getMilestones()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                healthLogs={healthLogs} onAddHealth={(h) => { 
+                  storage.addHealthLog({id: Date.now().toString(), ...h, timestamp: Date.now()}); 
+                  setHealthLogs(storage.getHealthLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                reactions={reactions} onAddReaction={(r) => { 
+                  storage.addReaction({id: Date.now().toString(), ...r, timestamp: Date.now()}); 
+                  setReactions(storage.getReactions()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                kickLogs={kickLogs} onAddKick={(k) => { 
+                  storage.addKickLog({id: Date.now().toString(), ...k, timestamp: Date.now()}); 
+                  setKickLogs(storage.getKickLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
                 babyGrowthLogs={babyGrowthLogs} onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
                 trimester={trimester} profile={profile}
                 activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}

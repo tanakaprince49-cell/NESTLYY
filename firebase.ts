@@ -22,10 +22,20 @@ export const syncProfileToFirestore = async (uid: string, profile: any) => {
       lifecycleStage: profile.lifecycleStage,
       lmpDate: profile.lmpDate || null,
       dueDate: profile.dueDate || null,
-      emailNotifications: profile.emailNotifications !== false, // Default to true
+      emailNotifications: profile.emailNotifications !== false,
       createdAt: profile.createdAt || new Date().toISOString()
     }, { merge: true });
   } catch (error) {
     console.error("Error syncing profile to Firestore:", error);
+  }
+};
+
+export const syncDataToFirestore = async (uid: string, collectionName: string, data: any[]) => {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const dataRef = doc(userRef, collectionName, 'data');
+    await setDoc(dataRef, { items: data }, { merge: true });
+  } catch (error) {
+    console.error(`Error syncing ${collectionName} to Firestore:`, error);
   }
 };

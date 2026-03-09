@@ -3,8 +3,13 @@ import { Logo } from './Logo.tsx';
 import { storage } from '../services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification } from '../services/pushService.ts';
 import { auth, googleProvider, syncProfileToFirestore } from '../firebase.ts';
-import { signInWithPopup, signInAnonymously, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
-import PhoneInput from 'react-phone-input-2';
+import { 
+  signInWithPopup, 
+  signInAnonymously, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword,
+  updateProfile
+} from 'firebase/auth';
 
 interface AuthScreenProps {
   onAuthComplete: (email: string) => void;
@@ -13,36 +18,15 @@ interface AuthScreenProps {
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [showPhoneInput, setShowPhoneInput] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !window.recaptchaVerifier) {
-      auth.useDeviceLanguage();
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': () => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
-        },
-        'expired-callback': () => {
-          setError('reCAPTCHA expired. Please try again.');
-        }
-      });
-    }
-    
-    return () => {
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
-      }
-    };
-  }, []);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [showEmailAuth, setShowEmailAuth] = useState(false);
 
   const handleAuthSuccess = async (user: any) => {
-    const identifier = user.email || user.phoneNumber || `anon-${user.uid}`;
-    const name = user.displayName || (user.phoneNumber ? `User ${user.phoneNumber.slice(-4)}` : 'Guest');
+    const identifier = user.email || `anon-${user.uid}`;
+    const displayName = user.displayName || name || 'Guest';
     
     storage.logActivity(identifier, 'login');
     storage.setAuthEmail(identifier);
@@ -50,7 +34,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
     // Initial profile sync if it doesn't exist
     await syncProfileToFirestore(user.uid, {
       email: user.email || '',
-      name: name,
+      name: displayName,
       lifecycleStage: 'PREGNANCY',
       createdAt: new Date().toISOString()
     });
@@ -62,7 +46,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
       setTimeout(async () => {
         await showLocalNotification(
           "A Welcome from Nestly ❤️",
-          `HEY ${name.split(' ')[0]}, this is Tanaka Gaadzikwa from NESTLY. We're so glad you're here!`
+          `HEY ${displayName.split(' ')[0]}, this is Tanaka Gaadzikwa from NESTLY. We're so glad you're here!`
         );
       }, 2000);
     } catch (pushErr) {
@@ -92,52 +76,38 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
       const result = await signInAnonymously(auth);
       await handleAuthSuccess(result.user);
     } catch (err: any) {
+      console.error("Anonymous login error:", err);
       setError(err.message || 'Guest Login failed.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSendCode = async () => {
-    if (!phoneNumber) {
-      setError('Please enter a phone number');
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setError('Please fill in all fields');
       return;
     }
-    
-    const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+    if (isSignUp && !name) {
+      setError('Please enter your name');
+      return;
+    }
 
     setLoading(true);
     setError('');
     try {
-      const appVerifier = window.recaptchaVerifier;
-      const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-      setConfirmationResult(result);
-    } catch (err: any) {
-      console.error("Phone auth error:", err);
-      setError(err.message || 'Failed to send code. Check your number format.');
-      // Reset reCAPTCHA on error
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.render().then((widgetId: any) => {
-          if (window.grecaptcha) window.grecaptcha.reset(widgetId);
-        });
+      if (isSignUp) {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(result.user, { displayName: name });
+        await handleAuthSuccess({ ...result.user, displayName: name });
+      } else {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        await handleAuthSuccess(result.user);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyCode = async () => {
-    if (!verificationCode || !confirmationResult) {
-      setError('Please enter the verification code');
-      return;
-    }
-    setLoading(true);
-    setError('');
-    try {
-      const result = await confirmationResult.confirm(verificationCode);
-      await handleAuthSuccess(result.user);
     } catch (err: any) {
-      setError(err.message || 'Invalid verification code.');
+      console.error("Email auth error:", err);
+      setError(err.message || 'Authentication failed.');
     } finally {
       setLoading(false);
     }
@@ -145,7 +115,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-rose-50">
-      <div id="recaptcha-container"></div>
       <div className="w-full max-w-[480px] z-10 animate-slide-up">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-10">
@@ -171,7 +140,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
                 </div>
               )}
 
-              {!showPhoneInput ? (
+              {!showEmailAuth ? (
                 <>
                   <button 
                     type="button"
@@ -185,12 +154,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
 
                   <button 
                     type="button"
-                    onClick={() => setShowPhoneInput(true)}
+                    onClick={() => setShowEmailAuth(true)}
                     disabled={loading}
                     className="w-full h-16 bg-rose-900 text-white font-black rounded-[1.8rem] shadow-lg hover:shadow-xl active:scale-95 transition-all text-[11px] uppercase tracking-[0.3em] flex justify-center items-center gap-3 disabled:opacity-40"
                   >
-                    <span className="text-lg">📱</span>
-                    <span>Phone Number</span>
+                    <span className="text-lg">✉️</span>
+                    <span>Email & Password</span>
                   </button>
 
                   <div className="relative my-8">
@@ -213,58 +182,68 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
                   </button>
                 </>
               ) : (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                  {!confirmationResult ? (
-                    <div className="space-y-4">
+                <form onSubmit={handleEmailAuth} className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                  <div className="space-y-4">
+                    {isSignUp && (
                       <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Phone Number</label>
-                        <PhoneInput
-                          country={'zw'}
-                          value={phoneNumber}
-                          onChange={setPhoneNumber}
-                          containerClass="nestly-phone-input"
-                          inputClass="!w-full !h-16 !bg-slate-50 !border-2 !border-transparent !rounded-[1.5rem] !focus:border-rose-100 !focus:bg-white !outline-none !text-sm !font-semibold !transition-all !pl-16"
-                          buttonClass="!bg-transparent !border-none !rounded-[1.5rem] !pl-4"
-                          dropdownClass="!rounded-[1.5rem] !shadow-xl !border-none"
-                        />
-                      </div>
-                      <button 
-                        onClick={handleSendCode}
-                        disabled={loading || !phoneNumber}
-                        className="w-full h-16 bg-rose-900 text-white font-black rounded-[1.8rem] shadow-lg hover:shadow-xl active:scale-95 transition-all text-[11px] uppercase tracking-[0.3em] flex justify-center items-center gap-3 disabled:opacity-40"
-                      >
-                        {loading ? <div className="w-5 h-5 border-[3px] border-white/30 border-t-white rounded-full animate-spin" /> : 'Send Code'}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Verification Code</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Full Name</label>
                         <input 
                           type="text" 
-                          placeholder="123456" 
-                          value={verificationCode}
-                          onChange={e => setVerificationCode(e.target.value)}
-                          className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.5rem] focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all text-center tracking-[0.5em]" 
+                          placeholder="Your Name" 
+                          value={name}
+                          onChange={e => setName(e.target.value)}
+                          className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.5rem] focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all" 
                         />
                       </div>
-                      <button 
-                        onClick={handleVerifyCode}
-                        disabled={loading || !verificationCode}
-                        className="w-full h-16 bg-rose-900 text-white font-black rounded-[1.8rem] shadow-lg hover:shadow-xl active:scale-95 transition-all text-[11px] uppercase tracking-[0.3em] flex justify-center items-center gap-3 disabled:opacity-40"
-                      >
-                        {loading ? <div className="w-5 h-5 border-[3px] border-white/30 border-t-white rounded-full animate-spin" /> : 'Verify & Enter'}
-                      </button>
+                    )}
+                    <div className="space-y-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Email Address</label>
+                      <input 
+                        type="email" 
+                        placeholder="mama@example.com" 
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.5rem] focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all" 
+                      />
                     </div>
-                  )}
-                  
+                    <div className="space-y-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Password</label>
+                      <input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent rounded-[1.5rem] focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all" 
+                      />
+                    </div>
+                  </div>
+
                   <button 
-                    onClick={() => { setShowPhoneInput(false); setConfirmationResult(null); setError(''); }}
-                    className="w-full text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-rose-500 transition-colors py-2"
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-16 bg-rose-900 text-white font-black rounded-[1.8rem] shadow-lg hover:shadow-xl active:scale-95 transition-all text-[11px] uppercase tracking-[0.3em] flex justify-center items-center gap-3 disabled:opacity-40"
                   >
-                    Back to other options
+                    {loading ? <div className="w-5 h-5 border-[3px] border-white/30 border-t-white rounded-full animate-spin" /> : (isSignUp ? 'Create Account' : 'Sign In')}
                   </button>
-                </div>
+
+                  <div className="text-center space-y-4">
+                    <button 
+                      type="button"
+                      onClick={() => setIsSignUp(!isSignUp)}
+                      className="text-slate-500 font-bold text-[10px] uppercase tracking-widest hover:text-rose-500 transition-colors"
+                    >
+                      {isSignUp ? 'Already have an account? Sign In' : 'New to Nestly? Create Account'}
+                    </button>
+                    <br />
+                    <button 
+                      type="button"
+                      onClick={() => { setShowEmailAuth(false); setError(''); }}
+                      className="text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-rose-500 transition-colors py-2"
+                    >
+                      Back to other options
+                    </button>
+                  </div>
+                </form>
               )}
             </div>
           </div>
@@ -273,10 +252,3 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
     </div>
   );
 };
-
-declare global {
-  interface Window {
-    recaptchaVerifier: any;
-    grecaptcha: any;
-  }
-}

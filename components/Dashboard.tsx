@@ -86,14 +86,14 @@ interface DashboardProps {
 }
 
 const DAILY_TIPS = [
-  "Stay hydrated! Your baby needs fluid to support the growing placenta.",
-  "Gentle stretching for 10 minutes can significantly reduce lower back pain.",
-  "Eat small, frequent meals to help manage morning sickness or heartburn.",
-  "Iron-rich foods like spinach and lean meats support your increasing blood volume.",
-  "Take a moment to talk or sing to your baby—they can hear you soon!",
-  "Sleep on your left side to maximize blood flow to the placenta.",
-  "Don't forget your Kegels today! Strong pelvic floor muscles help during labor.",
-  "Pack a 'hospital bag' early—it’s one less thing to worry about later!"
+  "WHO recommends at least 400g of fruit and vegetables daily for optimal maternal health.",
+  "WHO guidelines suggest 150 minutes of moderate-intensity physical activity per week during pregnancy.",
+  "Exclusive breastfeeding for the first 6 months is recommended by the World Health Organization.",
+  "WHO supports early initiation of breastfeeding within one hour of birth.",
+  "WHO recommends iron and folic acid supplementation daily to prevent maternal anemia.",
+  "WHO guidelines emphasize the importance of at least 8 antenatal contacts for a positive pregnancy experience.",
+  "WHO suggests skin-to-skin contact between mothers and newborns immediately after birth.",
+  "WHO recommends delayed umbilical cord clamping for improved infant health outcomes."
 ];
 
 import { subscribeUserToPush } from '../services/pushService.ts';
@@ -717,17 +717,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Tip Card */}
-          <div className="p-5 bg-gradient-to-br from-rose-50 to-white rounded-[2.5rem] border border-rose-100/50 shadow-sm relative overflow-hidden group">
-             <div className="absolute top-0 right-0 px-3 py-1 bg-emerald-500 text-white text-[7px] font-black uppercase tracking-widest rounded-bl-xl flex items-center gap-1 shadow-sm">
-               <Check size={8} strokeWidth={4} />
-               Clinician Verified
+          <div className="p-6 bg-gradient-to-br from-rose-50 to-white rounded-[2.5rem] border border-rose-100/50 shadow-sm relative overflow-hidden group">
+             <div className="absolute top-0 right-0 px-3 py-1 bg-blue-600 text-white text-[7px] font-black uppercase tracking-widest rounded-bl-xl flex items-center gap-1 shadow-sm">
+               <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+               WHO Recommended
              </div>
              <div className="flex items-center gap-4 mt-2">
                 <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-200 shrink-0 animate-float">
                   <Sparkles size={24} />
                 </div>
                 <div className="space-y-1">
-                   <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Parent Wisdom</span>
+                   <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Clinical Insight</span>
                    <p className="text-xs font-bold text-slate-800 italic leading-snug">"{dailyTip}"</p>
                 </div>
              </div>

@@ -20,15 +20,19 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  // Customize notification here
-  const notificationTitle = payload.notification?.title || 'Nestly';
-  const notificationOptions = {
-    body: payload.notification?.body || '',
-    icon: '/logo.png',
-    data: payload.data
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  
+  // If the payload has a notification property, FCM will handle it automatically
+  // in most cases. We only need to show a manual one if it's a data-only message
+  // or if we want to override the default behavior.
+  if (!payload.notification) {
+    const notificationTitle = 'Nestly Update';
+    const notificationOptions = {
+      body: payload.data?.body || 'New update from Nestly',
+      icon: '/logo.png',
+      data: payload.data
+    };
+    self.registration.showNotification(notificationTitle, notificationOptions);
+  }
 });
 
 // --- WIDGET & GENERIC PUSH LOGIC (from sw.js) ---

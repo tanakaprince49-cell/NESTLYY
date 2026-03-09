@@ -79,6 +79,19 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       <main className="flex-1 relative z-10 overflow-y-auto no-scrollbar pb-safe">
         <div className="animate-slide-up pb-32">
           {children}
+          
+          <div className="px-6 py-12 mt-8 border-t border-rose-100/50 text-center space-y-4">
+            <div className="flex justify-center items-center gap-2 text-rose-900/40">
+              <ShieldCheck size={16} />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Clinically Supported</span>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed max-w-[280px] mx-auto font-medium">
+              Nestly provides health information supported by clinical guidelines from the <span className="text-rose-900/60 font-bold">World Health Organization (WHO)</span>.
+            </p>
+            <div className="pt-4 opacity-20">
+              <Logo className="w-6 h-6 mx-auto grayscale" />
+            </div>
+          </div>
         </div>
       </main>
 

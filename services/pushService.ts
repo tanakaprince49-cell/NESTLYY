@@ -87,16 +87,27 @@ export async function subscribeUserToPush() {
   }
 }
 
+let isForegroundMessagingSetup = false;
+
 /**
  * Listen for foreground messages
  */
 export function setupForegroundMessaging() {
-  if (!messaging) return;
+  if (!messaging || isForegroundMessagingSetup) return;
   
+  isForegroundMessagingSetup = true;
   onMessage(messaging, (payload) => {
     console.log('Message received in foreground:', payload);
+    // Only show manual notification if the browser doesn't handle it automatically
+    // and if it's not a duplicate.
     if (payload.notification) {
-      showLocalNotification(payload.notification.title || 'Nestly', payload.notification.body || '');
+      const title = payload.notification.title || 'Nestly';
+      const body = payload.notification.body || '';
+      
+      // We use a stable tag to avoid duplicates if multiple messages arrive
+      const tag = `nestly-foreground-${title.replace(/\s+/g, '-').toLowerCase()}`;
+      
+      showLocalNotification(title, body, tag);
     }
   });
 }
@@ -106,11 +117,11 @@ export function setupForegroundMessaging() {
  */
 export async function showLocalNotification(
   title: string,
-  body: string
+  body: string,
+  tag?: string
 ) {
   try {
     if (Notification.permission !== 'granted') {
-      // Don't request permission automatically in background tasks
       return { success: false, error: 'Permission not granted' };
     }
 
@@ -130,7 +141,7 @@ export async function showLocalNotification(
       icon: BRAND_LOGO,
       badge: BRAND_LOGO,
       vibrate: [200, 100, 200, 100, 400],
-      tag: `nestly-${Date.now()}`,
+      tag: tag || `nestly-${Date.now()}`,
       renotify: true,
       data: { url: '/' }
     } as any);
