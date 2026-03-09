@@ -156,10 +156,13 @@ export function scheduleReminders(
     
     // Schedule for next week
     const nextWeekTime = now + (7 * 24 * 60 * 60 * 1000);
+    const babySizes = ["sweet potato", "mango", "banana", "corn", "eggplant", "cauliflower"];
+    const size = babySizes[weeks % babySizes.length];
+    
     reminders.push({
       id: `weekly-guidance-${weeks + 1}`,
-      title: `Week ${weeks + 1} Guidance 🤰`,
-      body: `You're entering week ${weeks + 1}! Check out your new baby size and tips.`,
+      title: `Week ${weeks + 1} Update 👶`,
+      body: `You’re now ${weeks + 1} weeks pregnant! Your baby is about the size of a ${size}.`,
       timestamp: nextWeekTime,
       type: 'guidance'
     });
@@ -169,13 +172,13 @@ export function scheduleReminders(
   calendarEvents.forEach(event => {
     if (event.type === 'appointment') {
       const eventTime = new Date(event.date).getTime();
-      // Reminder 2 hours before
-      const reminderTime = eventTime - (2 * 60 * 60 * 1000);
+      // Reminder 1 day before
+      const reminderTime = eventTime - (24 * 60 * 60 * 1000);
       if (reminderTime > now) {
         reminders.push({
           id: `appointment-${event.id}`,
-          title: `Upcoming Appointment: ${event.title} 🏥`,
-          body: `Don't forget your appointment at ${new Date(eventTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
+          title: `Appointment Tomorrow 🩺`,
+          body: `Reminder: You have a prenatal appointment tomorrow at ${new Date(eventTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
           timestamp: reminderTime,
           type: 'appointment'
         });
@@ -192,8 +195,8 @@ export function scheduleReminders(
     tomorrow9AM.setHours(9, 0, 0, 0);
     reminders.push({
       id: `vitamin-reminder-${tomorrow9AM.getTime()}`,
-      title: `Vitamin Reminder 💊`,
-      body: `Time to take your prenatal vitamins for a healthy baby!`,
+      title: `Morning Reminder 🌅`,
+      body: `Good morning mama ☀️ Time to take your prenatal vitamins.`,
       timestamp: tomorrow9AM.getTime(),
       type: 'vitamin'
     });
