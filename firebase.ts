@@ -30,6 +30,20 @@ export const syncProfileToFirestore = async (uid: string, profile: any) => {
   }
 };
 
+export const getProfileFromFirestore = async (uid: string) => {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
+      return snap.data();
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching profile from Firestore:", error);
+    return null;
+  }
+};
+
 export const syncDataToFirestore = async (uid: string, collectionName: string, data: any[]) => {
   try {
     const userRef = doc(db, 'users', uid);

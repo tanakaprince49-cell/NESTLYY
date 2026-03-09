@@ -1,5 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../firebase.ts';
 import { storage } from '../services/storageService.ts';
 import { Trimester, Article, Video } from '../types.ts';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
@@ -51,30 +53,19 @@ export const AdminDashboard: React.FC = () => {
 
     setIsSending(true);
     try {
-      // Simulate sending to all users by adding to global storage
-      const reminder = {
-        id: Date.now().toString(),
+      await addDoc(collection(db, 'broadcasts'), {
         title: pushTitle,
         body: pushBody,
         timestamp: Date.now(),
         type: 'broadcast'
-      };
-      
-      storage.addBroadcast(reminder);
-
-      // Also trigger a local notification for the admin to see it working
-      const result = await showLocalNotification(pushTitle, pushBody);
+      });
       
       setPushTitle('');
       setPushBody('');
-      
-      if (result.success) {
-        alert('Broadcast reminder sent to all Nestlings! 🕊️');
-      } else {
-        alert('Broadcast sent to all Nestlings! 🕊️ (Note: You didn\'t see the preview because your notifications are disabled)');
-      }
+      alert('Broadcast reminder sent to all Nestlings! 🕊️');
     } catch (err) {
-      alert('Failed to send notification. Please check permissions.');
+      console.error(err);
+      alert('Failed to send notification.');
     } finally {
       setIsSending(false);
     }

@@ -28,14 +28,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
     storage.logActivity(identifier, 'login');
     storage.setAuthEmail(identifier);
     
-    // Initial profile sync if it doesn't exist
-    await syncProfileToFirestore(user.uid, {
-      email: user.email || '',
-      name: displayName,
-      lifecycleStage: 'PREGNANCY',
-      createdAt: new Date().toISOString()
-    });
-
     try {
       await subscribeUserToPush();
       

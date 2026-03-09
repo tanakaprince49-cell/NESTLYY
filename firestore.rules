@@ -29,6 +29,10 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.email == "tanakaprince49@gmail.com";
+    }
+
     function isValidEmail(email) {
       return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
@@ -39,6 +43,11 @@ service cloud.firestore {
              isValidEmail(data.email) &&
              data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
              data.lifecycleStage in ['PRE_PREGNANCY', 'PREGNANCY', 'POSTPARTUM', 'TODDLER'];
+    }
+
+    match /broadcasts/{broadcastId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
     match /users/{userId} {

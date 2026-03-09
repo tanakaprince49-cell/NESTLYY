@@ -13,9 +13,9 @@ import { Settings } from './components/Settings.tsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders, setupForegroundMessaging } from './services/pushService.ts';
-import { auth, db, syncProfileToFirestore, syncDataToFirestore } from './firebase.ts';
+import { auth, db, syncProfileToFirestore, syncDataToFirestore, getProfileFromFirestore } from './firebase.ts';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, collection, query, orderBy } from 'firebase/firestore';
 import { Analytics } from "@vercel/analytics/react";
 import { 
   Trimester, 
@@ -47,6 +47,28 @@ const App: React.FC = () => {
   useEffect(() => {
     setupForegroundMessaging();
   }, []);
+
+  // Listen for broadcasts
+  useEffect(() => {
+    if (!userUid) return;
+    const q = query(collection(db, 'broadcasts'), orderBy('timestamp', 'desc'));
+    
+    // Keep track of the last timestamp to only show new notifications
+    let lastTimestamp = Date.now();
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const broadcast = change.doc.data();
+          if (broadcast.timestamp > lastTimestamp) {
+            showLocalNotification(broadcast.title, broadcast.body);
+            lastTimestamp = broadcast.timestamp;
+          }
+        }
+      });
+    });
+    return () => unsubscribe();
+  }, [userUid]);
 
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -103,6 +125,12 @@ const App: React.FC = () => {
         
         // Fetch data from Firestore
         try {
+          const profile = await getProfileFromFirestore(user.uid);
+          if (profile) {
+            setProfile(profile as PregnancyProfile);
+            storage.saveProfile(profile as PregnancyProfile);
+          }
+          
           const collections = [
             'food_entries', 'water_logs', 'symptoms', 'vitamins', 'contractions', 
             'journal', 'calendar', 'weight_logs', 'sleep_logs', 'feeding_logs', 
@@ -434,7 +462,7 @@ const App: React.FC = () => {
               storage.saveProfile(p); 
               setProfile(p); 
               if (userUid) syncProfileToFirestore(userUid, p);
-            }} />}
+            }} userUid={userUid} />}
             {activeTab === 'admin' && isAdmin && <AdminDashboard />}
           </motion.div>
         </AnimatePresence>

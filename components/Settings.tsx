@@ -1,15 +1,32 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { PregnancyProfile, LifecycleStage } from '../types.ts';
 import { storage } from '../services/storageService.ts';
+import { syncProfileToFirestore } from '../firebase.ts';
 
 interface SettingsProps {
   profile: PregnancyProfile;
   onUpdateProfile: (profile: PregnancyProfile) => void;
+  userUid: string | null;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile }) => {
+export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, userUid }) => {
+  const [name, setName] = useState(profile.name || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    const updatedProfile = { ...profile, name };
+    storage.saveProfile(updatedProfile);
+    onUpdateProfile(updatedProfile);
+    if (userUid) {
+      await syncProfileToFirestore(userUid, updatedProfile);
+    }
+    setSaving(false);
+    alert('Profile updated!');
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -22,6 +39,26 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile }) 
       </div>
 
       <div className="card-premium p-6 space-y-6">
+        <div className="space-y-2">
+          <h3 className="font-bold text-slate-800">Profile</h3>
+          <input 
+            type="text" 
+            value={name} 
+            onChange={e => setName(e.target.value)} 
+            className="w-full p-3 border rounded-xl text-sm"
+            placeholder="Your Name"
+          />
+          <button 
+            onClick={handleSaveProfile}
+            disabled={saving}
+            className="w-full py-2 bg-rose-900 text-white rounded-xl text-xs font-black uppercase tracking-widest"
+          >
+            {saving ? 'Saving...' : 'Save Profile'}
+          </button>
+        </div>
+
+        <div className="h-px bg-slate-50" />
+
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
