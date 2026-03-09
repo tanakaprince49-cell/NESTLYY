@@ -24,6 +24,7 @@ export const AdminDashboard: React.FC = () => {
   const totalUsers = new Set(logs.map(l => l.email)).size;
   const articles = storage.getArticles();
   const videos = storage.getVideos();
+  const broadcasts = storage.getBroadcasts();
   
   const [headline, setHeadline] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -59,7 +60,7 @@ export const AdminDashboard: React.FC = () => {
         type: 'broadcast'
       };
       
-      storage.addReminder(reminder);
+      storage.addBroadcast(reminder);
 
       // Also trigger a local notification for the admin to see it working
       const result = await showLocalNotification(pushTitle, pushBody);
@@ -164,6 +165,13 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleDeleteBroadcast = (id: string) => {
+    if (window.confirm('Delete this broadcast notification?')) {
+      storage.removeBroadcast(id);
+      window.location.reload();
+    }
+  };
+
   const handleEdit = (article: Article) => {
     setEditingId(article.id);
     setHeadline(article.title);
@@ -259,6 +267,32 @@ export const AdminDashboard: React.FC = () => {
             {isSending ? 'Sending...' : 'Send Broadcast Notification'}
           </button>
         </form>
+
+        {broadcasts.length > 0 && (
+          <div className="mt-8 space-y-4 border-t border-slate-100 pt-6">
+            <h4 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-2">
+              <Bell size={14} /> Active Broadcasts
+            </h4>
+            {broadcasts.map(b => (
+              <div key={b.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex-1 min-w-0 pr-4">
+                  <h4 className="text-sm font-bold text-slate-900 line-clamp-1">{b.title}</h4>
+                  <p className="text-xs text-slate-500 line-clamp-2 mt-1">{b.body}</p>
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-2 block">
+                    {new Date(b.timestamp).toLocaleString()}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => handleDeleteBroadcast(b.id)} 
+                  className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all shrink-0"
+                  title="Delete Broadcast"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="card-premium p-8 bg-white shadow-sm space-y-6">

@@ -255,7 +255,7 @@ export function scheduleReminders(
 export async function processReminders() {
   if (Notification.permission !== 'granted') return;
 
-  const allReminders = storage.getReminders();
+  const allReminders = [...storage.getReminders(), ...storage.getBroadcasts()];
   const shownIds = storage.getShownReminderIds();
   const now = Date.now();
 

@@ -59,6 +59,7 @@ const KEYS = {
   BABY_GROWTH: 'baby_growth_logs',
   DIAPER: 'baby_diaper_logs',
   REMINDERS: 'nestly_reminders',
+  BROADCASTS: 'nestly_global_broadcasts',
   SHOWN_REMINDERS: 'nestly_shown_reminders',
   VIDEOS: 'nestly_global_videos'
 };
@@ -265,9 +266,14 @@ class StorageService {
     this.setItem(KEYS.CHECKLISTS, all.filter(i => i.id !== id));
   }
 
-  getReminders(): any[] { return this.getItem<any[]>(KEYS.REMINDERS, [], true); }
-  addReminder(reminder: any): void { this.setItem(KEYS.REMINDERS, [reminder, ...this.getReminders()], true); }
-  clearReminders(): void { this.setItem(KEYS.REMINDERS, [], true); }
+  getReminders(): any[] { return this.getItem<any[]>(KEYS.REMINDERS, [], false); }
+  addReminder(reminder: any): void { this.setItem(KEYS.REMINDERS, [reminder, ...this.getReminders()], false); }
+  removeReminder(id: string): void { this.setItem(KEYS.REMINDERS, this.getReminders().filter(r => r.id !== id), false); }
+  clearReminders(): void { this.setItem(KEYS.REMINDERS, [], false); }
+
+  getBroadcasts(): any[] { return this.getItem<any[]>(KEYS.BROADCASTS, [], true); }
+  addBroadcast(broadcast: any): void { this.setItem(KEYS.BROADCASTS, [broadcast, ...this.getBroadcasts()], true); }
+  removeBroadcast(id: string): void { this.setItem(KEYS.BROADCASTS, this.getBroadcasts().filter(b => b.id !== id), true); }
 
   getShownReminderIds(): string[] { return this.getItem<string[]>(KEYS.SHOWN_REMINDERS, []); }
   markReminderAsShown(id: string): void {
