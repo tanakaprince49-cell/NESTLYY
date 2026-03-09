@@ -28,6 +28,8 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
   useEffect(() => {
     storage.saveAvaHistory(messages);
     if (scrollRef.current) {
@@ -93,10 +95,9 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
   };
 
   const clearChat = () => {
-    if (confirm("Would you like to clear our conversation? I will still remember the things in my memory bank.")) {
-      setMessages([]);
-      storage.saveAvaHistory([]);
-    }
+    setMessages([]);
+    storage.saveAvaHistory([]);
+    setShowClearConfirm(false);
   };
 
   const toggleSpeech = () => {
@@ -130,7 +131,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             <h2 className="text-xl font-serif text-slate-900 leading-none tracking-tight">Ava</h2>
             <div className="flex items-center gap-1.5 mt-1.5">
               <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-              <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Nestly Companion</span>
+              <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">WHO-Verified Companion</span>
             </div>
           </div>
         </div>
@@ -153,7 +154,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             <Database size={20} strokeWidth={3} />
           </button>
           <button 
-            onClick={clearChat} 
+            onClick={() => setShowClearConfirm(true)} 
             className="p-3 rounded-2xl bg-white border-2 border-slate-100 text-slate-300 hover:text-rose-500 transition-all active:scale-90"
           >
             <Trash2 size={20} strokeWidth={3} />
@@ -162,6 +163,20 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-6 p-4 no-scrollbar pb-24 relative">
+        {showClearConfirm && (
+          <div className="absolute inset-0 z-[60] bg-[#fffaf9]/95 backdrop-blur-md p-6 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 rounded-b-[2rem]">
+            <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 mb-4">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-xl font-serif text-slate-900 mb-2">Clear Conversation?</h3>
+            <p className="text-xs text-slate-500 mb-8 max-w-[200px]">This will delete our chat history, but I'll still remember your journey facts.</p>
+            <div className="flex flex-col w-full gap-3">
+              <button onClick={clearChat} className="w-full py-4 bg-rose-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg">Yes, Clear Chat</button>
+              <button onClick={() => setShowClearConfirm(false)} className="w-full py-4 bg-white border-2 border-slate-100 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest">Cancel</button>
+            </div>
+          </div>
+        )}
+
         {showVault && (
           <div className="absolute inset-0 z-50 bg-[#fffaf9]/95 backdrop-blur-md p-6 animate-in fade-in zoom-in-95 overflow-y-auto rounded-b-[2rem]">
             <div className="flex justify-between items-center mb-6">

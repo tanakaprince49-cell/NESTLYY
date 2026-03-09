@@ -93,14 +93,18 @@ const DAILY_TIPS = [
   "WHO recommends iron and folic acid supplementation daily to prevent maternal anemia.",
   "WHO guidelines emphasize the importance of at least 8 antenatal contacts for a positive pregnancy experience.",
   "WHO suggests skin-to-skin contact between mothers and newborns immediately after birth.",
-  "WHO recommends delayed umbilical cord clamping for improved infant health outcomes."
+  "WHO recommends delayed umbilical cord clamping for improved infant health outcomes.",
+  "WHO recommends that pregnant women should not use tobacco or alcohol.",
+  "WHO suggests that caffeine intake should be limited to less than 200mg per day.",
+  "WHO recommends that all pregnant women should have a birth preparedness and complication readiness plan.",
+  "WHO supports the use of kangaroo mother care for low-birth-weight infants."
 ];
 
 import { subscribeUserToPush } from '../services/pushService.ts';
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
-  entries, waterLogs, vitamins, weightLogs, sleepLogs, 
-  feedingLogs, milestones, healthLogs, reactions, journalEntries, babyGrowthLogs, diaperLogs,
+  entries = [], waterLogs = [], vitamins = [], weightLogs = [], sleepLogs = [], 
+  feedingLogs = [], milestones = [], healthLogs = [], reactions = [], journalEntries = [], babyGrowthLogs = [], diaperLogs = [],
   trimester, profile, 
   onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onNavigate
 }) => {
@@ -199,16 +203,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return last7Days.map(dateStr => {
       const dayStart = new Date(dateStr).setHours(0, 0, 0, 0);
       const dayEnd = new Date(dateStr).setHours(23, 59, 59, 999);
-      const dayEntries = entries.filter(e => e.timestamp >= dayStart && e.timestamp <= dayEnd);
-      const dayWater = waterLogs.filter(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
-      const dayWeight = weightLogs.find(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
-      const daySleep = sleepLogs.find(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
+      const dayEntries = (entries || []).filter(e => e.timestamp >= dayStart && e.timestamp <= dayEnd);
+      const dayWater = (waterLogs || []).filter(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
+      const dayWeight = (weightLogs || []).find(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
+      const daySleep = (sleepLogs || []).find(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
 
       return {
         date: new Date(dateStr).toLocaleDateString([], { weekday: 'short' }),
         fuel: dayEntries.reduce((acc, curr) => acc + (curr.calories || 0), 0),
         water: dayWater.reduce((acc, curr) => acc + curr.amount, 0),
-        weight: dayWeight?.weight || (weightLogs[0]?.weight || profile.startingWeight || 0),
+        weight: dayWeight?.weight || (weightLogs?.[0]?.weight || profile.startingWeight || 0),
         sleep: daySleep?.hours || 0,
       };
     });
@@ -296,38 +300,38 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Feedings</span>
               <div className="mt-2">
                 <span className="text-2xl font-bold text-slate-900">
-                  {feedingLogs.filter(f => new Date(f.timestamp).setHours(0,0,0,0) === today).length}
+                  {(feedingLogs || []).filter(f => new Date(f.timestamp).setHours(0,0,0,0) === today).length}
                 </span>
                 <span className="text-[10px] text-slate-400 ml-1 font-medium">today</span>
               </div>
               <div className="text-[8px] text-slate-300 font-bold uppercase mt-1">
-                Last: {feedingLogs[0] ? new Date(feedingLogs[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--'}
+                Last: {feedingLogs?.[0] ? new Date(feedingLogs[0].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--'}
               </div>
             </div>
             <div className="card-premium p-5 bg-white border-2 border-white flex flex-col justify-between min-h-[120px]">
               <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Sleep</span>
               <div className="mt-2">
                 <span className="text-2xl font-bold text-slate-900">
-                  {sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).reduce((acc, curr) => acc + curr.hours, 0).toFixed(1)}
+                  {(sleepLogs || []).filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).reduce((acc, curr) => acc + curr.hours, 0).toFixed(1)}
                 </span>
                 <span className="text-[10px] text-slate-400 ml-1 font-medium">hrs</span>
               </div>
               <div className="text-[8px] text-slate-300 font-bold uppercase mt-1">
-                {sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length} sessions
+                {(sleepLogs || []).filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length} sessions
               </div>
             </div>
             <div className="card-premium p-5 bg-white border-2 border-white flex flex-col justify-between min-h-[120px]">
               <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Diapers</span>
               <div className="mt-2">
                 <span className="text-2xl font-bold text-slate-900">
-                  {diaperLogs.filter(d => new Date(d.timestamp).setHours(0,0,0,0) === today).length}
+                  {(diaperLogs || []).filter(d => new Date(d.timestamp).setHours(0,0,0,0) === today).length}
                 </span>
                 <span className="text-[10px] text-slate-400 ml-1 font-medium">today</span>
               </div>
               <div className="flex gap-1 mt-1">
                 {['wet', 'dirty', 'mixed'].map(t => (
                   <div key={t} className="text-[7px] font-black uppercase px-1.5 py-0.5 bg-slate-50 rounded-md text-slate-400">
-                    {t[0]}:{diaperLogs.filter(d => new Date(d.timestamp).setHours(0,0,0,0) === today && d.type === t).length}
+                    {t[0]}:{(diaperLogs || []).filter(d => new Date(d.timestamp).setHours(0,0,0,0) === today && d.type === t).length}
                   </div>
                 ))}
               </div>
@@ -336,8 +340,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest">Mood</span>
               <div className="mt-2">
                 <span className="text-2xl font-bold text-slate-900">
-                  {journalEntries.filter(j => new Date(j.timestamp).setHours(0,0,0,0) === today && j.mood).length > 0 
-                    ? journalEntries.filter(j => new Date(j.timestamp).setHours(0,0,0,0) === today && j.mood)[0].mood 
+                  {(journalEntries || []).filter(j => new Date(j.timestamp).setHours(0,0,0,0) === today && j.mood).length > 0 
+                    ? (journalEntries || []).filter(j => new Date(j.timestamp).setHours(0,0,0,0) === today && j.mood)[0].mood 
                     : <Smile className="text-amber-400" size={24} />}
                 </span>
               </div>
@@ -414,7 +418,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={['breast', 'bottle', 'solid'].map(type => ({
                         type,
-                        amount: feedingLogs
+                        amount: (feedingLogs || [])
                           .filter(f => (selectedBabyId === 'combined' || f.babyId === selectedBabyId) && f.type === type)
                           .reduce((acc, curr) => acc + curr.amount, 0)
                       }))}>
@@ -433,7 +437,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                   <div className="grid grid-cols-3 gap-3">
                     {['breast', 'bottle', 'solid'].map(type => {
-                      const count = feedingLogs.filter(f => 
+                      const count = (feedingLogs || []).filter(f => 
                         (selectedBabyId === 'combined' || f.babyId === selectedBabyId) && 
                         f.type === type && 
                         new Date(f.timestamp).setHours(0,0,0,0) === today
@@ -465,7 +469,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div className="text-right">
                       <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Total Rest</div>
                       <div className="text-2xl font-bold text-indigo-900">
-                        {sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).reduce((acc, curr) => acc + curr.hours, 0).toFixed(1)} hrs
+                        {(sleepLogs || []).filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).reduce((acc, curr) => acc + curr.hours, 0).toFixed(1)} hrs
                       </div>
                     </div>
                   </div>
@@ -479,7 +483,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="card-premium p-6 bg-white border-2 border-white space-y-4">
                   <h3 className="text-lg font-serif text-rose-800">Latest Milestones</h3>
                   <div className="space-y-3">
-                    {milestones
+                    {(milestones || [])
                       .filter(m => selectedBabyId === 'combined' || m.babyId === selectedBabyId)
                       .slice(0, 3)
                       .map(m => (
@@ -491,7 +495,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </div>
                         </div>
                       ))}
-                    {milestones.length === 0 && <p className="text-xs text-slate-400 italic text-center py-4">No milestones recorded yet.</p>}
+                    {(milestones || []).length === 0 && <p className="text-xs text-slate-400 italic text-center py-4">No milestones recorded yet.</p>}
                   </div>
                 </div>
                 <button onClick={() => onQuickTool('milestones')} className="w-full py-4 bg-amber-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg">Add Milestone</button>
@@ -503,7 +507,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="card-premium p-6 bg-white border-2 border-white space-y-4">
                   <h3 className="text-lg font-serif text-rose-800">Health Logs</h3>
                   <div className="space-y-3">
-                    {healthLogs
+                    {(healthLogs || [])
                       .filter(h => selectedBabyId === 'combined' || h.babyId === selectedBabyId)
                       .slice(0, 3)
                       .map(h => (
@@ -540,7 +544,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {selectedBabyId !== 'combined' && (
                     <div className="h-48 w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={babyGrowthLogs
+                        <LineChart data={(babyGrowthLogs || [])
                           .filter(l => l.babyId === selectedBabyId)
                           .sort((a, b) => a.timestamp - b.timestamp)
                           .map(l => ({
@@ -572,7 +576,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <div className="text-right">
                         <div className="text-[8px] font-black text-slate-400 uppercase">Latest Weight</div>
                         <div className="text-sm font-bold text-rose-600">
-                          {babyGrowthLogs.filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || b.birthWeight || '--'} kg
+                          {(babyGrowthLogs || []).filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || b.birthWeight || '--'} kg
                         </div>
                       </div>
                     </div>
@@ -589,13 +593,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <div className="p-4 bg-emerald-50 rounded-2xl text-center">
                           <div className="text-[8px] font-black text-emerald-400 uppercase">Weight</div>
                           <div className="text-xl font-bold text-emerald-900">
-                            {babyGrowthLogs.filter(l => l.babyId === selectedBabyId).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || profile.babies?.find(b => b.id === selectedBabyId)?.birthWeight || '--'} kg
+                            {(babyGrowthLogs || []).filter(l => l.babyId === selectedBabyId).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || profile.babies?.find(b => b.id === selectedBabyId)?.birthWeight || '--'} kg
                           </div>
                         </div>
                         <div className="p-4 bg-blue-50 rounded-2xl text-center">
                           <div className="text-[8px] font-black text-blue-400 uppercase">Height</div>
                           <div className="text-xl font-bold text-blue-900">
-                            {babyGrowthLogs.filter(l => l.babyId === selectedBabyId).sort((a, b) => b.timestamp - a.timestamp)[0]?.height || '--'} cm
+                            {(babyGrowthLogs || []).filter(l => l.babyId === selectedBabyId).sort((a, b) => b.timestamp - a.timestamp)[0]?.height || '--'} cm
                           </div>
                         </div>
                       </div>
@@ -618,7 +622,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="card-premium p-6 bg-white border-2 border-white space-y-4">
                   <h3 className="text-lg font-serif text-rose-800">Recent Reflections</h3>
                   <div className="space-y-3">
-                    {journalEntries.slice(0, 3).map(entry => (
+                    {(journalEntries || []).slice(0, 3).map(entry => (
                       <div key={entry.id} className="p-4 bg-rose-50/50 rounded-2xl border border-rose-100/50">
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-rose-400">
@@ -629,7 +633,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <p className="text-xs text-slate-700 italic leading-relaxed">"{entry.content}"</p>
                       </div>
                     ))}
-                    {journalEntries.length === 0 && <p className="text-xs text-slate-400 italic text-center py-4">No reflections yet.</p>}
+                    {(journalEntries || []).length === 0 && <p className="text-xs text-slate-400 italic text-center py-4">No reflections yet.</p>}
                   </div>
                 </div>
                 <button onClick={() => onQuickTool('journal')} className="w-full py-8 bg-white border-2 border-dashed border-rose-200 rounded-[2.5rem] text-rose-400 flex flex-col items-center gap-2">
@@ -653,7 +657,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     d.setDate(d.getDate() - (6 - i));
                     const dayStart = d.setHours(0,0,0,0);
                     const dayEnd = d.setHours(23,59,59,999);
-                    const daySleep = sleepLogs.filter(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
+                    const daySleep = (sleepLogs || []).filter(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
                     return {
                       date: d.toLocaleDateString([], { weekday: 'short' }),
                       hours: daySleep.reduce((acc, curr) => acc + curr.hours, 0)

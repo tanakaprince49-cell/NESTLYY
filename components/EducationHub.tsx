@@ -25,73 +25,73 @@ interface LocalArticle {
 const educationalContent: LocalArticle[] = [
   {
     id: '1',
-    title: 'Nausea Relief Guide',
+    title: 'WHO: Nausea and Vomiting Management',
     category: 'wellness',
     trimester: Trimester.FIRST,
-    content: 'Morning sickness can be tough. Focus on small, frequent meals. Ginger tea, peppermint, and dry crackers can help. Stay hydrated even if you can only take small sips.'
+    content: 'According to WHO, dietary modifications such as eating small, frequent meals and avoiding fatty or spicy foods are recommended. Ginger, chamomile, vitamin B6 and/or acupuncture are also suggested for relief of nausea in early pregnancy.'
   },
   {
     id: '2',
-    title: 'The Power of Folate',
+    title: 'WHO: Iron and Folic Acid Supplementation',
     category: 'nutrition',
     trimester: Trimester.FIRST,
-    content: 'Folate (Vitamin B9) is crucial in the first weeks for the development of your baby’s neural tube. Leafy greens, citrus, and beans are excellent sources.'
+    content: 'WHO recommends daily oral iron and folic acid supplementation with 30 mg to 60 mg of elemental iron and 400 µg (0.4 mg) of folic acid for pregnant women to prevent maternal anaemia, puerperal sepsis, low birth weight, and preterm birth.'
   },
   {
     id: '3',
-    title: 'Boosting Energy with Iron',
-    category: 'nutrition',
+    title: 'WHO: Physical Activity Guidelines',
+    category: 'wellness',
     trimester: Trimester.SECOND,
-    content: 'In the second trimester, your blood volume increases significantly. You need more iron to support this. Combine iron-rich foods with vitamin C (like an orange with your tofu) for better absorption.'
+    content: 'WHO recommends that all pregnant women without contraindications should undertake regular physical activity. Aim for at least 150 minutes of moderate-intensity aerobic physical activity throughout the week for substantial health benefits.'
   },
   {
     id: '4',
-    title: 'Heartburn Solutions',
-    category: 'wellness',
+    title: 'WHO: Calcium Supplementation',
+    category: 'nutrition',
     trimester: Trimester.THIRD,
-    content: 'As baby grows, they can push on your stomach. Eat slowly, avoid lying down immediately after meals, and stick to less spicy or acidic foods if you experience heartburn.'
+    content: 'In populations with low dietary calcium intake, daily calcium supplementation (1.5–2.0 g oral elemental calcium) is recommended for pregnant women to reduce the risk of pre-eclampsia.'
   },
   {
     id: '5',
-    title: 'What foods should I avoid?',
-    category: 'safety',
+    title: 'WHO: Healthy Eating during Pregnancy',
+    category: 'nutrition',
     trimester: 'General',
-    content: 'Avoid raw or undercooked meat and fish (sushi), unpasteurized dairy (soft cheeses like brie), and deli meats unless heated until steaming. Wash all produce thoroughly.'
+    content: 'A healthy diet during pregnancy contains adequate energy, protein, vitamins and minerals, obtained through the consumption of a variety of foods, including green and orange vegetables, meat, fish, beans, nuts, whole grains and fruit.'
   },
   {
     id: '6',
-    title: 'Is coffee safe?',
+    title: 'WHO: Antenatal Care Contacts',
     category: 'faq',
     trimester: 'General',
-    content: 'Most experts agree that limiting caffeine to 200mg per day (about one 12oz cup of coffee) is safe during pregnancy.'
+    content: 'WHO recommends a minimum of eight antenatal care contacts to reduce perinatal mortality and improve women’s experience of care. These contacts allow for regular monitoring and support throughout the pregnancy.'
   },
   {
     id: 'nb1',
-    title: 'Newborn Sleep Patterns',
-    category: 'wellness',
+    title: 'WHO: Exclusive Breastfeeding',
+    category: 'nutrition',
     trimester: 'Newborn',
-    content: 'Newborns sleep about 14-17 hours a day but in short bursts. They don’t have a circadian rhythm yet. Try to sleep when they sleep and keep nighttime feedings quiet and dim.'
+    content: 'WHO recommends that infants should be exclusively breastfed for the first six months of life to achieve optimal growth, development and health. Thereafter, they should receive nutritionally adequate and safe complementary foods while breastfeeding continues up to two years of age or beyond.'
   },
   {
     id: 'nb2',
-    title: 'Breastfeeding Basics',
+    title: 'WHO: Early Initiation of Breastfeeding',
     category: 'nutrition',
     trimester: 'Newborn',
-    content: 'Ensure a good latch to prevent soreness. Feed on demand (usually every 2-3 hours). Stay hydrated and eat a balanced diet to support your milk supply.'
+    content: 'WHO recommends that mothers should be supported to initiate breastfeeding within the first hour of birth. This "early initiation" ensures that the infant receives the colostrum, or "first milk", which is rich in protective factors.'
   },
   {
     id: 'nb3',
-    title: 'Tummy Time Importance',
+    title: 'WHO: Delayed Cord Clamping',
     category: 'development',
     trimester: 'Newborn',
-    content: 'Start tummy time early for short periods (3-5 mins) a few times a day. It helps strengthen neck and shoulder muscles and prevents flat spots on the head.'
+    content: 'WHO recommends delayed umbilical cord clamping (not earlier than 1 min after birth) for improved maternal and infant health and nutrition outcomes. This increases iron stores in the infant for up to six months.'
   },
   {
     id: 'nb4',
-    title: 'Safe Sleep Environment',
-    category: 'safety',
+    title: 'WHO: Skin-to-Skin Contact (KMC)',
+    category: 'wellness',
     trimester: 'Newborn',
-    content: 'Always place baby on their back to sleep on a firm, flat surface. Keep the crib free of blankets, pillows, and toys to reduce the risk of SIDS.'
+    content: 'WHO recommends early and continuous skin-to-skin contact between mothers and their newborns, especially for low-birth-weight infants (Kangaroo Mother Care), as it promotes thermal regulation, breastfeeding, and bonding.'
   }
 ];
 

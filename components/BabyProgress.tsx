@@ -60,19 +60,19 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?
               <div className="p-4 bg-emerald-50 rounded-2xl">
                 <span className="block text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Current Weight</span>
                 <span className="text-xl font-bold text-emerald-900">
-                  {babyGrowthLogs.filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || '--'} kg
+                  {(babyGrowthLogs || []).filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || '--'} kg
                 </span>
               </div>
               <div className="p-4 bg-blue-50 rounded-2xl">
                 <span className="block text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Height</span>
                 <span className="text-xl font-bold text-blue-900">
-                  {babyGrowthLogs.filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.height || '--'} cm
+                  {(babyGrowthLogs || []).filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.height || '--'} cm
                 </span>
               </div>
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Developmental Milestones (0-3m)</h4>
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">WHO Developmental Milestones (0-3m)</h4>
               <div className="grid gap-3">
                 {[
                   "Lifts head during tummy time",
@@ -89,9 +89,9 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?
             </div>
 
             <div className="p-6 bg-rose-50/50 rounded-[2rem] border border-rose-100">
-              <h4 className="text-[9px] font-black text-rose-700 uppercase tracking-widest mb-2">Growth Tip</h4>
+              <h4 className="text-[9px] font-black text-rose-700 uppercase tracking-widest mb-2">WHO Growth Standard Tip</h4>
               <p className="text-xs text-gray-600 leading-relaxed font-medium">
-                Newborns grow rapidly! Expect them to double their birth weight by 5 months. Regular skin-to-skin contact and responsive feeding are key to healthy growth.
+                Newborns grow rapidly! According to WHO growth standards, expect them to double their birth weight by 5 months. Regular skin-to-skin contact and responsive feeding are key to healthy growth.
               </p>
             </div>
           </div>

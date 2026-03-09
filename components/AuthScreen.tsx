@@ -5,10 +5,7 @@ import { subscribeUserToPush, showLocalNotification } from '../services/pushServ
 import { auth, googleProvider, syncProfileToFirestore } from '../firebase.ts';
 import { 
   signInWithPopup, 
-  signInAnonymously, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  updateProfile
+  signInAnonymously
 } from 'firebase/auth';
 
 interface AuthScreenProps {
@@ -97,16 +94,38 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
     setLoading(true);
     setError('');
     try {
+      // Disconnected from Firebase Auth as requested. 
+      // We use Anonymous login behind the scenes to maintain Firestore sync capability 
+      // while managing the "Email/Password" logic locally.
+      const result = await signInAnonymously(auth);
+      
+      const localUser = {
+        uid: result.user.uid,
+        email: email,
+        displayName: name || email.split('@')[0],
+        isLocal: true
+      };
+
+      // Store local credentials mapping (simulated)
+      const localUsers = JSON.parse(localStorage.getItem('nestly_local_users') || '{}');
       if (isSignUp) {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(result.user, { displayName: name });
-        await handleAuthSuccess({ ...result.user, displayName: name });
+        if (localUsers[email]) {
+          throw new Error('User already exists locally.');
+        }
+        localUsers[email] = { password, name, uid: result.user.uid };
       } else {
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        await handleAuthSuccess(result.user);
+        const stored = localUsers[email];
+        if (!stored || stored.password !== password) {
+          throw new Error('Invalid email or password.');
+        }
+        localUser.displayName = stored.name;
+        localUser.uid = stored.uid;
       }
+      localStorage.setItem('nestly_local_users', JSON.stringify(localUsers));
+
+      await handleAuthSuccess(localUser);
     } catch (err: any) {
-      console.error("Email auth error:", err);
+      console.error("Local Email auth error:", err);
       setError(err.message || 'Authentication failed.');
     } finally {
       setLoading(false);

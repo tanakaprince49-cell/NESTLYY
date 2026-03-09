@@ -402,7 +402,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
               ) : (
                 <div className="py-6 px-4 bg-rose-50/50 rounded-2xl border border-rose-100/50">
                   <p className="text-[11px] text-rose-800 font-medium italic leading-relaxed">
-                    Nestly will automatically apply clinician-standardized daily targets optimized for your specific trimester.
+                    Nestly will automatically apply clinician-standardized daily targets optimized for your specific trimester, aligned with WHO nutritional guidelines.
                   </p>
                 </div>
               )}

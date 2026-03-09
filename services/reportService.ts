@@ -24,13 +24,13 @@ export const generateDailyReport = (date: Date) => {
   const endOfDay = new Date(date).setHours(23, 59, 59, 999);
 
   // Data Fetching
-  const weightLogs = storage.getWeightLogs().filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
-  const foods = storage.getFoodEntries().filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
-  const water = storage.getWaterLogs().filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay)
+  const weightLogs = (storage.getWeightLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
+  const foods = (storage.getFoodEntries() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
+  const water = (storage.getWaterLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay)
                        .reduce((acc, curr) => acc + curr.amount, 0);
-  const sleep = storage.getSleepLogs().find(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
-  const symptoms = storage.getSymptoms().filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
-  const journal = storage.getJournalEntries().filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
+  const sleep = (storage.getSleepLogs() || []).find(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
+  const symptoms = (storage.getSymptoms() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
+  const journal = (storage.getJournalEntries() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
 
   const nutritionTotals = foods.reduce((acc, curr) => ({
     c: acc.c + (curr.calories || 0),
@@ -213,7 +213,7 @@ export const generateLaborReport = (date: Date) => {
   const startOfDay = new Date(date).setHours(0, 0, 0, 0);
   const endOfDay = new Date(date).setHours(23, 59, 59, 999);
   
-  const contractions = storage.getContractions().filter(c => c.startTime >= startOfDay && c.startTime <= endOfDay);
+  const contractions = (storage.getContractions() || []).filter(c => c.startTime >= startOfDay && c.startTime <= endOfDay);
 
   const burgundy = [126, 22, 49];
   const roseText = [244, 63, 94];
@@ -364,7 +364,7 @@ export const generateFullPregnancyReport = () => {
   doc.text('The Babies', 20, y);
   y += 15;
 
-  profile.babies.forEach((baby, idx) => {
+  (profile.babies || []).forEach((baby, idx) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.setTextColor(roseText[0], roseText[1], roseText[2]);
@@ -387,10 +387,10 @@ export const generateFullPregnancyReport = () => {
   });
 
   // Summary Stats
-  const kicks = storage.getKickLogs();
-  const feeding = storage.getFeedingLogs();
-  const milestones = storage.getMilestones();
-  const weightLogs = storage.getWeightLogs();
+  const kicks = storage.getKickLogs() || [];
+  const feeding = storage.getFeedingLogs() || [];
+  const milestones = storage.getMilestones() || [];
+  const weightLogs = storage.getWeightLogs() || [];
 
   if (y > 220) { doc.addPage(); y = 30; }
 
