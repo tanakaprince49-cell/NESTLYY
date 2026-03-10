@@ -122,6 +122,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [foodName, setFoodName] = useState('');
   const [foodCals, setFoodCals] = useState('');
   const [foodProtein, setFoodProtein] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const handleEnablePush = async () => {
     const sub = await subscribeUserToPush();
@@ -195,6 +204,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setFoodName('');
     setFoodCals('');
     setFoodProtein('');
+    setToast('Food logged successfully!');
+  };
+
+  const handleAISearch = async () => {
+    if (!foodName) return;
+    setIsAnalyzing(true);
+    try {
+      const { analyzeFood } = await import('../services/foodService.ts');
+      const result = await analyzeFood(foodName);
+      if (result) {
+        setFoodName(result.name);
+        setFoodCals(result.calories.toString());
+        setFoodProtein(result.protein.toString());
+      }
+    } catch (error) {
+      console.error("AI Search failed", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const chartData = useMemo(() => {
@@ -475,12 +503,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="card-premium p-6 bg-white border-2 border-slate-50 space-y-4">
             <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Quick Log Food</h4>
             <div className="space-y-3">
-              <input 
-                value={foodName} 
-                onChange={e => setFoodName(e.target.value)} 
-                placeholder="Food Name (e.g., Avocado Toast)" 
-                className="text-sm bg-slate-50 border-none rounded-2xl h-12"
-              />
+              <div className="flex gap-2">
+                <input 
+                  value={foodName} 
+                  onChange={e => setFoodName(e.target.value)} 
+                  placeholder="Food Name (e.g., Avocado Toast)" 
+                  className="text-sm bg-slate-50 border-none rounded-2xl h-12 flex-1"
+                />
+                <button 
+                  onClick={handleAISearch}
+                  disabled={isAnalyzing || !foodName}
+                  className="px-4 bg-amber-50 text-amber-600 font-black rounded-2xl text-[9px] uppercase tracking-widest active:scale-95 disabled:opacity-50 flex items-center gap-2 border border-amber-100"
+                >
+                  {isAnalyzing ? <Activity size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  AI Search
+                </button>
+              </div>
               <div className="flex gap-3">
                 <input 
                   type="number" 
@@ -540,6 +578,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </>
       )}
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
+          >
+            <div className="w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

@@ -25,7 +25,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
   const handleExport = () => {
     if (!reportRef.current) return;
     
-    const opt = {
+    const opt: any = {
       margin:       10,
       filename:     'nestly-baby-report.pdf',
       image:        { type: 'jpeg', quality: 0.98 },

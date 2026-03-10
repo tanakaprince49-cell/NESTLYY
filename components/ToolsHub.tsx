@@ -60,7 +60,6 @@ import {
   Square,
   Play,
   Droplets as WaterIcon,
-  ListHeart,
   Camera as CameraIcon
 } from 'lucide-react';
 
@@ -110,6 +109,17 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   trimester, profile,
   activeCategory, setActiveCategory, onUpdateProfile
 }) => {
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  const showSuccess = (msg: string) => setToast({ message: msg, type: 'success' });
+
   const [weightInput, setWeightInput] = useState('');
   const [babyWeightInput, setBabyWeightInput] = useState('');
   const [babyHeightInput, setBabyHeightInput] = useState('');
@@ -331,7 +341,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
     if (isPostpartum) {
       return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'reports', 'settings'];
     }
-    return ['vitals', 'water', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'archive', 'reports', 'settings'];
+    return ['vitals', 'water', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'archive', 'reports', 'settings'];
   }, [isPostpartum]);
 
   return (
@@ -1338,6 +1348,54 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         </div>
       )}
 
+      {activeCategory === 'calm' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-10 bg-white border-2 border-white text-center space-y-8 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-100 via-emerald-400 to-emerald-100" />
+            
+            <div className="space-y-2">
+              <h3 className="text-2xl font-serif text-emerald-800">Peaceful Nest</h3>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Breathe in peace, breathe out stress.</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {[
+                { title: "The Safe Breath", chant: "I am safe. My baby is safe. We are held in love.", icon: Heart, color: "text-rose-400" },
+                { title: "Strength Chant", chant: "My body is strong. My mind is calm. I trust the journey.", icon: Sparkles, color: "text-amber-400" },
+                { title: "Connection", chant: "I am connected to my baby. We are growing together in peace.", icon: Baby, color: "text-blue-400" },
+                { title: "Release", chant: "I release all tension. I embrace this moment with grace.", icon: Flower, color: "text-emerald-400" }
+              ].map((item, idx) => (
+                <motion.div 
+                  key={idx}
+                  whileHover={{ scale: 1.02 }}
+                  className="p-6 bg-slate-50 rounded-[2rem] border border-white shadow-sm space-y-3 cursor-pointer group"
+                  onClick={() => {
+                    onAddJournal(`[Calm] Chanted: ${item.chant}`, 'peace');
+                    showSuccess('Peaceful moment recorded');
+                  }}
+                >
+                  <div className={`flex justify-center ${item.color}`}>
+                    <item.icon size={32} className="group-hover:animate-pulse" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-700">{item.title}</h4>
+                  <p className="text-lg font-serif italic text-slate-600 leading-relaxed">"{item.chant}"</p>
+                  <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest pt-2">Tap to record this moment of peace</div>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="p-6 bg-emerald-50 rounded-[2rem] border border-emerald-100 flex items-center gap-5">
+              <div className="text-emerald-500">
+                <Activity size={32} />
+              </div>
+              <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-widest leading-relaxed text-left">
+                When you feel stressed, try the 4-7-8 breathing technique: Inhale for 4, hold for 7, exhale for 8.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeCategory === 'archive' && (
         <div className="space-y-8 animate-in fade-in">
           {isBirthOnboarding ? (
@@ -1630,6 +1688,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   const val = (document.getElementById('tummyTimeInput') as HTMLInputElement).value;
                   if (val) {
                     onAddJournal(`[Tummy Time] ${val} mins`, 'activity');
+                    showSuccess('Tummy time logged!');
                     (document.getElementById('tummyTimeInput') as HTMLInputElement).value = '';
                   }
                 }}
@@ -1648,7 +1707,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <h3 className="text-xl font-serif text-cyan-800">Bath Tracker</h3>
             <p className="text-xs text-slate-400 font-medium">Keep track of your baby's bath schedule.</p>
             <button 
-              onClick={() => onAddJournal(`[Bath] Given a bath`, 'clean')}
+              onClick={() => {
+                onAddJournal(`[Bath] Given a bath`, 'clean');
+                showSuccess('Bath time logged!');
+              }}
               className="w-full py-4 bg-cyan-500 text-white rounded-2xl font-bold shadow-lg shadow-cyan-200 hover:bg-cyan-600 transition-colors"
             >
               Log Bath Today
@@ -1674,6 +1736,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   const val = (document.getElementById('pumpingInput') as HTMLInputElement).value;
                   if (val) {
                     onAddJournal(`[Pumping] ${val} ml`, 'milk');
+                    showSuccess('Pumping session logged!');
                     (document.getElementById('pumpingInput') as HTMLInputElement).value = '';
                   }
                 }}
@@ -1703,6 +1766,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   const val = (document.getElementById('teethingInput') as HTMLInputElement).value;
                   if (val) {
                     onAddJournal(`[Teething] ${val}`, 'tooth');
+                    showSuccess('Teething log saved!');
                     (document.getElementById('teethingInput') as HTMLInputElement).value = '';
                   }
                 }}
@@ -1725,6 +1789,20 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           milestones={milestones}
         />
       )}
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
+          >
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+            {toast.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

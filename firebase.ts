@@ -44,7 +44,7 @@ export const getProfileFromFirestore = async (uid: string) => {
   }
 };
 
-export const syncDataToFirestore = async (uid: string, collectionName: string, data: any[]) => {
+export const syncDataToFirestore = async (uid: string, collectionName: string, data: any) => {
   try {
     const userRef = doc(db, 'users', uid);
     const dataRef = doc(userRef, collectionName, 'data');

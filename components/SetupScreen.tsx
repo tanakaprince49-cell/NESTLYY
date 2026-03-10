@@ -26,6 +26,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
   const [lifecycleStage, setLifecycleStage] = useState<LifecycleStage>(initialProfile?.lifecycleStage || LifecycleStage.PREGNANCY);
   const [userName, setUserName] = useState(initialProfile?.userName || '');
   const [lmp, setLmp] = useState(initialProfile?.lmpDate ? initialProfile.lmpDate.split('T')[0] : '');
+  const [currentWeek, setCurrentWeek] = useState<string>('');
+  const [calculationMode, setCalculationMode] = useState<'lmp' | 'week'>('lmp');
   const [pregnancyType, setPregnancyType] = useState<'singleton' | 'twins' | 'triplets'>(initialProfile?.pregnancyType || 'singleton');
   const [babies, setBabies] = useState<any[]>(initialProfile?.babies || [{ id: '1', name: '', skinTone: '🏼', gender: 'surprise' }]);
   const [themeColor, setThemeColor] = useState<'pink' | 'blue' | 'neutral'>(initialProfile?.themeColor || 'pink');
@@ -173,9 +175,66 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
 
         {step === 'lmp' && (
           <div className="space-y-8 w-full text-center">
-            <h2 className="text-4xl font-serif text-slate-900">Last Period (LMP)</h2>
-            <input type="date" value={lmp} onChange={e => setLmp(e.target.value)} className="w-full bg-white border-2 border-rose-50 rounded-[2rem] px-8 py-6 text-xl font-bold text-center outline-none" />
-            <button onClick={() => goTo('calculation')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Calculate Due Date</button>
+            <h2 className="text-4xl font-serif text-slate-900">How far along are you?</h2>
+            
+            <div className="flex gap-2 p-1 bg-rose-50 rounded-2xl mb-4">
+              <button 
+                onClick={() => setCalculationMode('lmp')}
+                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${calculationMode === 'lmp' ? 'bg-white text-rose-500 shadow-sm' : 'text-rose-300'}`}
+              >
+                Last Period
+              </button>
+              <button 
+                onClick={() => setCalculationMode('week')}
+                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${calculationMode === 'week' ? 'bg-white text-rose-500 shadow-sm' : 'text-rose-300'}`}
+              >
+                Current Week
+              </button>
+            </div>
+
+            {calculationMode === 'lmp' ? (
+              <div className="space-y-4 animate-in fade-in">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Select your last period date</p>
+                <input type="date" value={lmp} onChange={e => setLmp(e.target.value)} className="w-full bg-white border-2 border-rose-50 rounded-[2rem] px-8 py-6 text-xl font-bold text-center outline-none" />
+              </div>
+            ) : (
+              <div className="space-y-4 animate-in fade-in">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Enter your current week (1-42)</p>
+                <div className="flex items-center justify-center gap-4 bg-white p-8 rounded-[2rem] border-2 border-rose-50">
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="42" 
+                    value={currentWeek} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      setCurrentWeek(val);
+                      if (val) {
+                        const weeks = parseInt(val);
+                        const lmpDate = new Date();
+                        lmpDate.setDate(lmpDate.getDate() - (weeks * 7));
+                        setLmp(lmpDate.toISOString().split('T')[0]);
+                      }
+                    }} 
+                    placeholder="8" 
+                    className="w-24 text-4xl font-serif text-center bg-transparent border-b-2 border-rose-200 focus:border-rose-500 outline-none p-0" 
+                  />
+                  <span className="text-2xl font-serif text-rose-400 italic">Weeks</span>
+                </div>
+              </div>
+            )}
+
+            <button 
+              onClick={() => {
+                if (calculationMode === 'week' && !currentWeek) return;
+                if (calculationMode === 'lmp' && !lmp) return;
+                goTo('calculation');
+              }} 
+              className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 disabled:opacity-50"
+              disabled={(calculationMode === 'week' && !currentWeek) || (calculationMode === 'lmp' && !lmp)}
+            >
+              Calculate Due Date
+            </button>
           </div>
         )}
 
