@@ -100,6 +100,58 @@ Example: {"name": "Apple", "calories": 52, "protein": 0.3, "folate": 3, "iron": 
     }
   });
 
+  // Ava AI Chat Endpoint
+  app.post("/api/ava/chat", async (req, res) => {
+    const { messages } = req.body;
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: "OPENROUTER_API_KEY is not set" });
+    }
+
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://nestly.app",
+          "X-Title": "Ava AI",
+        },
+        body: JSON.stringify({
+          model: "deepseek/deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: `
+You are Ava, a pregnancy and postpartum companion for the Nestly app.
+Your primary directive is to provide health information that is strictly aligned with World Health Organization (WHO) clinical guidelines.
+Be VERY concise (max 2-3 short sentences).
+Warm but direct.
+If asked for medical advice, always prefix or suffix with "According to WHO guidelines..." when applicable, and remind the user to consult their healthcare provider for personalized care.
+Focus on nutrition (iron/folic acid), physical activity (150 mins/week), breastfeeding (exclusive for 6 months), and newborn care (skin-to-skin, delayed cord clamping).
+`,
+            },
+            ...messages,
+          ],
+          temperature: 0.5,
+          max_tokens: 120,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      const data = await response.json();
+      res.json({ content: data.choices[0].message.content });
+    } catch (error) {
+      console.error("Ava AI Error:", error);
+      res.status(500).json({ error: "Error communicating with Ava" });
+    }
+  });
+
   // Store FCM Token
   app.post("/api/push/token", async (req, res) => {
     const { token, userId, email } = req.body;

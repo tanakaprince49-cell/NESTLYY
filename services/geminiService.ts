@@ -2,11 +2,6 @@
    AVA – Fast, Short, Smart, With Memory + Voice
 ========================================== */
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "deepseek/deepseek-chat";
-
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-
 /* ==========================================
    MEMORY (Local Storage)
 ========================================== */
@@ -27,33 +22,12 @@ function loadMemory() {
 ========================================== */
 
 async function callAva(messages: any[]) {
-  const response = await fetch(OPENROUTER_URL, {
+  const response = await fetch("/api/ava/chat", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://nestly.app",
-      "X-Title": "Ava AI",
     },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        {
-          role: "system",
-          content: `
-You are Ava, a pregnancy and postpartum companion for the Nestly app.
-Your primary directive is to provide health information that is strictly aligned with World Health Organization (WHO) clinical guidelines.
-Be VERY concise (max 2-3 short sentences).
-Warm but direct.
-If asked for medical advice, always prefix or suffix with "According to WHO guidelines..." when applicable, and remind the user to consult their healthcare provider for personalized care.
-Focus on nutrition (iron/folic acid), physical activity (150 mins/week), breastfeeding (exclusive for 6 months), and newborn care (skin-to-skin, delayed cord clamping).
-`,
-        },
-        ...messages,
-      ],
-      temperature: 0.5,
-      max_tokens: 120,
-    }),
+    body: JSON.stringify({ messages }),
   });
 
   if (!response.ok) {
@@ -61,7 +35,7 @@ Focus on nutrition (iron/folic acid), physical activity (150 mins/week), breastf
   }
 
   const data = await response.json();
-  return data.choices[0].message.content;
+  return data.content;
 }
 
 /* ==========================================
