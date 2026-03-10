@@ -1,126 +1,147 @@
-import express from "express";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const app = express();
-const PORT = 3000;
-
-app.use(express.json());
-
-const OPENROUTER_API_KEY =
-  process.env.OPENROUTER_API_KEY || "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";
+/* ==========================================
+   NESTLY AI – Ava + Food Research + Smart Guidance
+========================================== */
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL = "deepseek/deepseek-chat";
+const OPENROUTER_API_KEY =
+  "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";
 
-if (!OPENROUTER_API_KEY) {
-  console.error("Missing OPENROUTER_API_KEY");
-  process.exit(1);
+/* ==========================================
+   MEMORY (Local Storage)
+========================================== */
+const MEMORY_KEY = "ava_memory";
+
+function saveMemory(messages: any[]) {
+  localStorage.setItem(MEMORY_KEY, JSON.stringify(messages));
 }
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
-});
+function loadMemory() {
+  const memory = localStorage.getItem(MEMORY_KEY);
+  return memory ? JSON.parse(memory) : [];
+}
 
-/* =========================
-   FOOD ANALYSIS ENDPOINT
-========================= */
+/* ==========================================
+   CORE OPENROUTER CALL
+========================================== */
+async function callOpenRouter(messages: any[], title = "Ava AI", maxTokens = 120) {
+  const response = await fetch(OPENROUTER_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://nestly.app",
+      "X-Title": title,
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      messages,
+      temperature: 0.5,
+      max_tokens: maxTokens,
+    }),
+  });
 
-app.post("/api/food/analyze", async (req, res) => {
-  const { foodQuery } = req.body;
+  if (!response.ok) throw new Error(await response.text());
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
 
+/* ==========================================
+   AVA CHAT FUNCTION
+========================================== */
+export async function getAvaResponse(userMessage: string, pregnancyWeek?: number) {
   try {
-    const response = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://nestly.app",
-        "X-Title": "Nestly Food Tracker"
-      },
-      body: JSON.stringify({
-        model: "deepseek/deepseek-chat",
-        messages: [
-          {
-            role: "system",
-            content: `
-You are a nutrition expert.
-Return ONLY JSON with:
-name, calories, protein, folate, iron, calcium
-`
-          },
-          {
-            role: "user",
-            content: foodQuery
-          }
-        ],
-        temperature: 0.1,
-        response_format: { type: "json_object" }
-      })
-    });
+    let memory = loadMemory();
 
-    const data = await response.json();
+    memory.push({ role: "user", content: userMessage });
+    memory = memory.slice(-6);
 
-    const content = data.choices[0].message.content;
+    const systemPrompt = `
+You are Ava, a pregnancy companion.
+Be VERY concise (max 2-3 short sentences). Warm but direct.
+Focus on nutrition, physical activity, breastfeeding, newborn care.
+Provide WHO-based advice.
+Pregnancy Week: ${pregnancyWeek || "unknown"}.
+`;
 
-    res.json(JSON.parse(content));
+    const reply = await callOpenRouter([{ role: "system", content: systemPrompt }, ...memory]);
 
+    memory.push({ role: "assistant", content: reply });
+    saveMemory(memory);
+
+    return reply;
   } catch (error) {
-    console.error("Food analysis error:", error);
-    res.status(500).json({ error: "Food analysis failed" });
+    console.error("Ava Error:", error);
+    return "Hmm… I’m reconnecting 💕";
   }
-});
+}
 
-/* =========================
-   AVA AI CHAT ENDPOINT
-========================= */
-
-app.post("/api/ava/chat", async (req, res) => {
-  const { messages } = req.body;
-
+/* ==========================================
+   FOOD RESEARCH (Pregnancy Nutrition)
+========================================== */
+export async function analyzeFood(food: string) {
   try {
-    const response = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://nestly.app",
-        "X-Title": "Nestly Ava AI"
-      },
-      body: JSON.stringify({
-        model: "deepseek/deepseek-chat",
-        messages: [
-          {
-            role: "system",
-            content: `
-You are Ava, the AI pregnancy assistant inside Nestly.
+    const content = `
+You are a pregnancy nutrition expert.
+Return ONLY JSON with keys:
+name, calories, protein, folate, iron, calcium.
+If food is unsafe for pregnancy, add "unsafe": true.
+Example: {"name":"Apple","calories":52,"protein":0.3,"folate":3,"iron":0.1,"calcium":6,"unsafe":false}
+Food: ${food}
+`;
 
-Follow WHO guidance.
-Be warm but concise.
-Maximum 2–3 short sentences.
-Encourage users to consult a healthcare professional for medical advice.
-`
-          },
-          ...messages
-        ],
-        temperature: 0.5,
-        max_tokens: 120
-      })
-    });
+    const reply = await callOpenRouter([
+      { role: "system", content },
+      { role: "user", content: food }
+    ], "Nestly Food Research", 200);
 
-    const data = await response.json();
-
-    res.json({
-      content: data.choices[0].message.content
-    });
-
+    return JSON.parse(reply);
   } catch (error) {
-    console.error("Ava AI error:", error);
-    res.status(500).json({ error: "Ava AI failed" });
+    console.error("Food Analysis Error:", error);
+    return null;
   }
-});
+}
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+/* ==========================================
+   PREGNANCY WEEK DETECTION
+========================================== */
+export function calculatePregnancyWeek(lmpDate: string) {
+  const diff = new Date().getTime() - new Date(lmpDate).getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
+}
+
+/* ==========================================
+   VOICE: TEXT → SPEECH
+========================================== */
+export function speak(text: string) {
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.rate = 1;
+  speech.pitch = 1.1;
+  speech.lang = "en-US";
+  window.speechSynthesis.speak(speech);
+}
+
+/* ==========================================
+   VOICE: SPEECH → TEXT
+========================================== */
+export function listen(callback: (text: string) => void) {
+  const SpeechRecognition =
+    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.start();
+  recognition.onresult = (event: any) => callback(event.results[0][0].transcript);
+}
+
+/* ==========================================
+   EXAMPLE USAGE
+========================================== */
+(async () => {
+  // Ava chat
+  const avaReply = await getAvaResponse("Is walking safe this week?", calculatePregnancyWeek("2026-01-01"));
+  console.log("Ava:", avaReply);
+
+  // Food research
+  const bananaInfo = await analyzeFood("banana");
+  console.log("Food:", bananaInfo);
+})();
