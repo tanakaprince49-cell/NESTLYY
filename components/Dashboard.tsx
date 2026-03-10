@@ -214,12 +214,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const { analyzeFood } = await import('../services/foodService.ts');
       const result = await analyzeFood(foodName);
       if (result) {
-        setFoodName(result.name);
-        setFoodCals(result.calories.toString());
-        setFoodProtein(result.protein.toString());
+        onAddEntry({
+          name: result.name,
+          calories: result.calories,
+          protein: result.protein,
+          folate: result.folate,
+          iron: result.iron,
+          calcium: result.calcium
+        });
+        setFoodName('');
+        setFoodCals('');
+        setFoodProtein('');
+        setToast(`Logged: ${result.name} (${result.calories} kcal)`);
+      } else {
+        setToast('Could not analyze food. Try again.');
       }
     } catch (error) {
       console.error("AI Search failed", error);
+      setToast('AI Search failed. Check connection.');
     } finally {
       setIsAnalyzing(false);
     }

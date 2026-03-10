@@ -418,24 +418,27 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       )}
 
       {activeCategory === 'names' && (
-        <div className="space-y-8 animate-in fade-in">
-          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
-            <h3 className="text-xl font-serif text-rose-800">Baby Names</h3>
-            <p className="text-xs text-slate-400 font-medium">Keep track of your favorite baby names.</p>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="card-premium p-8 bg-white border-2 border-white space-y-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-full -mr-16 -mt-16 opacity-50" />
+            <div className="relative z-10">
+              <h3 className="text-2xl font-serif text-rose-800 tracking-tight">Baby Names</h3>
+              <p className="text-sm text-slate-400 font-medium leading-relaxed">Curate your favorite names for your little one.</p>
+            </div>
             
-            <div className="space-y-4">
-              <div className="flex gap-2">
+            <div className="space-y-4 relative z-10">
+              <div className="flex gap-3">
                 <input 
                   type="text" 
                   value={newNameInput} 
                   onChange={e => setNewNameInput(e.target.value)} 
                   placeholder="Enter a name..." 
-                  className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" 
+                  className="flex-1 px-6 py-4 bg-slate-50 rounded-2xl text-sm font-bold border-none focus:ring-2 focus:ring-rose-200" 
                 />
                 <select 
                   value={newNameGender} 
                   onChange={e => setNewNameGender(e.target.value)}
-                  className="px-4 py-4 bg-slate-50 rounded-2xl text-sm font-bold outline-none"
+                  className="w-32 px-4 py-4 bg-slate-50 rounded-2xl text-sm font-bold outline-none border-none focus:ring-2 focus:ring-rose-200"
                 >
                   <option value="neutral">Neutral</option>
                   <option value="boy">Boy</option>
@@ -449,69 +452,94 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                     setBabyNames(newNames);
                     storage.saveBabyNames(newNames);
                     setNewNameInput('');
+                    showSuccess('Name added to your collection');
                   }
                 }}
-                className="w-full py-4 bg-rose-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl"
+                className="w-full py-5 bg-rose-900 text-white font-black rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-rose-200 hover:bg-rose-800 active:scale-[0.98] transition-all"
               >
-                Add Name
+                Add to Collection
               </button>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <AnimatePresence>
-              {babyNames.map((item, idx) => (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center px-2">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Your Favorites</h4>
+              <span className="text-[10px] font-bold text-rose-800 bg-rose-50 px-3 py-1 rounded-full">{babyNames.length} Names</span>
+            </div>
+            
+            <AnimatePresence mode="popLayout">
+              {babyNames.length === 0 ? (
                 <motion.div 
-                  key={`${item.name}-${idx}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center shadow-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-12 text-center space-y-3"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${item.gender === 'boy' ? 'bg-blue-400' : item.gender === 'girl' ? 'bg-pink-400' : 'bg-emerald-400'}`} />
-                    <span className="font-bold text-slate-700">{item.name}</span>
+                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+                    <Heart className="w-6 h-6 text-slate-200" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <button 
-                          key={star}
-                          onClick={() => {
-                            const newNames = [...babyNames];
-                            newNames[idx].rating = star;
-                            setBabyNames(newNames);
-                            storage.saveBabyNames(newNames);
-                          }}
-                          className={`text-lg transition-colors ${star <= item.rating ? 'text-amber-400' : 'text-slate-200 hover:text-amber-200'}`}
-                        >
-                          ★
-                        </button>
-                      ))}
-                    </div>
-                    <button 
-                      onClick={() => {
-                        const newNames = babyNames.filter((_, i) => i !== idx);
-                        setBabyNames(newNames);
-                        storage.saveBabyNames(newNames);
-                      }}
-                      className="p-2 text-rose-300 hover:text-rose-500 transition-colors ml-2"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">No names added yet</p>
                 </motion.div>
-              ))}
+              ) : (
+                babyNames.map((item, idx) => (
+                  <motion.div 
+                    key={`${item.name}-${idx}`}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="card-premium p-5 bg-white border-2 border-white flex justify-between items-center shadow-sm group hover:border-rose-100 transition-all"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                        item.gender === 'boy' ? 'bg-blue-50 text-blue-500' : 
+                        item.gender === 'girl' ? 'bg-pink-50 text-pink-500' : 
+                        'bg-emerald-50 text-emerald-500'
+                      }`}>
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="block font-serif text-lg text-slate-800 leading-none mb-1">{item.name}</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${
+                          item.gender === 'boy' ? 'text-blue-400' : 
+                          item.gender === 'girl' ? 'text-pink-400' : 
+                          'text-emerald-400'
+                        }`}>{item.gender}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button 
+                            key={star}
+                            onClick={() => {
+                              const newNames = [...babyNames];
+                              newNames[idx].rating = star;
+                              setBabyNames(newNames);
+                              storage.saveBabyNames(newNames);
+                            }}
+                            className={`p-1 transition-transform hover:scale-125 ${star <= (item.rating || 0) ? 'text-amber-400' : 'text-slate-100'}`}
+                          >
+                            <Heart className={`w-4 h-4 ${star <= (item.rating || 0) ? 'fill-current' : ''}`} />
+                          </button>
+                        ))}
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const newNames = babyNames.filter((_, i) => i !== idx);
+                          setBabyNames(newNames);
+                          storage.saveBabyNames(newNames);
+                          showSuccess('Name removed');
+                        }}
+                        className="text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </AnimatePresence>
-            {babyNames.length === 0 && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-8 text-slate-400 text-sm font-medium"
-              >
-                No names added yet. Start brainstorming!
-              </motion.div>
-            )}
           </div>
         </div>
       )}

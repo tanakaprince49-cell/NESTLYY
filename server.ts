@@ -39,6 +39,67 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  // Food Analysis Endpoint
+  app.post("/api/food/analyze", async (req, res) => {
+    const { foodQuery } = req.body;
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: "OPENROUTER_API_KEY is not set" });
+    }
+
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://nestly.app",
+          "X-Title": "Nestly Food Tracker",
+        },
+        body: JSON.stringify({
+          model: "deepseek/deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: `
+You are a nutrition expert. Analyze the food provided by the user and return its nutritional information in JSON format.
+Return ONLY the JSON object with the following keys:
+- name: string (the food name)
+- calories: number (kcal)
+- protein: number (grams)
+- folate: number (mcg)
+- iron: number (mg)
+- calcium: number (mg)
+
+If the food is unknown, return null.
+Example: {"name": "Apple", "calories": 52, "protein": 0.3, "folate": 3, "iron": 0.1, "calcium": 6}
+`,
+            },
+            {
+              role: "user",
+              content: foodQuery,
+            },
+          ],
+          temperature: 0.1,
+          response_format: { type: "json_object" }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      res.json(JSON.parse(content));
+    } catch (error) {
+      console.error("Food Analysis Error:", error);
+      res.status(500).json({ error: "Error analyzing food" });
+    }
+  });
+
   // Store FCM Token
   app.post("/api/push/token", async (req, res) => {
     const { token, userId, email } = req.body;
