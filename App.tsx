@@ -36,7 +36,8 @@ import {
   KickLog,
   LifecycleStage,
   BabyGrowthLog,
-  DiaperLog
+  DiaperLog,
+  MedicationLog
 } from './types.ts';
 
 const App: React.FC = () => {
@@ -99,6 +100,7 @@ const App: React.FC = () => {
   const [babyGrowthLogs, setBabyGrowthLogs] = useState<BabyGrowthLog[]>([]);
   const [kickLogs, setKickLogs] = useState<KickLog[]>([]);
   const [diaperLogs, setDiaperLogs] = useState<DiaperLog[]>([]);
+  const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
 
   const loadUserData = useCallback(() => {
     if (!authEmail) return;
@@ -119,6 +121,7 @@ const App: React.FC = () => {
     setBabyGrowthLogs(storage.getBabyGrowthLogs());
     setKickLogs(storage.getKickLogs());
     setDiaperLogs(storage.getDiaperLogs());
+    setMedicationLogs(storage.getMedications());
   }, [authEmail]);
 
   // Firebase Auth Listener
@@ -142,7 +145,8 @@ const App: React.FC = () => {
             'food_entries', 'water_logs', 'symptoms', 'vitamins', 'contractions', 
             'journal', 'calendar', 'weight_logs', 'sleep_logs', 'feeding_logs', 
             'baby_milestones', 'baby_health_logs', 'baby_growth_logs', 'baby_diaper_logs',
-            'kick_logs', 'baby_reactions', 'baby_names', 'water_intake', 'bump_photos'
+            'kick_logs', 'baby_reactions', 'baby_names', 'water_intake', 'bump_photos',
+            'medication_logs'
           ];
           
           for (const col of collections) {
@@ -194,6 +198,7 @@ const App: React.FC = () => {
     syncDataToFirestore(uid, 'baby_names', storage.getBabyNames());
     syncDataToFirestore(uid, 'water_intake', storage.getWaterIntake());
     syncDataToFirestore(uid, 'bump_photos', storage.getBumpPhotos());
+    syncDataToFirestore(uid, 'medication_logs', storage.getMedications());
   }, []);
 
   // Firestore Profile Sync
@@ -367,6 +372,17 @@ const App: React.FC = () => {
                   setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
                   syncAllToFirestore(userUid!);
                 }}
+                medicationLogs={medicationLogs}
+                onAddMedication={(m) => {
+                  storage.addMedication({ ...m, id: Date.now().toString(), timestamp: Date.now() });
+                  setMedicationLogs(storage.getMedications());
+                  syncAllToFirestore(userUid!);
+                }}
+                onRemoveMedication={(id) => {
+                  storage.removeMedication(id);
+                  setMedicationLogs(storage.getMedications());
+                  syncAllToFirestore(userUid!);
+                }}
                 onQuickTool={(cat) => { setActiveTab('tools'); setActiveToolCat(cat); }}
                 onEditProfile={() => setIsEditingProfile(true)}
                 onUpdateProfile={(p) => { 
@@ -460,6 +476,17 @@ const App: React.FC = () => {
                 kickLogs={kickLogs} onAddKick={(k) => { 
                   storage.addKickLog({id: Date.now().toString(), ...k, timestamp: Date.now()}); 
                   setKickLogs(storage.getKickLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                medicationLogs={medicationLogs}
+                onAddMedication={(m) => {
+                  storage.addMedication({ ...m, id: Date.now().toString(), timestamp: Date.now() });
+                  setMedicationLogs(storage.getMedications());
+                  syncAllToFirestore(userUid!);
+                }}
+                onRemoveMedication={(id) => {
+                  storage.removeMedication(id);
+                  setMedicationLogs(storage.getMedications());
                   syncAllToFirestore(userUid!);
                 }}
                 babyGrowthLogs={babyGrowthLogs} onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}

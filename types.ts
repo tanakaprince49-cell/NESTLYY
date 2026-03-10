@@ -227,6 +227,13 @@ export interface DiaperLog {
   timestamp: number;
 }
 
+export interface MedicationLog {
+  id: string;
+  name: string;
+  dosage: string;
+  timestamp: number;
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model';

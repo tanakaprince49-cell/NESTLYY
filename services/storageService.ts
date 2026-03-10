@@ -25,7 +25,8 @@ import {
   HealthLog,
   BabyGrowthLog,
   DiaperLog,
-  Video
+  Video,
+  MedicationLog
 } from '../types.ts';
 
 const KEYS = {
@@ -64,7 +65,8 @@ const KEYS = {
   VIDEOS: 'nestly_global_videos',
   BABY_NAMES: 'baby_names',
   WATER_INTAKE: 'water_intake',
-  BUMP_PHOTOS: 'bump_photos'
+  BUMP_PHOTOS: 'bump_photos',
+  MEDICATIONS: 'medication_logs'
 };
 
 class StorageService {
@@ -165,6 +167,10 @@ class StorageService {
       this.saveProfile(profile);
     }
   }
+
+  getMedications(): MedicationLog[] { return this.getItem<MedicationLog[]>(KEYS.MEDICATIONS, []); }
+  addMedication(log: MedicationLog): void { this.setItem(KEYS.MEDICATIONS, [log, ...this.getMedications()]); }
+  removeMedication(id: string): void { this.setItem(KEYS.MEDICATIONS, this.getMedications().filter(m => m.id !== id)); }
 
   getUnlockedAchievementIds(): string[] { return this.getItem<string[]>(KEYS.UNLOCKED_IDS, []); }
   unlockAchievement(id: string): void {
