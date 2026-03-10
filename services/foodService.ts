@@ -2,9 +2,6 @@
  * Food Analysis Service using OpenRouter
  */
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "deepseek/deepseek-chat";
-
 export interface FoodAnalysis {
   name: string;
   calories: number;

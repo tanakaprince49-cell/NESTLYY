@@ -42,7 +42,7 @@ async function startServer() {
   // Food Analysis Endpoint
   app.post("/api/food/analyze", async (req, res) => {
     const { foodQuery } = req.body;
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = "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"; // HARDCODED FOR TESTING
 
     if (!apiKey) {
       return res.status(500).json({ error: "OPENROUTER_API_KEY is not set" });
@@ -103,7 +103,7 @@ Example: {"name": "Apple", "calories": 52, "protein": 0.3, "folate": 3, "iron": 
   // Ava AI Chat Endpoint
   app.post("/api/ava/chat", async (req, res) => {
     const { messages } = req.body;
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = "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"; // HARDCODED FOR TESTING
 
     if (!apiKey) {
       return res.status(500).json({ error: "OPENROUTER_API_KEY is not set" });
