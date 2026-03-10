@@ -122,7 +122,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [foodName, setFoodName] = useState('');
   const [foodCals, setFoodCals] = useState('');
   const [foodProtein, setFoodProtein] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -205,36 +204,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setFoodCals('');
     setFoodProtein('');
     setToast('Food logged successfully!');
-  };
-
-  const handleAISearch = async () => {
-    if (!foodName) return;
-    setIsAnalyzing(true);
-    try {
-      const { analyzeFood } = await import('../services/foodService.ts');
-      const result = await analyzeFood(foodName);
-      if (result) {
-        onAddEntry({
-          name: result.name,
-          calories: result.calories,
-          protein: result.protein,
-          folate: result.folate,
-          iron: result.iron,
-          calcium: result.calcium
-        });
-        setFoodName('');
-        setFoodCals('');
-        setFoodProtein('');
-        setToast(`Logged: ${result.name} (${result.calories} kcal)`);
-      } else {
-        setToast('Could not analyze food. Try again.');
-      }
-    } catch (error) {
-      console.error("AI Search failed", error);
-      setToast('AI Search failed. Check connection.');
-    } finally {
-      setIsAnalyzing(false);
-    }
   };
 
   const chartData = useMemo(() => {
@@ -522,14 +491,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   placeholder="Food Name (e.g., Avocado Toast)" 
                   className="text-sm bg-slate-50 border-none rounded-2xl h-12 flex-1"
                 />
-                <button 
-                  onClick={handleAISearch}
-                  disabled={isAnalyzing || !foodName}
-                  className="px-4 bg-amber-50 text-amber-600 font-black rounded-2xl text-[9px] uppercase tracking-widest active:scale-95 disabled:opacity-50 flex items-center gap-2 border border-amber-100"
-                >
-                  {isAnalyzing ? <Activity size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  AI Search
-                </button>
               </div>
               <div className="flex gap-3">
                 <input 

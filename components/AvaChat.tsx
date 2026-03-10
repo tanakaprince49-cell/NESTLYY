@@ -13,7 +13,7 @@ import {
   Heart,
   Send
 } from 'lucide-react';
-import { getAvaResponse, speakAva } from '../services/geminiService.ts';
+import { getAvaResponse, speak } from '../services/geminiService.ts';
 import { PregnancyProfile, ChatMessage, AvaMemoryFact } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 
@@ -57,18 +57,13 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
         text: m.text
       }));
 
-      const response = await getAvaResponse(
-        userText,
-        historyForApi,
-        profile.userName,
-        memoryStrings
-      );
+      const response = await getAvaResponse(userText);
 
       const modelMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: response, timestamp: Date.now() };
       setMessages([...newMessages, modelMsg]);
       
       if (isSpeaking) {
-        speakAva(response);
+        speak(response);
       }
     } catch (err) {
       setMessages([...newMessages, { id: Date.now().toString(), role: 'model', text: "Ava is taking a quiet moment 💕", timestamp: Date.now() }]);
