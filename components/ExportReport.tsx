@@ -65,7 +65,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               <p className="text-sm text-slate-500 mt-1">Generated on {new Date().toLocaleDateString()}</p>
             </div>
             <div className="text-right">
-              <h2 className="text-xl font-bold text-slate-700">{profile.name}'s Dashboard</h2>
+              <h2 className="text-xl font-bold text-slate-700">{profile.userName}'s Dashboard</h2>
               {profile.babies && profile.babies.length > 0 && (
                 <p className="text-sm text-slate-500 mt-1">Baby: {profile.babies.map(b => b.name).join(', ')}</p>
               )}
@@ -75,77 +75,85 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           {/* Content Grid */}
           <div className="grid grid-cols-2 gap-6">
             {/* Feeding Summary */}
-            <div className="bg-rose-50 p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-3 text-rose-600">
-                <Milk size={20} />
-                <h3 className="font-bold">Recent Feedings</h3>
+            <div className="bg-rose-50/50 p-6 rounded-3xl border border-rose-100">
+              <div className="flex items-center gap-3 mb-4 text-rose-600">
+                <div className="p-2 bg-white rounded-xl shadow-sm">
+                  <Milk size={20} />
+                </div>
+                <h3 className="font-black text-xs uppercase tracking-widest">Recent Feedings</h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {recentFeedings.length > 0 ? recentFeedings.map(log => (
-                  <div key={log.id} className="text-sm flex justify-between border-b border-rose-100 pb-1">
-                    <span>{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    <span className="font-medium">{log.type} {log.amount ? `${log.amount}ml` : ''} {log.duration ? `${log.duration}m` : ''}</span>
+                  <div key={log.id} className="text-xs flex justify-between items-center border-b border-rose-100/50 pb-2">
+                    <span className="text-slate-400 font-bold">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    <span className="font-black text-rose-900">{log.type} {log.amount ? `${log.amount}ml` : ''} {log.duration ? `${log.duration}m` : ''}</span>
                   </div>
-                )) : <p className="text-sm text-slate-500">No recent feedings logged.</p>}
+                )) : <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No recent feedings</p>}
               </div>
             </div>
 
             {/* Sleep Summary */}
-            <div className="bg-indigo-50 p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-3 text-indigo-600">
-                <Moon size={20} />
-                <h3 className="font-bold">Recent Sleep</h3>
+            <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100">
+              <div className="flex items-center gap-3 mb-4 text-indigo-600">
+                <div className="p-2 bg-white rounded-xl shadow-sm">
+                  <Moon size={20} />
+                </div>
+                <h3 className="font-black text-xs uppercase tracking-widest">Recent Sleep</h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {recentSleep.length > 0 ? recentSleep.map(log => (
-                  <div key={log.id} className="text-sm flex justify-between border-b border-indigo-100 pb-1">
-                    <span>{new Date(log.timestamp).toLocaleDateString()}</span>
-                    <span className="font-medium">{log.hours} hrs ({log.type})</span>
+                  <div key={log.id} className="text-xs flex justify-between items-center border-b border-indigo-100/50 pb-2">
+                    <span className="text-slate-400 font-bold">{new Date(log.timestamp).toLocaleDateString()}</span>
+                    <span className="font-black text-indigo-900">{log.hours} hrs ({log.type})</span>
                   </div>
-                )) : <p className="text-sm text-slate-500">No recent sleep logged.</p>}
+                )) : <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No recent sleep</p>}
               </div>
             </div>
 
             {/* Diaper Summary */}
-            <div className="bg-emerald-50 p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-3 text-emerald-600">
-                <Droplets size={20} />
-                <h3 className="font-bold">Recent Diapers</h3>
+            <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100">
+              <div className="flex items-center gap-3 mb-4 text-emerald-600">
+                <div className="p-2 bg-white rounded-xl shadow-sm">
+                  <Droplets size={20} />
+                </div>
+                <h3 className="font-black text-xs uppercase tracking-widest">Recent Diapers</h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {recentDiapers.length > 0 ? recentDiapers.map(log => (
-                  <div key={log.id} className="text-sm flex justify-between border-b border-emerald-100 pb-1">
-                    <span>{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    <span className="font-medium capitalize">{log.type}</span>
+                  <div key={log.id} className="text-xs flex justify-between items-center border-b border-emerald-100/50 pb-2">
+                    <span className="text-slate-400 font-bold">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    <span className="font-black text-emerald-900 capitalize">{log.type}</span>
                   </div>
-                )) : <p className="text-sm text-slate-500">No recent diapers logged.</p>}
+                )) : <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No recent diapers</p>}
               </div>
             </div>
 
             {/* Growth Summary */}
-            <div className="bg-blue-50 p-4 rounded-xl">
-              <div className="flex items-center gap-2 mb-3 text-blue-600">
-                <Ruler size={20} />
-                <h3 className="font-bold">Latest Growth</h3>
+            <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100">
+              <div className="flex items-center gap-3 mb-4 text-blue-600">
+                <div className="p-2 bg-white rounded-xl shadow-sm">
+                  <Ruler size={20} />
+                </div>
+                <h3 className="font-black text-xs uppercase tracking-widest">Latest Growth</h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {babyGrowthLogs.length > 0 ? (
-                  <div className="text-sm space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Weight:</span>
-                      <span className="font-bold">{babyGrowthLogs[0].weight} kg</span>
+                  <div className="text-xs space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 font-bold">Weight:</span>
+                      <span className="font-black text-blue-900">{babyGrowthLogs[0].weight} kg</span>
                     </div>
                     {babyGrowthLogs[0].height && (
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Height:</span>
-                        <span className="font-bold">{babyGrowthLogs[0].height} cm</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 font-bold">Height:</span>
+                        <span className="font-black text-blue-900">{babyGrowthLogs[0].height} cm</span>
                       </div>
                     )}
-                    <div className="text-xs text-slate-400 mt-2 text-right">
+                    <div className="text-[9px] text-slate-300 mt-4 text-right font-black uppercase tracking-widest">
                       Recorded on {new Date(babyGrowthLogs[0].timestamp).toLocaleDateString()}
                     </div>
                   </div>
-                ) : <p className="text-sm text-slate-500">No growth data logged.</p>}
+                ) : <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No growth data</p>}
               </div>
             </div>
           </div>

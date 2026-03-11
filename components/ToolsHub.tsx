@@ -18,6 +18,7 @@ import {
   LifecycleStage,
   BabyGrowthLog,
   DiaperLog,
+  TummyTimeLog,
   MedicationLog
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
@@ -73,7 +74,7 @@ interface ToolsHubProps {
   onAddJournal: (content: string, mood?: string) => void;
   onRemoveJournal: (id: string) => void;
   calendarEvents: CalendarEvent[];
-  onAddEvent: (title: string, date: string, type: CalendarEvent['type']) => void;
+  onAddEvent: (title: string, date: string, type: CalendarEvent['type'], time?: string) => void;
   onRemoveEvent: (id: string) => void;
   weightLogs: WeightLog[];
   onAddWeight: (weight: number) => void;
@@ -94,6 +95,8 @@ interface ToolsHubProps {
   onAddKick: (kick: Omit<KickLog, 'id' | 'timestamp'>) => void;
   babyGrowthLogs: BabyGrowthLog[];
   onAddBabyGrowth: (log: Omit<BabyGrowthLog, 'id' | 'timestamp'>) => void;
+  tummyTimeLogs: TummyTimeLog[];
+  onAddTummyTime: (log: Omit<TummyTimeLog, 'id' | 'timestamp'>) => void;
   medicationLogs: MedicationLog[];
   onAddMedication: (log: Omit<MedicationLog, 'id' | 'timestamp'>) => void;
   onRemoveMedication: (id: string) => void;
@@ -110,10 +113,33 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   weightLogs, onAddWeight, sleepLogs, onAddSleep, onRemoveSleep, 
   feedingLogs, onAddFeeding, diaperLogs, onAddDiaper, milestones, onAddMilestone, healthLogs, onAddHealth, 
   reactions, onAddReaction, kickLogs, onAddKick, babyGrowthLogs, onAddBabyGrowth,
+  tummyTimeLogs, onAddTummyTime,
   medicationLogs, onAddMedication, onRemoveMedication,
   trimester, profile,
   activeCategory, setActiveCategory, onUpdateProfile
 }) => {
+  const [tummyTimer, setTummyTimer] = useState<{ startTime: number | null, duration: number }>({ startTime: null, duration: 0 });
+
+  useEffect(() => {
+    let interval: any;
+    if (tummyTimer.startTime) {
+      interval = setInterval(() => {
+        const now = Date.now();
+        setTummyTimer(prev => ({
+          ...prev,
+          duration: Math.floor((now - (prev.startTime || now)) / 1000)
+        }));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [tummyTimer.startTime]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
@@ -199,6 +225,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   // Calendar
   const [eventTitle, setEventTitle] = useState('');
   const [eventDate, setEventDate] = useState('');
+  const [eventTime, setEventTime] = useState('');
   const [eventType, setEventType] = useState<CalendarEvent['type']>('appointment');
   
   // Kegels
@@ -232,6 +259,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   // Medications
   const [medName, setMedName] = useState('');
   const [medDosage, setMedDosage] = useState('');
+  const [medTime, setMedTime] = useState('');
 
   const handleWeightLog = () => {
     if (weightInput) {
@@ -346,6 +374,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
 
+  const [selectedHealthType, setSelectedHealthType] = useState<string | null>(null);
+  const [healthNotes, setHealthNotes] = useState('');
+
   const categories = useMemo(() => {
     if (isPostpartum) {
       return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'reports', 'settings'];
@@ -397,20 +428,30 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[9px] font-black text-slate-300 uppercase tracking-widest ml-1">Dosage & Time</label>
+                <label className="text-[9px] font-black text-slate-300 uppercase tracking-widest ml-1">Dosage</label>
                 <input 
                   value={medDosage}
                   onChange={e => setMedDosage(e.target.value)}
-                  placeholder="e.g. 500mg, 8:00 AM"
+                  placeholder="e.g. 500mg"
+                  className="w-full px-6 py-4 bg-slate-50 rounded-2xl text-sm font-bold border-none focus:ring-2 focus:ring-rose-200 transition-all"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-slate-300 uppercase tracking-widest ml-1">Reminder Time</label>
+                <input 
+                  type="time"
+                  value={medTime}
+                  onChange={e => setMedTime(e.target.value)}
                   className="w-full px-6 py-4 bg-slate-50 rounded-2xl text-sm font-bold border-none focus:ring-2 focus:ring-rose-200 transition-all"
                 />
               </div>
               <button 
                 onClick={() => {
                   if (medName.trim() && medDosage.trim()) {
-                    onAddMedication({ name: medName.trim(), dosage: medDosage.trim() });
+                    onAddMedication({ name: medName.trim(), dosage: medDosage.trim(), time: medTime });
                     setMedName('');
                     setMedDosage('');
+                    setMedTime('');
                     showSuccess('Medication logged successfully');
                   }
                 }}
@@ -455,7 +496,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                       </div>
                       <div>
                         <div className="font-serif text-lg text-slate-800 leading-none mb-1">{log.name}</div>
-                        <div className="text-[10px] font-bold text-slate-400">{log.dosage}</div>
+                        <div className="text-[10px] font-bold text-slate-400">{log.dosage} {log.time && `• ${log.time}`}</div>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -1021,30 +1062,90 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         <div className="space-y-8 animate-in fade-in">
           <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
             <h3 className="text-xl font-serif text-rose-800">Health Logs</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { type: 'temperature', icon: Thermometer },
-                { type: 'medication', icon: Pill },
-                { type: 'vaccination', icon: Syringe },
-                { type: 'symptom', icon: Stethoscope }
-              ].map(item => (
-                <button 
-                  key={item.type}
-                  onClick={() => onAddHealth({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', type: item.type, value: 'Normal', notes: '' })}
-                  className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-500 transition-all flex flex-col items-center gap-2"
-                >
-                  <item.icon size={20} />
-                  {item.type}
-                </button>
-              ))}
-            </div>
+            
+            {!selectedHealthType ? (
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { type: 'temperature', icon: Thermometer },
+                  { type: 'medication', icon: Pill },
+                  { type: 'vaccination', icon: Syringe },
+                  { type: 'symptom', icon: Stethoscope }
+                ].map(item => (
+                  <button 
+                    key={item.type}
+                    onClick={() => setSelectedHealthType(item.type)}
+                    className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-500 transition-all flex flex-col items-center gap-2"
+                  >
+                    <item.icon size={20} />
+                    {item.type}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4 animate-in slide-in-from-bottom-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <button onClick={() => setSelectedHealthType(null)} className="p-2 bg-slate-100 rounded-full text-slate-500">
+                    <Plus className="rotate-45" size={16} />
+                  </button>
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-400">Logging {selectedHealthType}</span>
+                </div>
+                
+                <textarea 
+                  placeholder="Add notes (optional)..."
+                  value={healthNotes}
+                  onChange={(e) => setHealthNotes(e.target.value)}
+                  className="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-rose-200 text-sm min-h-[100px]"
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => {
+                      onAddHealth({ 
+                        babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
+                        type: selectedHealthType, 
+                        value: 'Normal', 
+                        notes: healthNotes,
+                        status: 'normal'
+                      });
+                      setSelectedHealthType(null);
+                      setHealthNotes('');
+                      showSuccess('Health log saved!');
+                    }}
+                    className="py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition-colors"
+                  >
+                    Normal
+                  </button>
+                  <button
+                    onClick={() => {
+                      onAddHealth({ 
+                        babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
+                        type: selectedHealthType, 
+                        value: 'Abnormal', 
+                        notes: healthNotes,
+                        status: 'abnormal'
+                      });
+                      setSelectedHealthType(null);
+                      setHealthNotes('');
+                      showSuccess('Health log saved!');
+                    }}
+                    className="py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-600 transition-colors"
+                  >
+                    Abnormal
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <div className="space-y-4">
             {healthLogs.filter(h => h.babyId === (selectedBabyId || profile.babies?.[0]?.id || '')).map(log => (
               <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
                 <div>
                   <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.type}</div>
-                  <div className="text-sm font-bold text-slate-700">{log.value}</div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${log.status === 'normal' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                    <div className="text-sm font-bold text-slate-700 capitalize">{log.status || log.value}</div>
+                  </div>
+                  {log.notes && <p className="text-[10px] text-slate-400 mt-1">{log.notes}</p>}
                 </div>
                 <span className="text-xs font-bold text-slate-400">{new Date(log.timestamp).toLocaleDateString()}</span>
               </div>
@@ -1102,6 +1203,12 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   onChange={e => setEventDate(e.target.value)} 
                   className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" 
                 />
+                <input 
+                  type="time" 
+                  value={eventTime} 
+                  onChange={e => setEventTime(e.target.value)} 
+                  className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" 
+                />
                 <select 
                   value={eventType} 
                   onChange={e => setEventType(e.target.value as any)}
@@ -1115,9 +1222,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               <button 
                 onClick={() => {
                   if (eventTitle && eventDate) {
-                    onAddEvent(eventTitle, eventDate, eventType);
+                    onAddEvent(eventTitle, eventDate, eventType, eventTime);
                     setEventTitle('');
                     setEventDate('');
+                    setEventTime('');
                   }
                 }}
                 className="w-full py-5 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl"
@@ -1135,7 +1243,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                     {event.type === 'appointment' ? <Hospital size={20} /> : event.type === 'milestone' ? <Trophy size={20} /> : <Bell size={20} />}
                   </div>
                   <div>
-                    <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{new Date(event.date).toLocaleDateString()}</div>
+                    <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
+                      {new Date(event.date).toLocaleDateString()} {event.time && `• ${event.time}`}
+                    </div>
                     <div className="text-sm font-bold text-slate-900">{event.title}</div>
                   </div>
                 </div>
@@ -1920,6 +2030,85 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         </div>
       )}
 
+      {activeCategory === 'tummy_time' && (
+        <div className="space-y-6 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
+            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto text-orange-500">
+              <Activity size={40} />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-serif text-rose-900">Tummy Time Tracker</h3>
+              <p className="text-xs text-slate-400 font-medium">Log your baby's daily stomach-down playtime to support motor skill development.</p>
+            </div>
+
+            <div className="py-8">
+              <div className="text-6xl font-mono font-black text-rose-900 tracking-tighter">
+                {formatTime(tummyTimer.duration)}
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 mt-2">Current Session</p>
+            </div>
+
+            <div className="flex gap-4">
+              {!tummyTimer.startTime ? (
+                <button 
+                  onClick={() => setTummyTimer({ startTime: Date.now(), duration: 0 })}
+                  className="flex-1 py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Play size={20} fill="currentColor" />
+                  Start Session
+                </button>
+              ) : (
+                <button 
+                  onClick={() => {
+                    onAddTummyTime({ 
+                      babyId: profile.babies?.[0]?.id || 'default', 
+                      duration: tummyTimer.duration,
+                      notes: ''
+                    });
+                    setTummyTimer({ startTime: null, duration: 0 });
+                    showSuccess('Tummy time session saved!');
+                  }}
+                  className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-200 hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Square size={20} fill="currentColor" />
+                  Stop & Save
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="card-premium p-6 bg-white border-2 border-slate-50">
+            <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Today's Progress</h4>
+            {(() => {
+              const today = new Date().setHours(0,0,0,0);
+              const todayLogs = tummyTimeLogs.filter(l => l.timestamp >= today);
+              const totalSecs = todayLogs.reduce((acc, curr) => acc + curr.duration, 0);
+              const goalSecs = 30 * 60; // 30 minutes goal
+              const progress = Math.min((totalSecs / goalSecs) * 100, 100);
+
+              return (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <span className="text-3xl font-black text-rose-900">{Math.floor(totalSecs / 60)}</span>
+                      <span className="text-xs font-bold text-slate-400 ml-1">/ 30 min goal</span>
+                    </div>
+                    <span className="text-xs font-black text-rose-500">{Math.round(progress)}%</span>
+                  </div>
+                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      className="h-full bg-rose-500 rounded-full"
+                    />
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
       {activeCategory === 'export' && (
         <ExportReport 
           profile={profile}
@@ -1934,12 +2123,12 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       <AnimatePresence>
         {toast && (
           <motion.div 
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
           >
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+            <div className={`w-2 h-2 rounded-full animate-pulse ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
             {toast.message}
           </motion.div>
         )}

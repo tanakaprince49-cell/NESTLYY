@@ -37,7 +37,8 @@ import {
   LifecycleStage,
   BabyGrowthLog,
   DiaperLog,
-  MedicationLog
+  MedicationLog,
+  TummyTimeLog
 } from './types.ts';
 
 const App: React.FC = () => {
@@ -98,6 +99,7 @@ const App: React.FC = () => {
   const [healthLogs, setHealthLogs] = useState<HealthLog[]>([]);
   const [reactions, setReactions] = useState<ReactionLog[]>([]);
   const [babyGrowthLogs, setBabyGrowthLogs] = useState<BabyGrowthLog[]>([]);
+  const [tummyTimeLogs, setTummyTimeLogs] = useState<TummyTimeLog[]>([]);
   const [kickLogs, setKickLogs] = useState<KickLog[]>([]);
   const [diaperLogs, setDiaperLogs] = useState<DiaperLog[]>([]);
   const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
@@ -119,6 +121,7 @@ const App: React.FC = () => {
     setHealthLogs(storage.getHealthLogs());
     setReactions(storage.getReactions());
     setBabyGrowthLogs(storage.getBabyGrowthLogs());
+    setTummyTimeLogs(storage.getTummyTimeLogs());
     setKickLogs(storage.getKickLogs());
     setDiaperLogs(storage.getDiaperLogs());
     setMedicationLogs(storage.getMedications());
@@ -146,7 +149,7 @@ const App: React.FC = () => {
             'journal', 'calendar', 'weight_logs', 'sleep_logs', 'feeding_logs', 
             'baby_milestones', 'baby_health_logs', 'baby_growth_logs', 'baby_diaper_logs',
             'kick_logs', 'baby_reactions', 'baby_names', 'water_intake', 'bump_photos',
-            'medication_logs'
+            'medication_logs', 'tummy_time_logs'
           ];
           
           for (const col of collections) {
@@ -229,7 +232,8 @@ const App: React.FC = () => {
         vitamins,
         feedingLogs,
         sleepLogs,
-        milestones
+        milestones,
+        medicationLogs
       );
       
       // 2. Process and show due ones
@@ -346,6 +350,7 @@ const App: React.FC = () => {
                 entries={entries} waterLogs={waterLogs} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
                 feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
                 journalEntries={journalEntries} babyGrowthLogs={babyGrowthLogs} diaperLogs={diaperLogs}
+                tummyTimeLogs={tummyTimeLogs}
                 trimester={trimester} profile={profile}
                 onAddEntry={(e) => { 
                   storage.addFoodEntry({...e, id: Date.now().toString(), timestamp: Date.now()} as any); 
@@ -423,8 +428,8 @@ const App: React.FC = () => {
                   setJournalEntries(storage.getJournalEntries()); 
                   syncAllToFirestore(userUid!);
                 }}
-                calendarEvents={calendarEvents} onAddEvent={(t,d,ty) => { 
-                  storage.addCalendarEvent({id: Date.now().toString(), title: t, date: d, type: ty}); 
+                calendarEvents={calendarEvents} onAddEvent={(t,d,ty,tm) => { 
+                  storage.addCalendarEvent({id: Date.now().toString(), title: t, date: d, type: ty, time: tm}); 
                   setCalendarEvents(storage.getCalendarEvents()); 
                   syncAllToFirestore(userUid!);
                 }}
@@ -489,7 +494,14 @@ const App: React.FC = () => {
                   setMedicationLogs(storage.getMedications());
                   syncAllToFirestore(userUid!);
                 }}
-                babyGrowthLogs={babyGrowthLogs} onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
+                babyGrowthLogs={babyGrowthLogs}
+                tummyTimeLogs={tummyTimeLogs}
+                onAddTummyTime={(t) => {
+                  storage.addTummyTimeLog({id: Date.now().toString(), ...t, timestamp: Date.now()});
+                  setTummyTimeLogs(storage.getTummyTimeLogs());
+                  syncAllToFirestore(userUid!);
+                }}
+                onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
                 trimester={trimester} profile={profile}
                 activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}
                 onUpdateProfile={(p) => { 

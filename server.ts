@@ -57,6 +57,20 @@ async function startServer() {
     }
   });
 
+  // Admin Broadcast Push
+  app.post("/api/admin/broadcast", async (req, res) => {
+    const { title, body, url } = req.body;
+    if (!title || !body) return res.status(400).send("Title and body required");
+
+    try {
+      await broadcastPush({ title, body, url: url || "/?tab=dashboard" });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Admin broadcast error:", error);
+      res.status(500).send("Error broadcasting notification");
+    }
+  });
+
   // Unsubscribe endpoint
   app.get("/api/unsubscribe", async (req, res) => {
     const { email } = req.query;

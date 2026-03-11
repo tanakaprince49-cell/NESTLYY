@@ -18,7 +18,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 import { storage } from './storageService.ts';
-import { PregnancyProfile, CalendarEvent, VitaminLog, FeedingLog, SleepLog, MilestoneLog, LifecycleStage } from '../types.ts';
+import { PregnancyProfile, CalendarEvent, VitaminLog, FeedingLog, SleepLog, MilestoneLog, LifecycleStage, MedicationLog } from '../types.ts';
 import { messaging, auth } from '../firebase.ts';
 import { getToken, onMessage } from 'firebase/messaging';
 
@@ -170,7 +170,8 @@ export function scheduleReminders(
   vitamins: VitaminLog[],
   feedingLogs: FeedingLog[],
   sleepLogs: SleepLog[],
-  milestones: MilestoneLog[]
+  milestones: MilestoneLog[],
+  medicationLogs: MedicationLog[]
 ) {
   if (!profile.notificationsEnabled) return;
 
@@ -196,19 +197,36 @@ export function scheduleReminders(
     });
   }
 
-  // 2. Doctor Appointments
+  // 2. Doctor Appointments & Reminders
   calendarEvents.forEach(event => {
+    const eventDate = new Date(event.date);
+    if (event.time) {
+      const [hours, minutes] = event.time.split(':');
+      eventDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+    const eventTime = eventDate.getTime();
+
     if (event.type === 'appointment') {
-      const eventTime = new Date(event.date).getTime();
       // Reminder 1 day before
       const reminderTime = eventTime - (24 * 60 * 60 * 1000);
       if (reminderTime > now) {
         reminders.push({
           id: `appointment-${event.id}`,
           title: `Appointment Tomorrow 🩺`,
-          body: `Reminder: You have a prenatal appointment tomorrow at ${new Date(eventTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
+          body: `Reminder: You have a prenatal appointment tomorrow at ${event.time || new Date(eventTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
           timestamp: reminderTime,
           type: 'appointment'
+        });
+      }
+    } else if (event.type === 'reminder') {
+      // Direct reminder at the specified time
+      if (eventTime > now) {
+        reminders.push({
+          id: `calendar-reminder-${event.id}`,
+          title: `Reminder: ${event.title} 🔔`,
+          body: `It's time for: ${event.title}`,
+          timestamp: eventTime,
+          type: 'reminder'
         });
       }
     }
@@ -248,11 +266,93 @@ export function scheduleReminders(
     }
   }
 
+  // 5. Medication Reminders
+  medicationLogs.forEach(med => {
+    // Use dedicated time field if available, otherwise try to parse from dosage
+    let hours: number | null = null;
+    let minutes: number | null = null;
+
+    if (med.time) {
+      const [h, m] = med.time.split(':');
+      hours = parseInt(h);
+      minutes = parseInt(m);
+    } else {
+      const timeMatch = med.dosage.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+      if (timeMatch) {
+        hours = parseInt(timeMatch[1]);
+        minutes = parseInt(timeMatch[2]);
+        const ampm = timeMatch[3]?.toUpperCase();
+        if (ampm === 'PM' && hours < 12) hours += 12;
+        if (ampm === 'AM' && hours === 12) hours = 0;
+      }
+    }
+
+    if (hours !== null && minutes !== null) {
+      const medTime = new Date();
+      medTime.setHours(hours, minutes, 0, 0);
+      
+      if (medTime.getTime() <= now) {
+        medTime.setDate(medTime.getDate() + 1);
+      }
+
+      reminders.push({
+        id: `med-reminder-${med.id}-${medTime.getTime()}`,
+        title: `Medication Reminder 💊`,
+        body: `Time to take your ${med.name} (${med.dosage}).`,
+        timestamp: medTime.getTime(),
+        type: 'medication'
+      });
+    }
+  });
+
   // Add to storage if not already present
   const existingReminders = storage.getReminders();
   reminders.forEach(r => {
     if (!existingReminders.find(er => er.id === r.id)) {
       storage.addReminder(r);
+    }
+  });
+
+  // 5. Daily Routine Notifications (5 per day)
+  scheduleDailyRoutine(profile);
+}
+
+/**
+ * Schedule 5 daily routine notifications
+ */
+function scheduleDailyRoutine(profile: PregnancyProfile) {
+  if (!profile.notificationsEnabled) return;
+
+  const now = new Date();
+  const routineMessages = [
+    { time: 8, title: "Good Morning Mama 🌅", body: "Start your day with a glass of water and a deep breath. You're doing great!" },
+    { time: 11, title: "Hydration Check 💧", body: "Remember to keep drinking water. It's important for you and baby!" },
+    { time: 14, title: "Movement Break 🧘‍♀️", body: "Time for a quick stretch or a short walk if you're feeling up to it." },
+    { time: 18, title: "Healthy Dinner 🥗", body: "Focus on nutrients tonight. How about some leafy greens or lean protein?" },
+    { time: 21, title: "Rest & Relax 🌙", body: "Wind down for the night. You've earned a good night's sleep!" }
+  ];
+
+  const existingReminders = storage.getReminders();
+
+  routineMessages.forEach(msg => {
+    const scheduledTime = new Date();
+    scheduledTime.setHours(msg.time, 0, 0, 0);
+
+    // If time has passed today, schedule for tomorrow
+    if (scheduledTime.getTime() <= now.getTime()) {
+      scheduledTime.setDate(scheduledTime.getDate() + 1);
+    }
+
+    const id = `daily-routine-${msg.time}-${scheduledTime.toDateString()}`;
+    
+    if (!existingReminders.find(er => er.id === id)) {
+      storage.addReminder({
+        id,
+        title: msg.title,
+        body: msg.body,
+        timestamp: scheduledTime.getTime(),
+        type: 'routine'
+      });
     }
   });
 }

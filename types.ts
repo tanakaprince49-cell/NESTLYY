@@ -141,6 +141,7 @@ export interface CalendarEvent {
   id: string;
   title: string;
   date: string;
+  time?: string;
   type: 'appointment' | 'reminder' | 'milestone';
 }
 
@@ -207,6 +208,14 @@ export interface HealthLog {
   type: 'temperature' | 'medication' | 'vaccination' | 'symptom';
   value: string;
   notes: string;
+  status: 'normal' | 'abnormal';
+  timestamp: number;
+}
+
+export interface TummyTimeLog {
+  id: string;
+  babyId: string;
+  duration: number; // in seconds
   timestamp: number;
 }
 
@@ -231,6 +240,7 @@ export interface MedicationLog {
   id: string;
   name: string;
   dosage: string;
+  time?: string;
   timestamp: number;
 }
 

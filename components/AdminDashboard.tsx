@@ -53,11 +53,23 @@ export const AdminDashboard: React.FC = () => {
 
     setIsSending(true);
     try {
+      // 1. Save to Firestore for in-app history
       await addDoc(collection(db, 'broadcasts'), {
         title: pushTitle,
         body: pushBody,
         timestamp: Date.now(),
         type: 'broadcast'
+      });
+
+      // 2. Trigger real FCM push via server
+      await fetch('/api/admin/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: pushTitle,
+          body: pushBody,
+          url: '/?tab=dashboard'
+        })
       });
       
       setPushTitle('');

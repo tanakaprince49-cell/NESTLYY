@@ -26,7 +26,8 @@ import {
   BabyGrowthLog,
   DiaperLog,
   Video,
-  MedicationLog
+  MedicationLog,
+  TummyTimeLog
 } from '../types.ts';
 
 const KEYS = {
@@ -66,7 +67,8 @@ const KEYS = {
   BABY_NAMES: 'baby_names',
   WATER_INTAKE: 'water_intake',
   BUMP_PHOTOS: 'bump_photos',
-  MEDICATIONS: 'medication_logs'
+  MEDICATIONS: 'medication_logs',
+  TUMMY_TIME: 'tummy_time_logs'
 };
 
 class StorageService {
@@ -149,6 +151,9 @@ class StorageService {
 
   getHealthLogs(): HealthLog[] { return this.getItem<HealthLog[]>(KEYS.HEALTH, []); }
   addHealthLog(log: HealthLog): void { this.setItem(KEYS.HEALTH, [log, ...this.getHealthLogs()]); }
+
+  getTummyTimeLogs(): TummyTimeLog[] { return this.getItem<TummyTimeLog[]>(KEYS.TUMMY_TIME, []); }
+  addTummyTimeLog(log: TummyTimeLog): void { this.setItem(KEYS.TUMMY_TIME, [log, ...this.getTummyTimeLogs()]); }
 
   getBabyGrowthLogs(): BabyGrowthLog[] { return this.getItem<BabyGrowthLog[]>(KEYS.BABY_GROWTH, []); }
   addBabyGrowthLog(log: BabyGrowthLog): void { this.setItem(KEYS.BABY_GROWTH, [log, ...this.getBabyGrowthLogs()]); }

@@ -60,7 +60,8 @@ import {
   ReactionLog,
   JournalEntry,
   BabyGrowthLog,
-  DiaperLog
+  DiaperLog,
+  TummyTimeLog
 } from '../types.ts';
 
 interface DashboardProps {
@@ -76,6 +77,7 @@ interface DashboardProps {
   journalEntries: JournalEntry[];
   babyGrowthLogs: BabyGrowthLog[];
   diaperLogs: DiaperLog[];
+  tummyTimeLogs: TummyTimeLog[];
   trimester: Trimester;
   profile: PregnancyProfile;
   onAddEntry: (entry: Omit<FoodEntry, 'id' | 'timestamp'>) => void;
@@ -109,11 +111,12 @@ import { subscribeUserToPush } from '../services/pushService.ts';
 export const Dashboard: React.FC<DashboardProps> = ({ 
   entries = [], waterLogs = [], vitamins = [], weightLogs = [], sleepLogs = [], 
   feedingLogs = [], milestones = [], healthLogs = [], reactions = [], journalEntries = [], babyGrowthLogs = [], diaperLogs = [],
+  tummyTimeLogs = [],
   trimester, profile, 
   onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onNavigate
 }) => {
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
-  const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep'>('fuel');
+  const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep' | 'feeding' | 'tummy'>('fuel');
   const [newbornTab, setNewbornTab] = useState<'growth' | 'feeding' | 'sleep' | 'milestones' | 'health' | 'journal'>('feeding');
   const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies?.[0]?.id || 'combined');
   const [dailyTip, setDailyTip] = useState('');
@@ -219,17 +222,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const dayEntries = (entries || []).filter(e => e.timestamp >= dayStart && e.timestamp <= dayEnd);
       const dayWater = (waterLogs || []).filter(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
       const dayWeight = (weightLogs || []).find(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
-      const daySleep = (sleepLogs || []).find(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
+      const daySleep = (sleepLogs || []).filter(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
+      const dayFeeding = (feedingLogs || []).filter(f => f.timestamp >= dayStart && f.timestamp <= dayEnd);
+      const dayTummy = (tummyTimeLogs || []).filter(t => t.timestamp >= dayStart && t.timestamp <= dayEnd);
 
       return {
         date: new Date(dateStr).toLocaleDateString([], { weekday: 'short' }),
         fuel: dayEntries.reduce((acc, curr) => acc + (curr.calories || 0), 0),
         water: dayWater.reduce((acc, curr) => acc + curr.amount, 0),
         weight: dayWeight?.weight || (weightLogs?.[0]?.weight || profile.startingWeight || 0),
-        sleep: daySleep?.hours || 0,
+        sleep: daySleep.reduce((acc, curr) => acc + curr.hours, 0),
+        feeding: dayFeeding.length,
+        tummy: dayTummy.reduce((acc, curr) => acc + curr.duration, 0) / 60, // minutes
       };
     });
-  }, [entries, waterLogs, weightLogs, sleepLogs, profile.startingWeight]);
+  }, [entries, waterLogs, weightLogs, sleepLogs, feedingLogs, tummyTimeLogs, profile.startingWeight]);
 
   const targets = profile.customTargets || {
     cals: 2200,
@@ -393,6 +400,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
               ))}
             </div>
           </div>
+
+          {/* Newborn Analytics */}
+          <div className="card-premium p-6 bg-white border-2 border-slate-50 h-80">
+            <div className="flex justify-between items-center mb-6">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Baby Activity Trends</h4>
+              <div className="flex gap-2">
+                {(['feeding', 'sleep', 'tummy'] as const).map(m => (
+                  <button 
+                    key={m} 
+                    onClick={() => setActiveMetric(m as any)}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
+                  >
+                    {m === 'feeding' ? <Milk size={16} /> : m === 'sleep' ? <Moon size={16} /> : <Activity size={16} />}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height="80%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorNewborn" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                <Area type="monotone" dataKey={activeMetric} stroke={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} fillOpacity={1} fill="url(#colorNewborn)" strokeWidth={3} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
@@ -555,10 +595,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <AnimatePresence>
         {toast && (
           <motion.div 
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
           >
             <div className="w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
             {toast}
