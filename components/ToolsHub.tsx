@@ -19,7 +19,8 @@ import {
   BabyGrowthLog,
   DiaperLog,
   TummyTimeLog,
-  MedicationLog
+  MedicationLog,
+  BloodPressureLog
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { ReportCenter } from './ReportCenter.tsx';
@@ -97,6 +98,8 @@ interface ToolsHubProps {
   onAddBabyGrowth: (log: Omit<BabyGrowthLog, 'id' | 'timestamp'>) => void;
   tummyTimeLogs: TummyTimeLog[];
   onAddTummyTime: (log: Omit<TummyTimeLog, 'id' | 'timestamp'>) => void;
+  bloodPressureLogs: BloodPressureLog[];
+  onAddBloodPressure: (log: Omit<BloodPressureLog, 'id' | 'timestamp'>) => void;
   medicationLogs: MedicationLog[];
   onAddMedication: (log: Omit<MedicationLog, 'id' | 'timestamp'>) => void;
   onRemoveMedication: (id: string) => void;
@@ -114,6 +117,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   feedingLogs, onAddFeeding, diaperLogs, onAddDiaper, milestones, onAddMilestone, healthLogs, onAddHealth, 
   reactions, onAddReaction, kickLogs, onAddKick, babyGrowthLogs, onAddBabyGrowth,
   tummyTimeLogs, onAddTummyTime,
+  bloodPressureLogs, onAddBloodPressure,
   medicationLogs, onAddMedication, onRemoveMedication,
   trimester, profile,
   activeCategory, setActiveCategory, onUpdateProfile
@@ -155,6 +159,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   const [babyWeightInput, setBabyWeightInput] = useState('');
   const [babyHeightInput, setBabyHeightInput] = useState('');
   const [sleepHours, setSleepHours] = useState('8');
+  const [bpSystolic, setBpSystolic] = useState('');
+  const [bpDiastolic, setBpDiastolic] = useState('');
+  const [bpPulse, setBpPulse] = useState('');
+  const [bpNotes, setBpNotes] = useState('');
   const [sleepQuality, setSleepQuality] = useState<SleepLog['quality']>(3);
   const [sleepType, setSleepType] = useState<'nap' | 'night'>('night');
   const [showSleepTooltip, setShowSleepTooltip] = useState(false);
@@ -379,9 +387,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'reports', 'settings'];
+      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'reports'];
     }
-    return ['vitals', 'medications', 'water', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'archive', 'reports', 'settings'];
+    return ['vitals', 'medications', 'water', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'archive', 'reports'];
   }, [isPostpartum]);
 
   return (
@@ -1163,31 +1171,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         </div>
       )}
 
-      {activeCategory === 'settings' && (
-        <div className="space-y-8 animate-in fade-in">
-          <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
-            <h3 className="text-xl font-serif text-rose-800">Account Settings</h3>
-            <div className="space-y-4">
-              <div className="p-6 bg-rose-50 rounded-[2rem] border border-rose-100 space-y-4">
-                <h4 className="text-sm font-bold text-rose-900">Danger Zone</h4>
-                <p className="text-[10px] text-rose-700 leading-relaxed">Deleting your account will permanently remove all your data, including pregnancy history, baby profiles, and journal entries. This action cannot be undone.</p>
-                <button 
-                  onClick={() => {
-                    if (window.confirm("Are you absolutely sure? This will delete ALL your data permanently.")) {
-                      storage.deleteAccount();
-                      window.location.reload();
-                    }
-                  }}
-                  className="w-full py-4 bg-rose-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-rose-100"
-                >
-                  Delete My Account
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {activeCategory === 'reports' && (
         <div className="space-y-8 animate-in fade-in">
           <ReportCenter />
@@ -1414,6 +1397,59 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 </LineChart>
               </ResponsiveContainer>
             </div>
+          </div>
+
+          <div className="card-premium p-8 bg-white space-y-6 shadow-sm border-2 border-white">
+            <h3 className="text-xl font-serif text-rose-800">Blood Pressure Tracker</h3>
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <input type="number" value={bpSystolic} onChange={e => setBpSystolic(e.target.value)} placeholder="Systolic (e.g. 120)" className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
+                <span className="text-2xl text-slate-300 font-light flex items-center">/</span>
+                <input type="number" value={bpDiastolic} onChange={e => setBpDiastolic(e.target.value)} placeholder="Diastolic (e.g. 80)" className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
+              </div>
+              <div className="flex gap-3">
+                <input type="number" value={bpPulse} onChange={e => setBpPulse(e.target.value)} placeholder="Pulse (bpm) - Optional" className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
+                <button 
+                  onClick={() => {
+                    if (bpSystolic && bpDiastolic) {
+                      onAddBloodPressure({
+                        systolic: parseInt(bpSystolic),
+                        diastolic: parseInt(bpDiastolic),
+                        pulse: bpPulse ? parseInt(bpPulse) : undefined,
+                        notes: bpNotes
+                      });
+                      setBpSystolic('');
+                      setBpDiastolic('');
+                      setBpPulse('');
+                      setBpNotes('');
+                      showSuccess('Blood pressure logged');
+                    }
+                  }} 
+                  className="px-10 py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest"
+                >
+                  Log
+                </button>
+              </div>
+            </div>
+            
+            {bloodPressureLogs.length > 0 && (
+              <div className="pt-6 border-t border-slate-50 space-y-4">
+                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-4 block">Recent Readings</span>
+                <div className="space-y-3">
+                  {bloodPressureLogs.slice(0, 5).map(log => (
+                    <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                      <div>
+                        <div className="text-lg font-bold text-slate-800">{log.systolic}/{log.diastolic} <span className="text-xs text-slate-400 font-normal">mmHg</span></div>
+                        {log.pulse && <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Pulse: {log.pulse} bpm</div>}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                        {new Date(log.timestamp).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2107,10 +2143,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       <AnimatePresence>
         {toast && (
           <motion.div 
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 bg-slate-900/95 backdrop-blur-xl text-white text-xs font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border border-white/20 min-w-[280px] justify-center"
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 bg-white/80 backdrop-blur-xl text-slate-800 text-xs font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center gap-4 border border-white/50 min-w-[280px] justify-center"
           >
             <div className={`w-3 h-3 rounded-full animate-ping ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
             {toast.message}

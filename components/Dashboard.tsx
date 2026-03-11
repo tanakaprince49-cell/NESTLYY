@@ -262,32 +262,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <h2 className="text-4xl font-serif text-slate-900 leading-tight">Bonjour, <br/>{profile.userName}</h2>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <div className="flex gap-2">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={onEditProfile}
-              className="bg-white/50 backdrop-blur-md border border-white px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-900 transition-all"
-            >
-              Edit Profile
-            </motion.button>
-          </div>
-          <div className="flex gap-1 bg-white/30 p-1 rounded-xl border border-white/50 relative z-50">
-            {(['pink', 'blue', 'neutral'] as const).map(c => (
-              <motion.button
-                key={c}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const updatedProfile = { ...profile, themeColor: c };
-                  onUpdateProfile?.(updatedProfile);
-                }}
-                className={`w-6 h-6 rounded-lg border transition-all cursor-pointer ${profile.themeColor === c ? 'border-rose-500 scale-110 shadow-sm' : 'border-transparent opacity-40 hover:opacity-100'}`}
-                style={{ backgroundColor: c === 'pink' ? '#f43f5e' : c === 'blue' ? '#3b82f6' : '#64748b' }}
-              />
-            ))}
-          </div>
+          {profile.profileImage && (
+            <img src={profile.profileImage} alt="Profile" className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover" />
+          )}
         </div>
       </div>
 
@@ -631,10 +608,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <AnimatePresence>
         {toast && (
           <motion.div 
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 bg-slate-900/95 backdrop-blur-xl text-white text-xs font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border border-white/20 min-w-[280px] justify-center"
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 bg-white/80 backdrop-blur-xl text-slate-800 text-xs font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center gap-4 border border-white/50 min-w-[280px] justify-center"
           >
             <div className="w-3 h-3 bg-rose-500 rounded-full animate-ping" />
             {toast}

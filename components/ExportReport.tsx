@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import html2pdf from 'html2pdf.js';
-import { Download, Baby, Ruler, Milk, Moon, Droplets, Stethoscope, Activity, Heart, FileText, Calendar, Trophy } from 'lucide-react';
-import { PregnancyProfile, FeedingLog, SleepLog, DiaperLog, BabyGrowthLog, MilestoneLog, HealthLog, TummyTimeLog, JournalEntry, KickLog, ReactionLog } from '../types.ts';
+import { Download, Baby, Ruler, Milk, Moon, Droplets, Stethoscope, Activity, Heart, FileText, Calendar, Trophy, Pill, Activity as ActivityIcon } from 'lucide-react';
+import { PregnancyProfile, FeedingLog, SleepLog, DiaperLog, BabyGrowthLog, MilestoneLog, HealthLog, TummyTimeLog, JournalEntry, KickLog, ReactionLog, CalendarEvent, BloodPressureLog, MedicationLog, WeightLog } from '../types.ts';
 
 interface ExportReportProps {
   profile: PregnancyProfile;
@@ -15,6 +15,10 @@ interface ExportReportProps {
   journalEntries: JournalEntry[];
   kickLogs: KickLog[];
   reactions: ReactionLog[];
+  calendarEvents: CalendarEvent[];
+  bloodPressureLogs: BloodPressureLog[];
+  medicationLogs: MedicationLog[];
+  weightLogs: WeightLog[];
 }
 
 export const ExportReport: React.FC<ExportReportProps> = ({
@@ -28,7 +32,11 @@ export const ExportReport: React.FC<ExportReportProps> = ({
   tummyTimeLogs,
   journalEntries,
   kickLogs,
-  reactions
+  reactions,
+  calendarEvents,
+  bloodPressureLogs,
+  medicationLogs,
+  weightLogs
 }) => {
   const reportRef = useRef<HTMLDivElement>(null);
 
@@ -37,21 +45,15 @@ export const ExportReport: React.FC<ExportReportProps> = ({
     
     const opt: any = {
       margin:       10,
-      filename:     'nestly-baby-report.pdf',
+      filename:     'nestly-comprehensive-report.pdf',
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(reportRef.current).save();
   };
-
-  const recentFeedings = feedingLogs.slice(0, 10);
-  const recentSleep = sleepLogs.slice(0, 10);
-  const recentDiapers = diaperLogs.slice(0, 10);
-  const recentHealth = healthLogs.slice(0, 10);
-  const recentTummy = tummyTimeLogs.slice(0, 10);
-  const recentJournal = journalEntries.slice(0, 10);
 
   return (
     <div className="space-y-6 animate-in fade-in">
@@ -70,7 +72,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
       {/* Hidden Report Content for PDF Generation */}
       <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-        <div ref={reportRef} className="p-12 bg-white text-slate-800 font-sans" style={{ width: '1000px' }}>
+        <div ref={reportRef} className="p-8 bg-white text-slate-800 font-sans" style={{ width: '800px' }}>
           {/* Decorative Header */}
           <div className="relative mb-12 overflow-hidden rounded-[3rem] bg-gradient-to-br from-rose-500 to-indigo-600 p-12 text-white shadow-2xl">
             <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
@@ -132,8 +134,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                   <h2 className="text-xl font-serif font-bold text-slate-800">Feeding History</h2>
                 </div>
                 <div className="space-y-4">
-                  {recentFeedings.map(log => (
-                    <div key={log.id} className="flex justify-between items-center p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50">
+                  {feedingLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50" style={{ pageBreakInside: 'avoid' }}>
                       <div>
                         <div className="text-sm font-bold text-slate-700 capitalize">{log.type}</div>
                         <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
@@ -144,6 +146,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                       </div>
                     </div>
                   ))}
+                  {feedingLogs.length === 0 && <div className="text-sm text-slate-400">No feeding logs recorded.</div>}
                 </div>
               </section>
 
@@ -153,8 +156,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                   <h2 className="text-xl font-serif font-bold text-slate-800">Sleep Patterns</h2>
                 </div>
                 <div className="space-y-4">
-                  {recentSleep.map(log => (
-                    <div key={log.id} className="flex justify-between items-center p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/50">
+                  {sleepLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/50" style={{ pageBreakInside: 'avoid' }}>
                       <div>
                         <div className="text-sm font-bold text-slate-700 capitalize">{log.type}</div>
                         <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
@@ -169,6 +172,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                       </div>
                     </div>
                   ))}
+                  {sleepLogs.length === 0 && <div className="text-sm text-slate-400">No sleep logs recorded.</div>}
                 </div>
               </section>
             </div>
@@ -181,8 +185,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                   <h2 className="text-xl font-serif font-bold text-slate-800">Health Records</h2>
                 </div>
                 <div className="space-y-4">
-                  {recentHealth.map(log => (
-                    <div key={log.id} className="p-4 bg-emerald-50/30 rounded-2xl border border-emerald-100/50">
+                  {healthLogs.map(log => (
+                    <div key={log.id} className="p-4 bg-emerald-50/30 rounded-2xl border border-emerald-100/50" style={{ pageBreakInside: 'avoid' }}>
                       <div className="flex justify-between items-start mb-2">
                         <div className="text-sm font-bold text-slate-700 capitalize">{log.type}</div>
                         <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${log.status === 'normal' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
@@ -193,6 +197,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                       <div className="text-[9px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
                     </div>
                   ))}
+                  {healthLogs.length === 0 && <div className="text-sm text-slate-400">No health logs recorded.</div>}
                 </div>
               </section>
 
@@ -202,8 +207,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                   <h2 className="text-xl font-serif font-bold text-slate-800">Growth Tracking</h2>
                 </div>
                 <div className="space-y-4">
-                  {babyGrowthLogs.slice(0, 5).map(log => (
-                    <div key={log.id} className="flex justify-between items-center p-4 bg-blue-50/30 rounded-2xl border border-blue-100/50">
+                  {babyGrowthLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-blue-50/30 rounded-2xl border border-blue-100/50" style={{ pageBreakInside: 'avoid' }}>
                       <div>
                         <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleDateString()}</div>
                       </div>
@@ -219,6 +224,21 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                       </div>
                     </div>
                   ))}
+                  {babyGrowthLogs.length === 0 && <div className="text-sm text-slate-400">No growth logs recorded.</div>}
+                </div>
+
+                <div className="flex items-center gap-3 mb-6 mt-8 border-b-2 border-slate-200 pb-2">
+                  <ActivityIcon className="text-slate-500" size={24} />
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Maternal Weight</h2>
+                </div>
+                <div className="space-y-4">
+                  {weightLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100" style={{ pageBreakInside: 'avoid' }}>
+                      <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleDateString()}</div>
+                      <div className="text-sm font-black text-slate-700">{log.weight} kg</div>
+                    </div>
+                  ))}
+                  {weightLogs.length === 0 && <div className="text-sm text-slate-400">No maternal weight logs recorded.</div>}
                 </div>
               </section>
             </div>
@@ -231,12 +251,13 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                   <h2 className="text-xl font-serif font-bold text-slate-800">Tummy Time</h2>
                 </div>
                 <div className="space-y-4">
-                  {recentTummy.map(log => (
-                    <div key={log.id} className="flex justify-between items-center p-4 bg-orange-50/30 rounded-2xl border border-orange-100/50">
+                  {tummyTimeLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-orange-50/30 rounded-2xl border border-orange-100/50" style={{ pageBreakInside: 'avoid' }}>
                       <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
                       <div className="text-sm font-black text-orange-600">{Math.floor(log.duration / 60)}m {log.duration % 60}s</div>
                     </div>
                   ))}
+                  {tummyTimeLogs.length === 0 && <div className="text-sm text-slate-400">No tummy time logs recorded.</div>}
                 </div>
               </section>
 
@@ -246,15 +267,16 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                   <h2 className="text-xl font-serif font-bold text-slate-800">Parental Notes</h2>
                 </div>
                 <div className="space-y-4">
-                  {recentJournal.map(log => (
-                    <div key={log.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div className="text-xs text-slate-700 mb-2 line-clamp-3">{log.content}</div>
+                  {journalEntries.map(log => (
+                    <div key={log.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100" style={{ pageBreakInside: 'avoid' }}>
+                      <div className="text-xs text-slate-700 mb-2">{log.content}</div>
                       <div className="flex justify-between items-center">
                         <div className="text-[9px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
                         {log.mood && <div className="text-[10px] font-bold text-rose-400 capitalize">{log.mood}</div>}
                       </div>
                     </div>
                   ))}
+                  {journalEntries.length === 0 && <div className="text-sm text-slate-400">No journal entries recorded.</div>}
                 </div>
               </section>
             </div>
@@ -267,7 +289,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               </div>
               <div className="grid grid-cols-3 gap-4">
                 {milestones.map(m => (
-                  <div key={m.id} className="p-6 bg-amber-50/50 rounded-[2rem] border border-amber-100 text-center">
+                  <div key={m.id} className="p-6 bg-amber-50/50 rounded-[2rem] border border-amber-100 text-center" style={{ pageBreakInside: 'avoid' }}>
                     <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-amber-500">
                       <Baby size={24} />
                     </div>
@@ -275,8 +297,123 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                     <div className="text-[10px] text-slate-400 font-medium">{new Date(m.timestamp).toLocaleDateString()}</div>
                   </div>
                 ))}
+                {milestones.length === 0 && <div className="text-sm text-slate-400 col-span-3">No milestones recorded.</div>}
               </div>
             </section>
+
+            {/* Additional Logs */}
+            <div className="grid grid-cols-2 gap-12">
+              <section>
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-cyan-100 pb-2">
+                  <Droplets className="text-cyan-500" size={24} />
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Diaper Logs</h2>
+                </div>
+                <div className="space-y-4">
+                  {diaperLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-cyan-50/30 rounded-2xl border border-cyan-100/50" style={{ pageBreakInside: 'avoid' }}>
+                      <div>
+                        <div className="text-sm font-bold text-slate-700 capitalize">{log.type}</div>
+                        <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
+                      </div>
+                      {log.notes && <div className="text-xs text-slate-500">{log.notes}</div>}
+                    </div>
+                  ))}
+                  {diaperLogs.length === 0 && <div className="text-sm text-slate-400">No diaper logs recorded.</div>}
+                </div>
+              </section>
+
+              <section>
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-purple-100 pb-2">
+                  <Calendar className="text-purple-500" size={24} />
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Appointments</h2>
+                </div>
+                <div className="space-y-4">
+                  {calendarEvents.map(event => (
+                    <div key={event.id} className="p-4 bg-purple-50/30 rounded-2xl border border-purple-100/50" style={{ pageBreakInside: 'avoid' }}>
+                      <div className="text-sm font-bold text-slate-700">{event.title}</div>
+                      <div className="text-[10px] text-slate-400 font-medium">
+                        {new Date(event.date).toLocaleDateString()} {event.time && `at ${event.time}`}
+                      </div>
+                      <div className="text-xs text-purple-600 capitalize mt-1">{event.type}</div>
+                    </div>
+                  ))}
+                  {calendarEvents.length === 0 && <div className="text-sm text-slate-400">No appointments recorded.</div>}
+                </div>
+              </section>
+            </div>
+
+            <div className="grid grid-cols-2 gap-12">
+              <section>
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-rose-200 pb-2">
+                  <Heart className="text-rose-500" size={24} />
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Blood Pressure</h2>
+                </div>
+                <div className="space-y-4">
+                  {bloodPressureLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50" style={{ pageBreakInside: 'avoid' }}>
+                      <div>
+                        <div className="text-sm font-bold text-slate-700">{log.systolic} / {log.diastolic} mmHg</div>
+                        <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
+                      </div>
+                      {log.pulse && <div className="text-sm font-black text-rose-600">{log.pulse} bpm</div>}
+                    </div>
+                  ))}
+                  {bloodPressureLogs.length === 0 && <div className="text-sm text-slate-400">No blood pressure logs recorded.</div>}
+                </div>
+              </section>
+
+              <section>
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-teal-100 pb-2">
+                  <Pill className="text-teal-500" size={24} />
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Medications</h2>
+                </div>
+                <div className="space-y-4">
+                  {medicationLogs.map(log => (
+                    <div key={log.id} className="p-4 bg-teal-50/30 rounded-2xl border border-teal-100/50" style={{ pageBreakInside: 'avoid' }}>
+                      <div className="text-sm font-bold text-slate-700">{log.name}</div>
+                      <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
+                      <div className="text-xs text-teal-600 mt-1">{log.dosage} - {log.frequency}</div>
+                    </div>
+                  ))}
+                  {medicationLogs.length === 0 && <div className="text-sm text-slate-400">No medications recorded.</div>}
+                </div>
+              </section>
+            </div>
+
+            <div className="grid grid-cols-2 gap-12">
+              <section>
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-fuchsia-100 pb-2">
+                  <ActivityIcon className="text-fuchsia-500" size={24} />
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Kick Counts</h2>
+                </div>
+                <div className="space-y-4">
+                  {kickLogs.map(log => (
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-fuchsia-50/30 rounded-2xl border border-fuchsia-100/50" style={{ pageBreakInside: 'avoid' }}>
+                      <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
+                      <div className="text-sm font-black text-fuchsia-600">{log.count} kicks in {Math.floor(log.duration / 60)}m</div>
+                    </div>
+                  ))}
+                  {kickLogs.length === 0 && <div className="text-sm text-slate-400">No kick logs recorded.</div>}
+                </div>
+              </section>
+
+              <section>
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-yellow-100 pb-2">
+                  <ActivityIcon className="text-yellow-500" size={24} />
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Reactions</h2>
+                </div>
+                <div className="space-y-4">
+                  {reactions.map(log => (
+                    <div key={log.id} className="p-4 bg-yellow-50/30 rounded-2xl border border-yellow-100/50" style={{ pageBreakInside: 'avoid' }}>
+                      <div className="text-sm font-bold text-slate-700 capitalize">{log.type}</div>
+                      <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
+                      {log.notes && <div className="text-xs text-slate-600 mt-1">{log.notes}</div>}
+                    </div>
+                  ))}
+                  {reactions.length === 0 && <div className="text-sm text-slate-400">No reactions recorded.</div>}
+                </div>
+              </section>
+            </div>
           </div>
 
           {/* Footer */}

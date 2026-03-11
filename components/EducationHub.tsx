@@ -167,6 +167,39 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
         ))}
       </div>
 
+      {/* WHO Guidelines Section */}
+      {filter === 'All' && (
+        <div className="px-4 mb-8">
+          <div className="bg-gradient-to-br from-rose-50 to-white rounded-[2rem] p-6 border-2 border-rose-100 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-200/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-5 relative z-10">
+              <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-rose-500 border border-rose-50">
+                <Stethoscope size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-serif text-rose-900">WHO Guidelines</h3>
+                <p className="text-[10px] text-rose-500 font-black uppercase tracking-widest">For {isPostpartum ? 'Newborns' : `${trimester} Trimester`}</p>
+              </div>
+            </div>
+            <div className="space-y-3 relative z-10">
+              {educationalContent
+                .filter(a => isPostpartum ? a.trimester === 'Newborn' : (a.trimester === trimester || a.trimester === 'General'))
+                .slice(0, 3)
+                .map(article => (
+                <button 
+                  key={article.id}
+                  onClick={() => setActiveLocalArticle(article)}
+                  className="w-full text-left p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-rose-50 hover:border-rose-200 hover:shadow-md transition-all flex justify-between items-center group"
+                >
+                  <span className="font-bold text-slate-700 text-sm group-hover:text-rose-700 transition-colors">{article.title}</span>
+                  <ChevronRight size={18} className="text-rose-300 group-hover:text-rose-500 transition-colors transform group-hover:translate-x-1" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Expert Videos Section */}
       {filteredVideos.length > 0 && (
         <div className="space-y-6 px-4">

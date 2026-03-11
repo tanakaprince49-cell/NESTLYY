@@ -100,6 +100,7 @@ const App: React.FC = () => {
   const [reactions, setReactions] = useState<ReactionLog[]>([]);
   const [babyGrowthLogs, setBabyGrowthLogs] = useState<BabyGrowthLog[]>([]);
   const [tummyTimeLogs, setTummyTimeLogs] = useState<TummyTimeLog[]>([]);
+  const [bloodPressureLogs, setBloodPressureLogs] = useState<BloodPressureLog[]>([]);
   const [kickLogs, setKickLogs] = useState<KickLog[]>([]);
   const [diaperLogs, setDiaperLogs] = useState<DiaperLog[]>([]);
   const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
@@ -122,6 +123,7 @@ const App: React.FC = () => {
     setReactions(storage.getReactions());
     setBabyGrowthLogs(storage.getBabyGrowthLogs());
     setTummyTimeLogs(storage.getTummyTimeLogs());
+    setBloodPressureLogs(storage.getBloodPressureLogs());
     setKickLogs(storage.getKickLogs());
     setDiaperLogs(storage.getDiaperLogs());
     setMedicationLogs(storage.getMedications());
@@ -149,7 +151,7 @@ const App: React.FC = () => {
             'journal', 'calendar', 'weight_logs', 'sleep_logs', 'feeding_logs', 
             'baby_milestones', 'baby_health_logs', 'baby_growth_logs', 'baby_diaper_logs',
             'kick_logs', 'baby_reactions', 'baby_names', 'water_intake', 'bump_photos',
-            'medication_logs', 'tummy_time_logs'
+            'medication_logs', 'tummy_time_logs', 'blood_pressure_logs'
           ];
           
           for (const col of collections) {
@@ -477,6 +479,12 @@ const App: React.FC = () => {
                 onAddTummyTime={(t) => {
                   storage.addTummyTimeLog({id: Date.now().toString(), ...t, timestamp: Date.now()});
                   setTummyTimeLogs(storage.getTummyTimeLogs());
+                  syncAllToFirestore(userUid!);
+                }}
+                bloodPressureLogs={bloodPressureLogs}
+                onAddBloodPressure={(b) => {
+                  storage.addBloodPressureLog({id: Date.now().toString(), ...b, timestamp: Date.now()});
+                  setBloodPressureLogs(storage.getBloodPressureLogs());
                   syncAllToFirestore(userUid!);
                 }}
                 onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}

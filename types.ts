@@ -212,6 +212,15 @@ export interface HealthLog {
   timestamp: number;
 }
 
+export interface BloodPressureLog {
+  id: string;
+  systolic: number;
+  diastolic: number;
+  pulse?: number;
+  notes?: string;
+  timestamp: number;
+}
+
 export interface TummyTimeLog {
   id: string;
   babyId: string;
