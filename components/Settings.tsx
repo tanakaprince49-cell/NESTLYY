@@ -172,6 +172,37 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
 
         <div className="h-px bg-slate-50" />
 
+        <div className="space-y-4">
+          <h3 className="font-bold text-slate-800">App Theme</h3>
+          <div className="grid grid-cols-4 gap-3">
+            {(['pink', 'blue', 'neutral', 'orange', 'sage', 'lavender', 'sand', 'mint', 'sky', 'peach', 'lilac', 'stone'] as const).map(color => (
+              <button
+                key={color}
+                onClick={() => onUpdateProfile({ ...profile, themeColor: color })}
+                className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${profile.themeColor === color ? 'border-rose-500 bg-rose-50' : 'bg-white border-slate-50'}`}
+              >
+                <div className={`w-6 h-6 rounded-full shadow-inner ${
+                  color === 'pink' ? 'bg-rose-400' : 
+                  color === 'blue' ? 'bg-blue-400' : 
+                  color === 'neutral' ? 'bg-slate-400' :
+                  color === 'orange' ? 'bg-orange-400' :
+                  color === 'sage' ? 'bg-emerald-400' :
+                  color === 'lavender' ? 'bg-purple-400' :
+                  color === 'sand' ? 'bg-stone-400' :
+                  color === 'mint' ? 'bg-emerald-300' :
+                  color === 'sky' ? 'bg-sky-300' :
+                  color === 'peach' ? 'bg-orange-300' :
+                  color === 'lilac' ? 'bg-purple-300' :
+                  'bg-stone-300'
+                }`} />
+                <span className="text-[8px] font-black uppercase tracking-widest truncate w-full text-center">{color}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="h-px bg-slate-50" />
+
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h3 className="font-bold text-slate-800">Push Notifications</h3>

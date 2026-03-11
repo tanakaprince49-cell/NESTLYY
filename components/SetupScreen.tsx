@@ -30,7 +30,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
   const [calculationMode, setCalculationMode] = useState<'lmp' | 'week'>('lmp');
   const [pregnancyType, setPregnancyType] = useState<'singleton' | 'twins' | 'triplets'>(initialProfile?.pregnancyType || 'singleton');
   const [babies, setBabies] = useState<any[]>(initialProfile?.babies || [{ id: '1', name: '', skinTone: '🏼', gender: 'surprise' }]);
-  const [themeColor, setThemeColor] = useState<'pink' | 'blue' | 'neutral' | 'orange' | 'sage' | 'lavender' | 'sand'>(initialProfile?.themeColor || 'pink');
+  const [themeColor, setThemeColor] = useState<'pink' | 'blue' | 'neutral' | 'orange' | 'sage' | 'lavender' | 'sand' | 'mint' | 'sky' | 'peach' | 'lilac' | 'stone'>(initialProfile?.themeColor || 'pink');
   const [isManualDueDate, setIsManualDueDate] = useState(initialProfile?.isManualDueDate || false);
   const [weight, setWeight] = useState(initialProfile?.startingWeight?.toString() || '');
   const [profileImage, setProfileImage] = useState(initialProfile?.profileImage || '');
@@ -395,7 +395,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
           <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">Choose your theme</h2>
             <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto no-scrollbar p-2">
-              {(['pink', 'blue', 'neutral', 'orange', 'sage', 'lavender', 'sand'] as const).map(color => (
+              {(['pink', 'blue', 'neutral', 'orange', 'sage', 'lavender', 'sand', 'mint', 'sky', 'peach', 'lilac', 'stone'] as const).map(color => (
                 <button
                   key={color}
                   onClick={() => setThemeColor(color)}
@@ -408,7 +408,12 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                     color === 'orange' ? 'bg-orange-400' :
                     color === 'sage' ? 'bg-emerald-400' :
                     color === 'lavender' ? 'bg-purple-400' :
-                    'bg-stone-400'
+                    color === 'sand' ? 'bg-stone-400' :
+                    color === 'mint' ? 'bg-emerald-300' :
+                    color === 'sky' ? 'bg-sky-300' :
+                    color === 'peach' ? 'bg-orange-300' :
+                    color === 'lilac' ? 'bg-purple-300' :
+                    'bg-stone-300'
                   }`} />
                   <span className="text-[10px] font-black uppercase tracking-widest">{color}</span>
                 </button>
