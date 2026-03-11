@@ -30,7 +30,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
   const [calculationMode, setCalculationMode] = useState<'lmp' | 'week'>('lmp');
   const [pregnancyType, setPregnancyType] = useState<'singleton' | 'twins' | 'triplets'>(initialProfile?.pregnancyType || 'singleton');
   const [babies, setBabies] = useState<any[]>(initialProfile?.babies || [{ id: '1', name: '', skinTone: '🏼', gender: 'surprise' }]);
-  const [themeColor, setThemeColor] = useState<'pink' | 'blue' | 'neutral'>(initialProfile?.themeColor || 'pink');
+  const [themeColor, setThemeColor] = useState<'pink' | 'blue' | 'neutral' | 'orange' | 'sage' | 'lavender' | 'sand'>(initialProfile?.themeColor || 'pink');
   const [isManualDueDate, setIsManualDueDate] = useState(initialProfile?.isManualDueDate || false);
   const [weight, setWeight] = useState(initialProfile?.startingWeight?.toString() || '');
   const [profileImage, setProfileImage] = useState(initialProfile?.profileImage || '');
@@ -394,14 +394,22 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         {step === 'theme' && (
           <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">Choose your theme</h2>
-            <div className="grid grid-cols-3 gap-4">
-              {(['pink', 'blue', 'neutral'] as const).map(color => (
+            <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto no-scrollbar p-2">
+              {(['pink', 'blue', 'neutral', 'orange', 'sage', 'lavender', 'sand'] as const).map(color => (
                 <button
                   key={color}
                   onClick={() => setThemeColor(color)}
                   className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-3 ${themeColor === color ? 'border-rose-500 bg-rose-50' : 'bg-white border-slate-50'}`}
                 >
-                  <div className={`w-10 h-10 rounded-full shadow-inner ${color === 'pink' ? 'bg-rose-400' : color === 'blue' ? 'bg-blue-400' : 'bg-slate-400'}`} />
+                  <div className={`w-10 h-10 rounded-full shadow-inner ${
+                    color === 'pink' ? 'bg-rose-400' : 
+                    color === 'blue' ? 'bg-blue-400' : 
+                    color === 'neutral' ? 'bg-slate-400' :
+                    color === 'orange' ? 'bg-orange-400' :
+                    color === 'sage' ? 'bg-emerald-400' :
+                    color === 'lavender' ? 'bg-purple-400' :
+                    'bg-stone-400'
+                  }`} />
                   <span className="text-[10px] font-black uppercase tracking-widest">{color}</span>
                 </button>
               ))}

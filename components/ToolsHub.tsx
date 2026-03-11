@@ -1082,7 +1082,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 ))}
               </div>
             ) : (
-              <div className="space-y-4 animate-in slide-in-from-bottom-4">
+              <div className="space-y-6 animate-in slide-in-from-bottom-4">
                 <div className="flex items-center gap-3 mb-2">
                   <button onClick={() => setSelectedHealthType(null)} className="p-2 bg-slate-100 rounded-full text-slate-500">
                     <Plus className="rotate-45" size={16} />
@@ -1090,49 +1090,58 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   <span className="text-xs font-black uppercase tracking-widest text-slate-400">Logging {selectedHealthType}</span>
                 </div>
                 
+                <div className="space-y-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Please select status explicitly</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => {
+                        onAddHealth({ 
+                          babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
+                          type: selectedHealthType, 
+                          value: 'Normal', 
+                          notes: healthNotes,
+                          status: 'normal'
+                        });
+                        setSelectedHealthType(null);
+                        setHealthNotes('');
+                        showSuccess('Health log saved!');
+                      }}
+                      className="group flex flex-col items-center gap-3 p-6 bg-emerald-50 border-2 border-emerald-100 rounded-[2rem] hover:bg-emerald-500 hover:text-white transition-all"
+                    >
+                      <div className="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-emerald-500 shadow-lg shadow-emerald-200">
+                        <Check size={24} />
+                      </div>
+                      <span className="font-black text-[11px] uppercase tracking-widest">Normal</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        onAddHealth({ 
+                          babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
+                          type: selectedHealthType, 
+                          value: 'Abnormal', 
+                          notes: healthNotes,
+                          status: 'abnormal'
+                        });
+                        setSelectedHealthType(null);
+                        setHealthNotes('');
+                        showSuccess('Health log saved!');
+                      }}
+                      className="group flex flex-col items-center gap-3 p-6 bg-rose-50 border-2 border-rose-100 rounded-[2rem] hover:bg-rose-500 hover:text-white transition-all"
+                    >
+                      <div className="w-12 h-12 bg-rose-500 text-white rounded-full flex items-center justify-center group-hover:bg-white group-hover:text-rose-500 shadow-lg shadow-rose-200">
+                        <Activity size={24} />
+                      </div>
+                      <span className="font-black text-[11px] uppercase tracking-widest">Abnormal</span>
+                    </button>
+                  </div>
+                </div>
+
                 <textarea 
                   placeholder="Add notes (optional)..."
                   value={healthNotes}
                   onChange={(e) => setHealthNotes(e.target.value)}
                   className="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-rose-200 text-sm min-h-[100px]"
                 />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => {
-                      onAddHealth({ 
-                        babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
-                        type: selectedHealthType, 
-                        value: 'Normal', 
-                        notes: healthNotes,
-                        status: 'normal'
-                      });
-                      setSelectedHealthType(null);
-                      setHealthNotes('');
-                      showSuccess('Health log saved!');
-                    }}
-                    className="py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition-colors"
-                  >
-                    Normal
-                  </button>
-                  <button
-                    onClick={() => {
-                      onAddHealth({ 
-                        babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
-                        type: selectedHealthType, 
-                        value: 'Abnormal', 
-                        notes: healthNotes,
-                        status: 'abnormal'
-                      });
-                      setSelectedHealthType(null);
-                      setHealthNotes('');
-                      showSuccess('Health log saved!');
-                    }}
-                    className="py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-600 transition-colors"
-                  >
-                    Abnormal
-                  </button>
-                </div>
               </div>
             )}
           </div>
@@ -1922,36 +1931,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
         </div>
       )}
-      {activeCategory === 'tummy_time' && (
-        <div className="space-y-8 animate-in fade-in">
-          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
-            <h3 className="text-xl font-serif text-orange-800">Tummy Time Tracker</h3>
-            <p className="text-xs text-slate-400 font-medium">Log your baby's daily tummy time to help build neck and shoulder strength.</p>
-            <div className="flex gap-4">
-              <input 
-                type="number" 
-                placeholder="Duration (mins)" 
-                className="flex-1 p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-orange-200 text-sm"
-                id="tummyTimeInput"
-              />
-              <button 
-                onClick={() => {
-                  const val = (document.getElementById('tummyTimeInput') as HTMLInputElement).value;
-                  if (val) {
-                    onAddJournal(`[Tummy Time] ${val} mins`, 'activity');
-                    showSuccess('Tummy time logged!');
-                    (document.getElementById('tummyTimeInput') as HTMLInputElement).value = '';
-                  }
-                }}
-                className="px-6 bg-orange-500 text-white rounded-2xl font-bold shadow-lg shadow-orange-200 hover:bg-orange-600 transition-colors"
-              >
-                Log
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {activeCategory === 'bath' && (
         <div className="space-y-8 animate-in fade-in">
           <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
@@ -2117,18 +2096,23 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           diaperLogs={diaperLogs}
           babyGrowthLogs={babyGrowthLogs}
           milestones={milestones}
+          healthLogs={healthLogs}
+          tummyTimeLogs={tummyTimeLogs}
+          journalEntries={journalEntries}
+          kickLogs={kickLogs}
+          reactions={reactions}
         />
       )}
 
       <AnimatePresence>
         {toast && (
           <motion.div 
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 bg-slate-900/95 backdrop-blur-xl text-white text-xs font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border border-white/20 min-w-[280px] justify-center"
           >
-            <div className={`w-2 h-2 rounded-full animate-pulse ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+            <div className={`w-3 h-3 rounded-full animate-ping ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
             {toast.message}
           </motion.div>
         )}

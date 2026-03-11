@@ -402,36 +402,72 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Newborn Analytics */}
-          <div className="card-premium p-6 bg-white border-2 border-slate-50 h-80">
-            <div className="flex justify-between items-center mb-6">
-              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Baby Activity Trends</h4>
-              <div className="flex gap-2">
-                {(['feeding', 'sleep', 'tummy'] as const).map(m => (
-                  <button 
-                    key={m} 
-                    onClick={() => setActiveMetric(m as any)}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
-                  >
-                    {m === 'feeding' ? <Milk size={16} /> : m === 'sleep' ? <Moon size={16} /> : <Activity size={16} />}
-                  </button>
-                ))}
+          <div className="space-y-4">
+            <div className="card-premium p-6 bg-white border-2 border-slate-50 h-80">
+              <div className="flex justify-between items-center mb-6">
+                <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Baby Activity Trends</h4>
+                <div className="flex gap-2">
+                  {(['feeding', 'sleep', 'tummy'] as const).map(m => (
+                    <button 
+                      key={m} 
+                      onClick={() => setActiveMetric(m as any)}
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
+                    >
+                      {m === 'feeding' ? <Milk size={16} /> : m === 'sleep' ? <Moon size={16} /> : <Activity size={16} />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height="80%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorNewborn" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                  <Area type="monotone" dataKey={activeMetric} stroke={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} fillOpacity={1} fill="url(#colorNewborn)" strokeWidth={3} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Sleep Analysis Card */}
+            <div className="card-premium p-6 bg-indigo-900 text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Moon size={120} />
+              </div>
+              <div className="relative z-10">
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60">Sleep Analysis</span>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <p className="text-3xl font-bold">
+                      {(sleepLogs.reduce((acc, curr) => acc + curr.hours, 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
+                    </p>
+                    <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Avg / Session</p>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold">
+                      {(sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length)}
+                    </p>
+                    <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Sessions Today</p>
+                  </div>
+                </div>
+                <div className="mt-6 h-24">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <Bar dataKey="sleep" fill="#818cf8" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-[10px] mt-4 opacity-70 font-medium leading-relaxed">
+                  WHO recommends 14-17 hours of sleep for newborns. Your baby is currently averaging { (chartData.reduce((acc, curr) => acc + curr.sleep, 0) / 7).toFixed(1) } hours per day.
+                </p>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height="80%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorNewborn" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
-                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
-                <Area type="monotone" dataKey={activeMetric} stroke={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} fillOpacity={1} fill="url(#colorNewborn)" strokeWidth={3} />
-              </AreaChart>
-            </ResponsiveContainer>
           </div>
         </div>
       )}
@@ -595,12 +631,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <AnimatePresence>
         {toast && (
           <motion.div 
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 bg-slate-900/95 backdrop-blur-xl text-white text-xs font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border border-white/20 min-w-[280px] justify-center"
           >
-            <div className="w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
+            <div className="w-3 h-3 bg-rose-500 rounded-full animate-ping" />
             {toast}
           </motion.div>
         )}

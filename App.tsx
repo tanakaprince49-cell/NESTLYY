@@ -289,28 +289,6 @@ const App: React.FC = () => {
     }
   }, [profile]);
 
-  useEffect(() => {
-    if (profile?.themeColor) {
-      const root = document.documentElement;
-      if (profile.themeColor === 'blue') {
-        root.style.setProperty('--rose-main', '#3b82f6');
-        root.style.setProperty('--nestly-burgundy', '#1e3a8a');
-        root.style.setProperty('--soft-bg', '#eff6ff');
-        root.style.setProperty('--body-bg', '#dbeafe');
-      } else if (profile.themeColor === 'pink') {
-        root.style.setProperty('--rose-main', '#f43f5e');
-        root.style.setProperty('--nestly-burgundy', '#7e1631');
-        root.style.setProperty('--soft-bg', '#fffaf9');
-        root.style.setProperty('--body-bg', '#fdf8f7');
-      } else {
-        root.style.setProperty('--rose-main', '#64748b');
-        root.style.setProperty('--nestly-burgundy', '#1e293b');
-        root.style.setProperty('--soft-bg', '#f8fafc');
-        root.style.setProperty('--body-bg', '#f1f5f9');
-      }
-    }
-  }, [profile?.themeColor]);
-
   if (showSplash) return <SplashScreen onComplete={() => setShowSplash(false)} />;
 
   if (!authEmail) return <AuthScreen onAuthComplete={(e) => setAuthEmail(e)} />;

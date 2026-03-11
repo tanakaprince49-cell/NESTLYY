@@ -71,7 +71,7 @@ export interface PregnancyProfile {
   isManualDueDate: boolean;
   pregnancyType: 'singleton' | 'twins' | 'triplets';
   babies: BabyAvatar[];
-  themeColor: 'pink' | 'blue' | 'neutral';
+  themeColor: 'pink' | 'blue' | 'neutral' | 'orange' | 'sage' | 'lavender' | 'sand';
   profileImage?: string;
   startingWeight?: number;
   customTargets?: NutritionTargets;
