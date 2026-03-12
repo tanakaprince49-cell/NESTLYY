@@ -387,10 +387,18 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'reports'];
+      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories'];
     }
-    return ['vitals', 'medications', 'water', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'progress', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'archive', 'reports'];
+    return ['vitals', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports'];
   }, [isPostpartum]);
+
+  useEffect(() => {
+    if (isPostpartum && !['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories'].includes(activeCategory)) {
+      setActiveCategory('feeding');
+    } else if (!isPostpartum && !['vitals', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports'].includes(activeCategory)) {
+      setActiveCategory('vitals');
+    }
+  }, [isPostpartum, activeCategory]);
 
   return (
     <motion.div 
@@ -836,16 +844,51 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   <option key={baby.id} value={baby.id}>{baby.name || `Baby ${idx + 1}`}</option>
                 ))}
               </select>
-              <div className="grid grid-cols-2 gap-3">
-                {['Music', 'Food', 'Voice', 'Touch'].map(stim => (
+              
+              <div className="space-y-3">
+                <label className="text-[9px] font-black text-slate-300 uppercase tracking-widest ml-1">Stimulus (e.g., Music, Food, Voice)</label>
+                <input 
+                  type="text"
+                  id="reaction-stimulus"
+                  placeholder="What caused the reaction?"
+                  className="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold outline-none"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[9px] font-black text-slate-300 uppercase tracking-widest ml-1">Reaction</label>
+                <div className="grid grid-cols-3 gap-3">
                   <button 
-                    key={stim}
-                    onClick={() => onAddReaction({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', stimulus: stim, reaction: 'Positive', mood: 'Happy' })}
-                    className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:text-rose-500 transition-all"
+                    onClick={() => {
+                      const stim = (document.getElementById('reaction-stimulus') as HTMLInputElement).value || 'Unknown';
+                      onAddReaction({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', stimulus: stim, reaction: 'Positive', mood: 'Happy' });
+                      (document.getElementById('reaction-stimulus') as HTMLInputElement).value = '';
+                    }}
+                    className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all flex flex-col items-center gap-2"
                   >
-                    {stim}
+                    <Smile size={20} /> Positive
                   </button>
-                ))}
+                  <button 
+                    onClick={() => {
+                      const stim = (document.getElementById('reaction-stimulus') as HTMLInputElement).value || 'Unknown';
+                      onAddReaction({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', stimulus: stim, reaction: 'Neutral', mood: 'Neutral' });
+                      (document.getElementById('reaction-stimulus') as HTMLInputElement).value = '';
+                    }}
+                    className="p-4 bg-slate-50 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all flex flex-col items-center gap-2"
+                  >
+                    <Meh size={20} /> Neutral
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const stim = (document.getElementById('reaction-stimulus') as HTMLInputElement).value || 'Unknown';
+                      onAddReaction({ babyId: selectedBabyId || profile.babies?.[0]?.id || '', stimulus: stim, reaction: 'Negative', mood: 'Sad' });
+                      (document.getElementById('reaction-stimulus') as HTMLInputElement).value = '';
+                    }}
+                    className="p-4 bg-rose-50 text-rose-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all flex flex-col items-center gap-2"
+                  >
+                    <Frown size={20} /> Negative
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -856,8 +899,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{log.stimulus}</div>
                   <div className="text-sm font-bold text-slate-700">{log.reaction}</div>
                 </div>
-                <div className="text-rose-400">
-                  <Smile size={24} />
+                <div className={log.reaction === 'Positive' ? 'text-emerald-400' : log.reaction === 'Negative' ? 'text-rose-400' : 'text-slate-400'}>
+                  {log.reaction === 'Positive' ? <Smile size={24} /> : log.reaction === 'Negative' ? <Frown size={24} /> : <Meh size={24} />}
                 </div>
               </div>
             ))}
@@ -1551,44 +1594,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         </div>
       )}
 
-      {activeCategory === 'progress' && (
-        <div className="space-y-6 animate-in fade-in">
-           <div className="card-premium p-10 bg-white space-y-12 text-center border-2 border-white">
-              <div className="space-y-2">
-                 <h3 className="text-sm font-black text-rose-500 uppercase tracking-[0.3em]">Journey Progress</h3>
-                 <div className="text-4xl font-serif text-slate-900">Month {progressMonths + 1} / Week {progressWeeks}</div>
-              </div>
-
-              <div className="space-y-6">
-                 {/* Trimester Timeline */}
-                 <div className="relative pt-6">
-                    <div className="flex justify-between text-[8px] font-black uppercase text-slate-300 tracking-widest mb-4">
-                       <span>Tri 1</span>
-                       <span>Tri 2</span>
-                       <span>Tri 3</span>
-                    </div>
-                    <div className="h-4 bg-slate-100 rounded-full flex overflow-hidden">
-                       <div className={`h-full transition-all duration-1000 ${progressWeeks < 13 ? 'bg-rose-500' : 'bg-rose-200'}`} style={{ width: '33.3%' }} />
-                       <div className={`h-full transition-all duration-1000 ${progressWeeks >= 13 && progressWeeks < 27 ? 'bg-rose-500' : progressWeeks >= 27 ? 'bg-rose-200' : 'bg-slate-100'}`} style={{ width: '33.3%' }} />
-                       <div className={`h-full transition-all duration-1000 ${progressWeeks >= 27 ? 'bg-rose-500' : 'bg-slate-100'}`} style={{ width: '33.3%' }} />
-                    </div>
-                 </div>
-
-                 <div className="grid grid-cols-2 gap-4">
-                    <div className="p-6 bg-rose-50 rounded-[2rem] border-2 border-white">
-                       <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Time Lapsed</span>
-                       <div className="text-2xl font-bold text-rose-900">{Math.round((progressWeeks / 40) * 100)}%</div>
-                    </div>
-                    <div className="p-6 bg-emerald-50 rounded-[2rem] border-2 border-white">
-                       <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Weeks Left</span>
-                       <div className="text-2xl font-bold text-emerald-900">{40 - progressWeeks}</div>
-                    </div>
-                 </div>
-              </div>
-           </div>
-        </div>
-      )}
-
       {activeCategory === 'kegels' && (
         <div className="space-y-6 animate-in fade-in">
            <div className="card-premium p-12 bg-white space-y-8 text-center border-2 border-white">
@@ -1692,7 +1697,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         </div>
       )}
 
-      {activeCategory === 'archive' && (
+      {activeCategory === 'birth' && (
         <div className="space-y-8 animate-in fade-in">
           {isBirthOnboarding ? (
             <div className="card-premium p-8 bg-white border-2 border-rose-100 space-y-6 animate-in zoom-in-95 max-h-[80vh] overflow-y-auto no-scrollbar">
@@ -1798,8 +1803,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             </div>
           ) : (
             <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
-              <h3 className="text-xl font-serif text-rose-800">Pregnancy Archive</h3>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-relaxed">Preserve your journey, every step of the way.</p>
+              <h3 className="text-xl font-serif text-rose-800">Welcome to Motherhood</h3>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-relaxed">Transition to newborn mode to track your baby's growth.</p>
               
               <button 
                 onClick={() => setIsBirthOnboarding(true)}
@@ -1807,48 +1812,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               >
                 <Baby size={18} /> Mark as Born & Switch to Newborn Mode
               </button>
-              <button 
-                onClick={() => {
-                  const entry: any = {
-                    id: Date.now().toString(),
-                    startDate: profile.lmpDate,
-                    endDate: new Date().toISOString(),
-                    type: profile.pregnancyType,
-                    outcome: 'other',
-                    babies: (profile.babies || []).map(b => b.name)
-                  };
-                  storage.addToArchive(entry);
-                  setArchive(storage.getArchive());
-                }}
-                className="w-full py-4 bg-slate-100 text-slate-400 font-black rounded-2xl text-[9px] uppercase tracking-widest"
-              >
-                Archive Current Pregnancy
-              </button>
             </div>
           )}
-
-          <div className="space-y-4">
-            {archive.map(entry => (
-              <div key={entry.id} className="card-premium p-6 bg-white border-2 border-white shadow-sm space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="text-[8px] font-black text-rose-400 uppercase tracking-widest">{new Date(entry.startDate).getFullYear()} Journey</div>
-                    <div className="text-lg font-serif text-slate-900 capitalize">{entry.type} Pregnancy</div>
-                  </div>
-                  <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${entry.outcome === 'birth' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
-                    {entry.outcome}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  {entry.babies.map((name, i) => (
-                    <span key={i} className="px-3 py-1 bg-slate-50 rounded-lg text-[10px] font-bold text-slate-600">
-                      {name || 'Baby'}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
 
@@ -2137,6 +2102,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           journalEntries={journalEntries}
           kickLogs={kickLogs}
           reactions={reactions}
+          calendarEvents={calendarEvents}
+          bloodPressureLogs={bloodPressureLogs}
+          medicationLogs={medicationLogs}
+          weightLogs={weightLogs}
         />
       )}
 

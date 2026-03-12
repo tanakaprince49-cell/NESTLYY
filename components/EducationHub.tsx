@@ -195,6 +195,15 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
                   <ChevronRight size={18} className="text-rose-300 group-hover:text-rose-500 transition-colors transform group-hover:translate-x-1" />
                 </button>
               ))}
+              <a 
+                href={isPostpartum ? "https://www.who.int/health-topics/newborn-health" : "https://www.who.int/publications/i/item/9789241549912"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full text-left p-4 bg-rose-100/50 backdrop-blur-sm rounded-2xl border border-rose-100 hover:border-rose-300 hover:shadow-md transition-all flex justify-between items-center group mt-4"
+              >
+                <span className="font-bold text-rose-800 text-sm group-hover:text-rose-900 transition-colors">Read Full WHO Guidelines Online</span>
+                <ExternalLink size={18} className="text-rose-500 group-hover:text-rose-700 transition-colors transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </a>
             </div>
           </div>
         </div>

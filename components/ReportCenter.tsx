@@ -62,14 +62,6 @@ export const ReportCenter: React.FC = () => {
               <Download size={18} strokeWidth={3} />
               Labor Summary PDF
             </button>
-
-            <button 
-              onClick={() => generateFullPregnancyReport()}
-              className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
-            >
-              <Download size={18} strokeWidth={3} />
-              Full Pregnancy Archive PDF
-            </button>
           </div>
         </div>
 

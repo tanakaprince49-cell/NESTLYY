@@ -20,7 +20,7 @@
             colors: {
               rose: {
                 50: 'var(--soft-bg)',
-                100: 'rgba(244, 63, 94, 0.1)', // Fallback or dynamic
+                100: 'var(--theme-100)',
                 400: 'var(--rose-main)',
                 500: 'var(--rose-main)',
                 600: 'var(--rose-main)',
@@ -46,6 +46,7 @@
         --nestly-burgundy: #7e1631;
         --soft-bg: #fffaf9;
         --body-bg: #fdf8f7;
+        --theme-100: #ffe4e6;
         --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       }
       * {
@@ -96,12 +97,12 @@
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
       }
       .card-premium {
-        background: rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.5) !important;
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-radius: 2.25rem;
         box-shadow: 0 10px 30px -5px rgba(126, 22, 49, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(254, 242, 242, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.6) !important;
         transition: all 0.4s var(--transition-smooth);
       }
       .card-premium:hover {
@@ -177,72 +178,84 @@
         --nestly-burgundy: #7e1631;
         --soft-bg: #fffaf9;
         --body-bg: #fdf8f7;
+        --theme-100: #ffe4e6;
       }
       .theme-blue {
         --rose-main: #3b82f6;
         --nestly-burgundy: #1e3a8a;
         --soft-bg: #f0f9ff;
         --body-bg: #f8fafc;
+        --theme-100: #dbeafe;
       }
       .theme-neutral {
         --rose-main: #64748b;
         --nestly-burgundy: #1e293b;
         --soft-bg: #f8fafc;
         --body-bg: #f1f5f9;
+        --theme-100: #f1f5f9;
       }
       .theme-orange {
         --rose-main: #f97316;
         --nestly-burgundy: #7c2d12;
         --soft-bg: #fff7ed;
         --body-bg: #fffaf5;
+        --theme-100: #ffedd5;
       }
       .theme-sage {
         --rose-main: #10b981;
         --nestly-burgundy: #064e3b;
         --soft-bg: #f0fdf4;
         --body-bg: #f7fee7;
+        --theme-100: #d1fae5;
       }
       .theme-lavender {
         --rose-main: #8b5cf6;
         --nestly-burgundy: #4c1d95;
         --soft-bg: #f5f3ff;
         --body-bg: #faf5ff;
+        --theme-100: #ede9fe;
       }
       .theme-sand {
         --rose-main: #d97706;
         --nestly-burgundy: #78350f;
         --soft-bg: #fefce8;
         --body-bg: #fffbeb;
+        --theme-100: #fef08a;
       }
       .theme-mint {
         --rose-main: #34d399;
         --nestly-burgundy: #065f46;
         --soft-bg: #f0fdfa;
         --body-bg: #f9fefc;
+        --theme-100: #ccfbf1;
       }
       .theme-sky {
         --rose-main: #38bdf8;
         --nestly-burgundy: #075985;
         --soft-bg: #f0f9ff;
         --body-bg: #f9fcff;
+        --theme-100: #e0f2fe;
       }
       .theme-peach {
         --rose-main: #fb923c;
         --nestly-burgundy: #9a3412;
         --soft-bg: #fff7ed;
         --body-bg: #fffbf9;
+        --theme-100: #ffedd5;
       }
       .theme-lilac {
         --rose-main: #c084fc;
         --nestly-burgundy: #6b21a8;
         --soft-bg: #fdf4ff;
         --body-bg: #fefaff;
+        --theme-100: #f3e8ff;
       }
       .theme-stone {
         --rose-main: #a8a29e;
         --nestly-burgundy: #44403c;
         --soft-bg: #f5f5f4;
         --body-bg: #fafaf9;
+        --theme-100: #e7e5e4;
       }
 
       /* Lifecycle specific overrides (can combine with colors) */

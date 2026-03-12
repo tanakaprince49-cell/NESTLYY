@@ -85,7 +85,11 @@ class StorageService {
     const saved = localStorage.getItem(finalKey);
     if (!saved) return defaultValue;
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(defaultValue) && !Array.isArray(parsed)) {
+        return defaultValue;
+      }
+      return parsed;
     } catch (e) {
       return defaultValue;
     }

@@ -475,7 +475,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               </div>
 
-              <div onClick={() => onQuickTool('progress')} className="card-premium p-5 bg-rose-900 text-white flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
+              <div className="card-premium p-5 bg-rose-900 text-white flex flex-col justify-between min-h-[140px]">
                  <span className="text-[9px] font-black uppercase tracking-widest opacity-60">
                    Baby Growth
                  </span>
@@ -484,6 +484,40 @@ export const Dashboard: React.FC<DashboardProps> = ({
                    <span className="text-[8px] uppercase tracking-widest opacity-60 mt-2 block">Week {weeks}</span>
                  </div>
               </div>
+            </div>
+          </div>
+
+          {/* Journey Progress Timeline */}
+          <div className="card-premium p-8 bg-white border-2 border-slate-50 space-y-8 text-center">
+            <div className="space-y-2">
+               <h3 className="text-sm font-black text-rose-500 uppercase tracking-[0.3em]">Journey Progress</h3>
+               <div className="text-3xl font-serif text-slate-900">Month {Math.floor(weeks / 4.3) + 1} / Week {weeks}</div>
+            </div>
+
+            <div className="space-y-6">
+               <div className="relative pt-4">
+                  <div className="flex justify-between text-[8px] font-black uppercase text-slate-300 tracking-widest mb-4">
+                     <span>Tri 1</span>
+                     <span>Tri 2</span>
+                     <span>Tri 3</span>
+                  </div>
+                  <div className="h-4 bg-slate-100 rounded-full flex overflow-hidden">
+                     <div className={`h-full transition-all duration-1000 ${weeks < 13 ? 'bg-rose-500' : 'bg-rose-200'}`} style={{ width: '33.3%' }} />
+                     <div className={`h-full transition-all duration-1000 ${weeks >= 13 && weeks < 27 ? 'bg-rose-500' : weeks >= 27 ? 'bg-rose-200' : 'bg-slate-100'}`} style={{ width: '33.3%' }} />
+                     <div className={`h-full transition-all duration-1000 ${weeks >= 27 ? 'bg-rose-500' : 'bg-slate-100'}`} style={{ width: '33.3%' }} />
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100">
+                     <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest">Time Lapsed</span>
+                     <div className="text-xl font-bold text-rose-900">{Math.round((weeks / 40) * 100)}%</div>
+                  </div>
+                  <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                     <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Weeks Left</span>
+                     <div className="text-xl font-bold text-emerald-900">{Math.max(0, 40 - weeks)}</div>
+                  </div>
+               </div>
             </div>
           </div>
 
