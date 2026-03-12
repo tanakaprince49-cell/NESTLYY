@@ -9,7 +9,8 @@ import {
   PregnancyProfile, FeedingLog, SleepLog, DiaperLog, BabyGrowthLog, 
   MilestoneLog, HealthLog, TummyTimeLog, JournalEntry, KickLog, 
   ReactionLog, CalendarEvent, BloodPressureLog, MedicationLog, 
-  WeightLog, WaterLog, SymptomLog, VitaminLog, Contraction 
+  WeightLog, WaterLog, SymptomLog, VitaminLog, Contraction,
+  KegelLog, FoodEntry
 } from '../types.ts';
 
 interface ExportReportProps {
@@ -32,6 +33,8 @@ interface ExportReportProps {
   symptoms: SymptomLog[];
   vitamins: VitaminLog[];
   contractions: Contraction[];
+  kegelLogs: KegelLog[];
+  foodEntries: FoodEntry[];
 }
 
 export const ExportReport: React.FC<ExportReportProps> = ({
@@ -53,7 +56,9 @@ export const ExportReport: React.FC<ExportReportProps> = ({
   waterLogs,
   symptoms,
   vitamins,
-  contractions
+  contractions,
+  kegelLogs,
+  foodEntries
 }) => {
   const reportRef = useRef<HTMLDivElement>(null);
   const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
@@ -86,9 +91,11 @@ export const ExportReport: React.FC<ExportReportProps> = ({
       water: filter(waterLogs),
       symptoms: filter(symptoms),
       vitamins: filter(vitamins),
-      contractions: filter(contractions)
+      contractions: filter(contractions),
+      kegels: filter(kegelLogs),
+      nutrition: filter(foodEntries)
     };
-  }, [startDate, endDate, feedingLogs, sleepLogs, diaperLogs, babyGrowthLogs, milestones, healthLogs, tummyTimeLogs, journalEntries, kickLogs, reactions, calendarEvents, bloodPressureLogs, medicationLogs, weightLogs, waterLogs, symptoms, vitamins, contractions]);
+  }, [startDate, endDate, feedingLogs, sleepLogs, diaperLogs, babyGrowthLogs, milestones, healthLogs, tummyTimeLogs, journalEntries, kickLogs, reactions, calendarEvents, bloodPressureLogs, medicationLogs, weightLogs, waterLogs, symptoms, vitamins, contractions, kegelLogs, foodEntries]);
 
   const handleExport = () => {
     if (!reportRef.current) return;
@@ -263,6 +270,12 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
           {/* PAGE 2: DAILY LOGS & ACTIVITIES */}
           <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
+              </div>
+            </div>
             <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-slate-800">Daily Activity Logs</h2>
               <div className="w-24 h-1 bg-rose-500 mx-auto mt-4 rounded-full"></div>
@@ -350,10 +363,42 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                 </div>
               </section>
             </div>
+
+            <div className="mt-12">
+              <section>
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-amber-100 pb-2">
+                  <Utensils className="text-amber-500" size={24} />
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Nutrition & Food Log</h2>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {filteredData.nutrition.map((log, idx) => (
+                    <div key={idx} className="p-4 bg-amber-50/30 rounded-2xl border border-amber-100/50">
+                      <div className="flex justify-between items-start mb-1">
+                        <div className="text-sm font-bold text-slate-700">{log.name}</div>
+                        <div className="text-[10px] font-black text-amber-600">{log.calories} kcal</div>
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-medium mb-2">{new Date(log.timestamp).toLocaleString()}</div>
+                      <div className="flex gap-4 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                        <span>P: {log.protein}g</span>
+                        <span>C: {log.carbs}g</span>
+                        <span>F: {log.fat}g</span>
+                      </div>
+                    </div>
+                  ))}
+                  {filteredData.nutrition.length === 0 && <div className="text-sm text-slate-400 italic col-span-2 text-center">No nutrition logs for this period.</div>}
+                </div>
+              </section>
+            </div>
           </div>
 
           {/* PAGE 3: HEALTH & VITALS */}
           <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
+              </div>
+            </div>
             <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-slate-800">Health & Vitals</h2>
               <div className="w-24 h-1 bg-indigo-500 mx-auto mt-4 rounded-full"></div>
@@ -465,10 +510,37 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                 </div>
               </section>
             </div>
+
+            <div className="mt-12">
+              <section>
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-indigo-100 pb-2">
+                  <Activity className="text-indigo-500" size={24} />
+                  <h2 className="text-xl font-serif font-bold text-slate-800">Kegel Exercises</h2>
+                </div>
+                <div className="grid grid-cols-3 gap-6">
+                  {filteredData.kegels.map((log, idx) => (
+                    <div key={idx} className="p-6 bg-indigo-50/50 rounded-[2rem] border border-indigo-100 text-center">
+                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-indigo-500">
+                        <Zap size={20} />
+                      </div>
+                      <div className="text-sm font-bold text-slate-800 mb-1">{log.duration}s</div>
+                      <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleDateString()}</div>
+                    </div>
+                  ))}
+                  {filteredData.kegels.length === 0 && <div className="text-sm text-slate-400 col-span-3 italic text-center">No Kegel sessions logged for this period.</div>}
+                </div>
+              </section>
+            </div>
           </div>
 
           {/* PAGE 4: DEVELOPMENT & MILESTONES */}
           <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
+              </div>
+            </div>
             <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-slate-800">Development & Milestones</h2>
               <div className="w-24 h-1 bg-amber-500 mx-auto mt-4 rounded-full"></div>
@@ -577,6 +649,12 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
           {/* PAGE 5: NOTES & APPOINTMENTS */}
           <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
+              </div>
+            </div>
             <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-slate-800">Notes & Appointments</h2>
               <div className="w-24 h-1 bg-slate-500 mx-auto mt-4 rounded-full"></div>

@@ -15,6 +15,7 @@ import {
   HealthLog,
   ReactionLog,
   KickLog,
+  KegelLog,
   LifecycleStage,
   BabyGrowthLog,
   DiaperLog,
@@ -22,7 +23,8 @@ import {
   MedicationLog,
   BloodPressureLog,
   WaterLog,
-  VitaminLog
+  VitaminLog,
+  FoodEntry
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { ReportCenter } from './ReportCenter.tsx';
@@ -96,6 +98,8 @@ interface ToolsHubProps {
   onAddReaction: (reaction: Omit<ReactionLog, 'id' | 'timestamp'>) => void;
   kickLogs: KickLog[];
   onAddKick: (kick: Omit<KickLog, 'id' | 'timestamp'>) => void;
+  kegelLogs: KegelLog[];
+  onAddKegel: (kegel: Omit<KegelLog, 'id' | 'timestamp'>) => void;
   babyGrowthLogs: BabyGrowthLog[];
   onAddBabyGrowth: (log: Omit<BabyGrowthLog, 'id' | 'timestamp'>) => void;
   tummyTimeLogs: TummyTimeLog[];
@@ -105,6 +109,7 @@ interface ToolsHubProps {
   medicationLogs: MedicationLog[];
   onAddMedication: (log: Omit<MedicationLog, 'id' | 'timestamp'>) => void;
   onRemoveMedication: (id: string) => void;
+  foodEntries: FoodEntry[];
   waterLogs: WaterLog[];
   vitamins: VitaminLog[];
   trimester: Trimester;
@@ -119,10 +124,11 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   journalEntries, onAddJournal, onRemoveJournal, calendarEvents, onAddEvent, onRemoveEvent,
   weightLogs, onAddWeight, sleepLogs, onAddSleep, onRemoveSleep, 
   feedingLogs, onAddFeeding, diaperLogs, onAddDiaper, milestones, onAddMilestone, healthLogs, onAddHealth, 
-  reactions, onAddReaction, kickLogs, onAddKick, babyGrowthLogs, onAddBabyGrowth,
+  reactions, onAddReaction, kickLogs, onAddKick, kegelLogs, onAddKegel, babyGrowthLogs, onAddBabyGrowth,
   tummyTimeLogs, onAddTummyTime,
   bloodPressureLogs, onAddBloodPressure,
   medicationLogs, onAddMedication, onRemoveMedication,
+  foodEntries,
   waterLogs, vitamins,
   trimester, profile,
   activeCategory, setActiveCategory, onUpdateProfile
@@ -302,7 +308,12 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   };
   const stopKegel = () => {
     setIsKegelActive(false);
-    if (kegelInterval.current) clearInterval(kegelInterval.current);
+    if (kegelInterval.current) {
+      clearInterval(kegelInterval.current);
+      if (kegelTimer > 0) {
+        onAddKegel({ duration: kegelTimer });
+      }
+    }
   };
 
   const handleAddPhoto = (type: keyof MemoryAlbums) => {
@@ -2115,6 +2126,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           vitamins={vitamins}
           symptoms={symptoms}
           contractions={contractions}
+          kegelLogs={kegelLogs}
+          foodEntries={foodEntries}
         />
       )}
 

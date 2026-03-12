@@ -20,8 +20,9 @@ export const AchievementToast: React.FC<AchievementToastProps> = ({ achievement,
   }, [onClose]);
 
   return (
-    <div className={`fixed inset-x-4 top-24 z-[500] flex justify-center transition-all duration-700 ${visible ? 'translate-y-0 opacity-100' : '-translate-y-12 opacity-0'}`}>
-      <div className="glass p-1 rounded-[2.5rem] border-2 border-white shadow-[0_20px_50px_rgba(244,63,94,0.2)] max-w-sm w-full relative overflow-hidden">
+    <div className={`fixed inset-0 z-[500] flex items-center justify-center p-4 transition-all duration-700 ${visible ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}>
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="glass p-1 rounded-[2.5rem] border-2 border-white shadow-[0_40px_100px_rgba(0,0,0,0.4)] max-w-sm w-full relative overflow-hidden z-10">
         {/* Animated Background Confetti Elements */}
         <div className="absolute inset-0 pointer-events-none opacity-20">
           {[...Array(6)].map((_, i) => (

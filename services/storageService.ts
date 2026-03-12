@@ -10,6 +10,7 @@ import {
   CalendarEvent,
   UserLog,
   WeightLog,
+  KegelLog,
   MemoryAlbums,
   SleepLog,
   KickLog,
@@ -71,6 +72,7 @@ const KEYS = {
   MEDICATIONS: 'medication_logs',
   TUMMY_TIME: 'tummy_time_logs',
   BLOOD_PRESSURE: 'blood_pressure_logs',
+  KEGELS: 'kegel_logs',
 };
 
 class StorageService {
@@ -164,6 +166,9 @@ class StorageService {
   getBloodPressureLogs(): BloodPressureLog[] { return this.getItem<BloodPressureLog[]>(KEYS.BLOOD_PRESSURE, []); }
   addBloodPressureLog(log: BloodPressureLog): void { this.setItem(KEYS.BLOOD_PRESSURE, [log, ...this.getBloodPressureLogs()]); }
   removeBloodPressureLog(id: string): void { this.setItem(KEYS.BLOOD_PRESSURE, this.getBloodPressureLogs().filter(l => l.id !== id)); }
+
+  getKegelLogs(): KegelLog[] { return this.getItem<KegelLog[]>(KEYS.KEGELS, []); }
+  addKegelLog(log: KegelLog): void { this.setItem(KEYS.KEGELS, [log, ...this.getKegelLogs()]); }
 
   getBabyGrowthLogs(): BabyGrowthLog[] { return this.getItem<BabyGrowthLog[]>(KEYS.BABY_GROWTH, []); }
   addBabyGrowthLog(log: BabyGrowthLog): void { this.setItem(KEYS.BABY_GROWTH, [log, ...this.getBabyGrowthLogs()]); }

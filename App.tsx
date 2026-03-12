@@ -34,6 +34,7 @@ import {
   HealthLog,
   ReactionLog,
   KickLog,
+  KegelLog,
   LifecycleStage,
   BabyGrowthLog,
   DiaperLog,
@@ -103,6 +104,7 @@ const App: React.FC = () => {
   const [tummyTimeLogs, setTummyTimeLogs] = useState<TummyTimeLog[]>([]);
   const [bloodPressureLogs, setBloodPressureLogs] = useState<BloodPressureLog[]>([]);
   const [kickLogs, setKickLogs] = useState<KickLog[]>([]);
+  const [kegelLogs, setKegelLogs] = useState<KegelLog[]>([]);
   const [diaperLogs, setDiaperLogs] = useState<DiaperLog[]>([]);
   const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
 
@@ -126,6 +128,7 @@ const App: React.FC = () => {
     setTummyTimeLogs(storage.getTummyTimeLogs());
     setBloodPressureLogs(storage.getBloodPressureLogs());
     setKickLogs(storage.getKickLogs());
+    setKegelLogs(storage.getKegelLogs());
     setDiaperLogs(storage.getDiaperLogs());
     setMedicationLogs(storage.getMedications());
   }, [authEmail]);
@@ -464,6 +467,11 @@ const App: React.FC = () => {
                   setKickLogs(storage.getKickLogs()); 
                   syncAllToFirestore(userUid!);
                 }}
+                kegelLogs={kegelLogs} onAddKegel={(k) => {
+                  storage.addKegelLog({id: Date.now().toString(), ...k, timestamp: Date.now()});
+                  setKegelLogs(storage.getKegelLogs());
+                  syncAllToFirestore(userUid!);
+                }}
                 medicationLogs={medicationLogs}
                 onAddMedication={(m) => {
                   storage.addMedication({ ...m, id: Date.now().toString(), timestamp: Date.now() });
@@ -489,6 +497,7 @@ const App: React.FC = () => {
                   syncAllToFirestore(userUid!);
                 }}
                 onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
+                foodEntries={entries}
                 waterLogs={waterLogs}
                 vitamins={vitamins}
                 trimester={trimester} profile={profile}

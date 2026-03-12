@@ -485,13 +485,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               </div>
 
-              <div className="card-premium p-5 bg-rose-900 text-white flex flex-col justify-between min-h-[140px]">
-                 <span className="text-[9px] font-black uppercase tracking-widest opacity-60">
+              <div className="card-premium p-5 bg-white border-2 border-slate-50 flex flex-col justify-between min-h-[140px]">
+                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
                    Baby Growth
                  </span>
                  <div className="mt-2 text-center">
-                   <span className="text-[10px] font-serif block leading-tight">Size of {profile.pregnancyType === 'singleton' ? 'a' : profile.pregnancyType === 'twins' ? 'two' : 'three'} {baby?.size}</span>
-                   <span className="text-[8px] uppercase tracking-widest opacity-60 mt-2 block">Week {weeks}</span>
+                   <span className="text-[12px] font-serif block leading-tight text-indigo-900">Size of {profile.pregnancyType === 'singleton' ? 'a' : profile.pregnancyType === 'twins' ? 'two' : 'three'} {baby?.size}</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest text-indigo-900 mt-2 block">Week {weeks}</span>
                  </div>
               </div>
             </div>
@@ -652,13 +652,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <AnimatePresence>
         {toast && (
           <motion.div 
-            initial={{ opacity: 0, y: -50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 bg-white/80 backdrop-blur-xl text-slate-800 text-xs font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center gap-4 border border-white/50 min-w-[280px] justify-center"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[600] px-12 py-8 bg-white text-slate-900 rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.2)] flex flex-col items-center gap-6 border-4 border-rose-50 min-w-[340px] text-center"
           >
-            <div className="w-3 h-3 bg-rose-500 rounded-full animate-ping" />
-            {toast}
+            <div className="w-20 h-20 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full flex items-center justify-center shadow-xl shadow-rose-200 animate-pulse">
+              <Sparkles className="text-white w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-500">Notification</div>
+              <div className="text-xl font-serif font-bold text-slate-800 leading-tight">{toast}</div>
+            </div>
+            <button 
+              onClick={() => setToast(null)}
+              className="mt-2 px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-slate-800 transition-colors"
+            >
+              Dismiss
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

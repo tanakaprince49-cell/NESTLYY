@@ -221,6 +221,12 @@ export interface BloodPressureLog {
   timestamp: number;
 }
 
+export interface KegelLog {
+  id: string;
+  duration: number; // seconds
+  timestamp: number;
+}
+
 export interface TummyTimeLog {
   id: string;
   babyId: string;
