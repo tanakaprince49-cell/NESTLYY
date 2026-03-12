@@ -1231,9 +1231,29 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       )}
 
       {activeCategory === 'reports' && (
-        <div className="space-y-8 animate-in fade-in">
-          <ReportCenter />
-        </div>
+        <ExportReport 
+          profile={profile}
+          feedingLogs={feedingLogs}
+          sleepLogs={sleepLogs}
+          diaperLogs={diaperLogs}
+          babyGrowthLogs={babyGrowthLogs}
+          milestones={milestones}
+          healthLogs={healthLogs}
+          tummyTimeLogs={tummyTimeLogs}
+          journalEntries={journalEntries}
+          kickLogs={kickLogs}
+          reactions={reactions}
+          calendarEvents={calendarEvents}
+          bloodPressureLogs={bloodPressureLogs}
+          medicationLogs={medicationLogs}
+          weightLogs={weightLogs}
+          waterLogs={waterLogs}
+          vitamins={vitamins}
+          symptoms={symptoms}
+          contractions={contractions}
+          kegelLogs={kegelLogs}
+          foodEntries={foodEntries}
+        />
       )}
 
       {activeCategory === 'calendar' && (
