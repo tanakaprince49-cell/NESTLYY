@@ -411,43 +411,53 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-
-            {/* Sleep Analysis Card */}
-            <div className="card-premium p-6 bg-indigo-900 text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-8 opacity-10">
-                <Moon size={120} />
-              </div>
-              <div className="relative z-10">
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60">Sleep Analysis</span>
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <p className="text-3xl font-bold">
-                      {(sleepLogs.reduce((acc, curr) => acc + curr.hours, 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
-                    </p>
-                    <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Avg / Session</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold">
-                      {(sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length)}
-                    </p>
-                    <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Sessions Today</p>
-                  </div>
-                </div>
-                <div className="mt-6 h-24">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
-                      <Bar dataKey="sleep" fill="#818cf8" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <p className="text-[10px] mt-4 opacity-70 font-medium leading-relaxed">
-                  WHO recommends 14-17 hours of sleep for newborns. Your baby is currently averaging { (chartData.reduce((acc, curr) => acc + curr.sleep, 0) / 7).toFixed(1) } hours per day.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       )}
+
+      {/* Sleep Analysis Card - Visible for both Pregnancy & Postpartum */}
+      <div className="card-premium p-6 bg-white border-2 border-slate-50 overflow-hidden relative">
+        <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-900">
+          <Moon size={120} />
+        </div>
+        <div className="relative z-10">
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-900/40">Sleep Analysis</span>
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <p className="text-3xl font-bold text-blue-900">
+                {(sleepLogs.reduce((acc, curr) => acc + curr.hours, 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
+              </p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg / Session</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-blue-900">
+                {(sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length)}
+              </p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Sessions Today</p>
+            </div>
+          </div>
+          <div className="mt-6 h-32">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="date" hide />
+                <YAxis hide domain={[0, 'auto']} />
+                <Tooltip 
+                  cursor={{fill: 'transparent'}}
+                  contentStyle={{ borderRadius: '12px', border: 'none', fontSize: '10px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} 
+                />
+                <Bar dataKey="sleep" fill="#1e3a8a" radius={[6, 6, 0, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-[10px] mt-4 text-slate-500 font-medium leading-relaxed">
+            {isPostpartum 
+              ? `WHO recommends 14-17 hours of sleep for newborns. Your baby is currently averaging ${ (chartData.reduce((acc, curr) => acc + curr.sleep, 0) / 7).toFixed(1) } hours per day.`
+              : `Quality sleep is vital for your health and baby's development. You're currently averaging ${ (chartData.reduce((acc, curr) => acc + curr.sleep, 0) / 7).toFixed(1) } hours per day.`
+            }
+          </p>
+        </div>
+      </div>
 
       {!isPostpartum && (
         <>

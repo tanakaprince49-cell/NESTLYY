@@ -130,6 +130,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
     <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-rose-50">
       <div className="w-full max-w-[480px] z-10 animate-slide-up">
         <div className="text-center mb-12">
+          <div className="mb-8">
+            <button 
+              onClick={() => setShowInstallGuide(true)}
+              className="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 transition-colors flex items-center justify-center gap-2 mx-auto bg-white py-3 px-6 rounded-2xl shadow-sm border border-rose-100"
+            >
+              <Download size={14} />
+              How to Install App
+            </button>
+          </div>
           <div className="flex justify-center mb-10">
             <div className="relative">
               <div className="p-1 bg-white rounded-[2.5rem] shadow-2xl">
@@ -260,16 +269,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
               )}
             </div>
           </div>
-        </div>
-
-        <div className="mt-8 text-center">
-          <button 
-            onClick={() => setShowInstallGuide(true)}
-            className="text-[10px] font-black uppercase tracking-widest text-rose-400 hover:text-rose-600 transition-colors flex items-center justify-center gap-2 mx-auto"
-          >
-            <Download size={14} />
-            How to Install App
-          </button>
         </div>
       </div>
 

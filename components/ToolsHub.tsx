@@ -20,7 +20,9 @@ import {
   DiaperLog,
   TummyTimeLog,
   MedicationLog,
-  BloodPressureLog
+  BloodPressureLog,
+  WaterLog,
+  VitaminLog
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { ReportCenter } from './ReportCenter.tsx';
@@ -103,6 +105,8 @@ interface ToolsHubProps {
   medicationLogs: MedicationLog[];
   onAddMedication: (log: Omit<MedicationLog, 'id' | 'timestamp'>) => void;
   onRemoveMedication: (id: string) => void;
+  waterLogs: WaterLog[];
+  vitamins: VitaminLog[];
   trimester: Trimester;
   profile: PregnancyProfile;
   activeCategory: string;
@@ -119,6 +123,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   tummyTimeLogs, onAddTummyTime,
   bloodPressureLogs, onAddBloodPressure,
   medicationLogs, onAddMedication, onRemoveMedication,
+  waterLogs, vitamins,
   trimester, profile,
   activeCategory, setActiveCategory, onUpdateProfile
 }) => {
@@ -2106,6 +2111,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           bloodPressureLogs={bloodPressureLogs}
           medicationLogs={medicationLogs}
           weightLogs={weightLogs}
+          waterLogs={waterLogs}
+          vitamins={vitamins}
+          symptoms={symptoms}
+          contractions={contractions}
         />
       )}
 

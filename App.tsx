@@ -38,7 +38,8 @@ import {
   BabyGrowthLog,
   DiaperLog,
   MedicationLog,
-  TummyTimeLog
+  TummyTimeLog,
+  BloodPressureLog
 } from './types.ts';
 
 const App: React.FC = () => {
@@ -488,6 +489,8 @@ const App: React.FC = () => {
                   syncAllToFirestore(userUid!);
                 }}
                 onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
+                waterLogs={waterLogs}
+                vitamins={vitamins}
                 trimester={trimester} profile={profile}
                 activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}
                 onUpdateProfile={(p) => { 
