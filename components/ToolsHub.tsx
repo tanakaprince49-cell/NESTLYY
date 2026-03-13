@@ -312,6 +312,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       clearInterval(kegelInterval.current);
       if (kegelTimer > 0) {
         onAddKegel({ duration: kegelTimer });
+        setToast({ message: "Kegel exercise recorded!", type: 'success' });
       }
     }
   };
@@ -1658,6 +1659,37 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                  )}
               </button>
            </div>
+
+           {/* Kegel Logs */}
+           <div className="space-y-4">
+             <div className="flex items-center justify-between px-2">
+               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Recent Sessions</h4>
+               <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-3 py-1 rounded-full">
+                 {storage.getKegelLogs().length} Recorded
+               </span>
+             </div>
+             <div className="space-y-3">
+               {storage.getKegelLogs().slice(-5).reverse().map((log, idx) => (
+                 <div key={idx} className="bg-white p-4 rounded-2xl border border-slate-50 shadow-sm flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                     <div className="w-8 h-8 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500">
+                       <Flower size={16} />
+                     </div>
+                     <div>
+                       <div className="text-xs font-bold text-slate-800">{log.duration}s Session</div>
+                       <div className="text-[9px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                     </div>
+                   </div>
+                   <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Recorded</div>
+                 </div>
+               ))}
+               {storage.getKegelLogs().length === 0 && (
+                 <div className="py-8 text-center bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-100">
+                   <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">No sessions yet</p>
+                 </div>
+               )}
+             </div>
+           </div>
         </div>
       )}
 
@@ -2154,13 +2186,24 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       <AnimatePresence>
         {toast && (
           <motion.div 
-            initial={{ opacity: 0, y: -50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 bg-white/80 backdrop-blur-xl text-slate-800 text-xs font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center gap-4 border border-white/50 min-w-[280px] justify-center"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[600] px-12 py-8 bg-white text-slate-900 rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.2)] flex flex-col items-center gap-6 border-4 border-rose-50 min-w-[340px] text-center"
           >
-            <div className={`w-3 h-3 rounded-full animate-ping ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-            {toast.message}
+            <div className="w-20 h-20 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full flex items-center justify-center shadow-xl shadow-rose-200 animate-pulse">
+              <Sparkles className="text-white w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-500">Notification</div>
+              <div className="text-xl font-serif font-bold text-slate-800 leading-tight">{toast.message}</div>
+            </div>
+            <button 
+              onClick={() => setToast(null)}
+              className="mt-2 px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-slate-800 transition-colors"
+            >
+              Dismiss
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

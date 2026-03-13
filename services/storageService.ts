@@ -98,8 +98,16 @@ class StorageService {
   }
 
   private setItem<T>(key: string, value: T, isGlobal: boolean = false): void {
-    const finalKey = isGlobal ? key : this.getUserKey(key);
-    localStorage.setItem(finalKey, JSON.stringify(value));
+    try {
+      const finalKey = isGlobal ? key : this.getUserKey(key);
+      localStorage.setItem(finalKey, JSON.stringify(value));
+    } catch (e) {
+      console.error("Storage error:", e);
+      // If it's a quota error, we might want to alert the user or clear some space
+      if (e instanceof Error && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+        console.warn("Storage quota exceeded. Profile picture might be too large.");
+      }
+    }
   }
 
   getAuthEmail(): string | null { return localStorage.getItem(KEYS.AUTH); }
@@ -235,7 +243,18 @@ class StorageService {
 
   getAvailableReportDates(): string[] {
     const dates = new Set<string>();
-    this.getFoodEntries().forEach(e => dates.add(new Date(e.timestamp).toISOString().split('T')[0]));
+    const addDate = (ts: number) => dates.add(new Date(ts).toISOString().split('T')[0]);
+    
+    this.getFoodEntries().forEach(e => addDate(e.timestamp));
+    this.getFeedingLogs().forEach(e => addDate(e.timestamp));
+    this.getDiaperLogs().forEach(e => addDate(e.timestamp));
+    this.getSleepLogs().forEach(e => addDate(e.timestamp));
+    this.getWeightLogs().forEach(e => addDate(e.timestamp));
+    this.getKickLogs().forEach(e => addDate(e.timestamp));
+    this.getContractions().forEach(e => addDate(e.startTime));
+    this.getJournalEntries().forEach(e => addDate(e.timestamp));
+    this.getSymptoms().forEach(e => addDate(e.timestamp));
+    
     return Array.from(dates).sort().reverse();
   }
 

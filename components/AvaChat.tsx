@@ -11,7 +11,8 @@ import {
   PartyPopper, 
   FileText, 
   Heart,
-  Send
+  Send,
+  User
 } from 'lucide-react';
 import { getAvaResponse, speak } from '../services/geminiService.ts';
 import { PregnancyProfile, ChatMessage, AvaMemoryFact } from '../types.ts';
@@ -213,14 +214,32 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
           </div>
         )}
         {messages?.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}>
-            <div className={`max-w-[85%] px-6 py-4 rounded-[1.8rem] text-[15px] leading-relaxed shadow-sm ${
+          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2 animate-slide-up`}>
+            {m.role === 'model' && (
+              <div className="w-8 h-8 rounded-xl bg-rose-900 flex items-center justify-center shrink-0 overflow-hidden border border-white shadow-sm">
+                {avaImage ? (
+                  <img src={avaImage} className="w-full h-full object-cover" />
+                ) : (
+                  <Sparkles size={14} className="text-rose-200" />
+                )}
+              </div>
+            )}
+            <div className={`max-w-[75%] px-6 py-4 rounded-[1.8rem] text-[15px] leading-relaxed shadow-sm ${
               m.role === 'user' 
                 ? 'bg-rose-900 text-white rounded-br-none shadow-rose-900/20 font-medium' 
                 : 'bg-white/90 border border-slate-50 text-slate-800 rounded-bl-none font-medium'
             }`}>
               {m.text}
             </div>
+            {m.role === 'user' && (
+              <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden border border-white shadow-sm">
+                {profile.profileImage ? (
+                  <img src={profile.profileImage} className="w-full h-full object-cover" />
+                ) : (
+                  <User size={14} className="text-slate-300" />
+                )}
+              </div>
+            )}
           </div>
         ))}
         {loading && (

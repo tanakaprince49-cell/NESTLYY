@@ -47,13 +47,40 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result as string;
-        const updatedProfile = { ...profile, profileImage: base64String };
-        storage.saveProfile(updatedProfile);
-        onUpdateProfile(updatedProfile);
-        if (userUid) {
-          syncProfileToFirestore(userUid, updatedProfile);
-        }
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 400;
+          const MAX_HEIGHT = 400;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          
+          const updatedProfile = { ...profile, profileImage: dataUrl };
+          storage.saveProfile(updatedProfile);
+          onUpdateProfile(updatedProfile);
+          if (userUid) {
+            syncProfileToFirestore(userUid, updatedProfile);
+          }
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
@@ -242,6 +269,19 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
           <span className="text-[10px] font-black uppercase tracking-widest text-rose-300">v1.2.0</span>
           <span className="text-[10px] font-black uppercase tracking-widest text-rose-300">Secure</span>
         </div>
+      </div>
+
+      <div className="card-premium p-6 space-y-4">
+        <h3 className="font-bold text-slate-800">Contact Us</h3>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          For collaborations, customer support, or just to say hello, we'd love to hear from you.
+        </p>
+        <a 
+          href="mailto:supportnestly@gmail.com"
+          className="block w-full py-4 bg-slate-50 border-2 border-rose-100/50 text-rose-900 rounded-2xl text-center active:scale-95 transition-all group"
+        >
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-rose-600">supportnestly@gmail.com</span>
+        </a>
       </div>
 
       <button 

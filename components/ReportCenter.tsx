@@ -1,18 +1,38 @@
 import React, { useState } from 'react';
 import { storage } from '../services/storageService.ts';
-import { generateDailyReport, generateLaborReport, generateFullPregnancyReport } from '../services/reportService.ts';
-import { Download, ChevronDown } from 'lucide-react';
+import { 
+  generatePregnancyDailyReport, 
+  generateNewbornDailyReport, 
+  generateLaborReport, 
+  generateFullPregnancyReport,
+  generateFullNewbornReport
+} from '../services/reportService.ts';
+import { Download, ChevronDown, FileArchive } from 'lucide-react';
 
 export const ReportCenter: React.FC = () => {
+  const profile = storage.getProfile();
+  const isNewbornStage = profile?.lifecycleStage === 'newborn';
   const availableDates = storage.getAvailableReportDates();
   const [selectedDate, setSelectedDate] = useState(availableDates[0] || new Date().toISOString().split('T')[0]);
 
   const handleDownloadDaily = () => {
-    generateDailyReport(new Date(selectedDate));
+    if (isNewbornStage) {
+      generateNewbornDailyReport(new Date(selectedDate));
+    } else {
+      generatePregnancyDailyReport(new Date(selectedDate));
+    }
   };
 
   const handleDownloadLabor = () => {
     generateLaborReport(new Date(selectedDate));
+  };
+
+  const handleDownloadArchive = () => {
+    if (isNewbornStage) {
+      generateFullNewbornReport();
+    } else {
+      generateFullPregnancyReport();
+    }
   };
 
   return (
@@ -52,15 +72,25 @@ export const ReportCenter: React.FC = () => {
               className="w-full py-5 bg-rose-900 text-white font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-rose-900/10 active:scale-95 transition-all flex items-center justify-center gap-3"
             >
               <Download size={18} strokeWidth={3} />
-              Daily Progress PDF
+              {isNewbornStage ? 'Daily Newborn PDF' : 'Daily Pregnancy PDF'}
             </button>
 
+            {!isNewbornStage && (
+              <button 
+                onClick={handleDownloadLabor}
+                className="w-full py-5 bg-white border-2 border-rose-100 text-rose-500 font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-rose-50 active:scale-95 transition-all flex items-center justify-center gap-3"
+              >
+                <Download size={18} strokeWidth={3} />
+                Labor Summary PDF
+              </button>
+            )}
+
             <button 
-              onClick={handleDownloadLabor}
-              className="w-full py-5 bg-white border-2 border-rose-100 text-rose-500 font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-rose-50 active:scale-95 transition-all flex items-center justify-center gap-3"
+              onClick={handleDownloadArchive}
+              className="w-full py-5 bg-rose-50 text-rose-900 font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-rose-100 active:scale-95 transition-all flex items-center justify-center gap-3"
             >
-              <Download size={18} strokeWidth={3} />
-              Labor Summary PDF
+              <FileArchive size={18} strokeWidth={3} />
+              {isNewbornStage ? 'Full Newborn Archive' : 'Full Pregnancy Archive'}
             </button>
           </div>
         </div>

@@ -18,10 +18,19 @@ export const syncProfileToFirestore = async (uid: string, profile: any) => {
     await setDoc(userRef, {
       uid,
       email: profile.email,
-      name: profile.name,
+      userName: profile.userName,
       lifecycleStage: profile.lifecycleStage,
       lmpDate: profile.lmpDate || null,
       dueDate: profile.dueDate || null,
+      isManualDueDate: profile.isManualDueDate || false,
+      pregnancyType: profile.pregnancyType || 'singleton',
+      babies: profile.babies || [],
+      themeColor: profile.themeColor || 'pink',
+      profileImage: profile.profileImage || null,
+      startingWeight: profile.startingWeight || 0,
+      customTargets: profile.customTargets || null,
+      albums: profile.albums || null,
+      notificationsEnabled: profile.notificationsEnabled !== false,
       emailNotifications: profile.emailNotifications !== false,
       createdAt: profile.createdAt || new Date().toISOString()
     }, { merge: true });

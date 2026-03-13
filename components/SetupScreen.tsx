@@ -63,33 +63,37 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
   const goTo = (next: SetupStep) => setStep(next);
 
   const handleFinish = () => {
-    const emptyAlbums: MemoryAlbums = { ultrasound: [], family: [], favorites: [] };
-    const newProfile: PregnancyProfile = { 
-      userName,
-      lmpDate: lmp ? new Date(lmp).toISOString() : new Date().toISOString(), 
-      dueDate: dueDate ? new Date(dueDate).toISOString() : new Date().toISOString(), 
-      isManualDueDate,
-      pregnancyType,
-      babies,
-      themeColor,
-      profileImage,
-      startingWeight: parseFloat(weight) || 0,
-      customTargets: useCustomTargets ? targets : undefined,
-      albums: initialProfile?.albums || emptyAlbums,
-      lifecycleStage,
-      notificationsEnabled,
-      emailNotifications
-    };
+    try {
+      const emptyAlbums: MemoryAlbums = { ultrasound: [], family: [], favorites: [] };
+      const newProfile: PregnancyProfile = { 
+        userName,
+        lmpDate: lmp ? new Date(lmp).toISOString() : new Date().toISOString(), 
+        dueDate: dueDate ? new Date(dueDate).toISOString() : new Date().toISOString(), 
+        isManualDueDate,
+        pregnancyType,
+        babies,
+        themeColor,
+        profileImage,
+        startingWeight: parseFloat(weight) || 0,
+        customTargets: useCustomTargets ? targets : undefined,
+        albums: initialProfile?.albums || emptyAlbums,
+        lifecycleStage,
+        notificationsEnabled,
+        emailNotifications
+      };
 
-    if (auth.currentUser) {
-      syncProfileToFirestore(auth.currentUser.uid, {
-        ...newProfile,
-        email: auth.currentUser.email,
-        name: userName
-      });
+      if (auth.currentUser) {
+        syncProfileToFirestore(auth.currentUser.uid, {
+          ...newProfile,
+          email: auth.currentUser.email
+        });
+      }
+
+      onComplete(newProfile);
+    } catch (err) {
+      console.error("Error finishing setup:", err);
+      alert("Something went wrong. Please try again.");
     }
-
-    onComplete(newProfile);
   };
 
   return (
@@ -500,7 +504,36 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                 const f = e.target.files?.[0];
                 if (f) {
                   const r = new FileReader();
-                  r.onloadend = () => setProfileImage(r.result as string);
+                  r.onloadend = () => {
+                    const img = new Image();
+                    img.onload = () => {
+                      const canvas = document.createElement('canvas');
+                      const MAX_WIDTH = 400;
+                      const MAX_HEIGHT = 400;
+                      let width = img.width;
+                      let height = img.height;
+
+                      if (width > height) {
+                        if (width > MAX_WIDTH) {
+                          height *= MAX_WIDTH / width;
+                          width = MAX_WIDTH;
+                        }
+                      } else {
+                        if (height > MAX_HEIGHT) {
+                          width *= MAX_HEIGHT / height;
+                          height = MAX_HEIGHT;
+                        }
+                      }
+
+                      canvas.width = width;
+                      canvas.height = height;
+                      const ctx = canvas.getContext('2d');
+                      ctx?.drawImage(img, 0, 0, width, height);
+                      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                      setProfileImage(dataUrl);
+                    };
+                    img.src = r.result as string;
+                  };
                   r.readAsDataURL(f);
                 }
               }} />

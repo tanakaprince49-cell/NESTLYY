@@ -8,15 +8,29 @@ interface SplashScreenProps {
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   const [isVisible, setIsVisible] = useState(true);
+  const [messageIndex, setMessageIndex] = useState(0);
+  const messages = [
+    "Your AI pregnancy companion.",
+    "Get daily tips",
+    "Get reminders",
+    "Chat with Ava"
+  ];
 
   useEffect(() => {
+    const messageTimer = setInterval(() => {
+      setMessageIndex(prev => (prev + 1) % messages.length);
+    }, 2000);
+
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 800); // Wait for exit animation
-    }, 8000);
+      setTimeout(onComplete, 800);
+    }, 9000);
 
-    return () => clearTimeout(timer);
-  }, [onComplete]);
+    return () => {
+      clearInterval(messageTimer);
+      clearTimeout(timer);
+    };
+  }, [onComplete, messages.length]);
 
   return (
     <AnimatePresence>
@@ -66,7 +80,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             </motion.div>
 
             {/* Text Content */}
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-6">
               <motion.h1
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -76,18 +90,20 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 Nestly
               </motion.h1>
               
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.4 }}
-                transition={{ duration: 1, delay: 1 }}
-                className="flex items-center gap-3"
-              >
-                <div className="h-[1px] w-8 bg-rose-900" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-rose-900">
-                  Pregnancy Companion
-                </span>
-                <div className="h-[1px] w-8 bg-rose-900" />
-              </motion.div>
+              <div className="h-12 flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={messageIndex}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.5 }}
+                    className="text-sm font-medium text-rose-800 italic"
+                  >
+                    {messages[messageIndex]}
+                  </motion.p>
+                </AnimatePresence>
+              </div>
             </div>
           </div>
 

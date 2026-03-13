@@ -67,13 +67,22 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           <Logo className="w-10 h-10" />
           <h1 className="text-2xl font-serif text-rose-900 tracking-tight">Nestly</h1>
         </div>
-        <button 
-          onClick={onLogout}
-          className="p-2 text-slate-400 hover:text-rose-900 transition-colors"
-          title="Logout"
-        >
-          <LogOut size={20} strokeWidth={2.5} />
-        </button>
+        <div className="flex items-center gap-4">
+          {storage.getProfile()?.profileImage && (
+            <img 
+              src={storage.getProfile()?.profileImage!} 
+              alt="Profile" 
+              className="w-8 h-8 rounded-full border-2 border-white shadow-sm object-cover" 
+            />
+          )}
+          <button 
+            onClick={onLogout}
+            className="p-2 text-slate-400 hover:text-rose-900 transition-colors"
+            title="Logout"
+          >
+            <LogOut size={20} strokeWidth={2.5} />
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 relative z-10 overflow-y-auto no-scrollbar pb-safe">
