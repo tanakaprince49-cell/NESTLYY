@@ -91,6 +91,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
       // Disconnected from Firebase Auth as requested. 
       // We use Anonymous login behind the scenes to maintain Firestore sync capability 
       // while managing the "Email/Password" logic locally.
+      console.log('Attempting local email auth for:', email);
       const result = await signInAnonymously(auth);
       
       const localUser = {
@@ -102,20 +103,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
 
       // Store local credentials mapping (simulated)
       const localUsers = JSON.parse(localStorage.getItem('nestly_local_users') || '{}');
+      console.log('Existing local users:', Object.keys(localUsers));
       if (isSignUp) {
         if (localUsers[email]) {
+          console.error('User already exists locally.');
           throw new Error('User already exists locally.');
         }
         localUsers[email] = { password, name, uid: result.user.uid };
       } else {
         const stored = localUsers[email];
         if (!stored || stored.password !== password) {
+          console.error('Invalid email or password.');
           throw new Error('Invalid email or password.');
         }
         localUser.displayName = stored.name;
         localUser.uid = stored.uid;
       }
       localStorage.setItem('nestly_local_users', JSON.stringify(localUsers));
+      console.log('Saved local users, new user:', email);
 
       await handleAuthSuccess(localUser);
     } catch (err: any) {

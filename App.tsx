@@ -288,7 +288,10 @@ const App: React.FC = () => {
     setActiveTab('dashboard');
   };
 
-  useEffect(() => { loadUserData(); }, [loadUserData]);
+  useEffect(() => {
+    console.log('App initialized, authEmail:', authEmail);
+    loadUserData();
+  }, [loadUserData]);
 
   useEffect(() => {
     if (profile) {
