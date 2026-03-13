@@ -139,7 +139,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (sub) {
       setShowPushPrompt(false);
       onUpdateProfile?.({ ...profile, notificationsEnabled: true });
-      alert("Notifications enabled! You'll receive appointment reminders here.");
     }
   };
 
@@ -547,26 +546,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
              </div>
           </div>
-
-          {showPushPrompt && (
-            <div className="p-6 bg-emerald-50 rounded-[2.5rem] border border-emerald-100 shadow-sm animate-in fade-in slide-in-from-bottom-4">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200 shrink-0">
-                  <Bell size={24} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Stay Updated</h3>
-                  <p className="text-[10px] text-slate-500">Enable notifications for appointment reminders.</p>
-                </div>
-              </div>
-              <button 
-                onClick={handleEnablePush}
-                className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-md"
-              >
-                Enable Notifications
-              </button>
-            </div>
-          )}
 
           {/* Nutrient Grid */}
           <div className="grid grid-cols-2 gap-4">

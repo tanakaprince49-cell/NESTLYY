@@ -38,7 +38,6 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
     }
     
     setSaving(false);
-    alert('Profile updated!');
     setPassword('');
   };
 

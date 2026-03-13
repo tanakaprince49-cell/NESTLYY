@@ -33,6 +33,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
   const journal = (storage.getJournalEntries() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
   const kicks = (storage.getKickLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
   const kegels = (storage.getKegelLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
+  const bloodPressure = (storage.getBloodPressureLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
 
   const nutritionTotals = foods.reduce((acc, curr) => ({
     c: acc.c + (curr.calories || 0),
@@ -135,7 +136,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
   doc.setTextColor(slateText[0], slateText[1], slateText[2]);
   doc.text(`Kick Count: ${kicks.length > 0 ? kicks.reduce((a,b) => a + b.count, 0) : '---'}`, 15 + boxWidth + 25, y + 24);
   doc.text(`Kegel Sessions: ${kegels.length}`, 15 + boxWidth + 25, y + 31);
-  doc.text(`Symptoms: ${symptoms.length}`, 15 + boxWidth + 25, y + 38);
+  doc.text(`BP: ${bloodPressure.length > 0 ? bloodPressure[0].systolic + '/' + bloodPressure[0].diastolic : '---'}`, 15 + boxWidth + 25, y + 38);
 
   y += 60;
 

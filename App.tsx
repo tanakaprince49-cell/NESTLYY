@@ -208,6 +208,11 @@ const App: React.FC = () => {
     syncDataToFirestore(uid, 'water_intake', storage.getWaterIntake());
     syncDataToFirestore(uid, 'bump_photos', storage.getBumpPhotos());
     syncDataToFirestore(uid, 'medication_logs', storage.getMedications());
+    syncDataToFirestore(uid, 'tummy_time_logs', storage.getTummyTimeLogs());
+    syncDataToFirestore(uid, 'blood_pressure_logs', storage.getBloodPressureLogs());
+    syncDataToFirestore(uid, 'checklists', storage.getAllChecklists());
+    syncDataToFirestore(uid, 'archive', storage.getArchive());
+    syncDataToFirestore(uid, 'kegel_logs', storage.getKegelLogs());
   }, []);
 
   // Firestore Profile Sync
@@ -397,6 +402,11 @@ const App: React.FC = () => {
                   setSymptoms(storage.getSymptoms()); 
                   syncAllToFirestore(userUid!);
                 }}
+                onAddWater={(a) => { 
+                  storage.addWaterLog({amount: a, timestamp: Date.now()}); 
+                  setWaterLogs(storage.getWaterLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
                 contractions={contractions} onUpdateContractions={(c) => { 
                   storage.saveContractions(c); 
                   setContractions(c); 
@@ -496,7 +506,11 @@ const App: React.FC = () => {
                   setBloodPressureLogs(storage.getBloodPressureLogs());
                   syncAllToFirestore(userUid!);
                 }}
-                onAddBabyGrowth={(g) => { storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); setBabyGrowthLogs(storage.getBabyGrowthLogs()); }}
+                onAddBabyGrowth={(g) => { 
+                  storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); 
+                  setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
                 foodEntries={entries}
                 waterLogs={waterLogs}
                 vitamins={vitamins}
@@ -506,6 +520,15 @@ const App: React.FC = () => {
                   storage.saveProfile(p); 
                   setProfile(p); 
                   if (userUid) syncProfileToFirestore(userUid, p);
+                }}
+                onUpdateChecklist={() => {
+                  syncAllToFirestore(userUid!);
+                }}
+                onUpdateBumpPhotos={() => {
+                  syncAllToFirestore(userUid!);
+                }}
+                onUpdateBabyNames={() => {
+                  syncAllToFirestore(userUid!);
                 }}
               />
             )}

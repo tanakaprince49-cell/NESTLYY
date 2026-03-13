@@ -111,12 +111,17 @@ interface ToolsHubProps {
   onRemoveMedication: (id: string) => void;
   foodEntries: FoodEntry[];
   waterLogs: WaterLog[];
+  onAddWater: (amount: number) => void;
   vitamins: VitaminLog[];
   trimester: Trimester;
   profile: PregnancyProfile;
   activeCategory: string;
   setActiveCategory: (cat: string) => void;
   onUpdateProfile?: (profile: PregnancyProfile) => void;
+  onUpdateChecklist?: () => void;
+  onUpdateBumpPhotos?: () => void;
+  onUpdateBabyNames?: () => void;
+  onUpdateArchive?: () => void;
 }
 
 export const ToolsHub: React.FC<ToolsHubProps> = ({ 
@@ -129,9 +134,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   bloodPressureLogs, onAddBloodPressure,
   medicationLogs, onAddMedication, onRemoveMedication,
   foodEntries,
-  waterLogs, vitamins,
+  waterLogs, onAddWater, vitamins,
   trimester, profile,
-  activeCategory, setActiveCategory, onUpdateProfile
+  activeCategory, setActiveCategory, onUpdateProfile, onUpdateChecklist, onUpdateBumpPhotos, onUpdateBabyNames
 }) => {
   const [tummyTimer, setTummyTimer] = useState<{ startTime: number | null, duration: number }>({ startTime: null, duration: 0 });
 
@@ -155,16 +160,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
-  const showSuccess = (msg: string) => setToast({ message: msg, type: 'success' });
 
   const [weightInput, setWeightInput] = useState('');
   const [babyWeightInput, setBabyWeightInput] = useState('');
@@ -269,7 +265,14 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   const [newNameGender, setNewNameGender] = useState('neutral');
 
   // Water Intake
-  const [waterIntake, setWaterIntake] = useState<number>(storage.getWaterIntake() || 0); // in glasses (e.g. 8 glasses a day)
+  const today = new Date().setHours(0, 0, 0, 0);
+  const todayWater = waterLogs.filter(w => new Date(w.timestamp).setHours(0, 0, 0, 0) === today).reduce((acc, curr) => acc + curr.amount, 0);
+
+  const [waterIntake, setWaterIntake] = useState<number>(todayWater);
+
+  useEffect(() => {
+    setWaterIntake(todayWater);
+  }, [todayWater]);
 
   // Bump Photos
   const [bumpPhotos, setBumpPhotos] = useState<{id: string, url: string, date: string, week: number}[]>(storage.getBumpPhotos() || []);
@@ -312,7 +315,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       clearInterval(kegelInterval.current);
       if (kegelTimer > 0) {
         onAddKegel({ duration: kegelTimer });
-        setToast({ message: "Kegel exercise recorded!", type: 'success' });
       }
     }
   };
@@ -330,6 +332,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           const updated = { ...albums, [type]: [newPhoto, ...albums[type]] };
           setAlbums(updated);
           storage.saveAlbums(updated);
+          if (onUpdateProfile) {
+            onUpdateProfile({ ...profile, albums: updated });
+          }
         };
         reader.readAsDataURL(file);
       }
@@ -404,15 +409,15 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories'];
+      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms'];
     }
-    return ['vitals', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports'];
+    return ['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms'];
   }, [isPostpartum]);
 
   useEffect(() => {
-    if (isPostpartum && !['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories'].includes(activeCategory)) {
+    if (isPostpartum && !['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms'].includes(activeCategory)) {
       setActiveCategory('feeding');
-    } else if (!isPostpartum && !['vitals', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports'].includes(activeCategory)) {
+    } else if (!isPostpartum && !['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms'].includes(activeCategory)) {
       setActiveCategory('vitals');
     }
   }, [isPostpartum, activeCategory]);
@@ -485,7 +490,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                     setMedName('');
                     setMedDosage('');
                     setMedTime('');
-                    showSuccess('Medication logged successfully');
                   }
                 }}
                 className="w-full py-5 bg-rose-900 text-white font-black rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-rose-200 hover:bg-rose-800 active:scale-[0.98] transition-all"
@@ -561,17 +565,17 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               <div className="relative w-48 h-48 rounded-full bg-blue-50 flex items-center justify-center overflow-hidden border-8 border-blue-100 shadow-inner">
                 <motion.div 
                   className="absolute bottom-0 left-0 right-0 bg-blue-400 opacity-80"
-                  animate={{ height: `${Math.min((waterIntake / 10) * 100, 100)}%` }}
+                  animate={{ height: `${Math.min(((waterIntake / 250) / 10) * 100, 100)}%` }}
                   transition={{ type: "spring", stiffness: 50, damping: 15 }}
                 />
                 <div className="relative z-10 flex flex-col items-center">
                   <motion.span 
-                    key={waterIntake}
+                    key={Math.floor(waterIntake / 250)}
                     initial={{ scale: 1.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-4xl font-black text-blue-900"
                   >
-                    {waterIntake}
+                    {Math.floor(waterIntake / 250)}
                   </motion.span>
                   <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Glasses</span>
                 </div>
@@ -580,9 +584,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               <div className="flex gap-4">
                 <button 
                   onClick={() => {
-                    const newIntake = Math.max(0, waterIntake - 1);
-                    setWaterIntake(newIntake);
-                    storage.saveWaterIntake(newIntake);
+                    if (waterIntake >= 250) {
+                      onAddWater(-250);
+                    }
                   }}
                   className="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-black text-xl hover:bg-slate-200 transition-all"
                 >
@@ -590,9 +594,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 </button>
                 <button 
                   onClick={() => {
-                    const newIntake = waterIntake + 1;
-                    setWaterIntake(newIntake);
-                    storage.saveWaterIntake(newIntake);
+                    onAddWater(250);
                   }}
                   className="w-14 h-14 rounded-full bg-blue-500 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-blue-200 hover:bg-blue-600 active:scale-95 transition-all"
                 >
@@ -601,6 +603,21 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               </div>
             </div>
           </div>
+          {waterLogs.length > 0 && (
+            <div className="card-premium p-6 bg-white border-2 border-slate-50">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Hydration Logs</h4>
+              <div className="space-y-3">
+                {waterLogs.slice().reverse().slice(0, 5).map((log, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <div className="text-sm font-bold text-slate-800">{log.amount > 0 ? `+${log.amount}ml` : `${log.amount}ml`}</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                      {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -639,7 +656,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                     setBabyNames(newNames);
                     storage.saveBabyNames(newNames);
                     setNewNameInput('');
-                    showSuccess('Name added to your collection');
+                    if (onUpdateBabyNames) onUpdateBabyNames();
                   }
                 }}
                 className="w-full py-5 bg-rose-900 text-white font-black rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-rose-200 hover:bg-rose-800 active:scale-[0.98] transition-all"
@@ -704,6 +721,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                               newNames[idx].rating = star;
                               setBabyNames(newNames);
                               storage.saveBabyNames(newNames);
+                              if (onUpdateBabyNames) onUpdateBabyNames();
                             }}
                             className={`p-1 transition-transform hover:scale-125 ${star <= (item.rating || 0) ? 'text-amber-400' : 'text-slate-100'}`}
                           >
@@ -716,7 +734,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                           const newNames = babyNames.filter((_, i) => i !== idx);
                           setBabyNames(newNames);
                           storage.saveBabyNames(newNames);
-                          showSuccess('Name removed');
+                          if (onUpdateBabyNames) onUpdateBabyNames();
                         }}
                         className="text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
                       >
@@ -760,6 +778,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                       ];
                       setBumpPhotos(newPhotos);
                       storage.saveBumpPhotos(newPhotos);
+                      if (onUpdateBumpPhotos) onUpdateBumpPhotos();
                     };
                     reader.readAsDataURL(file);
                   }
@@ -790,6 +809,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                       const newPhotos = bumpPhotos.filter(p => p.id !== photo.id);
                       setBumpPhotos(newPhotos);
                       storage.saveBumpPhotos(newPhotos);
+                      if (onUpdateBumpPhotos) onUpdateBumpPhotos();
                     }}
                     className="absolute top-2 right-2 w-8 h-8 bg-black/40 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500"
                   >
@@ -1172,7 +1192,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                         });
                         setSelectedHealthType(null);
                         setHealthNotes('');
-                        showSuccess('Health log saved!');
                       }}
                       className="group flex flex-col items-center gap-3 p-6 bg-emerald-50 border-2 border-emerald-100 rounded-[2rem] hover:bg-emerald-500 hover:text-white transition-all"
                     >
@@ -1192,7 +1211,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                         });
                         setSelectedHealthType(null);
                         setHealthNotes('');
-                        showSuccess('Health log saved!');
                       }}
                       className="group flex flex-col items-center gap-3 p-6 bg-rose-50 border-2 border-rose-100 rounded-[2rem] hover:bg-rose-500 hover:text-white transition-all"
                     >
@@ -1358,6 +1376,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                     storage.saveChecklistItem(item);
                     setChecklists({ ...checklists, [activeToolCat]: storage.getChecklist(activeToolCat as any) });
                     setNewChecklistItem('');
+                    if (onUpdateChecklist) onUpdateChecklist();
                   }
                 }}
                 className="px-6 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest"
@@ -1375,6 +1394,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                         const updated = { ...item, completed: !item.completed };
                         storage.saveChecklistItem(updated);
                         setChecklists({ ...checklists, [activeToolCat]: storage.getChecklist(activeToolCat as any) });
+                        if (onUpdateChecklist) onUpdateChecklist();
                       }}
                       className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${item.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-white'}`}
                     >
@@ -1382,7 +1402,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                     </button>
                     <span className={`text-sm font-medium ${item.completed ? 'text-slate-300 line-through' : 'text-slate-700'}`}>{item.text}</span>
                   </div>
-                  <button onClick={() => { storage.removeChecklistItem(item.id); setChecklists({ ...checklists, [activeToolCat]: storage.getChecklist(activeToolCat as any) }); }} className="text-rose-300 hover:text-rose-500">
+                  <button onClick={() => { storage.removeChecklistItem(item.id); setChecklists({ ...checklists, [activeToolCat]: storage.getChecklist(activeToolCat as any) }); if (onUpdateChecklist) onUpdateChecklist(); }} className="text-rose-300 hover:text-rose-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                   </button>
                 </div>
@@ -1478,7 +1498,11 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               </ResponsiveContainer>
             </div>
           </div>
+        </div>
+      )}
 
+      {activeCategory === 'blood_pressure' && (
+        <div className="space-y-6 animate-in fade-in">
           <div className="card-premium p-8 bg-white space-y-6 shadow-sm border-2 border-white">
             <h3 className="text-xl font-serif text-rose-800">Blood Pressure Tracker</h3>
             <div className="space-y-4">
@@ -1502,7 +1526,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                       setBpDiastolic('');
                       setBpPulse('');
                       setBpNotes('');
-                      showSuccess('Blood pressure logged');
                     }
                   }} 
                   className="px-10 py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest"
@@ -1665,11 +1688,11 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
              <div className="flex items-center justify-between px-2">
                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Recent Sessions</h4>
                <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-3 py-1 rounded-full">
-                 {storage.getKegelLogs().length} Recorded
+                 {kegelLogs.length} Recorded
                </span>
              </div>
              <div className="space-y-3">
-               {storage.getKegelLogs().slice(-5).reverse().map((log, idx) => (
+               {[...kegelLogs].reverse().slice(0, 5).map((log, idx) => (
                  <div key={idx} className="bg-white p-4 rounded-2xl border border-slate-50 shadow-sm flex items-center justify-between">
                    <div className="flex items-center gap-3">
                      <div className="w-8 h-8 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500">
@@ -1683,7 +1706,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                    <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Recorded</div>
                  </div>
                ))}
-               {storage.getKegelLogs().length === 0 && (
+               {kegelLogs.length === 0 && (
                  <div className="py-8 text-center bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-100">
                    <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">No sessions yet</p>
                  </div>
@@ -1740,7 +1763,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   className="p-6 bg-slate-50 rounded-[2rem] border border-white shadow-sm space-y-3 cursor-pointer group"
                   onClick={() => {
                     onAddJournal(`[Calm] Chanted: ${item.chant}`, 'peace');
-                    showSuccess('Peaceful moment recorded');
                   }}
                 >
                   <div className={`flex justify-center ${item.color}`}>
@@ -1762,6 +1784,21 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               </p>
             </div>
           </div>
+          {journalEntries.filter(j => j.content.startsWith('[Calm]')).length > 0 && (
+            <div className="card-premium p-6 bg-white border-2 border-slate-50">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Calm Moments</h4>
+              <div className="space-y-3">
+                {journalEntries.filter(j => j.content.startsWith('[Calm]')).slice().reverse().slice(0, 5).map(log => (
+                  <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <div className="text-sm font-bold text-slate-800">{log.content.replace('[Calm] ', '')}</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                      {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1859,6 +1896,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                       };
                       
                       storage.addToArchive(archiveEntry);
+                      setArchive(storage.getArchive());
                       onUpdateProfile?.(updatedProfile);
                       setIsBirthOnboarding(false);
                     }}
@@ -2008,13 +2046,28 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <button 
               onClick={() => {
                 onAddJournal(`[Bath] Given a bath`, 'clean');
-                showSuccess('Bath time logged!');
+
               }}
               className="w-full py-4 bg-cyan-500 text-white rounded-2xl font-bold shadow-lg shadow-cyan-200 hover:bg-cyan-600 transition-colors"
             >
               Log Bath Today
             </button>
           </div>
+          {journalEntries.filter(j => j.content.startsWith('[Bath]')).length > 0 && (
+            <div className="card-premium p-6 bg-white border-2 border-slate-50">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Baths</h4>
+              <div className="space-y-3">
+                {journalEntries.filter(j => j.content.startsWith('[Bath]')).slice().reverse().slice(0, 5).map(log => (
+                  <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <div className="text-sm font-bold text-slate-800">Bath Logged</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                      {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -2035,7 +2088,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   const val = (document.getElementById('pumpingInput') as HTMLInputElement).value;
                   if (val) {
                     onAddJournal(`[Pumping] ${val} ml`, 'milk');
-                    showSuccess('Pumping session logged!');
+
                     (document.getElementById('pumpingInput') as HTMLInputElement).value = '';
                   }
                 }}
@@ -2045,6 +2098,21 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               </button>
             </div>
           </div>
+          {journalEntries.filter(j => j.content.startsWith('[Pumping]')).length > 0 && (
+            <div className="card-premium p-6 bg-white border-2 border-slate-50">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Pumping Sessions</h4>
+              <div className="space-y-3">
+                {journalEntries.filter(j => j.content.startsWith('[Pumping]')).slice().reverse().slice(0, 5).map(log => (
+                  <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <div className="text-sm font-bold text-slate-800">{log.content.replace('[Pumping] ', '')}</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                      {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -2065,7 +2133,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   const val = (document.getElementById('teethingInput') as HTMLInputElement).value;
                   if (val) {
                     onAddJournal(`[Teething] ${val}`, 'tooth');
-                    showSuccess('Teething log saved!');
+
                     (document.getElementById('teethingInput') as HTMLInputElement).value = '';
                   }
                 }}
@@ -2075,6 +2143,21 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               </button>
             </div>
           </div>
+          {journalEntries.filter(j => j.content.startsWith('[Teething]')).length > 0 && (
+            <div className="card-premium p-6 bg-white border-2 border-slate-50">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Teething Logs</h4>
+              <div className="space-y-3">
+                {journalEntries.filter(j => j.content.startsWith('[Teething]')).slice().reverse().slice(0, 5).map(log => (
+                  <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <div className="text-sm font-bold text-slate-800">{log.content.replace('[Teething] ', '')}</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                      {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -2114,7 +2197,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                       notes: ''
                     });
                     setTummyTimer({ startTime: null, duration: 0 });
-                    showSuccess('Tummy time session saved!');
+
                   }}
                   className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-200 hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
                 >
@@ -2154,6 +2237,56 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               );
             })()}
           </div>
+          {tummyTimeLogs.length > 0 && (
+            <div className="card-premium p-6 bg-white border-2 border-slate-50">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Sessions</h4>
+              <div className="space-y-3">
+                {tummyTimeLogs.slice().reverse().slice(0, 5).map(log => (
+                  <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <div className="text-sm font-bold text-slate-800">{Math.floor(log.duration / 60)}m {log.duration % 60}s</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                      {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeCategory === 'symptoms' && (
+        <div className="space-y-8 animate-in fade-in">
+          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
+            <h3 className="text-xl font-serif text-rose-800">Symptom Tracker</h3>
+            <p className="text-xs text-slate-400 font-medium">Log your symptoms to track patterns.</p>
+            <div className="grid grid-cols-2 gap-4">
+              {['Nausea', 'Headache', 'Fatigue', 'Heartburn', 'Cramps', 'Back Pain'].map(sym => (
+                <button
+                  key={sym}
+                  onClick={() => onLogSymptom(sym, 3)}
+                  className="p-4 bg-slate-50 rounded-2xl border-2 border-slate-100 hover:bg-rose-50 hover:border-rose-200 transition-all text-sm font-bold text-slate-700"
+                >
+                  {sym}
+                </button>
+              ))}
+            </div>
+          </div>
+          {symptoms.length > 0 && (
+            <div className="card-premium p-6 bg-white border-2 border-slate-50">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Symptoms</h4>
+              <div className="space-y-3">
+                {symptoms.slice().reverse().slice(0, 5).map(log => (
+                  <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                    <div className="text-sm font-bold text-slate-800">{log.type}</div>
+                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                      {new Date(log.timestamp).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -2183,30 +2316,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         />
       )}
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[600] px-12 py-8 bg-white text-slate-900 rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.2)] flex flex-col items-center gap-6 border-4 border-rose-50 min-w-[340px] text-center"
-          >
-            <div className="w-20 h-20 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full flex items-center justify-center shadow-xl shadow-rose-200 animate-pulse">
-              <Sparkles className="text-white w-10 h-10" />
-            </div>
-            <div className="space-y-2">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-500">Notification</div>
-              <div className="text-xl font-serif font-bold text-slate-800 leading-tight">{toast.message}</div>
-            </div>
-            <button 
-              onClick={() => setToast(null)}
-              className="mt-2 px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-slate-800 transition-colors"
-            >
-              Dismiss
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 };

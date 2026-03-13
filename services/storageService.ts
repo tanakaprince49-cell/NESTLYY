@@ -316,6 +316,10 @@ class StorageService {
     return all.filter(item => item.category === category);
   }
 
+  getAllChecklists(): ChecklistItem[] {
+    return this.getItem<ChecklistItem[]>(KEYS.CHECKLISTS, []);
+  }
+
   saveChecklistItem(item: ChecklistItem): void {
     const all = this.getItem<ChecklistItem[]>(KEYS.CHECKLISTS, []);
     const index = all.findIndex(i => i.id === item.id);
