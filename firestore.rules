@@ -57,6 +57,10 @@ service cloud.firestore {
                       request.resource.data.uid == resource.data.uid &&
                       request.resource.data.email == resource.data.email;
       allow delete: if false; // Profiles shouldn't be deleted easily
+
+      match /{collectionName}/{document=**} {
+        allow read, write: if isOwner(userId);
+      }
     }
   }
 }

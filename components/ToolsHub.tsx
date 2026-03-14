@@ -669,7 +669,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <div className="card-premium p-6 bg-white border-2 border-slate-50">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Hydration Logs</h4>
               <div className="space-y-3">
-                {waterLogs.slice().reverse().slice(0, 5).map((log, idx) => (
+                {waterLogs.slice(0, 5).map((log, idx) => (
                   <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                     <div className="text-sm font-bold text-slate-800">{log.amount > 0 ? `+${log.amount}ml` : `${log.amount}ml`}</div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
@@ -1769,7 +1769,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                </span>
              </div>
              <div className="space-y-3">
-               {[...kegelLogs].reverse().slice(0, 5).map((log, idx) => (
+               {kegelLogs.slice(0, 5).map((log, idx) => (
                  <div key={idx} className="bg-white p-4 rounded-2xl border border-slate-50 shadow-sm flex items-center justify-between">
                    <div className="flex items-center gap-3">
                      <div className="w-8 h-8 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500">
@@ -1865,7 +1865,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <div className="card-premium p-6 bg-white border-2 border-slate-50">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Calm Moments</h4>
               <div className="space-y-3">
-                {journalEntries.filter(j => j.content.startsWith('[Calm]')).slice().reverse().slice(0, 5).map(log => (
+                {journalEntries.filter(j => j.content.startsWith('[Calm]')).slice(0, 5).map(log => (
                   <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                     <div className="text-sm font-bold text-slate-800">{log.content.replace('[Calm] ', '')}</div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
@@ -2135,7 +2135,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <div className="card-premium p-6 bg-white border-2 border-slate-50">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Baths</h4>
               <div className="space-y-3">
-                {journalEntries.filter(j => j.content.startsWith('[Bath]')).slice().reverse().slice(0, 5).map(log => (
+                {journalEntries.filter(j => j.content.startsWith('[Bath]')).slice(0, 5).map(log => (
                   <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                     <div className="text-sm font-bold text-slate-800">Bath Logged</div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
@@ -2180,7 +2180,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <div className="card-premium p-6 bg-white border-2 border-slate-50">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Pumping Sessions</h4>
               <div className="space-y-3">
-                {journalEntries.filter(j => j.content.startsWith('[Pumping]')).slice().reverse().slice(0, 5).map(log => (
+                {journalEntries.filter(j => j.content.startsWith('[Pumping]')).slice(0, 5).map(log => (
                   <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                     <div className="text-sm font-bold text-slate-800">{log.content.replace('[Pumping] ', '')}</div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
@@ -2225,7 +2225,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <div className="card-premium p-6 bg-white border-2 border-slate-50">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Teething Logs</h4>
               <div className="space-y-3">
-                {journalEntries.filter(j => j.content.startsWith('[Teething]')).slice().reverse().slice(0, 5).map(log => (
+                {journalEntries.filter(j => j.content.startsWith('[Teething]')).slice(0, 5).map(log => (
                   <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                     <div className="text-sm font-bold text-slate-800">{log.content.replace('[Teething] ', '')}</div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
@@ -2319,7 +2319,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <div className="card-premium p-6 bg-white border-2 border-slate-50">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Sessions</h4>
               <div className="space-y-3">
-                {tummyTimeLogs.slice().reverse().slice(0, 5).map(log => (
+                {tummyTimeLogs.slice(0, 5).map(log => (
                   <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                     <div className="text-sm font-bold text-slate-800">{Math.floor(log.duration / 60)}m {log.duration % 60}s</div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
@@ -2412,7 +2412,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5">
             <h3 className="text-lg font-semibold mb-4">Recent Food</h3>
             <div className="space-y-3">
-              {foodEntries.slice().reverse().slice(0, 5).map(entry => (
+              {foodEntries.slice(0, 5).map(entry => (
                 <div key={entry.id} className="flex items-center justify-between p-3 bg-stone-50 rounded-xl">
                   <div>
                     <p className="font-medium">{entry.name}</p>
@@ -2507,7 +2507,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             <div className="card-premium p-6 bg-white border-2 border-slate-50">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Symptoms</h4>
               <div className="space-y-3">
-                {symptoms.slice().reverse().slice(0, 5).map(log => (
+                {symptoms.slice(0, 5).map(log => (
                   <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                     <div className="text-sm font-bold text-slate-800">{log.type}</div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">

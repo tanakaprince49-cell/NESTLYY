@@ -167,7 +167,8 @@ const App: React.FC = () => {
             'journal', 'calendar', 'weight_logs', 'sleep_logs', 'feeding_logs', 
             'baby_milestones', 'baby_health_logs', 'baby_growth_logs', 'baby_diaper_logs',
             'kick_logs', 'baby_reactions', 'baby_names', 'water_intake', 'bump_photos',
-            'medication_logs', 'tummy_time_logs', 'blood_pressure_logs'
+            'medication_logs', 'tummy_time_logs', 'blood_pressure_logs', 'kegel_logs',
+            'checklists', 'pregnancy_archive', 'period_logs'
           ];
           
           for (const col of collections) {
@@ -220,8 +221,9 @@ const App: React.FC = () => {
     syncDataToFirestore(uid, 'tummy_time_logs', storage.getTummyTimeLogs());
     syncDataToFirestore(uid, 'blood_pressure_logs', storage.getBloodPressureLogs());
     syncDataToFirestore(uid, 'checklists', storage.getAllChecklists());
-    syncDataToFirestore(uid, 'archive', storage.getArchive());
+    syncDataToFirestore(uid, 'pregnancy_archive', storage.getArchive());
     syncDataToFirestore(uid, 'kegel_logs', storage.getKegelLogs());
+    syncDataToFirestore(uid, 'period_logs', storage.getPeriodLogs());
   }, []);
 
   // Firestore Profile Sync

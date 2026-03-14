@@ -122,7 +122,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onAddMedication, onRemoveMedication, onNavigate
 }) => {
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
-  const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep' | 'feeding' | 'tummy'>('fuel');
+  const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep' | 'feeding' | 'tummy'>(isPostpartum ? 'feeding' : 'fuel');
+
+  useEffect(() => {
+    if (isPostpartum && (activeMetric === 'fuel' || activeMetric === 'water' || activeMetric === 'weight')) {
+      setActiveMetric('feeding');
+    } else if (!isPostpartum && (activeMetric === 'feeding' || activeMetric === 'tummy')) {
+      setActiveMetric('fuel');
+    }
+  }, [isPostpartum]);
   const [newbornTab, setNewbornTab] = useState<'growth' | 'feeding' | 'sleep' | 'milestones' | 'health' | 'journal'>('feeding');
   const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies?.[0]?.id || 'combined');
   const [dailyTip, setDailyTip] = useState('');
@@ -218,12 +226,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
-      return d.toISOString().split('T')[0];
+      d.setHours(0, 0, 0, 0);
+      return d;
     });
 
-    return last7Days.map(dateStr => {
-      const dayStart = new Date(dateStr).setHours(0, 0, 0, 0);
-      const dayEnd = new Date(dateStr).setHours(23, 59, 59, 999);
+    return last7Days.map(d => {
+      const dayStart = d.getTime();
+      const dayEnd = dayStart + 24 * 60 * 60 * 1000 - 1;
       const dayEntries = (entries || []).filter(e => e.timestamp >= dayStart && e.timestamp <= dayEnd);
       const dayWater = (waterLogs || []).filter(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
       const dayWeight = (weightLogs || []).find(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
@@ -232,7 +241,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const dayTummy = (tummyTimeLogs || []).filter(t => t.timestamp >= dayStart && t.timestamp <= dayEnd);
 
       return {
-        date: new Date(dateStr).toLocaleDateString([], { weekday: 'short' }),
+        date: d.toLocaleDateString([], { weekday: 'short' }),
         fuel: dayEntries.reduce((acc, curr) => acc + (curr.calories || 0), 0),
         water: dayWater.reduce((acc, curr) => acc + curr.amount, 0),
         weight: dayWeight?.weight || (weightLogs?.[0]?.weight || profile.startingWeight || 0),
