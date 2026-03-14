@@ -198,32 +198,40 @@ const App: React.FC = () => {
 
   const syncAllToFirestore = useCallback((uid: string) => {
     if (!uid) return;
-    syncDataToFirestore(uid, 'food_entries', storage.getFoodEntries());
-    syncDataToFirestore(uid, 'water_logs', storage.getWaterLogs());
-    syncDataToFirestore(uid, 'symptoms', storage.getSymptoms());
-    syncDataToFirestore(uid, 'vitamins', storage.getVitamins());
-    syncDataToFirestore(uid, 'contractions', storage.getContractions());
-    syncDataToFirestore(uid, 'journal', storage.getJournalEntries());
-    syncDataToFirestore(uid, 'calendar', storage.getCalendarEvents());
-    syncDataToFirestore(uid, 'weight_logs', storage.getWeightLogs());
-    syncDataToFirestore(uid, 'sleep_logs', storage.getSleepLogs());
-    syncDataToFirestore(uid, 'feeding_logs', storage.getFeedingLogs());
-    syncDataToFirestore(uid, 'baby_milestones', storage.getMilestones());
-    syncDataToFirestore(uid, 'baby_health_logs', storage.getHealthLogs());
-    syncDataToFirestore(uid, 'baby_growth_logs', storage.getBabyGrowthLogs());
-    syncDataToFirestore(uid, 'baby_diaper_logs', storage.getDiaperLogs());
-    syncDataToFirestore(uid, 'kick_logs', storage.getKickLogs());
-    syncDataToFirestore(uid, 'baby_reactions', storage.getReactions());
-    syncDataToFirestore(uid, 'baby_names', storage.getBabyNames());
-    syncDataToFirestore(uid, 'water_intake', storage.getWaterIntake());
-    syncDataToFirestore(uid, 'bump_photos', storage.getBumpPhotos());
-    syncDataToFirestore(uid, 'medication_logs', storage.getMedications());
-    syncDataToFirestore(uid, 'tummy_time_logs', storage.getTummyTimeLogs());
-    syncDataToFirestore(uid, 'blood_pressure_logs', storage.getBloodPressureLogs());
-    syncDataToFirestore(uid, 'checklists', storage.getAllChecklists());
-    syncDataToFirestore(uid, 'pregnancy_archive', storage.getArchive());
-    syncDataToFirestore(uid, 'kegel_logs', storage.getKegelLogs());
-    syncDataToFirestore(uid, 'period_logs', storage.getPeriodLogs());
+    
+    // Debounce the sync to prevent excessive writes
+    if ((window as any)._syncTimer) {
+      clearTimeout((window as any)._syncTimer);
+    }
+    
+    (window as any)._syncTimer = setTimeout(() => {
+      syncDataToFirestore(uid, 'food_entries', storage.getFoodEntries());
+      syncDataToFirestore(uid, 'water_logs', storage.getWaterLogs());
+      syncDataToFirestore(uid, 'symptoms', storage.getSymptoms());
+      syncDataToFirestore(uid, 'vitamins', storage.getVitamins());
+      syncDataToFirestore(uid, 'contractions', storage.getContractions());
+      syncDataToFirestore(uid, 'journal', storage.getJournalEntries());
+      syncDataToFirestore(uid, 'calendar', storage.getCalendarEvents());
+      syncDataToFirestore(uid, 'weight_logs', storage.getWeightLogs());
+      syncDataToFirestore(uid, 'sleep_logs', storage.getSleepLogs());
+      syncDataToFirestore(uid, 'feeding_logs', storage.getFeedingLogs());
+      syncDataToFirestore(uid, 'baby_milestones', storage.getMilestones());
+      syncDataToFirestore(uid, 'baby_health_logs', storage.getHealthLogs());
+      syncDataToFirestore(uid, 'baby_growth_logs', storage.getBabyGrowthLogs());
+      syncDataToFirestore(uid, 'baby_diaper_logs', storage.getDiaperLogs());
+      syncDataToFirestore(uid, 'kick_logs', storage.getKickLogs());
+      syncDataToFirestore(uid, 'baby_reactions', storage.getReactions());
+      syncDataToFirestore(uid, 'baby_names', storage.getBabyNames());
+      syncDataToFirestore(uid, 'water_intake', storage.getWaterIntake());
+      syncDataToFirestore(uid, 'bump_photos', storage.getBumpPhotos());
+      syncDataToFirestore(uid, 'medication_logs', storage.getMedications());
+      syncDataToFirestore(uid, 'tummy_time_logs', storage.getTummyTimeLogs());
+      syncDataToFirestore(uid, 'blood_pressure_logs', storage.getBloodPressureLogs());
+      syncDataToFirestore(uid, 'checklists', storage.getAllChecklists());
+      syncDataToFirestore(uid, 'pregnancy_archive', storage.getArchive());
+      syncDataToFirestore(uid, 'kegel_logs', storage.getKegelLogs());
+      syncDataToFirestore(uid, 'period_logs', storage.getPeriodLogs());
+    }, 2000);
   }, []);
 
   // Firestore Profile Sync

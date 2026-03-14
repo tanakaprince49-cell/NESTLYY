@@ -97,19 +97,24 @@ interface DashboardProps {
   onNavigate?: (tab: any) => void;
 }
 
-const DAILY_TIPS = [
+const PREGNANCY_TIPS = [
   "WHO recommends at least 400g of fruit and vegetables daily for optimal maternal health.",
   "WHO guidelines suggest 150 minutes of moderate-intensity physical activity per week during pregnancy.",
-  "Exclusive breastfeeding for the first 6 months is recommended by the World Health Organization.",
-  "WHO supports early initiation of breastfeeding within one hour of birth.",
   "WHO recommends iron and folic acid supplementation daily to prevent maternal anemia.",
   "WHO guidelines emphasize the importance of at least 8 antenatal contacts for a positive pregnancy experience.",
-  "WHO suggests skin-to-skin contact between mothers and newborns immediately after birth.",
-  "WHO recommends delayed umbilical cord clamping for improved infant health outcomes.",
   "WHO recommends that pregnant women should not use tobacco or alcohol.",
   "WHO suggests that caffeine intake should be limited to less than 200mg per day.",
-  "WHO recommends that all pregnant women should have a birth preparedness and complication readiness plan.",
-  "WHO supports the use of kangaroo mother care for low-birth-weight infants."
+  "WHO recommends that all pregnant women should have a birth preparedness and complication readiness plan."
+];
+
+const NEWBORN_TIPS = [
+  "Exclusive breastfeeding for the first 6 months is recommended by the World Health Organization.",
+  "WHO supports early initiation of breastfeeding within one hour of birth.",
+  "WHO suggests skin-to-skin contact between mothers and newborns immediately after birth.",
+  "WHO recommends delayed umbilical cord clamping for improved infant health outcomes.",
+  "WHO supports the use of kangaroo mother care for low-birth-weight infants.",
+  "WHO recommends 14-17 hours of sleep for newborns.",
+  "Responsive feeding is key to healthy growth according to WHO standards."
 ];
 
 import { subscribeUserToPush } from '../services/pushService.ts';
@@ -158,8 +163,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   useEffect(() => {
     const day = new Date().getDate();
-    setDailyTip(DAILY_TIPS[day % DAILY_TIPS.length]);
-  }, []);
+    const tips = isPostpartum ? NEWBORN_TIPS : PREGNANCY_TIPS;
+    setDailyTip(tips[day % tips.length]);
+  }, [isPostpartum]);
 
   const weeks = useMemo(() => {
     if (isPostpartum) return 0;

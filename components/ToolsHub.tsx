@@ -1084,8 +1084,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   type: feedingType, 
                   subType: feedingType === 'bottle' ? feedingSubType : undefined,
                   side: feedingType === 'breast' ? feedingSide : undefined,
-                  amount: parseFloat(feedingAmount),
-                  duration: parseFloat(feedingDuration)
+                  amount: parseFloat(feedingAmount) || 0,
+                  duration: parseFloat(feedingDuration) || 0
                 })}
                 className="w-full py-5 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
               >
@@ -1498,7 +1498,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 <button 
                   onClick={() => {
                     if (babyWeightInput && babyHeightInput && selectedBabyId) {
-                      onAddBabyGrowth({ babyId: selectedBabyId, weight: parseFloat(babyWeightInput), height: parseFloat(babyHeightInput) });
+                      onAddBabyGrowth({ babyId: selectedBabyId, weight: parseFloat(babyWeightInput) || 0, height: parseFloat(babyHeightInput) || 0 });
                       setBabyWeightInput('');
                       setBabyHeightInput('');
                     }
