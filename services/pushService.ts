@@ -364,9 +364,22 @@ export async function processReminders() {
   if (Notification.permission !== 'granted') return;
 
   const allReminders = [...storage.getReminders(), ...storage.getBroadcasts()];
-  const shownIds = storage.getShownReminderIds();
+  const shownReminders = storage.getShownReminders();
+  const shownIds = shownReminders.map(s => s.id);
   const now = Date.now();
+  const todayStart = new Date().setHours(0, 0, 0, 0);
+  const twoHoursAgo = now - (2 * 60 * 60 * 1000);
 
+  // Check daily limit (5 per day)
+  const shownToday = shownReminders.filter(s => s.timestamp >= todayStart);
+  if (shownToday.length >= 5) {
+    // If we've already shown 5 today, we skip processing more
+    // but we might want to mark them as "skipped" so they don't pile up for tomorrow
+    // Actually, let's just return.
+    return;
+  }
+
+  // Filter due reminders
   const dueReminders = allReminders.filter(r => 
     !shownIds.includes(r.id) && 
     r.timestamp <= now
@@ -374,9 +387,20 @@ export async function processReminders() {
 
   for (const reminder of dueReminders) {
     try {
+      // If the reminder is older than 2 hours, don't show it (stale)
+      // This addresses the "missed morning notification should not show up" request
+      if (reminder.timestamp < twoHoursAgo) {
+        storage.markReminderAsShown(reminder.id);
+        continue;
+      }
+
+      // To prevent "spamming many at once", we only show the most recent due reminder
+      // and skip others if they are all firing at the same time.
       const result = await showLocalNotification(reminder.title, reminder.body);
       if (result.success) {
         storage.markReminderAsShown(reminder.id);
+        // After showing one, we break to avoid spamming. 
+        break; 
       }
     } catch (e) {
       // Silent fail

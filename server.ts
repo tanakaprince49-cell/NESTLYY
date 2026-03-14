@@ -122,38 +122,6 @@ async function startServer() {
     }
   });
 
-  // Morning Push (8:00 AM)
-  cron.schedule("0 8 * * *", async () => {
-    console.log("Sending morning push notifications...");
-    const messages = [
-      "Good morning mama ☀️ Time to take your prenatal vitamins.",
-      "Hydration check 💧 Remember to drink water today for you and baby.",
-      "Today’s pregnancy tip is ready in Nestly."
-    ];
-    const body = messages[Math.floor(Math.random() * messages.length)];
-    await broadcastPush({
-      title: "Morning Reminder 🌅",
-      body,
-      url: "/?tab=dashboard"
-    });
-  });
-
-  // Night Push (9:00 PM)
-  cron.schedule("0 21 * * *", async () => {
-    console.log("Sending night push notifications...");
-    const messages = [
-      "How are you feeling today? Track your symptoms in Nestly.",
-      "Relax mama 🌙 Gentle stretching can help you sleep better tonight.",
-      "Remember to take a moment for yourself today."
-    ];
-    const body = messages[Math.floor(Math.random() * messages.length)];
-    await broadcastPush({
-      title: "Evening Check-in 🌙",
-      body,
-      url: "/?tab=journal"
-    });
-  });
-
   // Weekly Email (Mondays at 10:00 AM)
   cron.schedule("0 10 * * 1", async () => {
     console.log("Processing weekly emails...");

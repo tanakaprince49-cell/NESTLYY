@@ -57,7 +57,7 @@ export interface BabyAvatar {
   id: string;
   name: string;
   skinTone: string;
-  gender: 'boy' | 'girl' | 'surprise';
+  gender: 'boy' | 'girl' | 'surprise' | 'neutral';
   birthDate?: string;
   birthWeight?: number;
   birthLength?: number;
@@ -231,6 +231,7 @@ export interface TummyTimeLog {
   id: string;
   babyId: string;
   duration: number; // in seconds
+  notes?: string;
   timestamp: number;
 }
 

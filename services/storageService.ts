@@ -345,10 +345,12 @@ class StorageService {
   addBroadcast(broadcast: any): void { this.setItem(KEYS.BROADCASTS, [broadcast, ...this.getBroadcasts()], true); }
   removeBroadcast(id: string): void { this.setItem(KEYS.BROADCASTS, this.getBroadcasts().filter(b => b.id !== id), true); }
 
-  getShownReminderIds(): string[] { return this.getItem<string[]>(KEYS.SHOWN_REMINDERS, []); }
+  getShownReminders(): { id: string, timestamp: number }[] { return this.getItem<{ id: string, timestamp: number }[]>(KEYS.SHOWN_REMINDERS, []); }
   markReminderAsShown(id: string): void {
-    const ids = this.getShownReminderIds();
-    if (!ids.includes(id)) this.setItem(KEYS.SHOWN_REMINDERS, [...ids, id]);
+    const shown = this.getShownReminders();
+    if (!shown.find(s => s.id === id)) {
+      this.setItem(KEYS.SHOWN_REMINDERS, [...shown, { id, timestamp: Date.now() }]);
+    }
   }
 
   getVideos(): Video[] {

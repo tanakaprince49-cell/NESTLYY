@@ -452,7 +452,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
 
-  const [selectedHealthType, setSelectedHealthType] = useState<string | null>(null);
+  const [selectedHealthType, setSelectedHealthType] = useState<'temperature' | 'medication' | 'vaccination' | 'symptom' | null>(null);
   const [healthNotes, setHealthNotes] = useState('');
 
   const categories = useMemo(() => {
@@ -1223,7 +1223,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                 ].map(item => (
                   <button 
                     key={item.type}
-                    onClick={() => setSelectedHealthType(item.type)}
+                    onClick={() => setSelectedHealthType(item.type as any)}
                     className="p-4 bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 hover:text-blue-500 transition-all flex flex-col items-center gap-2"
                   >
                     <item.icon size={20} />
@@ -1247,7 +1247,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                       onClick={() => {
                         onAddHealth({ 
                           babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
-                          type: selectedHealthType, 
+                          type: selectedHealthType!, 
                           value: 'Normal', 
                           notes: healthNotes,
                           status: 'normal'
@@ -1266,7 +1266,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                       onClick={() => {
                         onAddHealth({ 
                           babyId: selectedBabyId || profile.babies?.[0]?.id || '', 
-                          type: selectedHealthType, 
+                          type: selectedHealthType!, 
                           value: 'Abnormal', 
                           notes: healthNotes,
                           status: 'abnormal'

@@ -13,7 +13,8 @@ import { Settings } from './components/Settings.tsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders, setupForegroundMessaging } from './services/pushService.ts';
-import { auth, db, syncProfileToFirestore, syncDataToFirestore, getProfileFromFirestore } from './firebase.ts';
+import { auth, db, syncProfileToFirestore, syncDataToFirestore, getProfileFromFirestore, handleFirestoreError, OperationType } from './firebase.ts';
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, getDoc, collection, query, orderBy } from 'firebase/firestore';
 import { Analytics } from "@vercel/analytics/react";
@@ -78,6 +79,8 @@ const App: React.FC = () => {
         }
       });
       isInitialLoad = false;
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'broadcasts');
     });
     return () => unsubscribe();
   }, [userUid]);
@@ -180,7 +183,7 @@ const App: React.FC = () => {
           }
           loadUserData();
         } catch (e) {
-          console.error("Error fetching user data from Firestore:", e);
+          handleFirestoreError(e, OperationType.GET, `users/${user.uid}/*`);
         } finally {
           setLoading(false);
         }
@@ -233,6 +236,8 @@ const App: React.FC = () => {
         setProfile(prev => ({ ...prev, ...firestoreProfile }));
         storage.saveProfile({ ...storage.getProfile(), ...firestoreProfile } as any);
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `users/${userUid}`);
     });
     
     return () => unsubscribe();
@@ -332,8 +337,9 @@ const App: React.FC = () => {
   const isAdmin = authEmail === 'tanakaprince49@gmail.com';
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
-      <Analytics />
+    <ErrorBoundary>
+      <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
+        <Analytics />
       <div className="max-w-4xl mx-auto px-4 py-4">
         <AnimatePresence mode="wait">
           <motion.div
@@ -349,6 +355,8 @@ const App: React.FC = () => {
                 feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
                 journalEntries={journalEntries} babyGrowthLogs={babyGrowthLogs} diaperLogs={diaperLogs}
                 tummyTimeLogs={tummyTimeLogs}
+                medicationLogs={medicationLogs}
+                bloodPressureLogs={bloodPressureLogs}
                 trimester={trimester} profile={profile}
                 onAddEntry={(e) => { 
                   storage.addFoodEntry({...e, id: Date.now().toString(), timestamp: Date.now()} as any); 
@@ -375,9 +383,8 @@ const App: React.FC = () => {
                   setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
                   syncAllToFirestore(userUid!);
                 }}
-                medicationLogs={medicationLogs}
                 onAddMedication={(m) => {
-                  storage.addMedication({ ...m, id: Date.now().toString(), timestamp: Date.now() });
+                  storage.addMedication({ name: m.name, dosage: m.dosage, time: m.time, id: Date.now().toString(), timestamp: Date.now() });
                   setMedicationLogs(storage.getMedications());
                   syncAllToFirestore(userUid!);
                 }}
@@ -568,7 +575,8 @@ const App: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </div>
-    </Layout>
+      </Layout>
+    </ErrorBoundary>
   );
 };
 

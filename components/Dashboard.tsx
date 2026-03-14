@@ -61,7 +61,9 @@ import {
   JournalEntry,
   BabyGrowthLog,
   DiaperLog,
-  TummyTimeLog
+  TummyTimeLog,
+  MedicationLog,
+  BloodPressureLog
 } from '../types.ts';
 
 interface DashboardProps {
@@ -78,6 +80,8 @@ interface DashboardProps {
   babyGrowthLogs: BabyGrowthLog[];
   diaperLogs: DiaperLog[];
   tummyTimeLogs: TummyTimeLog[];
+  medicationLogs: MedicationLog[];
+  bloodPressureLogs: BloodPressureLog[];
   trimester: Trimester;
   profile: PregnancyProfile;
   onAddEntry: (entry: Omit<FoodEntry, 'id' | 'timestamp'>) => void;
@@ -88,6 +92,8 @@ interface DashboardProps {
   onEditProfile: () => void;
   onUpdateProfile?: (profile: PregnancyProfile) => void;
   onAddBabyGrowth?: (log: Omit<BabyGrowthLog, 'id' | 'timestamp'>) => void;
+  onAddMedication?: (log: Omit<MedicationLog, 'id' | 'timestamp'>) => void;
+  onRemoveMedication?: (id: string) => void;
   onNavigate?: (tab: any) => void;
 }
 
@@ -111,9 +117,9 @@ import { subscribeUserToPush } from '../services/pushService.ts';
 export const Dashboard: React.FC<DashboardProps> = ({ 
   entries = [], waterLogs = [], vitamins = [], weightLogs = [], sleepLogs = [], 
   feedingLogs = [], milestones = [], healthLogs = [], reactions = [], journalEntries = [], babyGrowthLogs = [], diaperLogs = [],
-  tummyTimeLogs = [],
+  tummyTimeLogs = [], medicationLogs = [], bloodPressureLogs = [],
   trimester, profile, 
-  onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onNavigate
+  onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onAddMedication, onRemoveMedication, onNavigate
 }) => {
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
   const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep' | 'feeding' | 'tummy'>('fuel');

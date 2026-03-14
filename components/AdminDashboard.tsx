@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../firebase.ts';
+import { db, handleFirestoreError, OperationType } from '../firebase.ts';
 import { storage } from '../services/storageService.ts';
 import { Trimester, Article, Video } from '../types.ts';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
@@ -76,7 +76,7 @@ export const AdminDashboard: React.FC = () => {
       setPushBody('');
       alert('Broadcast reminder sent to all Nestlings! 🕊️');
     } catch (err) {
-      console.error(err);
+      handleFirestoreError(err, OperationType.CREATE, 'broadcasts');
       alert('Failed to send notification.');
     } finally {
       setIsSending(false);
