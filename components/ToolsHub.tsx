@@ -110,9 +110,12 @@ interface ToolsHubProps {
   onAddMedication: (log: Omit<MedicationLog, 'id' | 'timestamp'>) => void;
   onRemoveMedication: (id: string) => void;
   foodEntries: FoodEntry[];
+  onAddFoodEntry: (entry: Omit<FoodEntry, 'id' | 'timestamp'>) => void;
+  onRemoveFoodEntry: (id: string) => void;
   waterLogs: WaterLog[];
   onAddWater: (amount: number) => void;
   vitamins: VitaminLog[];
+  onAddVitamin: (vitamin: Omit<VitaminLog, 'id' | 'timestamp'>) => void;
   trimester: Trimester;
   profile: PregnancyProfile;
   activeCategory: string;
@@ -133,10 +136,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   tummyTimeLogs, onAddTummyTime,
   bloodPressureLogs, onAddBloodPressure,
   medicationLogs, onAddMedication, onRemoveMedication,
-  foodEntries,
-  waterLogs, onAddWater, vitamins,
+  foodEntries, onAddFoodEntry, onRemoveFoodEntry,
+  waterLogs, onAddWater, vitamins, onAddVitamin,
   trimester, profile,
-  activeCategory, setActiveCategory, onUpdateProfile, onUpdateChecklist, onUpdateBumpPhotos, onUpdateBabyNames
+  activeCategory, setActiveCategory, onUpdateProfile, onUpdateChecklist, onUpdateBumpPhotos, onUpdateBabyNames, onUpdateArchive
 }) => {
   const [tummyTimer, setTummyTimer] = useState<{ startTime: number | null, duration: number }>({ startTime: null, duration: 0 });
 
@@ -282,6 +285,15 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   const [medName, setMedName] = useState('');
   const [medDosage, setMedDosage] = useState('');
   const [medTime, setMedTime] = useState('');
+  
+  const [foodName, setFoodName] = useState('');
+  const [foodCals, setFoodCals] = useState('');
+  const [foodProtein, setFoodProtein] = useState('');
+  const [foodFolate, setFoodFolate] = useState('');
+  const [foodIron, setFoodIron] = useState('');
+  const [foodCalcium, setFoodCalcium] = useState('');
+  
+  const [vitaminName, setVitaminName] = useState('');
 
   const handleWeightLog = () => {
     if (weightInput) {
@@ -349,6 +361,42 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
     }));
   }, [weightLogs]);
 
+  const waterChartData = useMemo(() => {
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return d.setHours(0, 0, 0, 0);
+    }).reverse();
+
+    return last7Days.map(day => {
+      const amount = waterLogs
+        .filter(w => new Date(w.timestamp).setHours(0, 0, 0, 0) === day)
+        .reduce((acc, curr) => acc + curr.amount, 0);
+      return {
+        date: new Date(day).toLocaleDateString(undefined, { weekday: 'short' }),
+        amount: amount / 250 // in glasses
+      };
+    });
+  }, [waterLogs]);
+
+  const sleepChartData = useMemo(() => {
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return d.setHours(0, 0, 0, 0);
+    }).reverse();
+
+    return last7Days.map(day => {
+      const hours = sleepLogs
+        .filter(s => new Date(s.timestamp).setHours(0, 0, 0, 0) === day)
+        .reduce((acc, curr) => acc + curr.hours, 0);
+      return {
+        date: new Date(day).toLocaleDateString(undefined, { weekday: 'short' }),
+        hours
+      };
+    });
+  }, [sleepLogs]);
+
   const babyGrowthChartData = useMemo(() => {
     const filtered = babyGrowthLogs
       .filter(l => l.babyId === selectedBabyId)
@@ -409,15 +457,15 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms'];
+      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms', 'nutrition', 'vitamins'];
     }
-    return ['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms'];
+    return ['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms', 'nutrition', 'vitamins'];
   }, [isPostpartum]);
 
   useEffect(() => {
-    if (isPostpartum && !['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms'].includes(activeCategory)) {
+    if (isPostpartum && !['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms', 'nutrition', 'vitamins'].includes(activeCategory)) {
       setActiveCategory('feeding');
-    } else if (!isPostpartum && !['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms'].includes(activeCategory)) {
+    } else if (!isPostpartum && !['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms', 'nutrition', 'vitamins'].includes(activeCategory)) {
       setActiveCategory('vitals');
     }
   }, [isPostpartum, activeCategory]);
@@ -603,6 +651,20 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               </div>
             </div>
           </div>
+          {waterChartData.length > 0 && (
+            <div className="card-premium p-6 bg-white border-2 border-slate-50 h-64">
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Hydration Trend (Last 7 Days)</h4>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={waterChartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                  <Line type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={4} dot={{r: 4, fill: '#3b82f6'}} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
           {waterLogs.length > 0 && (
             <div className="card-premium p-6 bg-white border-2 border-slate-50">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Hydration Logs</h4>
@@ -1631,6 +1693,21 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               </button>
             </div>
 
+            {sleepChartData.length > 0 && (
+              <div className="pt-6 border-t border-slate-50 h-64">
+                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-4 block">Sleep Trend (Last 7 Days)</span>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={sleepChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                    <Line type="monotone" dataKey="hours" stroke="#8b5cf6" strokeWidth={4} dot={{r: 4, fill: '#8b5cf6'}} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
             <div className="space-y-4 pt-6 border-t border-slate-50">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Recent Logs</h4>
               {sleepLogs.slice(0, 3).map(log => (
@@ -1897,6 +1974,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                       
                       storage.addToArchive(archiveEntry);
                       setArchive(storage.getArchive());
+                      onUpdateArchive?.();
                       onUpdateProfile?.(updatedProfile);
                       setIsBirthOnboarding(false);
                     }}
@@ -2252,6 +2330,159 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {activeCategory === 'nutrition' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Soup className="w-5 h-5 text-orange-500" />
+              Log Nutrition
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <input
+                type="text"
+                placeholder="Food Name"
+                className="w-full p-3 rounded-xl border border-black/10"
+                value={foodName}
+                onChange={(e) => setFoodName(e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="Calories"
+                className="w-full p-3 rounded-xl border border-black/10"
+                value={foodCals}
+                onChange={(e) => setFoodCals(e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="Protein (g)"
+                className="w-full p-3 rounded-xl border border-black/10"
+                value={foodProtein}
+                onChange={(e) => setFoodProtein(e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="Folate (mcg)"
+                className="w-full p-3 rounded-xl border border-black/10"
+                value={foodFolate}
+                onChange={(e) => setFoodFolate(e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="Iron (mg)"
+                className="w-full p-3 rounded-xl border border-black/10"
+                value={foodIron}
+                onChange={(e) => setFoodIron(e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="Calcium (mg)"
+                className="w-full p-3 rounded-xl border border-black/10"
+                value={foodCalcium}
+                onChange={(e) => setFoodCalcium(e.target.value)}
+              />
+            </div>
+            <button
+              onClick={() => {
+                if (foodName) {
+                  onAddFoodEntry({
+                    name: foodName,
+                    calories: parseFloat(foodCals) || 0,
+                    protein: parseFloat(foodProtein) || 0,
+                    folate: parseFloat(foodFolate) || 0,
+                    iron: parseFloat(foodIron) || 0,
+                    calcium: parseFloat(foodCalcium) || 0
+                  });
+                  setFoodName('');
+                  setFoodCals('');
+                  setFoodProtein('');
+                  setFoodFolate('');
+                  setFoodIron('');
+                  setFoodCalcium('');
+                }
+              }}
+              className="w-full py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"
+            >
+              Log Food
+            </button>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5">
+            <h3 className="text-lg font-semibold mb-4">Recent Food</h3>
+            <div className="space-y-3">
+              {foodEntries.slice().reverse().slice(0, 5).map(entry => (
+                <div key={entry.id} className="flex items-center justify-between p-3 bg-stone-50 rounded-xl">
+                  <div>
+                    <p className="font-medium">{entry.name}</p>
+                    <p className="text-xs text-stone-500">
+                      {entry.calories} kcal • {entry.protein}g P • {entry.folate}mcg F
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => onRemoveFoodEntry(entry.id)}
+                    className="p-2 text-stone-400 hover:text-red-500"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeCategory === 'vitamins' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Pill className="w-5 h-5 text-indigo-500" />
+              Log Vitamin
+            </h3>
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="Vitamin Name (e.g. Prenatal)"
+                className="flex-1 p-3 rounded-xl border border-black/10"
+                value={vitaminName}
+                onChange={(e) => setVitaminName(e.target.value)}
+              />
+              <button
+                onClick={() => {
+                  if (vitaminName) {
+                    onAddVitamin({ name: vitaminName });
+                    setVitaminName('');
+                  }
+                }}
+                className="px-6 py-3 bg-indigo-500 text-white rounded-xl font-medium hover:bg-indigo-600 transition-colors"
+              >
+                Log
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5">
+            <h3 className="text-lg font-semibold mb-4">Today's Vitamins</h3>
+            <div className="space-y-3">
+              {vitamins.filter(v => new Date(v.timestamp).toDateString() === new Date().toDateString()).map(v => (
+                <div key={v.id} className="flex items-center justify-between p-3 bg-stone-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{v.name}</p>
+                      <p className="text-xs text-stone-500">{new Date(v.timestamp).toLocaleTimeString()}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {vitamins.filter(v => new Date(v.timestamp).toDateString() === new Date().toDateString()).length === 0 && (
+                <p className="text-center text-stone-400 py-4">No vitamins logged today</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

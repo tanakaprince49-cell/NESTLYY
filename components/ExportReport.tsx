@@ -647,7 +647,82 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             </div>
           </div>
 
-          {/* PAGE 5: NOTES & APPOINTMENTS */}
+          {/* PAGE 5: NUTRITION & SUPPLEMENTS */}
+          <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
+              </div>
+            </div>
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-serif font-bold text-slate-800">Nutrition & Supplements</h2>
+              <div className="w-24 h-1 bg-emerald-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <section className="mb-12">
+              <div className="flex items-center gap-3 mb-6 border-b-2 border-emerald-100 pb-2">
+                <Utensils className="text-emerald-500" size={24} />
+                <h2 className="text-xl font-serif font-bold text-slate-800">Food Log</h2>
+              </div>
+              <div className="space-y-4">
+                {filteredData.nutrition.map(entry => (
+                  <div key={entry.id} className="p-6 bg-emerald-50/30 rounded-[2rem] border border-emerald-100">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-lg font-bold text-slate-700">{entry.name}</div>
+                      <div className="text-[10px] text-slate-400 font-medium">{new Date(entry.timestamp).toLocaleString()}</div>
+                    </div>
+                    <div className="grid grid-cols-5 gap-4">
+                      <div className="text-center">
+                        <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Cals</div>
+                        <div className="text-xs font-bold text-emerald-600">{entry.calories}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Protein</div>
+                        <div className="text-xs font-bold text-emerald-600">{entry.protein}g</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Folate</div>
+                        <div className="text-xs font-bold text-emerald-600">{entry.folate}mcg</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Iron</div>
+                        <div className="text-xs font-bold text-emerald-600">{entry.iron}mg</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Calcium</div>
+                        <div className="text-xs font-bold text-emerald-600">{entry.calcium}mg</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {filteredData.nutrition.length === 0 && <div className="text-sm text-slate-400 italic text-center py-8">No food entries for this period.</div>}
+              </div>
+            </section>
+
+            <section>
+              <div className="flex items-center gap-3 mb-6 border-b-2 border-indigo-100 pb-2">
+                <Pill className="text-indigo-500" size={24} />
+                <h2 className="text-xl font-serif font-bold text-slate-800">Vitamins & Supplements</h2>
+              </div>
+              <div className="grid grid-cols-2 gap-6">
+                {filteredData.vitamins.map(v => (
+                  <div key={v.id} className="p-6 bg-indigo-50/30 rounded-[2rem] border border-indigo-100 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-indigo-500">
+                      <Check size={20} />
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-slate-700">{v.name}</div>
+                      <div className="text-[10px] text-slate-400 font-medium">{new Date(v.timestamp).toLocaleString()}</div>
+                    </div>
+                  </div>
+                ))}
+                {filteredData.vitamins.length === 0 && <div className="text-sm text-slate-400 col-span-2 italic text-center py-8">No vitamins logged for this period.</div>}
+              </div>
+            </section>
+          </div>
+
+          {/* PAGE 6: NOTES & APPOINTMENTS */}
           <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
             <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>

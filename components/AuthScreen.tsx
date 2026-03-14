@@ -5,7 +5,10 @@ import { subscribeUserToPush, showLocalNotification } from '../services/pushServ
 import { auth, googleProvider, syncProfileToFirestore } from '../firebase.ts';
 import { 
   signInWithPopup, 
-  signInAnonymously
+  signInAnonymously,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
 import { X, Download, Share, PlusSquare } from 'lucide-react';
 
@@ -25,7 +28,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
 
   const handleAuthSuccess = async (user: any) => {
     const identifier = user.email || `anon-${user.uid}`;
-    const displayName = user.displayName || name || 'Guest';
+    const displayName = user.displayName || 'Guest';
     
     storage.logActivity(identifier, 'login');
     storage.setAuthEmail(identifier);
@@ -88,44 +91,28 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
     setLoading(true);
     setError('');
     try {
-      // Disconnected from Firebase Auth as requested. 
-      // We use Anonymous login behind the scenes to maintain Firestore sync capability 
-      // while managing the "Email/Password" logic locally.
-      console.log('Attempting local email auth for:', email);
-      const result = await signInAnonymously(auth);
-      
-      const localUser = {
-        uid: result.user.uid,
-        email: email,
-        displayName: name || email.split('@')[0],
-        isLocal: true
-      };
-
-      // Store local credentials mapping (simulated)
-      const localUsers = JSON.parse(localStorage.getItem('nestly_local_users') || '{}');
-      console.log('Existing local users:', Object.keys(localUsers));
+      let userCredential;
       if (isSignUp) {
-        if (localUsers[email]) {
-          console.error('User already exists locally.');
-          throw new Error('User already exists locally.');
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        if (name) {
+          await updateProfile(userCredential.user, { displayName: name });
         }
-        localUsers[email] = { password, name, uid: result.user.uid };
       } else {
-        const stored = localUsers[email];
-        if (!stored || stored.password !== password) {
-          console.error('Invalid email or password.');
-          throw new Error('Invalid email or password.');
-        }
-        localUser.displayName = stored.name;
-        localUser.uid = stored.uid;
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
       }
-      localStorage.setItem('nestly_local_users', JSON.stringify(localUsers));
-      console.log('Saved local users, new user:', email);
-
-      await handleAuthSuccess(localUser);
+      
+      await handleAuthSuccess(userCredential.user);
     } catch (err: any) {
-      console.error("Local Email auth error:", err);
-      setError(err.message || 'Authentication failed.');
+      console.error("Email auth error:", err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email is already in use. Try signing in.');
+      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        setError('Invalid email or password.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password should be at least 6 characters.');
+      } else {
+        setError(err.message || 'Authentication failed.');
+      }
     } finally {
       setLoading(false);
     }

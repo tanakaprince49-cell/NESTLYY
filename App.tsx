@@ -47,6 +47,7 @@ const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
   const [userUid, setUserUid] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setupForegroundMessaging();
@@ -136,6 +137,7 @@ const App: React.FC = () => {
   // Firebase Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
       if (user) {
         const identifier = user.email || `anon-${user.uid}`;
         setAuthEmail(identifier);
@@ -144,10 +146,18 @@ const App: React.FC = () => {
         
         // Fetch data from Firestore
         try {
-          const profile = await getProfileFromFirestore(user.uid);
-          if (profile) {
-            setProfile(profile as PregnancyProfile);
-            storage.saveProfile(profile as PregnancyProfile);
+          const firestoreProfile = await getProfileFromFirestore(user.uid);
+          if (firestoreProfile) {
+            setProfile(firestoreProfile as PregnancyProfile);
+            storage.saveProfile(firestoreProfile as PregnancyProfile);
+          } else {
+            // If no firestore profile, try to load from local storage
+            const localProfile = storage.getProfile();
+            if (localProfile) {
+              setProfile(localProfile);
+              // Sync local profile to firestore
+              syncProfileToFirestore(user.uid, localProfile);
+            }
           }
           
           const collections = [
@@ -163,24 +173,21 @@ const App: React.FC = () => {
             const snap = await getDoc(dataRef);
             if (snap.exists()) {
               const items = snap.data().items;
-              // Update local storage with Firestore data
-              // This is a simple merge: Firestore wins
               if (items !== undefined && items !== null) {
-                if (Array.isArray(items) && items.length > 0) {
-                  localStorage.setItem(`${identifier}_${col}`, JSON.stringify(items));
-                } else if (!Array.isArray(items)) {
-                  localStorage.setItem(`${identifier}_${col}`, JSON.stringify(items));
-                }
+                localStorage.setItem(`${identifier}_${col}`, JSON.stringify(items));
               }
             }
           }
           loadUserData();
         } catch (e) {
           console.error("Error fetching user data from Firestore:", e);
+        } finally {
+          setLoading(false);
         }
       } else {
         setAuthEmail(null);
         setUserUid(null);
+        setLoading(false);
       }
     });
     return () => unsubscribe();
@@ -289,7 +296,6 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('App initialized, authEmail:', authEmail);
     loadUserData();
   }, [loadUserData]);
 
@@ -303,7 +309,7 @@ const App: React.FC = () => {
     }
   }, [profile]);
 
-  if (showSplash) return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  if (showSplash || loading) return <SplashScreen onComplete={() => setShowSplash(false)} />;
 
   if (!authEmail) return <AuthScreen onAuthComplete={(e) => setAuthEmail(e)} />;
   
@@ -408,6 +414,21 @@ const App: React.FC = () => {
                 onAddWater={(a) => { 
                   storage.addWaterLog({amount: a, timestamp: Date.now()}); 
                   setWaterLogs(storage.getWaterLogs()); 
+                  syncAllToFirestore(userUid!);
+                }}
+                onAddFoodEntry={(f) => {
+                  storage.addFoodEntry({ ...f, id: Date.now().toString(), timestamp: Date.now() });
+                  setEntries(storage.getFoodEntries());
+                  syncAllToFirestore(userUid!);
+                }}
+                onRemoveFoodEntry={(id) => {
+                  storage.removeFoodEntry(id);
+                  setEntries(storage.getFoodEntries());
+                  syncAllToFirestore(userUid!);
+                }}
+                onAddVitamin={(v) => {
+                  storage.addVitamin({ ...v, id: Date.now().toString(), timestamp: Date.now() });
+                  setVitamins(storage.getVitamins());
                   syncAllToFirestore(userUid!);
                 }}
                 contractions={contractions} onUpdateContractions={(c) => { 
@@ -531,6 +552,9 @@ const App: React.FC = () => {
                   syncAllToFirestore(userUid!);
                 }}
                 onUpdateBabyNames={() => {
+                  syncAllToFirestore(userUid!);
+                }}
+                onUpdateArchive={() => {
                   syncAllToFirestore(userUid!);
                 }}
               />
