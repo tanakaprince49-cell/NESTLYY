@@ -113,7 +113,6 @@ const App: React.FC = () => {
   const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
 
   const loadUserData = useCallback(() => {
-    if (!authEmail) return;
     setProfile(storage.getProfile());
     setEntries(storage.getFoodEntries());
     setWaterLogs(storage.getWaterLogs());
@@ -135,7 +134,7 @@ const App: React.FC = () => {
     setKegelLogs(storage.getKegelLogs());
     setDiaperLogs(storage.getDiaperLogs());
     setMedicationLogs(storage.getMedications());
-  }, [authEmail]);
+  }, []);
 
   // Firebase Auth Listener
   useEffect(() => {
