@@ -194,7 +194,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
     if (!searchQuery) return categories;
     return categories.filter(cat => {
       const meta = TOOL_METADATA[cat];
-      return meta?.label.toLowerCase().includes(searchQuery.toLowerCase()) || cat.toLowerCase().includes(searchQuery.toLowerCase());
+      return meta?.label?.toLowerCase().includes(searchQuery.toLowerCase()) || cat.toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, [categories, searchQuery]);
 
@@ -509,12 +509,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   const [healthNotes, setHealthNotes] = useState('');
 
   useEffect(() => {
-    if (isPostpartum && !['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms', 'nutrition', 'vitamins'].includes(activeCategory)) {
-      setActiveCategory('feeding');
-    } else if (!isPostpartum && !['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms', 'nutrition', 'vitamins'].includes(activeCategory)) {
-      setActiveCategory('vitals');
+    if (activeCategory !== 'all' && !categories.includes(activeCategory)) {
+      setActiveCategory('all');
     }
-  }, [isPostpartum, activeCategory]);
+  }, [categories, activeCategory, setActiveCategory]);
 
   return (
     <motion.div 
