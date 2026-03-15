@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.40.0",
+    "@openrouter/sdk": "^0.9.11",
     "express": "^5.2.1",
     "firebase": "^12.10.0",
     "firebase-admin": "^13.7.0",

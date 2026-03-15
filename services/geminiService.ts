@@ -1,29 +1,9 @@
-/* ==========================================
-   AVA – Fast, Short, Smart, With Memory + Voice
-========================================== */
+import { OpenRouter } from "@openrouter/sdk";
 
-import { GoogleGenAI } from "@google/genai";
-
-let aiClient: GoogleGenAI | null = null;
-
-function getAiClient(): GoogleGenAI {
-  if (!aiClient) {
-    const key = process.env.GEMINI_API_KEY;
-    if (!key) {
-      console.warn('GEMINI_API_KEY environment variable is missing. AI features will not work.');
-      // We still initialize it so it doesn't crash, but API calls will fail later.
-      // Or we can throw an error, but throwing here might still crash if called during render.
-      // Let's just initialize it with a dummy key if missing, or throw.
-      // Actually, if we throw here, the caller can catch it.
-    }
-    aiClient = new GoogleGenAI({ apiKey: key || 'dummy-key' });
-  }
-  return aiClient;
-}
-
-/* ==========================================
-   MEMORY (Local Storage)
-========================================== */
+const openrouter = new OpenRouter({
+  apiKey: "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",
+  dangerouslyAllowBrowser: true // Required for client-side usage
+});
 
 const MEMORY_KEY = "ava_memory";
 
@@ -36,69 +16,51 @@ function loadMemory() {
   return memory ? JSON.parse(memory) : [];
 }
 
-/* ==========================================
-   PUBLIC CHAT FUNCTION (With Memory)
-========================================== */
-
 export async function getAvaResponse(userMessage: string) {
   try {
     let memory = loadMemory();
-
-    // Add new user message
     memory.push({ role: "user", content: userMessage });
-
-    // Keep only last 6 messages (faster)
     memory = memory.slice(-6);
 
-    // Format for Gemini
-    const contents = memory.map((m: any) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    }));
-
-    const ai = getAiClient();
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: contents,
-      config: {
-        systemInstruction: `You are Ava, a pregnancy companion.
-Be VERY concise.
-Max 2-3 short sentences.
-Warm but direct.
-No long explanations.`,
-        temperature: 0.5,
-      }
+    // Stream the response to get reasoning tokens in usage
+    const stream = await openrouter.chat.send({
+      model: "google/gemini-3-flash-preview",
+      messages: memory,
+      stream: true
     });
 
-    const reply = response.text || "Hmm… I’m reconnecting 💕";
+    let response = "";
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        response += content;
+        // Replaced process.stdout.write with console.log for browser compatibility
+        console.log(content);
+      }
 
-    // Save assistant reply
-    memory.push({ role: "assistant", content: reply });
+      // Usage information comes in the final chunk
+      if (chunk.usage) {
+        console.log("\nReasoning tokens:", chunk.usage.reasoningTokens);
+      }
+    }
+
+    memory.push({ role: "assistant", content: response });
     saveMemory(memory);
 
-    return reply;
-
+    return response || "Hmm… I’m reconnecting 💕";
   } catch (error) {
     console.error("Ava Error:", error);
     return "Hmm… I’m reconnecting 💕";
   }
 }
 
-/* ==========================================
-   VOICE: TEXT → SPEECH
-========================================== */
-
 export function speak(text: string) {
   const speech = new SpeechSynthesisUtterance(text);
   speech.lang = "en-US";
   speech.rate = 1.0;
-  speech.pitch = 1.1; // slightly higher pitch for a warmer tone
+  speech.pitch = 1.1;
   window.speechSynthesis.speak(speech);
 }
-
-/* ==========================================
-   VOICE: SPEECH → TEXT
-========================================== */
 
 export function listen(callback: (text: string) => void) {
   const SpeechRecognition =
