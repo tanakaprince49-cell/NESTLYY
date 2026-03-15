@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { storage } from '../services/storageService';
+import { storage } from '../services/storageService.ts';
 
 interface Notification {
   id: string;

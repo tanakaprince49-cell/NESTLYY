@@ -4,7 +4,22 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiClient: GoogleGenAI | null = null;
+
+function getAiClient(): GoogleGenAI {
+  if (!aiClient) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      console.warn('GEMINI_API_KEY environment variable is missing. AI features will not work.');
+      // We still initialize it so it doesn't crash, but API calls will fail later.
+      // Or we can throw an error, but throwing here might still crash if called during render.
+      // Let's just initialize it with a dummy key if missing, or throw.
+      // Actually, if we throw here, the caller can catch it.
+    }
+    aiClient = new GoogleGenAI({ apiKey: key || 'dummy-key' });
+  }
+  return aiClient;
+}
 
 /* ==========================================
    MEMORY (Local Storage)
@@ -41,6 +56,7 @@ export async function getAvaResponse(userMessage: string) {
       parts: [{ text: m.content }]
     }));
 
+    const ai = getAiClient();
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: contents,

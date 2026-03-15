@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { WaterLog } from '../types';
+import { WaterLog } from '../types.ts';
 
 interface HydrationTrackerProps {
   logs: WaterLog[];

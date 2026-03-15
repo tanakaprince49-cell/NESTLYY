@@ -110,9 +110,23 @@ class StorageService {
     }
   }
 
-  getAuthEmail(): string | null { return localStorage.getItem(KEYS.AUTH); }
-  setAuthEmail(email: string): void { localStorage.setItem(KEYS.AUTH, email); }
-  logout(): void { localStorage.removeItem(KEYS.AUTH); }
+  getAuthEmail(): string | null { 
+    try {
+      return localStorage.getItem(KEYS.AUTH); 
+    } catch (e) {
+      return null;
+    }
+  }
+  setAuthEmail(email: string): void { 
+    try {
+      localStorage.setItem(KEYS.AUTH, email); 
+    } catch (e) {}
+  }
+  logout(): void { 
+    try {
+      localStorage.removeItem(KEYS.AUTH); 
+    } catch (e) {}
+  }
 
   getProfile(): PregnancyProfile | null { 
     const p = this.getItem<PregnancyProfile | null>(KEYS.PROFILE, null);
@@ -293,13 +307,15 @@ class StorageService {
     const email = this.getAuthEmail();
     if (!email) return;
 
-    // Remove all user-specific keys
-    Object.values(KEYS).forEach(key => {
-      localStorage.removeItem(`${email}_${key}`);
-    });
-    
-    // Also remove the auth email itself
-    localStorage.removeItem(KEYS.AUTH);
+    try {
+      // Remove all user-specific keys
+      Object.values(KEYS).forEach(key => {
+        localStorage.removeItem(`${email}_${key}`);
+      });
+      
+      // Also remove the auth email itself
+      localStorage.removeItem(KEYS.AUTH);
+    } catch (e) {}
   }
 
   getArchive(): ArchivedPregnancy[] {

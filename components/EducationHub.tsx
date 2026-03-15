@@ -11,8 +11,8 @@ import {
   ExternalLink,
   ChevronRight
 } from 'lucide-react';
-import { Trimester, Article as GlobalArticle, LifecycleStage, Video } from '../types';
-import { storage } from '../services/storageService';
+import { Trimester, Article as GlobalArticle, LifecycleStage, Video } from '../types.ts';
+import { storage } from '../services/storageService.ts';
 
 interface LocalArticle {
   id: string;

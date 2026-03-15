@@ -1,8 +1,8 @@
 
 import React, { useMemo, useState } from 'react';
-import { PregnancyProfile, Trimester, LifecycleStage, BabyGrowthLog } from '../types';
-import { babyGrowthData, getBabyGrowth, DevelopmentInfo } from '../services/babyGrowth';
-import { ARVisualizer } from './ARVisualizer';
+import { PregnancyProfile, Trimester, LifecycleStage, BabyGrowthLog } from '../types.ts';
+import { babyGrowthData, getBabyGrowth, DevelopmentInfo } from '../services/babyGrowth.ts';
+import { ARVisualizer } from './ARVisualizer.tsx';
 
 export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?: BabyGrowthLog[] }> = ({ profile, babyGrowthLogs = [] }) => {
   const [showAR, setShowAR] = useState(false);

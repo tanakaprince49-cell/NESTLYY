@@ -1,6 +1,6 @@
 
-import { Achievement, FoodEntry, WaterLog, PregnancyProfile, JournalEntry, VitaminLog, Trimester } from '../types';
-import { storage } from './storageService';
+import { Achievement, FoodEntry, WaterLog, PregnancyProfile, JournalEntry, VitaminLog, Trimester } from '../types.ts';
+import { storage } from './storageService.ts';
 
 export const ALL_ACHIEVEMENTS: Achievement[] = [
   { id: 'first_meal', title: 'Nest Builder', description: 'Log your very first meal in Nestly.', icon: '🍳' },
