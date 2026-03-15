@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { subscribeUserToPush } from '../services/pushService.ts';
 import { NutrientCard } from './NutrientCard.tsx';
 import { HydrationTracker } from './HydrationTracker.tsx';
 import { getBabyGrowth } from '../services/babyGrowth.ts';
@@ -116,8 +117,6 @@ const NEWBORN_TIPS = [
   "WHO recommends 14-17 hours of sleep for newborns.",
   "Responsive feeding is key to healthy growth according to WHO standards."
 ];
-
-import { subscribeUserToPush } from '../services/pushService.ts';
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
   entries = [], waterLogs = [], vitamins = [], weightLogs = [], sleepLogs = [], 

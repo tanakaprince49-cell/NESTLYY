@@ -1,3 +1,8 @@
+import { storage } from './storageService.ts';
+import { PregnancyProfile, CalendarEvent, VitaminLog, FeedingLog, SleepLog, MilestoneLog, LifecycleStage, MedicationLog } from '../types.ts';
+import { messaging, auth } from '../firebase.ts';
+import { getToken, onMessage } from 'firebase/messaging';
+
 /**
  * Convert VAPID key from Base64 to Uint8Array
  */
@@ -16,11 +21,6 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
   return outputArray;
 }
-
-import { storage } from './storageService.ts';
-import { PregnancyProfile, CalendarEvent, VitaminLog, FeedingLog, SleepLog, MilestoneLog, LifecycleStage, MedicationLog } from '../types.ts';
-import { messaging, auth } from '../firebase.ts';
-import { getToken, onMessage } from 'firebase/messaging';
 
 const BRAND_LOGO = "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp";
 
