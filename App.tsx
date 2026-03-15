@@ -16,7 +16,6 @@ import { subscribeUserToPush, showLocalNotification, scheduleReminders, processR
 import { auth } from './firebase.ts';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { onAuthStateChanged } from 'firebase/auth';
-import { Analytics } from "@vercel/analytics/react";
 import { 
   Trimester, 
   FoodEntry, 
@@ -106,7 +105,13 @@ const App: React.FC = () => {
 
   // Firebase Auth Listener
   useEffect(() => {
+    // Fallback to stop loading if Firebase takes too long
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      clearTimeout(fallbackTimer);
       setLoading(true);
       if (user) {
         const identifier = user.email || `anon-${user.uid}`;
@@ -122,7 +127,10 @@ const App: React.FC = () => {
         setLoading(false);
       }
     });
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      clearTimeout(fallbackTimer);
+    };
   }, [loadUserData]);
 
   // Removed Firestore Syncing Logic
@@ -221,7 +229,6 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
-        <Analytics />
       <div className="max-w-4xl mx-auto px-4 py-4">
         <AnimatePresence mode="wait">
           <motion.div
