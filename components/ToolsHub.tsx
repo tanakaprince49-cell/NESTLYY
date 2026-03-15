@@ -67,8 +67,45 @@ import {
   Square,
   Play,
   Droplets as WaterIcon,
-  Camera as CameraIcon
+  Camera as CameraIcon,
+  ArrowLeft,
+  Search,
+  Download
 } from 'lucide-react';
+
+const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, bgColor: string }> = {
+  vitals: { label: 'Vitals', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
+  blood_pressure: { label: 'Blood Pressure', icon: Heart, color: 'text-red-400', bgColor: 'bg-red-50' },
+  medications: { label: 'Medications', icon: Pill, color: 'text-indigo-400', bgColor: 'bg-indigo-50' },
+  names: { label: 'Baby Names', icon: Sparkles, color: 'text-amber-400', bgColor: 'bg-amber-50' },
+  bump: { label: 'Bump Photos', icon: CameraIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
+  sleep: { label: 'Sleep', icon: Moon, color: 'text-indigo-400', bgColor: 'bg-indigo-50' },
+  calendar: { label: 'Calendar', icon: CalendarIcon, color: 'text-emerald-400', bgColor: 'bg-emerald-50' },
+  checklists: { label: 'Checklists', icon: Check, color: 'text-blue-400', bgColor: 'bg-blue-50' },
+  memories: { label: 'Memories', icon: Heart, color: 'text-pink-400', bgColor: 'bg-pink-50' },
+  kegels: { label: 'Kegels', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
+  journal: { label: 'Journal', icon: FileText, color: 'text-slate-400', bgColor: 'bg-slate-50' },
+  labor: { label: 'Labor Tracker', icon: Clock, color: 'text-rose-500', bgColor: 'bg-rose-50' },
+  kicks: { label: 'Kick Counter', icon: Footprints, color: 'text-rose-400', bgColor: 'bg-rose-50' },
+  reactions: { label: 'Reactions', icon: Smile, color: 'text-amber-400', bgColor: 'bg-amber-50' },
+  calm: { label: 'Calm', icon: Flower, color: 'text-emerald-400', bgColor: 'bg-emerald-50' },
+  birth: { label: 'Birth Plan', icon: Hospital, color: 'text-blue-500', bgColor: 'bg-blue-50' },
+  reports: { label: 'Reports', icon: FileText, color: 'text-slate-500', bgColor: 'bg-slate-50' },
+  water: { label: 'Water', icon: WaterIcon, color: 'text-blue-400', bgColor: 'bg-blue-50' },
+  symptoms: { label: 'Symptoms', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
+  nutrition: { label: 'Nutrition', icon: Soup, color: 'text-emerald-400', bgColor: 'bg-emerald-50' },
+  vitamins: { label: 'Vitamins', icon: Pill, color: 'text-amber-400', bgColor: 'bg-amber-50' },
+  // Newborn
+  feeding: { label: 'Feeding', icon: Milk, color: 'text-rose-400', bgColor: 'bg-rose-50' },
+  diaper: { label: 'Diaper', icon: Droplets, color: 'text-emerald-400', bgColor: 'bg-emerald-50' },
+  milestones: { label: 'Milestones', icon: Trophy, color: 'text-amber-400', bgColor: 'bg-amber-50' },
+  health: { label: 'Health', icon: Stethoscope, color: 'text-red-400', bgColor: 'bg-red-50' },
+  tummy_time: { label: 'Tummy Time', icon: Activity, color: 'text-orange-400', bgColor: 'bg-orange-50' },
+  bath: { label: 'Bath', icon: Droplet, color: 'text-cyan-400', bgColor: 'bg-cyan-50' },
+  pumping: { label: 'Pumping', icon: Droplets, color: 'text-pink-400', bgColor: 'bg-pink-50' },
+  teething: { label: 'Teething', icon: Smile, color: 'text-yellow-400', bgColor: 'bg-yellow-50' },
+  export: { label: 'Export PDF', icon: Download, color: 'text-purple-400', bgColor: 'bg-purple-50' },
+};
 
 interface ToolsHubProps {
   symptoms: SymptomLog[];
@@ -142,6 +179,24 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   activeCategory, setActiveCategory, onUpdateProfile, onUpdateChecklist, onUpdateBumpPhotos, onUpdateBabyNames, onUpdateArchive
 }) => {
   const [tummyTimer, setTummyTimer] = useState<{ startTime: number | null, duration: number }>({ startTime: null, duration: 0 });
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
+
+  const categories = useMemo(() => {
+    if (isPostpartum) {
+      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms', 'nutrition', 'vitamins'];
+    }
+    return ['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms', 'nutrition', 'vitamins'];
+  }, [isPostpartum]);
+
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery) return categories;
+    return categories.filter(cat => {
+      const meta = TOOL_METADATA[cat];
+      return meta?.label.toLowerCase().includes(searchQuery.toLowerCase()) || cat.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [categories, searchQuery]);
 
   useEffect(() => {
     let interval: any;
@@ -297,7 +352,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const handleWeightLog = () => {
     if (weightInput) {
-      onAddWeight(parseFloat(weightInput));
+      onAddWeight(parseFloat(weightInput) || 0);
       setWeightInput('');
     }
   };
@@ -450,17 +505,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   }, [profile]);
   const progressMonths = Math.floor(progressWeeks / 4.3);
 
-  const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
-
   const [selectedHealthType, setSelectedHealthType] = useState<'temperature' | 'medication' | 'vaccination' | 'symptom' | null>(null);
   const [healthNotes, setHealthNotes] = useState('');
-
-  const categories = useMemo(() => {
-    if (isPostpartum) {
-      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms', 'nutrition', 'vitamins'];
-    }
-    return ['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms', 'nutrition', 'vitamins'];
-  }, [isPostpartum]);
 
   useEffect(() => {
     if (isPostpartum && !['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms', 'nutrition', 'vitamins'].includes(activeCategory)) {
@@ -476,19 +522,57 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6 pb-24"
     >
-      <div className="flex gap-2 overflow-x-auto no-scrollbar py-3 sticky top-0 z-50 bg-[#fffaf9]/90 backdrop-blur-md">
-        {categories.map(cat => (
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            key={cat} 
-            onClick={() => setActiveCategory(cat)} 
-            className={`flex-none px-6 py-3 rounded-2xl border transition-all text-[9px] font-black uppercase tracking-widest ${activeCategory === cat ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-200' : 'bg-white text-gray-400 hover:bg-rose-50'}`}
+      {activeCategory === 'all' ? (
+        <div className="space-y-6">
+          {/* Header with Search */}
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-3xl font-serif text-slate-900">Tools</h2>
+            <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-50 text-slate-400">
+              <Search size={20} />
+            </div>
+          </div>
+
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search tools..."
+              className="w-full pl-12 pr-6 py-4 bg-white rounded-2xl text-sm font-bold border-none shadow-sm focus:ring-2 focus:ring-rose-200 transition-all"
+            />
+          </div>
+
+          {/* Tools Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {filteredCategories.map(cat => {
+              const meta = TOOL_METADATA[cat] || { label: cat, icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' };
+              const Icon = meta.icon;
+              return (
+                <motion.button
+                  key={cat}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setActiveCategory(cat)}
+                  className="p-6 bg-white rounded-[2.5rem] shadow-sm border border-slate-50 flex flex-col items-center text-center gap-4 transition-all hover:shadow-md"
+                >
+                  <div className={`w-16 h-16 ${meta.bgColor} rounded-full flex items-center justify-center ${meta.color}`}>
+                    <Icon size={32} />
+                  </div>
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-widest leading-tight">{meta.label}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <button 
+            onClick={() => setActiveCategory('all')}
+            className="flex items-center gap-2 text-rose-500 font-black text-[10px] uppercase tracking-widest mb-4 hover:gap-3 transition-all"
           >
-            {cat}
-          </motion.button>
-        ))}
-      </div>
+            <ArrowLeft size={16} /> Back to Tools
+          </button>
 
       {activeCategory === 'medications' && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -1958,7 +2042,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                           name: b.name,
                           birthDate: b.dob,
                           gender: b.gender,
-                          birthWeight: parseFloat(b.weight),
+                          birthWeight: parseFloat(b.weight) || 0,
                           skinTone: '👶'
                         }))
                       };
@@ -2546,7 +2630,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           foodEntries={foodEntries}
         />
       )}
-
+        </div>
+      )}
     </motion.div>
   );
 };

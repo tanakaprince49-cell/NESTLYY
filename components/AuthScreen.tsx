@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Logo } from './Logo.tsx';
 import { storage } from '../services/storageService.ts';
 import { subscribeUserToPush, showLocalNotification } from '../services/pushService.ts';
-import { auth, googleProvider, syncProfileToFirestore } from '../firebase.ts';
+import { auth, googleProvider } from '../firebase.ts';
 import { 
   signInWithPopup, 
   signInAnonymously,

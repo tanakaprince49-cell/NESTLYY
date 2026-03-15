@@ -1,7 +1,5 @@
 
 import React, { useMemo, useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase.ts';
 import { storage } from '../services/storageService.ts';
 import { Trimester, Article, Video } from '../types.ts';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
@@ -53,8 +51,9 @@ export const AdminDashboard: React.FC = () => {
 
     setIsSending(true);
     try {
-      // 1. Save to Firestore for in-app history
-      await addDoc(collection(db, 'broadcasts'), {
+      // 1. Save locally for history
+      storage.addBroadcast({
+        id: Date.now().toString(),
         title: pushTitle,
         body: pushBody,
         timestamp: Date.now(),
@@ -76,7 +75,7 @@ export const AdminDashboard: React.FC = () => {
       setPushBody('');
       alert('Broadcast reminder sent to all Nestlings! 🕊️');
     } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, 'broadcasts');
+      console.error('Failed to send notification:', err);
       alert('Failed to send notification.');
     } finally {
       setIsSending(false);

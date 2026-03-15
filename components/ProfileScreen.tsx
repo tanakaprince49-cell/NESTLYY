@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { storage } from '../services/storageService.ts';
-import { syncProfileToFirestore } from '../firebase.ts';
 
 interface ProfileScreenProps {
   userUid: string | null;
@@ -17,9 +16,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ userUid, onComplet
     if (profile) {
       const updatedProfile = { ...profile, userName: name };
       storage.saveProfile(updatedProfile);
-      if (userUid) {
-        await syncProfileToFirestore(userUid, updatedProfile);
-      }
     }
     setLoading(false);
     onComplete();

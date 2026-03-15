@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { PregnancyProfile, NutritionTargets, MemoryAlbums, LifecycleStage } from '../types.ts';
 import { Logo } from './Logo.tsx';
-import { auth, syncProfileToFirestore } from '../firebase.ts';
+import { auth } from '../firebase.ts';
 
 interface SetupScreenProps {
   onComplete: (profile: PregnancyProfile) => void;
@@ -81,13 +81,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         notificationsEnabled,
         emailNotifications
       };
-
-      if (auth.currentUser) {
-        syncProfileToFirestore(auth.currentUser.uid, {
-          ...newProfile,
-          email: auth.currentUser.email
-        });
-      }
 
       onComplete(newProfile);
     } catch (err) {

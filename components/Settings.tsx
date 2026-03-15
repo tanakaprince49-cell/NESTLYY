@@ -3,7 +3,6 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import { PregnancyProfile, LifecycleStage } from '../types.ts';
 import { storage } from '../services/storageService.ts';
-import { syncProfileToFirestore } from '../firebase.ts';
 import { Camera } from 'lucide-react';
 
 interface SettingsProps {
@@ -23,9 +22,6 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
     const updatedProfile = { ...profile, userName: name };
     storage.saveProfile(updatedProfile);
     onUpdateProfile(updatedProfile);
-    if (userUid) {
-      await syncProfileToFirestore(userUid, updatedProfile);
-    }
     
     // Update local password if applicable
     const email = storage.getAuthEmail();
@@ -75,9 +71,6 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
           const updatedProfile = { ...profile, profileImage: dataUrl };
           storage.saveProfile(updatedProfile);
           onUpdateProfile(updatedProfile);
-          if (userUid) {
-            syncProfileToFirestore(userUid, updatedProfile);
-          }
         };
         img.src = reader.result as string;
       };

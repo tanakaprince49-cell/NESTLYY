@@ -26,6 +26,7 @@ function loadMemory() {
 ========================================== */
 
 export async function getAvaResponse(userMessage: string) {
+  try {
     let memory = loadMemory();
 
     // Add new user message

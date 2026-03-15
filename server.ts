@@ -24,7 +24,6 @@ if (!admin.apps.length) {
   }
 }
 
-const db = admin.firestore();
 const messaging = admin.messaging();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -41,20 +40,8 @@ async function startServer() {
 
   // Store FCM Token
   app.post("/api/push/token", async (req, res) => {
-    const { token, userId, email } = req.body;
-    if (!token || !userId) return res.status(400).send("Token and userId required");
-
-    try {
-      await db.collection("fcm_tokens").doc(userId).set({
-        token,
-        email,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error saving FCM token:", error);
-      res.status(500).send("Error saving token");
-    }
+    // Disabled as per request to keep Firebase for Auth only
+    res.json({ success: true, message: "FCM token storage disabled (Local only mode)" });
   });
 
   // Admin Broadcast Push
@@ -62,98 +49,36 @@ async function startServer() {
     const { title, body, url } = req.body;
     if (!title || !body) return res.status(400).send("Title and body required");
 
-    try {
-      await broadcastPush({ title, body, url: url || "/?tab=dashboard" });
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Admin broadcast error:", error);
-      res.status(500).send("Error broadcasting notification");
-    }
+    // Broadcast is disabled because tokens are not stored in a central database
+    res.status(501).send("Broadcasts are disabled in Local-only mode.");
   });
 
   // Unsubscribe endpoint
   app.get("/api/unsubscribe", async (req, res) => {
-    const { email } = req.query;
-    if (!email) return res.status(400).send("Email required");
-
-    try {
-      const usersRef = db.collection("users");
-      const snapshot = await usersRef.where("email", "==", email).get();
-      
-      if (snapshot.empty) {
-        return res.status(404).send("User not found");
-      }
-
-      const batch = db.batch();
-      snapshot.docs.forEach(doc => {
-        batch.update(doc.ref, { emailNotifications: false });
-      });
-      await batch.commit();
-
-      res.send(`
+    res.send(`
         <html>
           <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-            <h1>Unsubscribed Successfully</h1>
-            <p>You will no longer receive daily Nestly updates to ${email}.</p>
+            <h1>Local Mode Active</h1>
+            <p>Nestly is currently in Local-only mode. Email notifications are managed within the app settings.</p>
             <a href="/">Return to Nestly</a>
           </body>
         </html>
       `);
-    } catch (error) {
-      console.error("Unsubscribe error:", error);
-      res.status(500).send("Error processing request");
-    }
   });
 
-  // Daily Email Cron Job (Runs at 9:00 AM every day)
+  // Daily Email Cron Job (Disabled in Local-only mode)
+  /*
   cron.schedule("0 9 * * *", async () => {
-    console.log("Running daily email cron job...");
-    try {
-      const usersRef = db.collection("users");
-      const snapshot = await usersRef.where("emailNotifications", "==", true).get();
-
-      for (const doc of snapshot.docs) {
-        const userData = doc.data();
-        await sendDailyEmail(userData);
-      }
-      console.log(`Finished sending emails to ${snapshot.size} users.`);
-    } catch (error) {
-      console.error("Email cron job error:", error);
-    }
+    ...
   });
+  */
 
-  // Weekly Email (Mondays at 10:00 AM)
+  // Weekly Email (Disabled in Local-only mode)
+  /*
   cron.schedule("0 10 * * 1", async () => {
-    console.log("Processing weekly emails...");
-    try {
-      const usersSnapshot = await db.collection('users').get();
-      const now = new Date();
-
-      for (const doc of usersSnapshot.docs) {
-        const userData = doc.data();
-        if (!userData.email || userData.emailNotifications === false) continue;
-
-        let subject = "Your Nestly Weekly Update ❤️";
-        let body = "";
-
-        if (userData.lifecycleStage === 'PREGNANCY' && userData.lmpDate) {
-          const lmpDate = new Date(userData.lmpDate);
-          const weeks = Math.floor((now.getTime() - lmpDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
-          subject = `Week ${weeks} of your Pregnancy Journey 🤰`;
-          body = `Hi ${userData.name || 'Mama'}, you are now ${weeks} weeks along! Your baby is growing fast. Check Nestly for this week's tips and baby size update.`;
-        } else if (userData.lifecycleStage === 'NEWBORN' || userData.lifecycleStage === 'INFANT') {
-          subject = "Your Baby's Development This Week 👶";
-          body = `Hi ${userData.name || 'Mama'}, we hope you and your little one are doing well. Check Nestly for new milestones and tracking tips for this week.`;
-        } else {
-          body = `Hi ${userData.name || 'Mama'}, here's your weekly check-in from Nestly. We're here to support you on your journey!`;
-        }
-
-        await sendEmail(userData.email, subject, body);
-      }
-    } catch (error) {
-      console.error("Error sending weekly emails:", error);
-    }
+    ...
   });
+  */
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
@@ -172,122 +97,6 @@ async function startServer() {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
-}
-
-async function broadcastPush(payload: { title: string, body: string, url: string }) {
-  try {
-    const tokensRef = db.collection("fcm_tokens");
-    const snapshot = await tokensRef.get();
-    
-    if (snapshot.empty) return;
-
-    const tokens = snapshot.docs.map(doc => doc.data().token);
-    
-    // FCM multicast send
-    const response = await messaging.sendEachForMulticast({
-      tokens,
-      notification: {
-        title: payload.title,
-        body: payload.body
-      },
-      data: {
-        url: payload.url
-      }
-    });
-
-    console.log(`Successfully sent ${response.successCount} push notifications.`);
-    
-    // Cleanup invalid tokens
-    if (response.failureCount > 0) {
-      const failedTokens: string[] = [];
-      response.responses.forEach((resp, idx) => {
-        if (!resp.success) {
-          failedTokens.push(tokens[idx]);
-        }
-      });
-      
-      // Remove failed tokens from DB
-      for (const token of failedTokens) {
-        const tokenSnap = await tokensRef.where("token", "==", token).get();
-        tokenSnap.forEach(doc => doc.ref.delete());
-      }
-    }
-  } catch (error) {
-    console.error("Error broadcasting push:", error);
-  }
-}
-
-async function sendDailyEmail(user: any) {
-  const { email, name, lifecycleStage, lmpDate } = user;
-  
-  let updateText = "";
-  let stageInfo = "";
-  let tips = [];
-
-  if (lifecycleStage === "PREGNANCY" && lmpDate) {
-    const diff = new Date().getTime() - new Date(lmpDate).getTime();
-    const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
-    updateText = `Today you are in Week ${weeks} of your pregnancy.`;
-    
-    // Simple mock data for demo - in a real app this would come from a service
-    if (weeks < 13) {
-      stageInfo = "Your baby is developing vital organs and their heart is beating strongly.";
-      tips = ["Stay hydrated", "Take your prenatal vitamins", "Rest when you feel tired"];
-    } else if (weeks < 27) {
-      stageInfo = "Your baby is growing quickly and you might start feeling those first kicks soon!";
-      tips = ["Eat iron-rich foods", "Gentle stretching", "Talk to your baby"];
-    } else {
-      stageInfo = "Your baby is getting ready for the big day! Their lungs are maturing.";
-      tips = ["Pack your hospital bag", "Practice breathing exercises", "Keep feet elevated"];
-    }
-  } else if (lifecycleStage === "POSTPARTUM") {
-    updateText = "You are in your postpartum journey.";
-    stageInfo = "Your body is healing and your baby is discovering the world through your touch and voice.";
-    tips = ["Prioritize sleep", "Ask for help when needed", "Stay nourished"];
-  } else {
-    return; // Skip if no relevant stage
-  }
-
-  const unsubscribeUrl = `${process.env.APP_URL || 'http://localhost:3000'}/api/unsubscribe?email=${encodeURIComponent(email)}`;
-
-  try {
-    await resend.emails.send({
-      from: "Nestly <updates@nestly.run.app>",
-      to: email,
-      subject: "Your Nestly Daily Update",
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
-          <h2 style="color: #e11d48;">Hi ${name},</h2>
-          <p style="font-size: 16px; color: #333;">${updateText}</p>
-          <p style="font-size: 16px; color: #555;">${stageInfo}</p>
-          
-          <div style="background: #fff1f2; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #be123c;">Today's Tips</h4>
-            <ul style="margin-bottom: 0;">
-              ${tips.map(tip => `<li>${tip}</li>`).join("")}
-            </ul>
-          </div>
-          
-          <p style="font-size: 14px; color: #777;">Keep going — you're doing great.</p>
-          <p style="font-weight: bold; color: #e11d48;">— Nestly 🌱</p>
-          
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
-          
-          <div style="text-align: center; font-size: 12px; color: #999;">
-            <p><a href="${process.env.APP_URL || 'http://localhost:3000'}" style="color: #e11d48;">Go to Dashboard</a></p>
-            <p><a href="${unsubscribeUrl}" style="color: #999;">Unsubscribe</a> from these daily updates.</p>
-          </div>
-        </div>
-      `
-    });
-    
-    // Update last email sent timestamp
-    await db.collection("users").doc(user.uid).update({
-      lastEmailSent: admin.firestore.FieldValue.serverTimestamp()
-    });
-  } catch (error) {
-    console.error(`Failed to send email to ${email}:`, error);
-  }
 }
 
 async function sendEmail(to: string, subject: string, body: string) {
