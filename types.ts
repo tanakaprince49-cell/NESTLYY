@@ -102,11 +102,6 @@ export interface FoodEntry {
   timestamp: number;
 }
 
-export interface WaterLog {
-  amount: number;
-  timestamp: number;
-}
-
 export interface SymptomLog {
   id: string;
   type: string;

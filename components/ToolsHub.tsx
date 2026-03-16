@@ -22,7 +22,6 @@ import {
   TummyTimeLog,
   MedicationLog,
   BloodPressureLog,
-  WaterLog,
   VitaminLog,
   FoodEntry
 } from '../types.ts';
@@ -79,20 +78,6 @@ const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, b
   medications: { label: 'Medications', icon: Pill, color: 'text-indigo-400', bgColor: 'bg-indigo-50' },
   names: { label: 'Baby Names', icon: Sparkles, color: 'text-amber-400', bgColor: 'bg-amber-50' },
   bump: { label: 'Bump Photos', icon: CameraIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  sleep: { label: 'Sleep', icon: Moon, color: 'text-indigo-400', bgColor: 'bg-indigo-50' },
-  calendar: { label: 'Calendar', icon: CalendarIcon, color: 'text-emerald-400', bgColor: 'bg-emerald-50' },
-  checklists: { label: 'Checklists', icon: Check, color: 'text-blue-400', bgColor: 'bg-blue-50' },
-  memories: { label: 'Memories', icon: Heart, color: 'text-pink-400', bgColor: 'bg-pink-50' },
-  kegels: { label: 'Kegels', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  journal: { label: 'Journal', icon: FileText, color: 'text-slate-400', bgColor: 'bg-slate-50' },
-  labor: { label: 'Labor Tracker', icon: Clock, color: 'text-rose-500', bgColor: 'bg-rose-50' },
-  kicks: { label: 'Kick Counter', icon: Footprints, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  reactions: { label: 'Reactions', icon: Smile, color: 'text-amber-400', bgColor: 'bg-amber-50' },
-  calm: { label: 'Calm', icon: Flower, color: 'text-emerald-400', bgColor: 'bg-emerald-50' },
-  birth: { label: 'Birth Plan', icon: Hospital, color: 'text-blue-500', bgColor: 'bg-blue-50' },
-  reports: { label: 'Reports', icon: FileText, color: 'text-slate-500', bgColor: 'bg-slate-50' },
-  water: { label: 'Water', icon: WaterIcon, color: 'text-blue-400', bgColor: 'bg-blue-50' },
-  symptoms: { label: 'Symptoms', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   nutrition: { label: 'Nutrition', icon: Soup, color: 'text-emerald-400', bgColor: 'bg-emerald-50' },
   vitamins: { label: 'Vitamins', icon: Pill, color: 'text-amber-400', bgColor: 'bg-amber-50' },
   // Newborn
@@ -149,8 +134,6 @@ interface ToolsHubProps {
   foodEntries: FoodEntry[];
   onAddFoodEntry: (entry: Omit<FoodEntry, 'id' | 'timestamp'>) => void;
   onRemoveFoodEntry: (id: string) => void;
-  waterLogs: WaterLog[];
-  onAddWater: (amount: number) => void;
   vitamins: VitaminLog[];
   onAddVitamin: (vitamin: Omit<VitaminLog, 'id' | 'timestamp'>) => void;
   trimester: Trimester;
@@ -174,7 +157,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   bloodPressureLogs, onAddBloodPressure,
   medicationLogs, onAddMedication, onRemoveMedication,
   foodEntries, onAddFoodEntry, onRemoveFoodEntry,
-  waterLogs, onAddWater, vitamins, onAddVitamin,
+  vitamins, onAddVitamin,
   trimester, profile,
   activeCategory, setActiveCategory, onUpdateProfile, onUpdateChecklist, onUpdateBumpPhotos, onUpdateBabyNames, onUpdateArchive
 }) => {
@@ -185,9 +168,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'water', 'symptoms', 'nutrition', 'vitamins'];
+      return ['feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
     }
-    return ['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'water', 'symptoms', 'nutrition', 'vitamins'];
+    return ['vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
   }, [isPostpartum]);
 
   const filteredCategories = useMemo(() => {
@@ -322,16 +305,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   const [newNameInput, setNewNameInput] = useState('');
   const [newNameGender, setNewNameGender] = useState('neutral');
 
-  // Water Intake
-  const today = new Date().setHours(0, 0, 0, 0);
-  const todayWater = waterLogs.filter(w => new Date(w.timestamp).setHours(0, 0, 0, 0) === today).reduce((acc, curr) => acc + curr.amount, 0);
-
-  const [waterIntake, setWaterIntake] = useState<number>(todayWater);
-
-  useEffect(() => {
-    setWaterIntake(todayWater);
-  }, [todayWater]);
-
   // Bump Photos
   const [bumpPhotos, setBumpPhotos] = useState<{id: string, url: string, date: string, week: number}[]>(storage.getBumpPhotos() || []);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -416,42 +389,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
     }));
   }, [weightLogs]);
 
-  const waterChartData = useMemo(() => {
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      return d.setHours(0, 0, 0, 0);
-    }).reverse();
-
-    return last7Days.map(day => {
-      const amount = waterLogs
-        .filter(w => new Date(w.timestamp).setHours(0, 0, 0, 0) === day)
-        .reduce((acc, curr) => acc + curr.amount, 0);
-      return {
-        date: new Date(day).toLocaleDateString(undefined, { weekday: 'short' }),
-        amount: amount / 250 // in glasses
-      };
-    });
-  }, [waterLogs]);
-
-  const sleepChartData = useMemo(() => {
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      return d.setHours(0, 0, 0, 0);
-    }).reverse();
-
-    return last7Days.map(day => {
-      const hours = sleepLogs
-        .filter(s => new Date(s.timestamp).setHours(0, 0, 0, 0) === day)
-        .reduce((acc, curr) => acc + curr.hours, 0);
-      return {
-        date: new Date(day).toLocaleDateString(undefined, { weekday: 'short' }),
-        hours
-      };
-    });
-  }, [sleepLogs]);
-
   const babyGrowthChartData = useMemo(() => {
     const filtered = babyGrowthLogs
       .filter(l => l.babyId === selectedBabyId)
@@ -463,6 +400,13 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
     }));
   }, [babyGrowthLogs, selectedBabyId]);
+
+  const sleepChartData = useMemo(() => {
+    return sleepLogs.slice(-7).map(l => ({
+      hours: l.hours,
+      date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
+    }));
+  }, [sleepLogs]);
 
   // Labor Logic
   const handleContractionToggle = () => {
@@ -682,86 +626,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
               )}
             </AnimatePresence>
           </div>
-        </div>
-      )}
-
-      {activeCategory === 'water' && (
-        <div className="space-y-8 animate-in fade-in">
-          <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
-            <h3 className="text-xl font-serif text-rose-800">Hydration Tracker</h3>
-            <p className="text-xs text-slate-400 font-medium">Aim for at least 8-10 glasses of water a day during pregnancy.</p>
-            
-            <div className="flex flex-col items-center gap-6">
-              <div className="relative w-48 h-48 rounded-full bg-blue-50 flex items-center justify-center overflow-hidden border-8 border-blue-100 shadow-inner">
-                <motion.div 
-                  className="absolute bottom-0 left-0 right-0 bg-blue-400 opacity-80"
-                  animate={{ height: `${Math.min(((waterIntake / 250) / 10) * 100, 100)}%` }}
-                  transition={{ type: "spring", stiffness: 50, damping: 15 }}
-                />
-                <div className="relative z-10 flex flex-col items-center">
-                  <motion.span 
-                    key={Math.floor(waterIntake / 250)}
-                    initial={{ scale: 1.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-4xl font-black text-blue-900"
-                  >
-                    {Math.floor(waterIntake / 250)}
-                  </motion.span>
-                  <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Glasses</span>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => {
-                    if (waterIntake >= 250) {
-                      onAddWater(-250);
-                    }
-                  }}
-                  className="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-black text-xl hover:bg-slate-200 transition-all"
-                >
-                  -
-                </button>
-                <button 
-                  onClick={() => {
-                    onAddWater(250);
-                  }}
-                  className="w-14 h-14 rounded-full bg-blue-500 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-blue-200 hover:bg-blue-600 active:scale-95 transition-all"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          </div>
-          {waterChartData.length > 0 && (
-            <div className="card-premium p-6 bg-white border-2 border-slate-50 h-64">
-              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Hydration Trend (Last 7 Days)</h4>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={waterChartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
-                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
-                  <Line type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={4} dot={{r: 4, fill: '#3b82f6'}} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-          {waterLogs.length > 0 && (
-            <div className="card-premium p-6 bg-white border-2 border-slate-50">
-              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Hydration Logs</h4>
-              <div className="space-y-3">
-                {waterLogs.slice(0, 5).map((log, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                    <div className="text-sm font-bold text-slate-800">{log.amount > 0 ? `+${log.amount}ml` : `${log.amount}ml`}</div>
-                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-                      {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -1410,7 +1274,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           bloodPressureLogs={bloodPressureLogs}
           medicationLogs={medicationLogs}
           weightLogs={weightLogs}
-          waterLogs={waterLogs}
           vitamins={vitamins}
           symptoms={symptoms}
           contractions={contractions}
@@ -2620,7 +2483,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           bloodPressureLogs={bloodPressureLogs}
           medicationLogs={medicationLogs}
           weightLogs={weightLogs}
-          waterLogs={waterLogs}
           vitamins={vitamins}
           symptoms={symptoms}
           contractions={contractions}

@@ -19,7 +19,6 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { 
   Trimester, 
   FoodEntry, 
-  WaterLog, 
   PregnancyProfile, 
   SymptomLog, 
   VitaminLog, 
@@ -59,7 +58,6 @@ const App: React.FC = () => {
   const [activeToolCat, setActiveToolCat] = useState<string>('all');
 
   const [entries, setEntries] = useState<FoodEntry[]>([]);
-  const [waterLogs, setWaterLogs] = useState<WaterLog[]>([]);
   const [symptoms, setSymptoms] = useState<SymptomLog[]>([]);
   const [vitamins, setVitamins] = useState<VitaminLog[]>([]);
   const [contractions, setContractions] = useState<Contraction[]>([]);
@@ -82,7 +80,6 @@ const App: React.FC = () => {
   const loadUserData = useCallback(() => {
     setProfile(storage.getProfile());
     setEntries(storage.getFoodEntries());
-    setWaterLogs(storage.getWaterLogs());
     setSymptoms(storage.getSymptoms());
     setVitamins(storage.getVitamins());
     setContractions(storage.getContractions());
@@ -240,7 +237,7 @@ const App: React.FC = () => {
           >
             {activeTab === 'dashboard' && (
               <Dashboard 
-                entries={entries} waterLogs={waterLogs} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
+                entries={entries} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
                 feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
                 journalEntries={journalEntries} babyGrowthLogs={babyGrowthLogs} diaperLogs={diaperLogs}
                 tummyTimeLogs={tummyTimeLogs}
@@ -254,10 +251,6 @@ const App: React.FC = () => {
                 onRemoveEntry={(id) => { 
                   storage.removeFoodEntry(id); 
                   setEntries(storage.getFoodEntries()); 
-                }}
-                onAddWater={(a) => { 
-                  storage.addWaterLog({amount: a, timestamp: Date.now()}); 
-                  setWaterLogs(storage.getWaterLogs()); 
                 }}
                 onLogVitamin={(n) => { 
                   storage.addVitamin({id: Date.now().toString(), name: n, timestamp: Date.now()}); 
@@ -297,10 +290,6 @@ const App: React.FC = () => {
                 symptoms={symptoms} onLogSymptom={(t, s) => { 
                   storage.addSymptom({id: Date.now().toString(), type: t, severity: s, timestamp: Date.now()}); 
                   setSymptoms(storage.getSymptoms()); 
-                }}
-                onAddWater={(a) => { 
-                  storage.addWaterLog({amount: a, timestamp: Date.now()}); 
-                  setWaterLogs(storage.getWaterLogs()); 
                 }}
                 onAddFoodEntry={(f) => {
                   storage.addFoodEntry({ ...f, id: Date.now().toString(), timestamp: Date.now() });
@@ -399,7 +388,6 @@ const App: React.FC = () => {
                   setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
                 }}
                 foodEntries={entries}
-                waterLogs={waterLogs}
                 vitamins={vitamins}
                 trimester={trimester} profile={profile}
                 activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}

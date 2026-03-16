@@ -2,8 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { subscribeUserToPush } from '../services/pushService.ts';
 import { NutrientCard } from './NutrientCard.tsx';
-import { HydrationTracker } from './HydrationTracker.tsx';
-import { getBabyGrowth } from '../services/babyGrowth.ts';
+import { getBabyGrowth, babyGrowthData } from '../services/babyGrowth.ts';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -49,7 +48,6 @@ import {
 import { 
   FoodEntry, 
   Trimester, 
-  WaterLog, 
   VitaminLog, 
   PregnancyProfile, 
   WeightLog, 
@@ -69,7 +67,6 @@ import {
 
 interface DashboardProps {
   entries: FoodEntry[];
-  waterLogs: WaterLog[];
   vitamins: VitaminLog[];
   weightLogs: WeightLog[];
   sleepLogs: SleepLog[];
@@ -87,7 +84,6 @@ interface DashboardProps {
   profile: PregnancyProfile;
   onAddEntry: (entry: Omit<FoodEntry, 'id' | 'timestamp'>) => void;
   onRemoveEntry: (id: string) => void;
-  onAddWater: (amount: number) => void;
   onLogVitamin: (name: string) => void;
   onQuickTool: (cat: string) => void;
   onEditProfile: () => void;
@@ -119,17 +115,17 @@ const NEWBORN_TIPS = [
 ];
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
-  entries = [], waterLogs = [], vitamins = [], weightLogs = [], sleepLogs = [], 
+  entries = [], vitamins = [], weightLogs = [], sleepLogs = [], 
   feedingLogs = [], milestones = [], healthLogs = [], reactions = [], journalEntries = [], babyGrowthLogs = [], diaperLogs = [],
   tummyTimeLogs = [], medicationLogs = [], bloodPressureLogs = [],
   trimester, profile, 
-  onAddEntry, onRemoveEntry, onAddWater, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onAddMedication, onRemoveMedication, onNavigate
+  onAddEntry, onRemoveEntry, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onAddMedication, onRemoveMedication, onNavigate
 }) => {
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
-  const [activeMetric, setActiveMetric] = useState<'fuel' | 'water' | 'weight' | 'sleep' | 'feeding' | 'tummy'>(isPostpartum ? 'feeding' : 'fuel');
+  const [activeMetric, setActiveMetric] = useState<'fuel' | 'weight' | 'sleep' | 'feeding' | 'tummy'>(isPostpartum ? 'feeding' : 'fuel');
 
   useEffect(() => {
-    if (isPostpartum && (activeMetric === 'fuel' || activeMetric === 'water' || activeMetric === 'weight')) {
+    if (isPostpartum && (activeMetric === 'fuel' || activeMetric === 'weight')) {
       setActiveMetric('feeding');
     } else if (!isPostpartum && (activeMetric === 'feeding' || activeMetric === 'tummy')) {
       setActiveMetric('fuel');
@@ -166,13 +162,41 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setDailyTip(tips[day % tips.length]);
   }, [isPostpartum]);
 
-  const weeks = useMemo(() => {
-    if (isPostpartum) return 0;
+  const pregnancyProgress = useMemo(() => {
+    if (isPostpartum) return null;
     const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
-    return Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24 * 7)));
+    const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(totalDays / 7);
+    const days = totalDays % 7;
+    return { weeks, days };
   }, [profile, isPostpartum]);
 
+  const weeks = pregnancyProgress?.weeks || 1;
+
   const baby = useMemo(() => isPostpartum ? null : getBabyGrowth(weeks), [weeks, isPostpartum]);
+
+  const remainingMonths = useMemo(() => {
+    if (isPostpartum) return 0;
+    const totalWeeks = 40;
+    const remainingWeeks = Math.max(0, totalWeeks - weeks);
+    return Math.ceil(remainingWeeks / 4.3);
+  }, [weeks, isPostpartum]);
+
+  const monthRecaps = useMemo(() => {
+    if (isPostpartum) return [];
+    const recaps = [];
+    for (let m = 1; m <= 10; m++) {
+      const targetWeek = Math.min(40, Math.floor(m * 4.3));
+      const growth = getBabyGrowth(targetWeek);
+      recaps.push({
+        month: m,
+        size: growth.size,
+        image: growth.image,
+        week: targetWeek
+      });
+    }
+    return recaps;
+  }, [isPostpartum]);
 
   const babyAge = useMemo(() => {
     if (!isPostpartum || !profile.babies?.[0]?.birthDate) return null;
@@ -205,12 +229,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [todaysEntries]
   );
 
-  const todayWater = useMemo(() => 
-    waterLogs.filter(w => new Date(w.timestamp).setHours(0, 0, 0, 0) === today)
-    .reduce((acc, curr) => acc + curr.amount, 0),
-    [waterLogs, today]
-  );
-
   const handleManualFoodLog = () => {
     if (!foodName || !foodCals) return;
     onAddEntry({
@@ -239,7 +257,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const dayStart = d.getTime();
       const dayEnd = dayStart + 24 * 60 * 60 * 1000 - 1;
       const dayEntries = (entries || []).filter(e => e.timestamp >= dayStart && e.timestamp <= dayEnd);
-      const dayWater = (waterLogs || []).filter(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
       const dayWeight = (weightLogs || []).find(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
       const daySleep = (sleepLogs || []).filter(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
       const dayFeeding = (feedingLogs || []).filter(f => f.timestamp >= dayStart && f.timestamp <= dayEnd);
@@ -248,14 +265,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
       return {
         date: d.toLocaleDateString([], { weekday: 'short' }),
         fuel: dayEntries.reduce((acc, curr) => acc + (curr.calories || 0), 0),
-        water: dayWater.reduce((acc, curr) => acc + curr.amount, 0),
         weight: dayWeight?.weight || (weightLogs?.[0]?.weight || profile.startingWeight || 0),
         sleep: daySleep.reduce((acc, curr) => acc + curr.hours, 0),
         feeding: dayFeeding.length,
         tummy: dayTummy.reduce((acc, curr) => acc + curr.duration, 0) / 60, // minutes
       };
     });
-  }, [entries, waterLogs, weightLogs, sleepLogs, feedingLogs, tummyTimeLogs, profile.startingWeight]);
+  }, [entries, weightLogs, sleepLogs, feedingLogs, tummyTimeLogs, profile.startingWeight]);
 
   const targets = profile.customTargets || {
     cals: 2200,
@@ -276,7 +292,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="flex justify-between items-start mb-2">
         <div className="space-y-1">
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">
-            {isPostpartum ? 'Newborn Journey' : 'Pregnancy Journey'}
+            {isPostpartum ? 'Newborn Journey' : `${pregnancyProgress?.weeks} Weeks ${pregnancyProgress?.days} Days`}
           </span>
           <h2 className="text-4xl font-serif text-slate-900 leading-tight">Bonjour, <br/>{profile.userName}</h2>
         </div>
@@ -480,6 +496,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {!isPostpartum && (
         <>
+          {/* Month Recaps */}
+          {!isPostpartum && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center px-1">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Month Recaps</h3>
+                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{remainingMonths} Months Remaining</span>
+              </div>
+              <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
+                {monthRecaps.map((recap) => (
+                  <motion.div 
+                    key={recap.month}
+                    whileHover={{ y: -5 }}
+                    className={`min-w-[160px] p-6 rounded-[2.5rem] border-2 transition-all ${
+                      Math.floor(weeks / 4.3) + 1 === recap.month 
+                        ? 'bg-rose-500 border-rose-400 text-white shadow-lg shadow-rose-200' 
+                        : 'bg-white border-slate-50 text-slate-900'
+                    }`}
+                  >
+                    <div className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Month {recap.month}</div>
+                    <div className="text-3xl mb-3">{recap.image}</div>
+                    <div className="font-serif text-lg leading-tight mb-1">{recap.size}</div>
+                    <div className="text-[9px] font-black uppercase tracking-widest opacity-40">Week {recap.week}</div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Summary Widgets Section */}
           <div className="space-y-3">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 ml-1">Daily Glance</h3>
@@ -496,10 +540,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] text-slate-400 font-bold">Sleep</span>
                     <span className="text-sm font-bold text-slate-800">{sleepLogs[0]?.hours || '--'} <span className="text-[8px] font-normal">hrs</span></span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] text-slate-400 font-bold">Water</span>
-                    <span className="text-sm font-bold text-slate-800">{todayWater} <span className="text-[8px] font-normal">ml</span></span>
                   </div>
                 </div>
               </div>
@@ -573,9 +613,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <NutrientCard title="Protein" current={totals.protein} target={targets.protein} unit="g" gradient="from-emerald-400 to-emerald-600" />
           </div>
 
-          {/* Hydration */}
-          <HydrationTracker logs={waterLogs} onAddWater={onAddWater} />
-
           {/* Manual Entry */}
           <div className="card-premium p-6 bg-white border-2 border-slate-50 space-y-4">
             <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Quick Log Food</h4>
@@ -618,13 +655,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex justify-between items-center mb-6">
               <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Weekly Analytics</h4>
               <div className="flex gap-2">
-                {(['fuel', 'water', 'weight', 'sleep'] as const).map(m => (
+                {(['fuel', 'weight', 'sleep'] as const).map(m => (
                   <button 
                     key={m} 
                     onClick={() => setActiveMetric(m)}
                     className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
                   >
-                    {m === 'fuel' ? <Apple size={16} /> : m === 'water' ? <Droplets size={16} /> : m === 'weight' ? <Scale size={16} /> : <Moon size={16} />}
+                    {m === 'fuel' ? <Apple size={16} /> : m === 'weight' ? <Scale size={16} /> : <Moon size={16} />}
                   </button>
                 ))}
               </div>

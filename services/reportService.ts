@@ -26,8 +26,6 @@ export const generatePregnancyDailyReport = (date: Date) => {
   // Data Fetching (Pregnancy Only)
   const weightLogs = (storage.getWeightLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
   const foods = (storage.getFoodEntries() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
-  const water = (storage.getWaterLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay)
-                       .reduce((acc, curr) => acc + curr.amount, 0);
   const sleep = (storage.getSleepLogs() || []).find(l => !l.babyId && l.timestamp >= startOfDay && l.timestamp <= endOfDay);
   const symptoms = (storage.getSymptoms() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
   const journal = (storage.getJournalEntries() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
@@ -120,7 +118,6 @@ export const generatePregnancyDailyReport = (date: Date) => {
   doc.setTextColor(slateText[0], slateText[1], slateText[2]);
   doc.text(`Weight: ${weightLogs.length > 0 ? weightLogs[0].weight + ' kg' : '---'}`, 25, y + 24);
   doc.text(`Sleep: ${sleep ? sleep.hours + ' hrs' : '---'}`, 25, y + 31);
-  doc.text(`Water: ${water > 0 ? water + ' ml' : '---'}`, 25, y + 38);
 
   // Pregnancy Specifics Box
   doc.setFillColor(boxBg[0], boxBg[1], boxBg[2]);

@@ -30,19 +30,6 @@ export const NotificationService: React.FC = () => {
         });
       }
 
-      // Check water
-      const water = storage.getWaterLogs();
-      const waterToday = water.filter(w => new Date(w.timestamp).setHours(0, 0, 0, 0) === today)
-                              .reduce((acc, curr) => acc + curr.amount, 0);
-      if (waterToday < 1000) {
-        newNotifs.push({
-          id: 'water-' + today,
-          title: 'Hydration Check',
-          message: 'Remember to drink water! Aim for 2L daily for a happy baby. 💧',
-          type: 'reminder'
-        });
-      }
-
       // Milestone check
       const profile = storage.getProfile();
       if (profile) {

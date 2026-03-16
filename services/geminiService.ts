@@ -2,8 +2,7 @@ import { OpenRouter } from "@openrouter/sdk";
 
 const openrouter = new OpenRouter({
   apiKey: "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",
-  dangerouslyAllowBrowser: true // Required for client-side usage
-});
+} as any);
 
 const MEMORY_KEY = "ava_memory";
 
@@ -23,7 +22,7 @@ export async function getAvaResponse(userMessage: string) {
     memory = memory.slice(-6);
 
     // Stream the response to get reasoning tokens in usage
-    const stream = await openrouter.chat.send({
+    const stream = await (openrouter.chat as any).send({
       model: "google/gemini-3-flash-preview",
       messages: memory,
       stream: true
@@ -40,7 +39,7 @@ export async function getAvaResponse(userMessage: string) {
 
       // Usage information comes in the final chunk
       if (chunk.usage) {
-        console.log("\nReasoning tokens:", chunk.usage.reasoningTokens);
+        console.log("\nReasoning tokens:", (chunk.usage as any).reasoningTokens);
       }
     }
 

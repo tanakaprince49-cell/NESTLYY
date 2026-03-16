@@ -2,7 +2,6 @@
 import { 
   PregnancyProfile, 
   FoodEntry, 
-  WaterLog, 
   SymptomLog, 
   VitaminLog, 
   Contraction, 
@@ -35,7 +34,6 @@ import {
 const KEYS = {
   PROFILE: 'profile_v5',
   FOOD: 'food_entries',
-  WATER: 'water_logs',
   SYMPTOMS: 'symptoms',
   VITAMINS: 'vitamins',
   CONTRACTIONS: 'contractions',
@@ -67,7 +65,6 @@ const KEYS = {
   SHOWN_REMINDERS: 'nestly_shown_reminders',
   VIDEOS: 'nestly_global_videos',
   BABY_NAMES: 'baby_names',
-  WATER_INTAKE: 'water_intake',
   BUMP_PHOTOS: 'bump_photos',
   MEDICATIONS: 'medication_logs',
   TUMMY_TIME: 'tummy_time_logs',
@@ -141,12 +138,6 @@ class StorageService {
   }
   saveBabyNames(names: {name: string, gender: string, rating: number}[]): void { this.setItem(KEYS.BABY_NAMES, names); }
 
-  getWaterIntake(): number { 
-    const val = this.getItem(KEYS.WATER_INTAKE, 0);
-    return typeof val === 'number' ? val : 0;
-  }
-  saveWaterIntake(intake: number): void { this.setItem(KEYS.WATER_INTAKE, intake); }
-
   getBumpPhotos(): {id: string, url: string, date: string, week: number}[] { 
     const val = this.getItem(KEYS.BUMP_PHOTOS, []);
     return Array.isArray(val) ? val : [];
@@ -156,9 +147,6 @@ class StorageService {
   getFoodEntries(): FoodEntry[] { return this.getItem<FoodEntry[]>(KEYS.FOOD, []); }
   addFoodEntry(entry: FoodEntry): void { this.setItem(KEYS.FOOD, [entry, ...this.getFoodEntries()]); }
   removeFoodEntry(id: string): void { this.setItem(KEYS.FOOD, this.getFoodEntries().filter(e => e.id !== id)); }
-
-  getWaterLogs(): WaterLog[] { return this.getItem<WaterLog[]>(KEYS.WATER, []); }
-  addWaterLog(log: WaterLog): void { this.setItem(KEYS.WATER, [...this.getWaterLogs(), log]); }
 
   getWeightLogs(): WeightLog[] { return this.getItem<WeightLog[]>(KEYS.WEIGHT, []); }
   addWeightLog(log: WeightLog): void { this.setItem(KEYS.WEIGHT, [log, ...this.getWeightLogs()]); }

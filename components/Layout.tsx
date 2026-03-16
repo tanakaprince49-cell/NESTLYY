@@ -110,7 +110,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           <NavItem active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} label="Nest" icon={Home} />
           <NavItem active={activeTab === 'baby'} onClick={() => setActiveTab('baby')} label="Growth" icon={TrendingUp} />
           <NavItem active={activeTab === 'ava'} onClick={() => setActiveTab('ava')} label="Ava" icon={Sparkles} isSpecial />
-          <NavItem active={activeTab === 'education'} onClick={() => setActiveTab('education')} label="Academy" icon={BookOpen} />
+          <NavItem active={activeTab === 'education'} onClick={() => setActiveTab('education')} label="Articles" icon={BookOpen} />
           <NavItem active={activeTab === 'tools'} onClick={() => setActiveTab('tools')} label="Tools" icon={LayoutGrid} />
           <NavItem active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} label="Settings" icon={User} />
           {isAdmin && (

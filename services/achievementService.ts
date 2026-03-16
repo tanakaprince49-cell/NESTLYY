@@ -1,10 +1,9 @@
 
-import { Achievement, FoodEntry, WaterLog, PregnancyProfile, JournalEntry, VitaminLog, Trimester } from '../types.ts';
+import { Achievement, FoodEntry, PregnancyProfile, JournalEntry, VitaminLog, Trimester } from '../types.ts';
 import { storage } from './storageService.ts';
 
 export const ALL_ACHIEVEMENTS: Achievement[] = [
   { id: 'first_meal', title: 'Nest Builder', description: 'Log your very first meal in Nestly.', icon: '🍳' },
-  { id: 'water_goal', title: 'Ocean Spirit', description: 'Reach your 2000ml hydration goal in a single day.', icon: '💧' },
   { id: 'first_journal', title: 'Mindful Mama', description: 'Record your first reflection in the journal.', icon: '✍️' },
   { id: 'vitamin_pro', title: 'Vitality Queen', description: 'Log your prenatal vitamins for the first time.', icon: '✨' },
   { id: 'tri_1', title: 'Golden Start', description: 'Begin your journey in the First Trimester.', icon: '🌱' },
@@ -17,7 +16,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
 export const checkAchievements = (
   profile: PregnancyProfile | null,
   foods: FoodEntry[],
-  water: WaterLog[],
   journals: JournalEntry[],
   vitamins: VitaminLog[],
   trimester: Trimester
@@ -38,11 +36,6 @@ export const checkAchievements = (
   // Logic checks
   if (foods.length > 0) tryUnlock('first_meal');
   
-  const today = new Date().setHours(0, 0, 0, 0);
-  const waterToday = water.filter(w => new Date(w.timestamp).setHours(0, 0, 0, 0) === today)
-                          .reduce((acc, curr) => acc + curr.amount, 0);
-  if (waterToday >= 2000) tryUnlock('water_goal');
-
   if (journals.length > 0) tryUnlock('first_journal');
   if (vitamins.length > 0) tryUnlock('vitamin_pro');
 

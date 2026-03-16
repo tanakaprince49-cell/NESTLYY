@@ -9,7 +9,7 @@ import {
   PregnancyProfile, FeedingLog, SleepLog, DiaperLog, BabyGrowthLog, 
   MilestoneLog, HealthLog, TummyTimeLog, JournalEntry, KickLog, 
   ReactionLog, CalendarEvent, BloodPressureLog, MedicationLog, 
-  WeightLog, WaterLog, SymptomLog, VitaminLog, Contraction,
+  WeightLog, SymptomLog, VitaminLog, Contraction,
   KegelLog, FoodEntry
 } from '../types.ts';
 
@@ -29,7 +29,6 @@ interface ExportReportProps {
   bloodPressureLogs: BloodPressureLog[];
   medicationLogs: MedicationLog[];
   weightLogs: WeightLog[];
-  waterLogs: WaterLog[];
   symptoms: SymptomLog[];
   vitamins: VitaminLog[];
   contractions: Contraction[];
@@ -53,7 +52,6 @@ export const ExportReport: React.FC<ExportReportProps> = ({
   bloodPressureLogs,
   medicationLogs,
   weightLogs,
-  waterLogs,
   symptoms,
   vitamins,
   contractions,
@@ -88,14 +86,13 @@ export const ExportReport: React.FC<ExportReportProps> = ({
       bp: filter(bloodPressureLogs),
       meds: filter(medicationLogs),
       weight: filter(weightLogs),
-      water: filter(waterLogs),
       symptoms: filter(symptoms),
       vitamins: filter(vitamins),
       contractions: filter(contractions),
       kegels: filter(kegelLogs),
       nutrition: filter(foodEntries)
     };
-  }, [startDate, endDate, feedingLogs, sleepLogs, diaperLogs, babyGrowthLogs, milestones, healthLogs, tummyTimeLogs, journalEntries, kickLogs, reactions, calendarEvents, bloodPressureLogs, medicationLogs, weightLogs, waterLogs, symptoms, vitamins, contractions, kegelLogs, foodEntries]);
+  }, [startDate, endDate, feedingLogs, sleepLogs, diaperLogs, babyGrowthLogs, milestones, healthLogs, tummyTimeLogs, journalEntries, kickLogs, reactions, calendarEvents, bloodPressureLogs, medicationLogs, weightLogs, symptoms, vitamins, contractions, kegelLogs, foodEntries]);
 
   const handleExport = () => {
     if (!reportRef.current) return;
@@ -211,11 +208,11 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               </div>
               <div className="rounded-[2.5rem] bg-emerald-50 p-8 border border-emerald-100 text-center">
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm text-emerald-500">
-                  <Waves size={24} />
+                  <Sparkles size={24} />
                 </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Hydration</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Journal Entries</div>
                 <div className="text-4xl font-black text-emerald-600">
-                  {filteredData.water.reduce((acc, curr) => acc + curr.amount, 0)} <span className="text-lg">Glasses</span>
+                  {filteredData.journal.length}
                 </div>
               </div>
             </div>
@@ -344,24 +341,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                 </div>
               </section>
 
-              <section>
-                <div className="flex items-center gap-3 mb-6 border-b-2 border-emerald-100 pb-2">
-                  <Waves className="text-emerald-500" size={24} />
-                  <h2 className="text-xl font-serif font-bold text-slate-800">Hydration History</h2>
-                </div>
-                <div className="space-y-4">
-                  {filteredData.water.map((log, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-4 bg-emerald-50/30 rounded-2xl border border-emerald-100/50">
-                      <div>
-                        <div className="text-sm font-bold text-slate-700">Water Intake</div>
-                        <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
-                      </div>
-                      <div className="text-sm font-black text-emerald-600">{log.amount} Glasses</div>
-                    </div>
-                  ))}
-                  {filteredData.water.length === 0 && <div className="text-sm text-slate-400 italic">No logs for this period.</div>}
-                </div>
-              </section>
+
             </div>
 
             <div className="mt-12">
