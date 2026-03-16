@@ -65,6 +65,11 @@ import {
   FileText,
   Square,
   Play,
+  Book,
+  Timer,
+  Wind,
+  ListTodo,
+  Gift,
   Droplets as WaterIcon,
   Camera as CameraIcon,
   ArrowLeft,
@@ -90,6 +95,20 @@ const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, b
   pumping: { label: 'Pumping', icon: Droplets, color: 'text-pink-400', bgColor: 'bg-pink-50' },
   teething: { label: 'Teething', icon: Smile, color: 'text-yellow-400', bgColor: 'bg-yellow-50' },
   export: { label: 'Export PDF', icon: Download, color: 'text-purple-400', bgColor: 'bg-purple-50' },
+  // Additional Tools
+  journal: { label: 'Journal', icon: Book, color: 'text-blue-400', bgColor: 'bg-blue-50' },
+  labor: { label: 'Labor', icon: Timer, color: 'text-orange-400', bgColor: 'bg-orange-50' },
+  kicks: { label: 'Kicks', icon: Footprints, color: 'text-rose-400', bgColor: 'bg-rose-50' },
+  reactions: { label: 'Reactions', icon: Smile, color: 'text-yellow-400', bgColor: 'bg-yellow-50' },
+  calm: { label: 'Calm', icon: Wind, color: 'text-teal-400', bgColor: 'bg-teal-50' },
+  birth: { label: 'Birth', icon: Gift, color: 'text-rose-400', bgColor: 'bg-rose-50' },
+  kegels: { label: 'Kegels', icon: Activity, color: 'text-purple-400', bgColor: 'bg-purple-50' },
+  memories: { label: 'Memories', icon: CameraIcon, color: 'text-pink-400', bgColor: 'bg-pink-50' },
+  reports: { label: 'Reports', icon: FileText, color: 'text-indigo-400', bgColor: 'bg-indigo-50' },
+  calendar: { label: 'Calendar', icon: CalendarIcon, color: 'text-blue-400', bgColor: 'bg-blue-50' },
+  checklists: { label: 'Checklists', icon: ListTodo, color: 'text-emerald-400', bgColor: 'bg-emerald-50' },
+  symptoms: { label: 'Symptoms', icon: Thermometer, color: 'text-red-400', bgColor: 'bg-red-50' },
+  sleep: { label: 'Sleep', icon: Moon, color: 'text-indigo-400', bgColor: 'bg-indigo-50' },
 };
 
 interface ToolsHubProps {
