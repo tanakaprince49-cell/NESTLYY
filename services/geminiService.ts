@@ -1,8 +1,16 @@
-import { OpenRouter } from "@openrouter/sdk";
+/* ==========================================
+   AVA – Fast, Short, Smart, With Memory + Voice
+========================================== */
 
-const openrouter = new OpenRouter({
-  apiKey: "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",
-} as any);
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL = "deepseek/deepseek-chat";
+
+const OPENROUTER_API_KEY =
+  "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";
+
+/* ==========================================
+   MEMORY (Local Storage)
+========================================== */
 
 const MEMORY_KEY = "ava_memory";
 
@@ -15,56 +23,100 @@ function loadMemory() {
   return memory ? JSON.parse(memory) : [];
 }
 
+/* ==========================================
+   CORE FAST CALL
+========================================== */
+
+async function callAva(messages: any[]) {
+  const response = await fetch(OPENROUTER_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://nestly.app",
+      "X-Title": "Ava AI",
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: [
+        {
+          role: "system",
+          content: `
+You are Ava, a pregnancy companion.
+Be VERY concise.
+Max 2-3 short sentences.
+Warm but direct.
+No long explanations.
+`,
+        },
+        ...messages,
+      ],
+      temperature: 0.5,
+      max_tokens: 120,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+/* ==========================================
+   PUBLIC CHAT FUNCTION (With Memory)
+========================================== */
+
 export async function getAvaResponse(userMessage: string) {
   try {
     let memory = loadMemory();
+
+    // Add new user message
     memory.push({ role: "user", content: userMessage });
+
+    // Keep only last 6 messages (faster)
     memory = memory.slice(-6);
 
-    // Stream the response to get reasoning tokens in usage
-    const stream = await (openrouter.chat as any).send({
-      model: "google/gemini-3-flash-preview",
-      messages: memory,
-      stream: true
-    });
+    const reply = await callAva(memory);
 
-    let response = "";
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        response += content;
-        // Replaced process.stdout.write with console.log for browser compatibility
-        console.log(content);
-      }
-
-      // Usage information comes in the final chunk
-      if (chunk.usage) {
-        console.log("\nReasoning tokens:", (chunk.usage as any).reasoningTokens);
-      }
-    }
-
-    memory.push({ role: "assistant", content: response });
+    // Save assistant reply
+    memory.push({ role: "assistant", content: reply });
     saveMemory(memory);
 
-    return response || "Hmm… I’m reconnecting 💕";
+    return reply;
+
   } catch (error) {
     console.error("Ava Error:", error);
     return "Hmm… I’m reconnecting 💕";
   }
 }
 
+/* ==========================================
+   VOICE: TEXT → SPEECH
+========================================== */
+
 export function speak(text: string) {
   const speech = new SpeechSynthesisUtterance(text);
-  speech.lang = "en-US";
-  speech.rate = 1.0;
+  speech.rate = 1;
   speech.pitch = 1.1;
+  speech.lang = "en-US";
   window.speechSynthesis.speak(speech);
 }
+
+/* ==========================================
+   VOICE: SPEECH → TEXT
+========================================== */
 
 export function listen(callback: (text: string) => void) {
   const SpeechRecognition =
     (window as any).SpeechRecognition ||
     (window as any).webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    console.error("Speech Recognition not supported in this browser.");
+    return;
+  }
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";

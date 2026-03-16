@@ -12,9 +12,10 @@ import {
   FileText, 
   Heart,
   Send,
-  User
+  User,
+  Mic
 } from 'lucide-react';
-import { getAvaResponse, speak } from '../services/geminiService.ts';
+import { getAvaResponse, speak, listen } from '../services/geminiService.ts';
 import { PregnancyProfile, ChatMessage, AvaMemoryFact } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 
@@ -25,6 +26,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [avaImage, setAvaImage] = useState<string | null>(() => storage.getAvaImage());
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,6 +103,14 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
     if (isSpeaking) {
       window.speechSynthesis?.cancel();
     }
+  };
+
+  const handleListen = () => {
+    setIsListening(true);
+    listen((text) => {
+      setIsListening(false);
+      setInput(text);
+    });
   };
 
   return (
@@ -259,15 +269,24 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="Talk to Ava..."
-            className="w-full h-14 pl-6 pr-20 bg-white border-none rounded-[2rem] shadow-inner text-base font-medium outline-none focus:ring-4 focus:ring-rose-900/5 transition-all"
+            className="w-full h-14 pl-6 pr-32 bg-white border-none rounded-[2rem] shadow-inner text-base font-medium outline-none focus:ring-4 focus:ring-rose-900/5 transition-all"
           />
-          <button 
-            type="submit"
-            disabled={!input.trim() || loading}
-            className="absolute right-2 top-2 bottom-2 px-6 bg-rose-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-40 transition-all"
-          >
-            Send
-          </button>
+          <div className="absolute right-2 top-2 bottom-2 flex gap-2">
+            <button 
+              type="button"
+              onClick={handleListen}
+              className={`px-4 rounded-[1.5rem] transition-all active:scale-95 flex items-center justify-center ${isListening ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-slate-50 text-slate-400'}`}
+            >
+              <Mic size={20} />
+            </button>
+            <button 
+              type="submit"
+              disabled={!input.trim() || loading}
+              className="px-6 bg-rose-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-40 transition-all"
+            >
+              Send
+            </button>
+          </div>
         </form>
       </div>
     </div>
