@@ -102,10 +102,16 @@ export const ExportReport: React.FC<ExportReportProps> = ({
     if (!reportRef.current) return;
     
     const opt: any = {
-      margin:       [10, 10, 10, 10],
+      margin:       [0, 0, 0, 0],
       filename:     `nestly-report-${startDate}-to-${endDate}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, windowWidth: 800, scrollY: 0 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true, 
+        windowWidth: 1024, 
+        scrollY: 0,
+        backgroundColor: '#fff5f7'
+      },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
@@ -222,11 +228,11 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
       {/* Hidden Report Content for PDF Generation */}
       <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-        <div ref={reportRef} className="p-10 bg-pink-50 text-slate-800 font-sans" style={{ width: '800px' }}>
+        <div ref={reportRef} className="bg-pink-50 text-slate-800 font-sans" style={{ width: '1024px', margin: '0 auto' }}>
           
           {/* PAGE 1: COVER & SUMMARY */}
-          <div className="min-h-[1050px] flex flex-col items-center justify-center">
-            <div className="w-full relative mb-12 overflow-hidden rounded-[3rem] bg-gradient-to-br from-pink-500 to-rose-400 p-16 text-white shadow-2xl text-center">
+          <div className="min-h-[1440px] flex flex-col items-center justify-center p-20">
+            <div className="w-full max-w-4xl relative mb-12 overflow-hidden rounded-[3rem] bg-gradient-to-br from-pink-500 to-rose-400 p-20 text-white shadow-2xl text-center">
               <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
               <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-black/10 blur-3xl"></div>
               
@@ -260,8 +266,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mb-12">
-              <div className="rounded-[2.5rem] bg-pink-50 p-8 border border-pink-100 text-center">
+            <div className="grid grid-cols-3 gap-8 mb-12 w-full max-w-4xl">
+              <div className="rounded-[2.5rem] bg-pink-50 p-8 border border-pink-100 text-center shadow-sm">
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm text-pink-500">
                   <Activity size={24} />
                 </div>
@@ -290,7 +296,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               </div>
             </div>
 
-            <div className="flex-1 rounded-[3rem] bg-slate-50 p-12 border border-slate-100">
+            <div className="flex-1 w-full max-w-4xl rounded-[3rem] bg-slate-50 p-12 border border-slate-100 shadow-sm">
               <h2 className="text-2xl font-serif font-bold text-slate-800 mb-8 flex items-center gap-3">
                 <Sparkles className="text-amber-500" />
                 Executive Summary
@@ -339,8 +345,9 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           </div>
 
           {/* PAGE 2: DAILY LOGS & ACTIVITIES */}
-          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
+          <div className="min-h-[1440px] p-20 flex flex-col items-center" style={{ pageBreakBefore: 'always' }}>
+            <div className="w-full max-w-5xl">
+              <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -443,10 +450,12 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               </section>
             </div>
           </div>
+        </div>
 
           {/* PAGE 3: HEALTH & VITALS */}
-          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
+          <div className="min-h-[1440px] p-20 flex flex-col items-center" style={{ pageBreakBefore: 'always' }}>
+            <div className="w-full max-w-5xl">
+              <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -585,10 +594,12 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               </section>
             </div>
           </div>
+        </div>
 
           {/* PAGE 4: DEVELOPMENT & MILESTONES */}
-          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
+          <div className="min-h-[1440px] p-20 flex flex-col items-center" style={{ pageBreakBefore: 'always' }}>
+            <div className="w-full max-w-5xl">
+              <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -699,10 +710,12 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               </section>
             </div>
           </div>
+        </div>
 
           {/* PAGE 5: NUTRITION & SUPPLEMENTS */}
-          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
+          <div className="min-h-[1440px] p-20 flex flex-col items-center" style={{ pageBreakBefore: 'always' }}>
+            <div className="w-full max-w-5xl">
+              <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -774,10 +787,12 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               </div>
             </section>
           </div>
+        </div>
 
           {/* PAGE 6: NOTES & APPOINTMENTS */}
-          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
+          <div className="min-h-[1440px] p-20 flex flex-col items-center" style={{ pageBreakBefore: 'always' }}>
+            <div className="w-full max-w-5xl">
+              <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -852,5 +867,6 @@ export const ExportReport: React.FC<ExportReportProps> = ({
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
