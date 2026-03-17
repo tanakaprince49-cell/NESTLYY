@@ -1660,15 +1660,30 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             {sleepChartData.length > 0 && (
               <div className="pt-6 border-t border-slate-50 h-64">
                 <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-4 block">Sleep Trend (Last 7 Days)</span>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={sleepChartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
-                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
-                    <Line type="monotone" dataKey="hours" stroke="#8b5cf6" strokeWidth={4} dot={{r: 4, fill: '#8b5cf6'}} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="h-full"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={sleepChartData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                      <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                      <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="hours" 
+                        stroke="#8b5cf6" 
+                        strokeWidth={4} 
+                        dot={{r: 4, fill: '#8b5cf6'}} 
+                        animationDuration={2500}
+                        animationEasing="ease-in-out"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </motion.div>
               </div>
             )}
 
@@ -2465,6 +2480,38 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   {sym}
                 </button>
               ))}
+            </div>
+
+            <div className="pt-4 border-t border-slate-50">
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  id="customSymptomInput"
+                  placeholder="Other symptom..."
+                  className="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-100 text-sm focus:outline-none focus:border-rose-200 transition-all"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = (e.target as HTMLInputElement).value;
+                      if (val) {
+                        onLogSymptom(val, 3);
+                        (e.target as HTMLInputElement).value = '';
+                      }
+                    }
+                  }}
+                />
+                <button 
+                  onClick={() => {
+                    const input = document.getElementById('customSymptomInput') as HTMLInputElement;
+                    if (input.value) {
+                      onLogSymptom(input.value, 3);
+                      input.value = '';
+                    }
+                  }}
+                  className="px-6 py-3 bg-rose-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-100 active:scale-95 transition-all"
+                >
+                  Add
+                </button>
+              </div>
             </div>
           </div>
           {symptoms.length > 0 && (

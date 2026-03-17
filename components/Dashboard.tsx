@@ -305,14 +305,70 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {isPostpartum && (
         <div className="space-y-6">
+          {/* Sleep Analysis Card - Moved to Top for Newborn Mode */}
+          <div className="card-premium p-6 bg-white border-2 border-slate-50 overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-900">
+              <Moon size={120} />
+            </div>
+            <div className="relative z-10">
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-900/40">Sleep Analysis</span>
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                  <p className="text-3xl font-bold text-blue-900">
+                    {(sleepLogs.reduce((acc, curr) => acc + curr.hours, 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
+                  </p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg / Session</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-blue-900">
+                    {(sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length)}
+                  </p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Sessions Today</p>
+                </div>
+              </div>
+              <div className="mt-6 h-32">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="date" hide />
+                    <YAxis hide domain={[0, 'auto']} />
+                    <Tooltip 
+                      cursor={{fill: 'transparent'}}
+                      contentStyle={{ borderRadius: '12px', border: 'none', fontSize: '10px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} 
+                    />
+                    <Bar 
+                      dataKey="sleep" 
+                      fill="#1e3a8a" 
+                      radius={[6, 6, 0, 0]} 
+                      barSize={20}
+                      animationDuration={1500}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <p className="text-[10px] mt-4 text-slate-500 font-medium leading-relaxed">
+                WHO recommends 14-17 hours of sleep for newborns. Your baby is currently averaging { (chartData.reduce((acc, curr) => acc + curr.sleep, 0) / 7).toFixed(1) } hours per day.
+              </p>
+            </div>
+          </div>
+
           {/* Baby Age & Quick Summary */}
           <div className="flex items-center justify-between bg-white/40 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/60 shadow-sm">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-rose-100 rounded-[1.5rem] flex items-center justify-center text-rose-500 shadow-inner border border-white">
                 <Baby size={32} />
               </div>
-              <div>
-                <h3 className="text-xl font-serif text-slate-900">{profile.babies?.[0]?.name || 'Baby'}</h3>
+              <div className="flex flex-col">
+                <select 
+                  value={selectedBabyId}
+                  onChange={(e) => setSelectedBabyId(e.target.value)}
+                  className="text-xl font-serif text-slate-900 bg-transparent border-none focus:ring-0 p-0 cursor-pointer"
+                >
+                  <option value="combined">All Babies</option>
+                  {profile.babies?.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
                 <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest">{babyAge} old</p>
               </div>
             </div>
@@ -381,35 +437,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          {/* Newborn Tools Grid */}
-          <div className="space-y-4 pt-4">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 ml-1">Newborn Tools</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { id: 'feeding', icon: Milk, label: 'Feed', color: 'text-rose-400' },
-                { id: 'sleep', icon: Moon, label: 'Sleep', color: 'text-indigo-400' },
-                { id: 'diaper', icon: Droplets, label: 'Diaper', color: 'text-emerald-400' },
-                { id: 'vitals', icon: Ruler, label: 'Growth', color: 'text-blue-400' },
-                { id: 'milestones', icon: Trophy, label: 'Milestone', color: 'text-amber-400' },
-                { id: 'health', icon: Stethoscope, label: 'Health', color: 'text-red-400' },
-                { id: 'tummy_time', icon: Activity, label: 'Tummy Time', color: 'text-orange-400' },
-                { id: 'bath', icon: Droplet, label: 'Bath', color: 'text-cyan-400' },
-                { id: 'pumping', icon: Droplets, label: 'Pumping', color: 'text-pink-400' },
-                { id: 'teething', icon: Smile, label: 'Teething', color: 'text-yellow-400' },
-                { id: 'journal', icon: FileText, label: 'Notes', color: 'text-slate-400' },
-                { id: 'export', icon: Download, label: 'Export PDF', color: 'text-purple-400' }
-              ].map(btn => (
-                <button
-                  key={btn.id}
-                  onClick={() => onQuickTool(btn.id)}
-                  className="flex flex-col items-center gap-2 p-4 bg-white/60 backdrop-blur-sm rounded-[2rem] border border-white shadow-sm active:scale-95 transition-all group hover:bg-white"
-                >
-                  <span className={`transition-transform group-hover:scale-110 ${btn.color}`}>
-                    <btn.icon size={24} />
-                  </span>
-                  <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{btn.label}</span>
-                </button>
-              ))}
+          {/* Weight & Length Charts */}
+          <div className="grid grid-cols-1 gap-4">
+            <div className="card-premium p-6 bg-white border-2 border-slate-50 h-64">
+              <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-4 block">Baby Weight & Length</span>
+              <ResponsiveContainer width="100%" height="80%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="weight" 
+                    name="Weight (kg)" 
+                    stroke="#f43f5e" 
+                    strokeWidth={3} 
+                    dot={{r: 4}}
+                    animationDuration={2000}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="tummy" 
+                    name="Tummy Time (h)" 
+                    stroke="#f97316" 
+                    strokeWidth={3} 
+                    dot={{r: 4}}
+                    animationDuration={2000}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
@@ -450,49 +508,48 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       )}
 
-      {/* Sleep Analysis Card - Visible for both Pregnancy & Postpartum */}
-      <div className="card-premium p-6 bg-white border-2 border-slate-50 overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-900">
-          <Moon size={120} />
-        </div>
-        <div className="relative z-10">
-          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-900/40">Sleep Analysis</span>
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <div>
-              <p className="text-3xl font-bold text-blue-900">
-                {(sleepLogs.reduce((acc, curr) => acc + curr.hours, 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
-              </p>
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg / Session</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-blue-900">
-                {(sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length)}
-              </p>
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Sessions Today</p>
-            </div>
+      {/* Sleep Analysis Card - Only for Pregnancy Mode (Newborn has it at top) */}
+      {!isPostpartum && (
+        <div className="card-premium p-6 bg-white border-2 border-slate-50 overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-900">
+            <Moon size={120} />
           </div>
-          <div className="mt-6 h-32">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="date" hide />
-                <YAxis hide domain={[0, 'auto']} />
-                <Tooltip 
-                  cursor={{fill: 'transparent'}}
-                  contentStyle={{ borderRadius: '12px', border: 'none', fontSize: '10px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} 
-                />
-                <Bar dataKey="sleep" fill="#1e3a8a" radius={[6, 6, 0, 0]} barSize={20} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="relative z-10">
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-900/40">Sleep Analysis</span>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <p className="text-3xl font-bold text-blue-900">
+                  {(sleepLogs.reduce((acc, curr) => acc + curr.hours, 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
+                </p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg / Session</p>
+              </div>
+              <div>
+                <p className="text-3xl font-bold text-blue-900">
+                  {(sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length)}
+                </p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Sessions Today</p>
+              </div>
+            </div>
+            <div className="mt-6 h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" hide />
+                  <YAxis hide domain={[0, 'auto']} />
+                  <Tooltip 
+                    cursor={{fill: 'transparent'}}
+                    contentStyle={{ borderRadius: '12px', border: 'none', fontSize: '10px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} 
+                  />
+                  <Bar dataKey="sleep" fill="#1e3a8a" radius={[6, 6, 0, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="text-[10px] mt-4 text-slate-500 font-medium leading-relaxed">
+              Quality sleep is vital for your health and baby's development. You're currently averaging { (chartData.reduce((acc, curr) => acc + curr.sleep, 0) / 7).toFixed(1) } hours per day.
+            </p>
           </div>
-          <p className="text-[10px] mt-4 text-slate-500 font-medium leading-relaxed">
-            {isPostpartum 
-              ? `WHO recommends 14-17 hours of sleep for newborns. Your baby is currently averaging ${ (chartData.reduce((acc, curr) => acc + curr.sleep, 0) / 7).toFixed(1) } hours per day.`
-              : `Quality sleep is vital for your health and baby's development. You're currently averaging ${ (chartData.reduce((acc, curr) => acc + curr.sleep, 0) / 7).toFixed(1) } hours per day.`
-            }
-          </p>
         </div>
-      </div>
+      )}
 
       {!isPostpartum && (
         <>

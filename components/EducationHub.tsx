@@ -160,26 +160,6 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
       </div>
 
       <div className="space-y-4 px-4">
-        {/* Stage Filter */}
-        <div className="flex flex-wrap gap-2 justify-center">
-          {(isPostpartum 
-            ? ['All', 'Newborn', 'General'] 
-            : ['All', Trimester.FIRST, Trimester.SECOND, Trimester.THIRD, 'General']
-          ).map(t => (
-            <button
-              key={t}
-              onClick={() => setFilter(t as any)}
-              className={`px-4 py-2 rounded-full text-[10px] font-bold transition-all border uppercase tracking-wider ${
-                filter === t 
-                  ? 'bg-rose-500 text-white border-rose-500 shadow-md scale-105' 
-                  : 'bg-white/60 backdrop-blur-sm text-gray-400 border-white hover:border-rose-200'
-              }`}
-            >
-              {t.replace(' Trimester', '')}
-            </button>
-          ))}
-        </div>
-
         {/* Category Filter */}
         <div className="flex flex-wrap gap-2 justify-center">
           {categories.map(cat => (

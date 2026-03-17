@@ -1,9 +1,9 @@
 
 import React, { useState, useRef } from 'react';
-import { motion } from 'motion/react';
-import { PregnancyProfile, LifecycleStage } from '../types.ts';
+import { motion, AnimatePresence } from 'motion/react';
+import { PregnancyProfile, LifecycleStage, BabyAvatar } from '../types.ts';
 import { storage } from '../services/storageService.ts';
-import { Camera } from 'lucide-react';
+import { Camera, Plus, Trash2, Baby } from 'lucide-react';
 
 interface SettingsProps {
   profile: PregnancyProfile;
@@ -15,7 +15,44 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
   const [name, setName] = useState(profile.userName || '');
   const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showAddBaby, setShowAddBaby] = useState(false);
+  const [newBaby, setNewBaby] = useState<Partial<BabyAvatar>>({
+    name: '',
+    gender: 'neutral',
+    skinTone: 'tone1'
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddBaby = () => {
+    if (!newBaby.name) return;
+    const baby: BabyAvatar = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: newBaby.name,
+      gender: newBaby.gender as any,
+      skinTone: newBaby.skinTone || 'tone1',
+      birthDate: new Date().toISOString().split('T')[0],
+      ...newBaby
+    };
+    const updatedProfile = {
+      ...profile,
+      babies: [...(profile.babies || []), baby]
+    };
+    storage.saveProfile(updatedProfile);
+    onUpdateProfile(updatedProfile);
+    setShowAddBaby(false);
+    setNewBaby({ name: '', gender: 'neutral', skinTone: 'tone1' });
+  };
+
+  const handleRemoveBaby = (id: string) => {
+    if (confirm('Remove this baby from your tracking?')) {
+      const updatedProfile = {
+        ...profile,
+        babies: profile.babies.filter(b => b.id !== id)
+      };
+      storage.saveProfile(updatedProfile);
+      onUpdateProfile(updatedProfile);
+    }
+  };
 
   const handleSaveProfile = async () => {
     setSaving(true);
@@ -151,6 +188,117 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
             {saving ? 'Saving...' : 'Save Profile'}
           </button>
         </div>
+
+        <div className="h-px bg-slate-50" />
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-slate-800">My Babies</h3>
+            <button 
+              onClick={() => setShowAddBaby(true)}
+              className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors"
+            >
+              <Plus size={20} />
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {profile.babies?.map(baby => (
+              <div key={baby.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-rose-400 shadow-sm">
+                    <Baby size={20} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">{baby.name}</p>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest">{baby.gender}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleRemoveBaby(baby.id)}
+                  className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))}
+            {(!profile.babies || profile.babies.length === 0) && (
+              <p className="text-center py-4 text-xs text-slate-400 italic">No babies added yet.</p>
+            )}
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {showAddBaby && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1000] flex items-center justify-center p-6"
+            >
+              <motion.div 
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                className="bg-white rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl space-y-6"
+              >
+                <h3 className="text-2xl font-serif text-slate-900">Add New Baby</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1">Baby's Name</label>
+                    <input 
+                      type="text" 
+                      value={newBaby.name} 
+                      onChange={e => setNewBaby({ ...newBaby, name: e.target.value })} 
+                      className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all"
+                      placeholder="Enter name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1">Gender</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['boy', 'girl', 'neutral'].map(g => (
+                        <button
+                          key={g}
+                          onClick={() => setNewBaby({ ...newBaby, gender: g as any })}
+                          className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${newBaby.gender === g ? 'bg-rose-500 border-rose-400 text-white' : 'bg-slate-50 border-transparent text-slate-400'}`}
+                        >
+                          {g}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1">Birth Date</label>
+                    <input 
+                      type="date" 
+                      value={newBaby.birthDate} 
+                      onChange={e => setNewBaby({ ...newBaby, birthDate: e.target.value })} 
+                      className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => setShowAddBaby(false)}
+                    className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleAddBaby}
+                    className="flex-1 py-4 bg-rose-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-100 active:scale-95 transition-all"
+                  >
+                    Add Baby
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="h-px bg-slate-50" />
 

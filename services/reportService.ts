@@ -39,17 +39,17 @@ export const generatePregnancyDailyReport = (date: Date) => {
     i: acc.i + (curr.iron || 0),
   }), { c: 0, p: 0, i: 0 });
 
-  const burgundy = [126, 22, 49]; // #7e1631
-  const roseText = [244, 63, 94]; // #f43f5e
+  const pinkPrimary = [190, 24, 93]; // #be185d (pink-700)
+  const pinkAccent = [236, 72, 153]; // #ec4899 (pink-500)
   const slateText = [71, 85, 105]; // #475569
-  const boxBg = [255, 250, 250];
+  const boxBg = [255, 241, 242]; // #fff1f2 (rose-50)
 
   // Background
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, doc.internal.pageSize.getHeight(), 'F');
 
   // Header Bar
-  doc.setFillColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.rect(0, 0, pageWidth, 45, 'F');
 
   doc.setFont('times', 'bold');
@@ -75,7 +75,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
   
   doc.setFont('times', 'bold');
   doc.setFontSize(12);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text(`Mama: ${parentName}`, 25, y + 12);
   
   doc.setFont('helvetica', 'normal');
@@ -85,14 +85,14 @@ export const generatePregnancyDailyReport = (date: Date) => {
   
   y += 45;
 
-  doc.setDrawColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setDrawColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.setLineWidth(0.5);
   doc.line(15, y, pageWidth - 15, y);
   y += 12;
 
   doc.setFont('times', 'bold');
   doc.setFontSize(18);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Daily Pregnancy Report', 15, y);
   y += 10;
   doc.setFont('helvetica', 'normal');
@@ -110,7 +110,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
   
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(roseText[0], roseText[1], roseText[2]);
+  doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
   doc.text('VITAL STATS', 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
@@ -125,7 +125,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(roseText[0], roseText[1], roseText[2]);
+  doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
   doc.text('PREGNANCY TRACKING', 15 + boxWidth + 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
@@ -140,7 +140,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
   // Nutrition
   doc.setFont('times', 'bold');
   doc.setFontSize(14);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Nutrition Summary', 15, y);
   y += 10;
   doc.setFont('helvetica', 'normal');
@@ -152,7 +152,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
   // Reflections
   doc.setFont('times', 'bolditalic');
   doc.setFontSize(14);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Daily Reflections', 15, y);
   y += 10;
   
@@ -177,7 +177,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
 
   // Footer
   const footerY = doc.internal.pageSize.getHeight() - 30;
-  doc.setFillColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.rect(0, footerY, pageWidth, 30, 'F');
   
   doc.setFont('helvetica', 'bold');
@@ -220,17 +220,17 @@ export const generateNewbornDailyReport = (date: Date) => {
   const totalSleep = babySleep.reduce((acc, curr) => acc + curr.hours, 0);
   const totalTummy = Math.floor(tummyTime.reduce((acc, curr) => acc + curr.duration, 0) / 60);
 
-  const burgundy = [126, 22, 49];
-  const roseText = [244, 63, 94];
+  const pinkPrimary = [190, 24, 93];
+  const pinkAccent = [236, 72, 153];
   const slateText = [71, 85, 105];
-  const boxBg = [250, 250, 255]; // Slightly blue for baby
+  const boxBg = [253, 242, 248]; // #fdf2f8 (pink-50)
 
   // Background
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, doc.internal.pageSize.getHeight(), 'F');
 
   // Header Bar
-  doc.setFillColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.rect(0, 0, pageWidth, 45, 'F');
 
   doc.setFont('times', 'bold');
@@ -256,7 +256,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   
   doc.setFont('times', 'bold');
   doc.setFontSize(12);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text(`Parent: ${parentName}`, 25, y + 12);
   
   doc.setFont('helvetica', 'normal');
@@ -266,14 +266,14 @@ export const generateNewbornDailyReport = (date: Date) => {
   
   y += 45;
 
-  doc.setDrawColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setDrawColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.setLineWidth(0.5);
   doc.line(15, y, pageWidth - 15, y);
   y += 12;
 
   doc.setFont('times', 'bold');
   doc.setFontSize(18);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Daily Newborn Report', 15, y);
   y += 10;
   doc.setFont('helvetica', 'normal');
@@ -291,7 +291,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(roseText[0], roseText[1], roseText[2]);
+  doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
   doc.text('FEEDING & SLEEP', 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
@@ -307,7 +307,7 @@ export const generateNewbornDailyReport = (date: Date) => {
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(roseText[0], roseText[1], roseText[2]);
+  doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
   doc.text('ACTIVITY & CARE', 15 + boxWidth + 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
@@ -322,7 +322,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   // Detailed Care
   doc.setFont('times', 'bold');
   doc.setFontSize(14);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Care Details', 15, y);
   y += 10;
   doc.setFont('helvetica', 'normal');
@@ -338,7 +338,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   // Reflections
   doc.setFont('times', 'bolditalic');
   doc.setFontSize(14);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Parental Reflections', 15, y);
   y += 10;
   
@@ -363,7 +363,7 @@ export const generateNewbornDailyReport = (date: Date) => {
 
   // Footer
   const footerY = doc.internal.pageSize.getHeight() - 30;
-  doc.setFillColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.rect(0, footerY, pageWidth, 30, 'F');
   
   doc.setFont('helvetica', 'bold');
@@ -394,12 +394,12 @@ export const generateLaborReport = (date: Date) => {
   
   const contractions = (storage.getContractions() || []).filter(c => c.startTime >= startOfDay && c.startTime <= endOfDay);
 
-  const burgundy = [126, 22, 49];
-  const roseText = [244, 63, 94];
+  const pinkPrimary = [190, 24, 93];
+  const pinkAccent = [236, 72, 153];
   const slateText = [71, 85, 105];
   
   // Header
-  doc.setFillColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.rect(0, 0, pageWidth, 45, 'F');
   
   doc.setFont('times', 'bold');
@@ -419,12 +419,12 @@ export const generateLaborReport = (date: Date) => {
   let y = 60;
   
   // Profile Info Section
-  doc.setFillColor(255, 250, 250);
+  doc.setFillColor(255, 241, 242);
   doc.roundedRect(15, y, pageWidth - 30, 30, 8, 8, 'F');
   
   doc.setFont('times', 'bold');
   doc.setFontSize(12);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text(`Mama: ${parentName}`, 25, y + 12);
   
   doc.setFont('helvetica', 'normal');
@@ -436,12 +436,12 @@ export const generateLaborReport = (date: Date) => {
 
   doc.setFont('times', 'bold');
   doc.setFontSize(16);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text(`Contraction History (${contractions.length} logs)`, 15, y);
   y += 12;
 
   // Table Header
-  doc.setFillColor(roseText[0], roseText[1], roseText[2]);
+  doc.setFillColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
   doc.roundedRect(15, y, pageWidth - 30, 10, 2, 2, 'F');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
@@ -501,12 +501,12 @@ export const generateFullPregnancyReport = () => {
 
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const burgundy = [126, 22, 49];
-  const roseText = [244, 63, 94];
+  const pinkPrimary = [190, 24, 93];
+  const pinkAccent = [236, 72, 153];
   const slateText = [71, 85, 105];
 
   // Header
-  doc.setFillColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.rect(0, 0, pageWidth, 50, 'F');
   
   doc.setFont('times', 'bold');
@@ -522,7 +522,7 @@ export const generateFullPregnancyReport = () => {
   // Profile Section
   doc.setFont('times', 'bold');
   doc.setFontSize(22);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Mama Profile', 20, y);
   y += 15;
 
@@ -539,14 +539,14 @@ export const generateFullPregnancyReport = () => {
   // Babies Section
   doc.setFont('times', 'bold');
   doc.setFontSize(22);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('The Babies', 20, y);
   y += 15;
 
   (profile.babies || []).forEach((baby, idx) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.setTextColor(roseText[0], roseText[1], roseText[2]);
+    doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
     doc.text(`Baby ${idx + 1}: ${baby.name || 'Unnamed'}`, 25, y);
     y += 8;
     doc.setFont('helvetica', 'normal');
@@ -566,7 +566,7 @@ export const generateFullPregnancyReport = () => {
 
   doc.setFont('times', 'bold');
   doc.setFontSize(22);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Pregnancy Statistics', 20, y);
   y += 15;
 
@@ -582,7 +582,7 @@ export const generateFullPregnancyReport = () => {
     doc.setFontSize(12);
     doc.setTextColor(slateText[0], slateText[1], slateText[2]);
     doc.text(`${s.label}:`, 25, y);
-    doc.setTextColor(roseText[0], roseText[1], roseText[2]);
+    doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
     doc.text(`${s.value}`, 80, y);
     y += 10;
   });
@@ -593,7 +593,7 @@ export const generateFullPregnancyReport = () => {
   const footerY = doc.internal.pageSize.getHeight() - 20;
   doc.setFont('times', 'italic');
   doc.setFontSize(10);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('A lifetime of pregnancy memories, preserved by Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
   doc.save(`Nestly_Full_Pregnancy_Archive.pdf`);
@@ -605,12 +605,12 @@ export const generateFullNewbornReport = () => {
 
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const burgundy = [126, 22, 49];
-  const roseText = [244, 63, 94];
+  const pinkPrimary = [190, 24, 93];
+  const pinkAccent = [236, 72, 153];
   const slateText = [71, 85, 105];
 
   // Header
-  doc.setFillColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.rect(0, 0, pageWidth, 50, 'F');
   
   doc.setFont('times', 'bold');
@@ -626,7 +626,7 @@ export const generateFullNewbornReport = () => {
   // Profile Section
   doc.setFont('times', 'bold');
   doc.setFontSize(22);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Family Profile', 20, y);
   y += 15;
 
@@ -639,14 +639,14 @@ export const generateFullNewbornReport = () => {
   // Babies Section
   doc.setFont('times', 'bold');
   doc.setFontSize(22);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('The Babies', 20, y);
   y += 15;
 
   (profile.babies || []).forEach((baby, idx) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.setTextColor(roseText[0], roseText[1], roseText[2]);
+    doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
     doc.text(`Baby ${idx + 1}: ${baby.name || 'Unnamed'}`, 25, y);
     y += 8;
     doc.setFont('helvetica', 'normal');
@@ -675,7 +675,7 @@ export const generateFullNewbornReport = () => {
 
   doc.setFont('times', 'bold');
   doc.setFontSize(22);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('Newborn Statistics', 20, y);
   y += 15;
 
@@ -691,7 +691,7 @@ export const generateFullNewbornReport = () => {
     doc.setFontSize(12);
     doc.setTextColor(slateText[0], slateText[1], slateText[2]);
     doc.text(`${s.label}:`, 25, y);
-    doc.setTextColor(roseText[0], roseText[1], roseText[2]);
+    doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
     doc.text(`${s.value}`, 80, y);
     y += 10;
   });
@@ -703,14 +703,14 @@ export const generateFullNewbornReport = () => {
     if (y > 220) { doc.addPage(); y = 30; }
     doc.setFont('times', 'bold');
     doc.setFontSize(22);
-    doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+    doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
     doc.text('Milestone Timeline', 20, y);
     y += 15;
 
     milestones.sort((a, b) => a.timestamp - b.timestamp).forEach(m => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
-      doc.setTextColor(roseText[0], roseText[1], roseText[2]);
+      doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
       doc.text(new Date(m.date).toLocaleDateString(), 25, y);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(slateText[0], slateText[1], slateText[2]);
@@ -725,7 +725,7 @@ export const generateFullNewbornReport = () => {
   const footerY = doc.internal.pageSize.getHeight() - 20;
   doc.setFont('times', 'italic');
   doc.setFontSize(10);
-  doc.setTextColor(burgundy[0], burgundy[1], burgundy[2]);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('A lifetime of newborn memories, preserved by Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
   doc.save(`Nestly_Full_Newborn_Archive.pdf`);

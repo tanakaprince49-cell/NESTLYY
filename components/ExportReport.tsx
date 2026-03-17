@@ -123,8 +123,9 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             <input 
               type="date"
               value={startDate}
+              max={new Date().toISOString().split('T')[0]}
               onChange={e => setStartDate(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-bold border-none focus:ring-2 focus:ring-rose-200"
+              className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-bold border-none focus:ring-2 focus:ring-pink-200"
             />
           </div>
           <div className="space-y-1">
@@ -132,15 +133,16 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             <input 
               type="date"
               value={endDate}
+              max={new Date().toISOString().split('T')[0]}
               onChange={e => setEndDate(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-bold border-none focus:ring-2 focus:ring-rose-200"
+              className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-bold border-none focus:ring-2 focus:ring-pink-200"
             />
           </div>
         </div>
         
         <button 
           onClick={handleExport}
-          className="w-full py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-600 transition-all flex items-center justify-center gap-2 active:scale-95"
+          className="w-full py-4 bg-pink-500 text-white rounded-2xl font-bold shadow-lg shadow-pink-200 hover:bg-pink-600 transition-all flex items-center justify-center gap-2 active:scale-95"
         >
           <Download size={20} />
           Generate PDF Report
@@ -153,7 +155,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           
           {/* PAGE 1: COVER & SUMMARY */}
           <div className="min-h-[1000px] flex flex-col">
-            <div className="relative mb-12 overflow-hidden rounded-[3rem] bg-gradient-to-br from-rose-500 to-indigo-600 p-16 text-white shadow-2xl text-center">
+            <div className="relative mb-12 overflow-hidden rounded-[3rem] bg-gradient-to-br from-pink-500 to-rose-400 p-16 text-white shadow-2xl text-center">
               <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
               <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-black/10 blur-3xl"></div>
               
@@ -164,11 +166,11 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                 <h1 className="text-6xl font-serif font-bold tracking-tight">Health & Wellness Report</h1>
                 
                 <div className="flex flex-col items-center gap-4 py-8">
-                  <div className="text-2xl font-serif italic text-rose-100">Prepared for</div>
+                  <div className="text-2xl font-serif italic text-pink-100">Prepared for</div>
                   <div className="text-4xl font-bold">{profile.userName}</div>
                   {profile.babies && profile.babies.length > 0 && (
                     <div className="mt-4 space-y-2">
-                      <div className="text-sm font-black uppercase tracking-widest text-rose-200">Baby Information</div>
+                      <div className="text-sm font-black uppercase tracking-widest text-pink-200">Baby Information</div>
                       <div className="text-2xl font-bold">{profile.babies.map(b => b.name).join(' & ')}</div>
                     </div>
                   )}
@@ -176,11 +178,11 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
                 <div className="pt-8 border-t border-white/20 flex justify-center gap-12">
                   <div className="text-center">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-rose-200 mb-1">Report Period</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-pink-200 mb-1">Report Period</div>
                     <div className="text-lg font-bold">{new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-rose-200 mb-1">Generated On</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-pink-200 mb-1">Generated On</div>
                     <div className="text-lg font-bold">{new Date().toLocaleDateString()}</div>
                   </div>
                 </div>
@@ -188,30 +190,30 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             </div>
 
             <div className="grid grid-cols-3 gap-8 mb-12">
-              <div className="rounded-[2.5rem] bg-rose-50 p-8 border border-rose-100 text-center">
-                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm text-rose-500">
+              <div className="rounded-[2.5rem] bg-pink-50 p-8 border border-pink-100 text-center">
+                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm text-pink-500">
                   <Activity size={24} />
                 </div>
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Activities</div>
-                <div className="text-4xl font-black text-rose-600">
+                <div className="text-4xl font-black text-pink-600">
                   {filteredData.feeding.length + filteredData.sleep.length + filteredData.diaper.length + filteredData.kicks.length}
                 </div>
               </div>
-              <div className="rounded-[2.5rem] bg-indigo-50 p-8 border border-indigo-100 text-center">
-                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm text-indigo-500">
+              <div className="rounded-[2.5rem] bg-rose-50 p-8 border border-rose-100 text-center">
+                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm text-rose-500">
                   <Heart size={24} />
                 </div>
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Health Logs</div>
-                <div className="text-4xl font-black text-indigo-600">
+                <div className="text-4xl font-black text-rose-600">
                   {filteredData.health.length + filteredData.bp.length + filteredData.meds.length}
                 </div>
               </div>
-              <div className="rounded-[2.5rem] bg-emerald-50 p-8 border border-emerald-100 text-center">
-                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm text-emerald-500">
+              <div className="rounded-[2.5rem] bg-pink-50 p-8 border border-pink-100 text-center">
+                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm text-pink-500">
                   <Sparkles size={24} />
                 </div>
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Journal Entries</div>
-                <div className="text-4xl font-black text-emerald-600">
+                <div className="text-4xl font-black text-pink-600">
                   {filteredData.journal.length}
                 </div>
               </div>
@@ -275,24 +277,24 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             </div>
             <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-slate-800">Daily Activity Logs</h2>
-              <div className="w-24 h-1 bg-rose-500 mx-auto mt-4 rounded-full"></div>
+              <div className="w-24 h-1 bg-pink-500 mx-auto mt-4 rounded-full"></div>
             </div>
 
             <div className="grid grid-cols-2 gap-12">
               <section>
-                <div className="flex items-center gap-3 mb-6 border-b-2 border-rose-100 pb-2">
-                  <Milk className="text-rose-500" size={24} />
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-pink-100 pb-2">
+                  <Milk className="text-pink-500" size={24} />
                   <h2 className="text-xl font-serif font-bold text-slate-800">Feeding History</h2>
                 </div>
                 <div className="space-y-4">
                   {filteredData.feeding.map(log => (
-                    <div key={log.id} className="flex justify-between items-center p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50">
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-pink-50/30 rounded-2xl border border-pink-100/50">
                       <div>
                         <div className="text-sm font-bold text-slate-700 capitalize">{log.type}</div>
                         <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-black text-rose-600">{log.amount ? `${log.amount}ml` : log.duration ? `${log.duration}m` : 'Logged'}</div>
+                        <div className="text-sm font-black text-pink-600">{log.amount ? `${log.amount}ml` : log.duration ? `${log.duration}m` : 'Logged'}</div>
                       </div>
                     </div>
                   ))}
@@ -301,19 +303,19 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               </section>
 
               <section>
-                <div className="flex items-center gap-3 mb-6 border-b-2 border-indigo-100 pb-2">
-                  <Moon className="text-indigo-500" size={24} />
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-pink-100 pb-2">
+                  <Moon className="text-pink-500" size={24} />
                   <h2 className="text-xl font-serif font-bold text-slate-800">Sleep Patterns</h2>
                 </div>
                 <div className="space-y-4">
                   {filteredData.sleep.map(log => (
-                    <div key={log.id} className="flex justify-between items-center p-4 bg-indigo-50/30 rounded-2xl border border-indigo-100/50">
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-pink-50/30 rounded-2xl border border-pink-100/50">
                       <div>
                         <div className="text-sm font-bold text-slate-700 capitalize">{log.type}</div>
                         <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-black text-indigo-600">{log.hours} Hours</div>
+                        <div className="text-sm font-black text-pink-600">{log.hours} Hours</div>
                       </div>
                     </div>
                   ))}
@@ -381,23 +383,23 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             </div>
             <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-slate-800">Health & Vitals</h2>
-              <div className="w-24 h-1 bg-indigo-500 mx-auto mt-4 rounded-full"></div>
+              <div className="w-24 h-1 bg-pink-500 mx-auto mt-4 rounded-full"></div>
             </div>
 
             <div className="grid grid-cols-2 gap-12">
               <section>
-                <div className="flex items-center gap-3 mb-6 border-b-2 border-rose-200 pb-2">
-                  <Heart className="text-rose-500" size={24} />
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-pink-200 pb-2">
+                  <Heart className="text-pink-500" size={24} />
                   <h2 className="text-xl font-serif font-bold text-slate-800">Blood Pressure</h2>
                 </div>
                 <div className="space-y-4">
                   {filteredData.bp.map(log => (
-                    <div key={log.id} className="flex justify-between items-center p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50">
+                    <div key={log.id} className="flex justify-between items-center p-4 bg-pink-50/30 rounded-2xl border border-pink-100/50">
                       <div>
                         <div className="text-sm font-bold text-slate-700">{log.systolic} / {log.diastolic} mmHg</div>
                         <div className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</div>
                       </div>
-                      {log.pulse && <div className="text-sm font-black text-rose-600">{log.pulse} bpm</div>}
+                      {log.pulse && <div className="text-sm font-black text-pink-600">{log.pulse} bpm</div>}
                     </div>
                   ))}
                   {filteredData.bp.length === 0 && <div className="text-sm text-slate-400 italic">No logs for this period.</div>}
@@ -468,16 +470,16 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
             <div className="mt-12">
               <section>
-                <div className="flex items-center gap-3 mb-6 border-b-2 border-rose-100 pb-2">
-                  <Activity className="text-rose-500" size={24} />
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-pink-100 pb-2">
+                  <Activity className="text-pink-500" size={24} />
                   <h2 className="text-xl font-serif font-bold text-slate-800">Contractions Log</h2>
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   {filteredData.contractions.map(log => (
-                    <div key={log.id} className="p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50">
+                    <div key={log.id} className="p-4 bg-pink-50/30 rounded-2xl border border-pink-100/50">
                       <div className="flex justify-between items-center mb-2">
                         <div className="text-[10px] text-slate-400 font-medium">{new Date(log.startTime).toLocaleString()}</div>
-                        <div className="text-sm font-black text-rose-600">{Math.floor(log.duration / 1000)}s</div>
+                        <div className="text-sm font-black text-pink-600">{Math.floor(log.duration / 1000)}s</div>
                       </div>
                       {log.interval && (
                         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
@@ -493,14 +495,14 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
             <div className="mt-12">
               <section>
-                <div className="flex items-center gap-3 mb-6 border-b-2 border-indigo-100 pb-2">
-                  <Activity className="text-indigo-500" size={24} />
+                <div className="flex items-center gap-3 mb-6 border-b-2 border-pink-100 pb-2">
+                  <Activity className="text-pink-500" size={24} />
                   <h2 className="text-xl font-serif font-bold text-slate-800">Kegel Exercises</h2>
                 </div>
                 <div className="grid grid-cols-3 gap-6">
                   {filteredData.kegels.map((log, idx) => (
-                    <div key={idx} className="p-6 bg-indigo-50/50 rounded-[2rem] border border-indigo-100 text-center">
-                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-indigo-500">
+                    <div key={idx} className="p-6 bg-pink-50/50 rounded-[2rem] border border-pink-100 text-center">
+                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-pink-500">
                         <Zap size={20} />
                       </div>
                       <div className="text-sm font-bold text-slate-800 mb-1">{log.duration}s</div>
@@ -523,18 +525,18 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             </div>
             <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-slate-800">Development & Milestones</h2>
-              <div className="w-24 h-1 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+              <div className="w-24 h-1 bg-pink-500 mx-auto mt-4 rounded-full"></div>
             </div>
 
             <section className="mb-12">
-              <div className="flex items-center gap-3 mb-6 border-b-2 border-amber-100 pb-2">
-                <Trophy className="text-amber-500" size={24} />
+              <div className="flex items-center gap-3 mb-6 border-b-2 border-pink-100 pb-2">
+                <Trophy className="text-pink-500" size={24} />
                 <h2 className="text-xl font-serif font-bold text-slate-800">Milestones Reached</h2>
               </div>
               <div className="grid grid-cols-3 gap-6">
                 {filteredData.milestones.map(m => (
-                  <div key={m.id} className="p-6 bg-amber-50/50 rounded-[2rem] border border-amber-100 text-center">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-amber-500">
+                  <div key={m.id} className="p-6 bg-pink-50/50 rounded-[2rem] border border-pink-100 text-center">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-pink-500">
                       <Baby size={24} />
                     </div>
                     <div className="text-sm font-bold text-slate-800 mb-1">{m.title}</div>
@@ -712,20 +714,20 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             </div>
             <div className="text-center mb-12">
               <h2 className="text-4xl font-serif font-bold text-slate-800">Notes & Appointments</h2>
-              <div className="w-24 h-1 bg-slate-500 mx-auto mt-4 rounded-full"></div>
+              <div className="w-24 h-1 bg-pink-500 mx-auto mt-4 rounded-full"></div>
             </div>
 
             <section className="mb-12">
-              <div className="flex items-center gap-3 mb-6 border-b-2 border-purple-100 pb-2">
-                <Calendar className="text-purple-500" size={24} />
+              <div className="flex items-center gap-3 mb-6 border-b-2 border-pink-100 pb-2">
+                <Calendar className="text-pink-500" size={24} />
                 <h2 className="text-xl font-serif font-bold text-slate-800">Upcoming & Past Appointments</h2>
               </div>
               <div className="grid grid-cols-2 gap-6">
                 {filteredData.events.map(event => (
-                  <div key={event.id} className="p-6 bg-purple-50/30 rounded-[2rem] border border-purple-100/50">
+                  <div key={event.id} className="p-6 bg-pink-50/30 rounded-[2rem] border border-pink-100/50">
                     <div className="flex justify-between items-start mb-2">
                       <div className="text-lg font-bold text-slate-700">{event.title}</div>
-                      <div className="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest">{event.type}</div>
+                      <div className="px-3 py-1 bg-pink-100 text-pink-600 rounded-full text-[10px] font-black uppercase tracking-widest">{event.type}</div>
                     </div>
                     <div className="text-sm text-slate-400 font-medium">
                       {new Date(event.date).toLocaleDateString()} {event.time && `at ${event.time}`}
