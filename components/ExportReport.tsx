@@ -61,6 +61,10 @@ export const ExportReport: React.FC<ExportReportProps> = ({
   const reportRef = useRef<HTMLDivElement>(null);
   const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [recentReports, setRecentReports] = useState<{start: string, end: string, id: string}[]>(() => {
+    const saved = localStorage.getItem('nestly_recent_reports');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const filteredData = useMemo(() => {
     const start = new Date(startDate).getTime();
@@ -101,12 +105,18 @@ export const ExportReport: React.FC<ExportReportProps> = ({
       margin:       [10, 10, 10, 10],
       filename:     `nestly-report-${startDate}-to-${endDate}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 },
+      html2canvas:  { scale: 2, useCORS: true, windowWidth: 800, scrollY: 0 },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(reportRef.current).save();
+
+    // Save to recent reports
+    const newReport = { start: startDate, end: endDate, id: Date.now().toString() };
+    const updated = [newReport, ...recentReports.slice(0, 4)];
+    setRecentReports(updated);
+    localStorage.setItem('nestly_recent_reports', JSON.stringify(updated));
   };
 
   return (
@@ -119,25 +129,86 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest ml-1">Start Date</label>
             <input 
               type="date"
               value={startDate}
               max={new Date().toISOString().split('T')[0]}
               onChange={e => setStartDate(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-bold border-none focus:ring-2 focus:ring-pink-200"
+              className="w-full px-4 py-3 bg-pink-50/50 rounded-xl text-sm font-bold border-2 border-pink-100 focus:ring-2 focus:ring-pink-200 focus:border-pink-300 transition-all"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest ml-1">End Date</label>
             <input 
               type="date"
               value={endDate}
               max={new Date().toISOString().split('T')[0]}
               onChange={e => setEndDate(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm font-bold border-none focus:ring-2 focus:ring-pink-200"
+              className="w-full px-4 py-3 bg-pink-50/50 rounded-xl text-sm font-bold border-2 border-pink-100 focus:ring-2 focus:ring-pink-200 focus:border-pink-300 transition-all"
             />
           </div>
+        </div>
+
+        {recentReports.length > 0 && (
+          <div className="pt-4 border-t border-pink-50">
+            <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3">Recently Generated</h4>
+            <div className="flex flex-wrap gap-2">
+              {recentReports.map(report => (
+                <button
+                  key={report.id}
+                  onClick={() => {
+                    setStartDate(report.start);
+                    setEndDate(report.end);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                    startDate === report.start && endDate === report.end
+                      ? 'bg-pink-500 text-white shadow-md'
+                      : 'bg-pink-50 text-pink-600 hover:bg-pink-100'
+                  }`}
+                >
+                  {new Date(report.start).toLocaleDateString()} - {new Date(report.end).toLocaleDateString()}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => {
+              const end = new Date();
+              const start = new Date();
+              start.setDate(end.getDate() - 7);
+              setStartDate(start.toISOString().split('T')[0]);
+              setEndDate(end.toISOString().split('T')[0]);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-[10px] font-black uppercase tracking-wider hover:bg-pink-100 transition-colors"
+          >
+            Last 7 Days
+          </button>
+          <button
+            onClick={() => {
+              const end = new Date();
+              const start = new Date();
+              start.setDate(end.getDate() - 30);
+              setStartDate(start.toISOString().split('T')[0]);
+              setEndDate(end.toISOString().split('T')[0]);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-[10px] font-black uppercase tracking-wider hover:bg-pink-100 transition-colors"
+          >
+            Last 30 Days
+          </button>
+          <button
+            onClick={() => {
+              const end = new Date();
+              const start = new Date(profile.dueDate);
+              start.setMonth(start.getMonth() - 9);
+              setStartDate(start.toISOString().split('T')[0]);
+              setEndDate(end.toISOString().split('T')[0]);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-[10px] font-black uppercase tracking-wider hover:bg-pink-100 transition-colors"
+          >
+            Full Journey
+          </button>
         </div>
         
         <button 
@@ -151,11 +222,11 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
       {/* Hidden Report Content for PDF Generation */}
       <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-        <div ref={reportRef} className="p-10 bg-white text-slate-800 font-sans" style={{ width: '800px' }}>
+        <div ref={reportRef} className="p-10 bg-pink-50 text-slate-800 font-sans" style={{ width: '800px' }}>
           
           {/* PAGE 1: COVER & SUMMARY */}
-          <div className="min-h-[1000px] flex flex-col">
-            <div className="relative mb-12 overflow-hidden rounded-[3rem] bg-gradient-to-br from-pink-500 to-rose-400 p-16 text-white shadow-2xl text-center">
+          <div className="min-h-[1050px] flex flex-col items-center justify-center">
+            <div className="w-full relative mb-12 overflow-hidden rounded-[3rem] bg-gradient-to-br from-pink-500 to-rose-400 p-16 text-white shadow-2xl text-center">
               <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
               <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-black/10 blur-3xl"></div>
               
@@ -268,8 +339,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           </div>
 
           {/* PAGE 2: DAILY LOGS & ACTIVITIES */}
-          <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -374,8 +445,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           </div>
 
           {/* PAGE 3: HEALTH & VITALS */}
-          <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -516,8 +587,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           </div>
 
           {/* PAGE 4: DEVELOPMENT & MILESTONES */}
-          <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -630,8 +701,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           </div>
 
           {/* PAGE 5: NUTRITION & SUPPLEMENTS */}
-          <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -705,8 +776,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           </div>
 
           {/* PAGE 6: NOTES & APPOINTMENTS */}
-          <div className="min-h-[1000px] pt-20" style={{ pageBreakBefore: 'always' }}>
-            <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+          <div className="min-h-[1050px] pt-20" style={{ pageBreakBefore: 'always' }}>
+            <div className="flex justify-between items-center mb-8 border-b border-pink-200 pb-4">
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">Nestly Health Report</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 {profile.userName} {profile.babies && profile.babies.length > 0 ? `• Baby: ${profile.babies.map(b => b.name).join(', ')}` : ''} • {new Date().toLocaleDateString()}
@@ -763,16 +834,17 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             </section>
 
             {/* Footer on Last Page */}
-            <div className="mt-auto pt-12 border-t-2 border-slate-100 text-center space-y-4">
-              <div className="flex justify-center gap-8 text-slate-300">
+            <div className="mt-auto pt-12 border-t-2 border-pink-200 text-center space-y-4 w-full flex flex-col items-center">
+              <div className="flex justify-center gap-8 text-pink-300">
                 <Heart size={32} />
                 <Baby size={32} />
                 <Milk size={32} />
               </div>
-              <p className="text-sm font-medium text-slate-400">
-                This report was generated by Nestly. All data is stored securely and provided for informational purposes.
+              <p className="text-sm font-medium text-slate-500 max-w-lg mx-auto">
+                Medical Disclaimer: This report is for informational purposes only and does not constitute medical advice. 
+                Always consult with a healthcare professional for medical concerns.
               </p>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-200">
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-pink-300">
                 nestlyapp.com • {new Date().getFullYear()}
               </p>
             </div>

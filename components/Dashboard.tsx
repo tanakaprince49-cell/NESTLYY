@@ -256,11 +256,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return last7Days.map(d => {
       const dayStart = d.getTime();
       const dayEnd = dayStart + 24 * 60 * 60 * 1000 - 1;
+      
+      const filterByBaby = (logs: any[]) => {
+        if (selectedBabyId === 'combined') return logs;
+        return logs.filter(l => l.babyId === selectedBabyId);
+      };
+
       const dayEntries = (entries || []).filter(e => e.timestamp >= dayStart && e.timestamp <= dayEnd);
       const dayWeight = (weightLogs || []).find(w => w.timestamp >= dayStart && w.timestamp <= dayEnd);
-      const daySleep = (sleepLogs || []).filter(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
-      const dayFeeding = (feedingLogs || []).filter(f => f.timestamp >= dayStart && f.timestamp <= dayEnd);
-      const dayTummy = (tummyTimeLogs || []).filter(t => t.timestamp >= dayStart && t.timestamp <= dayEnd);
+      const daySleep = filterByBaby(sleepLogs || []).filter(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
+      const dayFeeding = filterByBaby(feedingLogs || []).filter(f => f.timestamp >= dayStart && f.timestamp <= dayEnd);
+      const dayTummy = filterByBaby(tummyTimeLogs || []).filter(t => t.timestamp >= dayStart && t.timestamp <= dayEnd);
 
       return {
         date: d.toLocaleDateString([], { weekday: 'short' }),
@@ -271,7 +277,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         tummy: dayTummy.reduce((acc, curr) => acc + curr.duration, 0) / 60, // minutes
       };
     });
-  }, [entries, weightLogs, sleepLogs, feedingLogs, tummyTimeLogs, profile.startingWeight]);
+  }, [entries, weightLogs, sleepLogs, feedingLogs, tummyTimeLogs, profile.startingWeight, selectedBabyId]);
 
   const targets = profile.customTargets || {
     cals: 2200,
