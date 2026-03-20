@@ -28,10 +28,13 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Verify Vercel Token
+        run: vercel whoami --token=$VERCEL_TOKEN
+
       - name: Deploy to Vercel (Preview)
         id: deploy
         run: |
-          preview_url=$(vercel deploy --yes --token=$VERCEL_TOKEN)
+          preview_url=$(vercel deploy --yes --debug --token=$VERCEL_TOKEN 2>&1 | tee /dev/stderr | grep -oP 'https://[^\s]+\.vercel\.app' | tail -1)
           echo "url=$preview_url" >> $GITHUB_OUTPUT
 
       - name: Comment Preview URL on PR
