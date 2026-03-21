@@ -21,10 +21,13 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
   const [showSleepTooltip, setShowSleepTooltip] = useState(false);
 
   const sleepChartData = useMemo(() => {
-    return sleepLogs.slice(-7).map(l => ({
-      hours: l.hours,
-      date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
-    }));
+    return [...sleepLogs]
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .slice(-7)
+      .map(l => ({
+        hours: l.hours,
+        date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
+      }));
   }, [sleepLogs]);
 
   const handleSleepLog = () => {

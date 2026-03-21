@@ -27,10 +27,13 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
   const [babyHeightInput, setBabyHeightInput] = useState('');
 
   const weightChartData = useMemo(() => {
-    return weightLogs.slice(-7).map(l => ({
-      val: l.weight,
-      date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
-    }));
+    return [...weightLogs]
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .slice(-7)
+      .map(l => ({
+        val: l.weight,
+        date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
+      }));
   }, [weightLogs]);
 
   const babyGrowthChartData = useMemo(() => {
