@@ -11,6 +11,7 @@ import {
   WeightLog,
   KegelLog,
   MemoryAlbums,
+  MemoryPhoto,
   SleepLog,
   KickLog,
   ChatMessage,
@@ -190,12 +191,23 @@ class StorageService {
   addJournalEntry(entry: JournalEntry): void { this.setItem(KEYS.JOURNAL, [entry, ...this.getJournalEntries()]); }
   removeJournalEntry(id: string): void { this.setItem(KEYS.JOURNAL, this.getJournalEntries().filter(e => e.id !== id)); }
 
+  getAlbums(): MemoryAlbums {
+    const p = this.getProfile();
+    return p?.albums || { bump: [], baby: [], ultrasound: [], nursery: [], family: [], other: [] };
+  }
+
   saveAlbums(albums: MemoryAlbums): void {
     const profile = this.getProfile();
     if (profile) {
       profile.albums = albums;
       this.saveProfile(profile);
     }
+  }
+
+  saveAlbumPhoto(type: keyof MemoryAlbums, photo: MemoryPhoto): void {
+    const albums = this.getAlbums();
+    albums[type] = [photo, ...albums[type]];
+    this.saveAlbums(albums);
   }
 
   getMedications(): MedicationLog[] { return this.getItem<MedicationLog[]>(KEYS.MEDICATIONS, []); }

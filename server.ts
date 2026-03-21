@@ -33,19 +33,94 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Authentication Middleware
+  const authenticate = async (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const idToken = authHeader.split("Bearer ")[1];
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      req.user = decodedToken;
+      next();
+    } catch (error) {
+      console.error("Auth Error:", error);
+      res.status(401).json({ error: "Invalid token" });
+    }
+  };
+
+  const adminOnly = (req: any, res: any, next: any) => {
+    if (req.user && req.user.email === 'tanakaprince49@gmail.com') {
+      next();
+    } else {
+      res.status(403).json({ error: "Forbidden: Admin only" });
+    }
+  };
+
   // API Health Check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
 
+  // Proxy OpenRouter Chat
+  app.post("/api/ava/chat", authenticate, async (req, res) => {
+    const { messages } = req.body;
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: "Messages are required" });
+    }
+
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://nestly.app",
+          "X-Title": "Ava AI",
+        },
+        body: JSON.stringify({
+          model: "deepseek/deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: `
+You are Ava, a pregnancy companion.
+Be VERY concise.
+Max 2-3 short sentences.
+Warm but direct.
+No long explanations.
+`,
+            },
+            ...messages,
+          ],
+          temperature: 0.5,
+          max_tokens: 120,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("OpenRouter Error:", errorText);
+        return res.status(response.status).json({ error: "OpenRouter request failed" });
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("Proxy Error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Store FCM Token
-  app.post("/api/push/token", async (req, res) => {
+  app.post("/api/push/token", authenticate, async (req, res) => {
     // Disabled as per request to keep Firebase for Auth only
     res.json({ success: true, message: "FCM token storage disabled (Local only mode)" });
   });
 
   // Admin Broadcast Push
-  app.post("/api/admin/broadcast", async (req, res) => {
+  app.post("/api/admin/broadcast", authenticate, adminOnly, async (req, res) => {
     const { title, body, url } = req.body;
     if (!title || !body) return res.status(400).send("Title and body required");
 

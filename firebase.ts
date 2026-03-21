@@ -1,13 +1,13 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, RecaptchaVerifier, signInWithPhoneNumber, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
 import firebaseConfig from './firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
-let messaging = null;
+let messaging: Messaging | null = null;
 try {
   messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
 } catch (e) {

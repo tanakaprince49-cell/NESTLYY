@@ -60,16 +60,6 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
     storage.saveProfile(updatedProfile);
     onUpdateProfile(updatedProfile);
     
-    // Update local password if applicable
-    const email = storage.getAuthEmail();
-    if (email && password) {
-      const localUsers = JSON.parse(localStorage.getItem('nestly_local_users') || '{}');
-      if (localUsers[email]) {
-        localUsers[email].password = password;
-        localStorage.setItem('nestly_local_users', JSON.stringify(localUsers));
-      }
-    }
-    
     setSaving(false);
     setPassword('');
   };
@@ -165,18 +155,6 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
                 className="w-full p-3 bg-slate-50 border-2 border-transparent rounded-xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all"
                 placeholder="Your Name"
               />
-            </div>
-            
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1">New Password (Optional)</label>
-              <input 
-                type="password" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                className="w-full p-3 bg-slate-50 border-2 border-transparent rounded-xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all"
-                placeholder="••••••••"
-              />
-              <p className="text-[10px] text-slate-400 ml-2 mt-1">Only applies if you signed up with Email & Password.</p>
             </div>
           </div>
 

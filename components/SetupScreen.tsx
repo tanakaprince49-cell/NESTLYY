@@ -64,7 +64,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
 
   const handleFinish = () => {
     try {
-      const emptyAlbums: MemoryAlbums = { ultrasound: [], family: [], favorites: [] };
+      const emptyAlbums: MemoryAlbums = { bump: [], baby: [], ultrasound: [], nursery: [], family: [], other: [] };
       const newProfile: PregnancyProfile = { 
         userName,
         lmpDate: lmp ? new Date(lmp).toISOString() : new Date().toISOString(), 

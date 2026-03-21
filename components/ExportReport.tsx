@@ -123,7 +123,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
     html2pdf().set(opt).from(reportRef.current).save();
 
     // Save to recent reports
-    const newReport = { start: startDate, end: endDate, id: Date.now().toString() };
+    const newReport = { start: startDate, end: endDate, id: crypto.randomUUID() };
     const updated = [newReport, ...recentReports.slice(0, 4)];
     setRecentReports(updated);
     localStorage.setItem('nestly_recent_reports', JSON.stringify(updated));

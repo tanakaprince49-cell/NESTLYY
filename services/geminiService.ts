@@ -2,11 +2,9 @@
    AVA – Fast, Short, Smart, With Memory + Voice
 ========================================== */
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "deepseek/deepseek-chat";
+import { auth } from "../firebase.ts";
 
-const OPENROUTER_API_KEY =
-  "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";
+const AVA_CHAT_URL = "/api/ava/chat";
 
 /* ==========================================
    MEMORY (Local Storage)
@@ -28,36 +26,27 @@ function loadMemory() {
 ========================================== */
 
 async function callAva(messages: any[]) {
-  const response = await fetch(OPENROUTER_URL, {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  const idToken = await user.getIdToken();
+
+  const response = await fetch(AVA_CHAT_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+      Authorization: `Bearer ${idToken}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://nestly.app",
-      "X-Title": "Ava AI",
     },
     body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        {
-          role: "system",
-          content: `
-You are Ava, a pregnancy companion.
-Be VERY concise.
-Max 2-3 short sentences.
-Warm but direct.
-No long explanations.
-`,
-        },
-        ...messages,
-      ],
-      temperature: 0.5,
-      max_tokens: 120,
+      messages: messages,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(await response.text());
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to get response from Ava");
   }
 
   const data = await response.json();

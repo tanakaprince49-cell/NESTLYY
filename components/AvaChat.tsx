@@ -46,7 +46,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
 
     const userText = input.trim();
     setInput('');
-    const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text: userText, timestamp: Date.now() };
+    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: 'user', text: userText, timestamp: Date.now() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setLoading(true);
@@ -62,14 +62,14 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
 
       const response = await getAvaResponse(userText);
 
-      const modelMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: response, timestamp: Date.now() };
+      const modelMsg: ChatMessage = { id: crypto.randomUUID(), role: 'model', text: response, timestamp: Date.now() };
       setMessages([...newMessages, modelMsg]);
       
       if (isSpeaking) {
         speak(response);
       }
     } catch (err) {
-      setMessages([...newMessages, { id: Date.now().toString(), role: 'model', text: "Ava is taking a quiet moment 💕", timestamp: Date.now() }]);
+      setMessages([...newMessages, { id: crypto.randomUUID(), role: 'model', text: "Ava is taking a quiet moment 💕", timestamp: Date.now() }]);
     } finally {
       setLoading(false);
     }

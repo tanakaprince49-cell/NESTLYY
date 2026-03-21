@@ -245,7 +245,7 @@ const App: React.FC = () => {
                 bloodPressureLogs={bloodPressureLogs}
                 trimester={trimester} profile={profile}
                 onAddEntry={(e) => { 
-                  storage.addFoodEntry({...e, id: Date.now().toString(), timestamp: Date.now()} as any); 
+                  storage.addFoodEntry({...e, id: crypto.randomUUID(), timestamp: Date.now()} as any); 
                   setEntries(storage.getFoodEntries()); 
                 }}
                 onRemoveEntry={(id) => { 
@@ -253,15 +253,15 @@ const App: React.FC = () => {
                   setEntries(storage.getFoodEntries()); 
                 }}
                 onLogVitamin={(n) => { 
-                  storage.addVitamin({id: Date.now().toString(), name: n, timestamp: Date.now()}); 
+                  storage.addVitamin({id: crypto.randomUUID(), name: n, timestamp: Date.now()}); 
                   setVitamins(storage.getVitamins()); 
                 }}
                 onAddBabyGrowth={(g) => { 
-                  storage.addBabyGrowthLog({...g, id: Date.now().toString(), timestamp: Date.now()}); 
+                  storage.addBabyGrowthLog({...g, id: crypto.randomUUID(), timestamp: Date.now()}); 
                   setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
                 }}
                 onAddMedication={(m) => {
-                  storage.addMedication({ name: m.name, dosage: m.dosage, time: m.time, id: Date.now().toString(), timestamp: Date.now() });
+                  storage.addMedication({ name: m.name, dosage: m.dosage, time: m.time, id: crypto.randomUUID(), timestamp: Date.now() });
                   setMedicationLogs(storage.getMedications());
                 }}
                 onRemoveMedication={(id) => {
@@ -288,11 +288,11 @@ const App: React.FC = () => {
             {activeTab === 'tools' && (
               <ToolsHub 
                 symptoms={symptoms} onLogSymptom={(t, s) => { 
-                  storage.addSymptom({id: Date.now().toString(), type: t, severity: s, timestamp: Date.now()}); 
+                  storage.addSymptom({id: crypto.randomUUID(), type: t, severity: s, timestamp: Date.now()}); 
                   setSymptoms(storage.getSymptoms()); 
                 }}
                 onAddFoodEntry={(f) => {
-                  storage.addFoodEntry({ ...f, id: Date.now().toString(), timestamp: Date.now() });
+                  storage.addFoodEntry({ ...f, id: crypto.randomUUID(), timestamp: Date.now() });
                   setEntries(storage.getFoodEntries());
                 }}
                 onRemoveFoodEntry={(id) => {
@@ -300,7 +300,7 @@ const App: React.FC = () => {
                   setEntries(storage.getFoodEntries());
                 }}
                 onAddVitamin={(v) => {
-                  storage.addVitamin({ ...v, id: Date.now().toString(), timestamp: Date.now() });
+                  storage.addVitamin({ ...v, id: crypto.randomUUID(), timestamp: Date.now() });
                   setVitamins(storage.getVitamins());
                 }}
                 contractions={contractions} onUpdateContractions={(c) => { 
@@ -308,7 +308,7 @@ const App: React.FC = () => {
                   setContractions(c); 
                 }}
                 journalEntries={journalEntries} onAddJournal={(c, m) => { 
-                  storage.addJournalEntry({id: Date.now().toString(), content: c, mood: m, timestamp: Date.now()}); 
+                  storage.addJournalEntry({id: crypto.randomUUID(), content: c, mood: m, timestamp: Date.now()}); 
                   setJournalEntries(storage.getJournalEntries()); 
                 }}
                 onRemoveJournal={(id) => { 
@@ -316,7 +316,7 @@ const App: React.FC = () => {
                   setJournalEntries(storage.getJournalEntries()); 
                 }}
                 calendarEvents={calendarEvents} onAddEvent={(t,d,ty,tm) => { 
-                  storage.addCalendarEvent({id: Date.now().toString(), title: t, date: d, type: ty, time: tm}); 
+                  storage.addCalendarEvent({id: crypto.randomUUID(), title: t, date: d, type: ty, time: tm}); 
                   setCalendarEvents(storage.getCalendarEvents()); 
                 }}
                 onRemoveEvent={(id) => { 
@@ -324,11 +324,11 @@ const App: React.FC = () => {
                   setCalendarEvents(storage.getCalendarEvents()); 
                 }}
                 weightLogs={weightLogs} onAddWeight={(w) => { 
-                  storage.addWeightLog({id: Date.now().toString(), weight: w, timestamp: Date.now()}); 
+                  storage.addWeightLog({id: crypto.randomUUID(), weight: w, timestamp: Date.now()}); 
                   setWeightLogs(storage.getWeightLogs()); 
                 }}
                 sleepLogs={sleepLogs} onAddSleep={(s) => { 
-                  storage.addSleepLog({id: Date.now().toString(), ...s, timestamp: Date.now()}); 
+                  storage.addSleepLog({id: crypto.randomUUID(), ...s, timestamp: Date.now()}); 
                   setSleepLogs(storage.getSleepLogs()); 
                 }}
                 onRemoveSleep={(id) => { 
@@ -336,36 +336,36 @@ const App: React.FC = () => {
                   setSleepLogs(storage.getSleepLogs()); 
                 }}
                 feedingLogs={feedingLogs} onAddFeeding={(f) => { 
-                  storage.addFeedingLog({id: Date.now().toString(), ...f, timestamp: Date.now()}); 
+                  storage.addFeedingLog({id: crypto.randomUUID(), ...f, timestamp: Date.now()}); 
                   setFeedingLogs(storage.getFeedingLogs()); 
                 }}
                 diaperLogs={diaperLogs} onAddDiaper={(d) => { 
-                  storage.addDiaperLog({id: Date.now().toString(), ...d, timestamp: Date.now()}); 
+                  storage.addDiaperLog({id: crypto.randomUUID(), ...d, timestamp: Date.now()}); 
                   setDiaperLogs(storage.getDiaperLogs()); 
                 }}
                 milestones={milestones} onAddMilestone={(m) => { 
-                  storage.addMilestone({id: Date.now().toString(), ...m, timestamp: Date.now()}); 
+                  storage.addMilestone({id: crypto.randomUUID(), ...m, timestamp: Date.now()}); 
                   setMilestones(storage.getMilestones()); 
                 }}
                 healthLogs={healthLogs} onAddHealth={(h) => { 
-                  storage.addHealthLog({id: Date.now().toString(), ...h, timestamp: Date.now()}); 
+                  storage.addHealthLog({id: crypto.randomUUID(), ...h, timestamp: Date.now()}); 
                   setHealthLogs(storage.getHealthLogs()); 
                 }}
                 reactions={reactions} onAddReaction={(r) => { 
-                  storage.addReaction({id: Date.now().toString(), ...r, timestamp: Date.now()}); 
+                  storage.addReaction({id: crypto.randomUUID(), ...r, timestamp: Date.now()}); 
                   setReactions(storage.getReactions()); 
                 }}
                 kickLogs={kickLogs} onAddKick={(k) => { 
-                  storage.addKickLog({id: Date.now().toString(), ...k, timestamp: Date.now()}); 
+                  storage.addKickLog({id: crypto.randomUUID(), ...k, timestamp: Date.now()}); 
                   setKickLogs(storage.getKickLogs()); 
                 }}
                 kegelLogs={kegelLogs} onAddKegel={(k) => {
-                  storage.addKegelLog({id: Date.now().toString(), ...k, timestamp: Date.now()});
+                  storage.addKegelLog({id: crypto.randomUUID(), ...k, timestamp: Date.now()});
                   setKegelLogs(storage.getKegelLogs());
                 }}
                 medicationLogs={medicationLogs}
                 onAddMedication={(m) => {
-                  storage.addMedication({ ...m, id: Date.now().toString(), timestamp: Date.now() });
+                  storage.addMedication({ ...m, id: crypto.randomUUID(), timestamp: Date.now() });
                   setMedicationLogs(storage.getMedications());
                 }}
                 onRemoveMedication={(id) => {
@@ -375,16 +375,16 @@ const App: React.FC = () => {
                 babyGrowthLogs={babyGrowthLogs}
                 tummyTimeLogs={tummyTimeLogs}
                 onAddTummyTime={(t) => {
-                  storage.addTummyTimeLog({id: Date.now().toString(), ...t, timestamp: Date.now()});
+                  storage.addTummyTimeLog({id: crypto.randomUUID(), ...t, timestamp: Date.now()});
                   setTummyTimeLogs(storage.getTummyTimeLogs());
                 }}
                 bloodPressureLogs={bloodPressureLogs}
                 onAddBloodPressure={(b) => {
-                  storage.addBloodPressureLog({id: Date.now().toString(), ...b, timestamp: Date.now()});
+                  storage.addBloodPressureLog({id: crypto.randomUUID(), ...b, timestamp: Date.now()});
                   setBloodPressureLogs(storage.getBloodPressureLogs());
                 }}
                 onAddBabyGrowth={(g) => { 
-                  storage.addBabyGrowthLog({id: Date.now().toString(), ...g, timestamp: Date.now()}); 
+                  storage.addBabyGrowthLog({id: crypto.randomUUID(), ...g, timestamp: Date.now()}); 
                   setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
                 }}
                 foodEntries={entries}

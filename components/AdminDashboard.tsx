@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import { storage } from '../services/storageService.ts';
 import { Trimester, Article, Video } from '../types.ts';
+import { auth } from '../firebase.ts';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 import { showLocalNotification } from '../services/pushService.ts';
 import { 
@@ -53,7 +54,7 @@ export const AdminDashboard: React.FC = () => {
     try {
       // 1. Save locally for history
       storage.addBroadcast({
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         title: pushTitle,
         body: pushBody,
         timestamp: Date.now(),
@@ -61,15 +62,22 @@ export const AdminDashboard: React.FC = () => {
       });
 
       // 2. Trigger real FCM push via server
-      await fetch('/api/admin/broadcast', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: pushTitle,
-          body: pushBody,
-          url: '/?tab=dashboard'
-        })
-      });
+      const user = auth.currentUser;
+      if (user) {
+        const idToken = await user.getIdToken();
+        await fetch('/api/admin/broadcast', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
+          body: JSON.stringify({
+            title: pushTitle,
+            body: pushBody,
+            url: '/?tab=dashboard'
+          })
+        });
+      }
       
       setPushTitle('');
       setPushBody('');
@@ -87,7 +95,7 @@ export const AdminDashboard: React.FC = () => {
     if (!headline || !summary || !link) return;
 
     const articleData: Article = {
-      id: editingId || Date.now().toString(),
+      id: editingId || crypto.randomUUID(),
       title: headline,
       imageUrl: imageUrl || `https://picsum.photos/seed/${headline.length}/800/400`,
       source,
@@ -131,7 +139,7 @@ export const AdminDashboard: React.FC = () => {
     }
 
     const videoData: Video = {
-      id: editingVideoId || Date.now().toString(),
+      id: editingVideoId || crypto.randomUUID(),
       title: videoTitle,
       youtubeUrl,
       thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : 'https://picsum.photos/seed/video/800/400',

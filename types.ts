@@ -30,9 +30,12 @@ export interface MemoryPhoto {
 }
 
 export interface MemoryAlbums {
+  bump: MemoryPhoto[];
+  baby: MemoryPhoto[];
   ultrasound: MemoryPhoto[];
+  nursery: MemoryPhoto[];
   family: MemoryPhoto[];
-  favorites: MemoryPhoto[];
+  other: MemoryPhoto[];
 }
 
 export interface WeightLog {

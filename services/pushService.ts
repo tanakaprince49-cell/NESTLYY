@@ -65,9 +65,13 @@ export async function subscribeUserToPush() {
       
       // Send token to server
       if (auth.currentUser) {
+        const idToken = await auth.currentUser.getIdToken();
         await fetch('/api/push/token', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
           body: JSON.stringify({
             token: currentToken,
             userId: auth.currentUser.uid,

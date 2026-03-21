@@ -1,0 +1,118 @@
+import React, { useState } from 'react';
+import { Soup, Trash2 } from 'lucide-react';
+import { FoodEntry } from '../../types.ts';
+
+interface NutritionTrackerProps {
+  foodEntries: FoodEntry[];
+  onAddFoodEntry: (entry: Omit<FoodEntry, 'id' | 'timestamp'>) => void;
+  onRemoveFoodEntry: (id: string) => void;
+}
+
+export const NutritionTracker: React.FC<NutritionTrackerProps> = ({ foodEntries, onAddFoodEntry, onRemoveFoodEntry }) => {
+  const [foodName, setFoodName] = useState('');
+  const [foodCals, setFoodCals] = useState('');
+  const [foodProtein, setFoodProtein] = useState('');
+  const [foodFolate, setFoodFolate] = useState('');
+  const [foodIron, setFoodIron] = useState('');
+  const [foodCalcium, setFoodCalcium] = useState('');
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Soup className="w-5 h-5 text-orange-500" />
+          Log Nutrition
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <input
+            type="text"
+            placeholder="Food Name"
+            className="w-full p-3 rounded-xl border border-black/10"
+            value={foodName}
+            onChange={(e) => setFoodName(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Calories"
+            className="w-full p-3 rounded-xl border border-black/10"
+            value={foodCals}
+            onChange={(e) => setFoodCals(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Protein (g)"
+            className="w-full p-3 rounded-xl border border-black/10"
+            value={foodProtein}
+            onChange={(e) => setFoodProtein(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Folate (mcg)"
+            className="w-full p-3 rounded-xl border border-black/10"
+            value={foodFolate}
+            onChange={(e) => setFoodFolate(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Iron (mg)"
+            className="w-full p-3 rounded-xl border border-black/10"
+            value={foodIron}
+            onChange={(e) => setFoodIron(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Calcium (mg)"
+            className="w-full p-3 rounded-xl border border-black/10"
+            value={foodCalcium}
+            onChange={(e) => setFoodCalcium(e.target.value)}
+          />
+        </div>
+        <button
+          onClick={() => {
+            if (foodName) {
+              onAddFoodEntry({
+                name: foodName,
+                calories: parseFloat(foodCals) || 0,
+                protein: parseFloat(foodProtein) || 0,
+                folate: parseFloat(foodFolate) || 0,
+                iron: parseFloat(foodIron) || 0,
+                calcium: parseFloat(foodCalcium) || 0
+              });
+              setFoodName('');
+              setFoodCals('');
+              setFoodProtein('');
+              setFoodFolate('');
+              setFoodIron('');
+              setFoodCalcium('');
+            }
+          }}
+          className="w-full py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"
+        >
+          Log Food
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5">
+        <h3 className="text-lg font-semibold mb-4">Recent Food</h3>
+        <div className="space-y-3">
+          {foodEntries.slice(0, 5).map(entry => (
+            <div key={entry.id} className="flex items-center justify-between p-3 bg-stone-50 rounded-xl">
+              <div>
+                <p className="font-medium">{entry.name}</p>
+                <p className="text-xs text-stone-500">
+                  {entry.calories} kcal • {entry.protein}g P • {entry.folate}mcg F
+                </p>
+              </div>
+              <button 
+                onClick={() => onRemoveFoodEntry(entry.id)}
+                className="p-2 text-stone-400 hover:text-red-500"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
