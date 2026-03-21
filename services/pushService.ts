@@ -27,23 +27,18 @@ const BRAND_LOGO = "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-and
 /**
  * Ensure Service Worker is registered
  */
-async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
-  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
-    return null;
+async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
+  if (!('serviceWorker' in navigator)) {
+    throw new Error('Service Workers not supported');
   }
 
-  try {
-    let registration = await navigator.serviceWorker.getRegistration();
+  let registration = await navigator.serviceWorker.getRegistration();
 
-    if (!registration) {
-      registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
-    }
-
-    return registration;
-  } catch (e) {
-    console.warn('Service worker registration failed:', e);
-    return null;
+  if (!registration) {
+    registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
   }
+
+  return registration;
 }
 
 /**
@@ -51,7 +46,7 @@ async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration
  */
 export async function subscribeUserToPush() {
   try {
-    if (typeof window === 'undefined' || !messaging || !('Notification' in window)) return null;
+    if (!messaging) return null;
 
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
@@ -138,9 +133,6 @@ export async function showLocalNotification(
     }
 
     const registration = await getServiceWorkerRegistration();
-    if (!registration) {
-      return { success: false, error: 'Service Worker not registered' };
-    }
 
     // Play notification sound
     try {
@@ -373,7 +365,7 @@ function scheduleDailyRoutine(profile: PregnancyProfile) {
  * Process and show due reminders
  */
 export async function processReminders() {
-  if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') return;
+  if (Notification.permission !== 'granted') return;
 
   const allReminders = [...storage.getReminders(), ...storage.getBroadcasts()];
   const shownReminders = storage.getShownReminders();

@@ -81,30 +81,26 @@ const App: React.FC = () => {
   const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
 
   const loadUserData = useCallback(() => {
-    try {
-      setProfile(storage.getProfile());
-      setEntries(storage.getFoodEntries());
-      setSymptoms(storage.getSymptoms());
-      setVitamins(storage.getVitamins());
-      setContractions(storage.getContractions());
-      setJournalEntries(storage.getJournalEntries());
-      setCalendarEvents(storage.getCalendarEvents());
-      setWeightLogs(storage.getWeightLogs());
-      setSleepLogs(storage.getSleepLogs());
-      setFeedingLogs(storage.getFeedingLogs());
-      setMilestones(storage.getMilestones());
-      setHealthLogs(storage.getHealthLogs());
-      setReactions(storage.getReactions());
-      setBabyGrowthLogs(storage.getBabyGrowthLogs());
-      setTummyTimeLogs(storage.getTummyTimeLogs());
-      setBloodPressureLogs(storage.getBloodPressureLogs());
-      setKickLogs(storage.getKickLogs());
-      setKegelLogs(storage.getKegelLogs());
-      setDiaperLogs(storage.getDiaperLogs());
-      setMedicationLogs(storage.getMedications());
-    } catch (err) {
-      console.error("Error loading user data from storage:", err);
-    }
+    setProfile(storage.getProfile());
+    setEntries(storage.getFoodEntries());
+    setSymptoms(storage.getSymptoms());
+    setVitamins(storage.getVitamins());
+    setContractions(storage.getContractions());
+    setJournalEntries(storage.getJournalEntries());
+    setCalendarEvents(storage.getCalendarEvents());
+    setWeightLogs(storage.getWeightLogs());
+    setSleepLogs(storage.getSleepLogs());
+    setFeedingLogs(storage.getFeedingLogs());
+    setMilestones(storage.getMilestones());
+    setHealthLogs(storage.getHealthLogs());
+    setReactions(storage.getReactions());
+    setBabyGrowthLogs(storage.getBabyGrowthLogs());
+    setTummyTimeLogs(storage.getTummyTimeLogs());
+    setBloodPressureLogs(storage.getBloodPressureLogs());
+    setKickLogs(storage.getKickLogs());
+    setKegelLogs(storage.getKegelLogs());
+    setDiaperLogs(storage.getDiaperLogs());
+    setMedicationLogs(storage.getMedications());
   }, []);
 
   // Firebase Auth Listener
@@ -112,36 +108,27 @@ const App: React.FC = () => {
     // Fallback to stop loading if Firebase takes too long
     const fallbackTimer = setTimeout(() => {
       setLoading(false);
-    }, 8000);
+    }, 5000);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      try {
-        clearTimeout(fallbackTimer);
-        setLoading(true);
-        if (user) {
-          const identifier = user.email || `anon-${user.uid}`;
-          storage.setAuthEmail(identifier);
-          
-          // Load from Firestore before setting state and loading user data
-          try {
-            await loadFromFirestore(identifier);
-          } catch (fsErr) {
-            console.error("Firestore sync error during auth:", fsErr);
-          }
-          
-          setAuthEmail(identifier);
-          setUserUid(user.uid);
-          setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
-          
-          loadUserData();
-          setLoading(false);
-        } else {
-          setAuthEmail(null);
-          setUserUid(null);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Auth state change error:", err);
+      clearTimeout(fallbackTimer);
+      setLoading(true);
+      if (user) {
+        const identifier = user.email || `anon-${user.uid}`;
+        storage.setAuthEmail(identifier);
+        
+        // Load from Firestore before setting state and loading user data
+        await loadFromFirestore(identifier);
+        
+        setAuthEmail(identifier);
+        setUserUid(user.uid);
+        setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
+        
+        loadUserData();
+        setLoading(false);
+      } else {
+        setAuthEmail(null);
+        setUserUid(null);
         setLoading(false);
       }
     });
