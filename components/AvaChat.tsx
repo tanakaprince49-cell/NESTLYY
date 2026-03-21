@@ -263,31 +263,38 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
         )}
       </div>
 
-      <div className="absolute bottom-4 left-4 right-4 bg-white/30 backdrop-blur-2xl p-3 rounded-[2.2rem] border border-white/60 shadow-xl">
-        <form onSubmit={handleSend} className="relative">
-          <input 
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Talk to Ava..."
-            className="w-full h-14 pl-6 pr-32 bg-white border-none rounded-[2rem] shadow-inner text-base font-medium outline-none focus:ring-4 focus:ring-rose-900/5 transition-all"
-          />
-          <div className="absolute right-2 top-2 bottom-2 flex gap-2">
-            <button 
-              type="button"
-              onClick={handleListen}
-              className={`px-4 rounded-[1.5rem] transition-all active:scale-95 flex items-center justify-center ${isListening ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-slate-50 text-slate-400'}`}
-            >
-              <Mic size={20} />
-            </button>
-            <button 
-              type="submit"
-              disabled={!input.trim() || loading}
-              className="px-6 bg-rose-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-40 transition-all"
-            >
-              Send
-            </button>
-          </div>
-        </form>
+      <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-2">
+        <div className="text-center px-4">
+          <p className="text-[9px] text-rose-800/60 font-medium leading-relaxed bg-white/50 backdrop-blur-sm py-1 px-3 rounded-full inline-block">
+            <strong>Medical Disclaimer:</strong> Ava provides informational support only and is not a substitute for professional medical advice.
+          </p>
+        </div>
+        <div className="bg-white/30 backdrop-blur-2xl p-3 rounded-[2.2rem] border border-white/60 shadow-xl">
+          <form onSubmit={handleSend} className="relative">
+            <input 
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Talk to Ava..."
+              className="w-full h-14 pl-6 pr-32 bg-white border-none rounded-[2rem] shadow-inner text-base font-medium outline-none focus:ring-4 focus:ring-rose-900/5 transition-all"
+            />
+            <div className="absolute right-2 top-2 bottom-2 flex gap-2">
+              <button 
+                type="button"
+                onClick={handleListen}
+                className={`px-4 rounded-[1.5rem] transition-all active:scale-95 flex items-center justify-center ${isListening ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-slate-50 text-slate-400'}`}
+              >
+                <Mic size={20} />
+              </button>
+              <button 
+                type="submit"
+                disabled={!input.trim() || loading}
+                className="px-6 bg-rose-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-40 transition-all"
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Logo } from './Logo.tsx';
 import { storage } from '../services/storageService.ts';
+import { loadFromFirestore } from '../services/syncService.ts';
 import { subscribeUserToPush, showLocalNotification } from '../services/pushService.ts';
 import { auth, googleProvider } from '../firebase.ts';
 import { 
@@ -30,8 +31,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
     const identifier = user.email || `anon-${user.uid}`;
     const displayName = user.displayName || 'Guest';
     
-    storage.logActivity(identifier, 'login');
     storage.setAuthEmail(identifier);
+    
+    // Load from Firestore after setting auth email so keys are correct
+    await loadFromFirestore(identifier);
+    
+    storage.logActivity(identifier, 'login');
     
     try {
       await subscribeUserToPush();
@@ -144,7 +149,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
           </p>
         </div>
 
-        <div className="card-premium p-1.5 bg-white shadow-xl rounded-[3.5rem]">
+        <div className="card-premium p-1.5 bg-white shadow-xl rounded-[3.5rem] mb-6">
           <div className="bg-white p-8 sm:p-12 rounded-[3.2rem]">
             
             <div className="space-y-6">
@@ -261,6 +266,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
               )}
             </div>
           </div>
+        </div>
+        
+        <div className="text-center px-4">
+          <p className="text-[10px] text-rose-800/60 font-medium leading-relaxed">
+            <strong>Medical Disclaimer:</strong> Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          </p>
         </div>
       </div>
 

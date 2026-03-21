@@ -46,6 +46,9 @@ export const AdminDashboard: React.FC = () => {
   const [pushBody, setPushBody] = useState('');
   const [isSending, setIsSending] = useState(false);
 
+  const [toast, setToast] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string, onConfirm: () => void } | null>(null);
+
   const handleSendPush = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pushTitle || !pushBody) return;
@@ -81,10 +84,10 @@ export const AdminDashboard: React.FC = () => {
       
       setPushTitle('');
       setPushBody('');
-      alert('Broadcast reminder sent to all Nestlings! 🕊️');
+      setToast('Broadcast reminder sent to all Nestlings! 🕊️');
     } catch (err) {
       console.error('Failed to send notification:', err);
-      alert('Failed to send notification.');
+      setToast('Failed to send notification.');
     } finally {
       setIsSending(false);
     }
@@ -118,7 +121,7 @@ export const AdminDashboard: React.FC = () => {
     setLink('');
     setStage('General');
     setEditingId(null);
-    alert(editingId ? 'Article updated!' : 'Article posted!');
+    setToast(editingId ? 'Article updated!' : 'Article posted!');
   };
 
   const handlePostVideo = (e: React.FormEvent) => {
@@ -157,7 +160,7 @@ export const AdminDashboard: React.FC = () => {
     setYoutubeUrl('');
     setVideoStage('General');
     setEditingVideoId(null);
-    alert(editingVideoId ? 'Video updated!' : 'Video posted!');
+    setToast(editingVideoId ? 'Video updated!' : 'Video posted!');
   };
 
   const handleEditVideo = (video: Video) => {
@@ -169,17 +172,25 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleDeleteVideo = (id: string) => {
-    if (window.confirm('Delete this video?')) {
-      storage.removeVideo(id);
-      window.location.reload();
-    }
+    setConfirmDialog({
+      message: 'Delete this video?',
+      onConfirm: () => {
+        storage.removeVideo(id);
+        setConfirmDialog(null);
+        setToast('Video deleted');
+      }
+    });
   };
 
   const handleDeleteBroadcast = (id: string) => {
-    if (window.confirm('Delete this broadcast notification?')) {
-      storage.removeBroadcast(id);
-      window.location.reload();
-    }
+    setConfirmDialog({
+      message: 'Delete this broadcast notification?',
+      onConfirm: () => {
+        storage.removeBroadcast(id);
+        setConfirmDialog(null);
+        setToast('Broadcast deleted');
+      }
+    });
   };
 
   const handleEdit = (article: Article) => {
@@ -194,10 +205,14 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Delete this article?')) {
-      storage.removeArticle(id);
-      window.location.reload(); // Simple refresh to update list
-    }
+    setConfirmDialog({
+      message: 'Delete this article?',
+      onConfirm: () => {
+        storage.removeArticle(id);
+        setConfirmDialog(null);
+        setToast('Article deleted');
+      }
+    });
   };
 
   const stats = useMemo(() => ({
@@ -216,7 +231,36 @@ export const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8 pb-32">
+    <div className="space-y-8 pb-32 relative">
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[600] px-6 py-3 bg-slate-900 text-white rounded-full shadow-lg font-bold text-sm animate-in fade-in slide-in-from-top-4">
+          {toast}
+          <button onClick={() => setToast(null)} className="ml-4 text-slate-400 hover:text-white">&times;</button>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="fixed inset-0 z-[700] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95">
+            <h3 className="text-xl font-bold text-slate-900 mb-6">{confirmDialog.message}</h3>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setConfirmDialog(null)}
+                className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDialog.onConfirm}
+                className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-xl hover:bg-rose-600 transition-colors shadow-lg shadow-rose-200"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div>
         <h2 className="text-3xl font-serif text-slate-900">Admin Command</h2>
         <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Real-time Performance Metrics</p>

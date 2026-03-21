@@ -44,6 +44,9 @@ export const ContractionTimer: React.FC<ContractionTimerProps> = ({ contractions
           <h3 className="text-xl font-serif text-rose-800">Contraction Timer</h3>
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Tap when it starts, tap when it ends.</p>
         </div>
+        <p className="text-xs text-slate-500 italic">
+          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+        </p>
 
         <button 
           onClick={handleContractionToggle}

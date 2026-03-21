@@ -49,6 +49,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
 
   const [dueDate, setDueDate] = useState<string>('');
   const [remainingWeeks, setRemainingWeeks] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (lmp) {
@@ -60,10 +61,32 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
     }
   }, [lmp]);
 
-  const goTo = (next: SetupStep) => setStep(next);
+  const goTo = (next: SetupStep) => {
+    setError(null);
+    setStep(next);
+  };
 
   const handleFinish = () => {
+    setError(null);
     try {
+      if (lifecycleStage === LifecycleStage.PREGNANCY || lifecycleStage === LifecycleStage.PRE_PREGNANCY) {
+        if (!lmp) {
+          setError("Please enter your last period date.");
+          return;
+        }
+        const lmpDate = new Date(lmp);
+        const now = new Date();
+        const diffDays = (now.getTime() - lmpDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (diffDays < 0) {
+          setError("Last period date cannot be in the future.");
+          return;
+        }
+        if (diffDays > 300) {
+          setError("Last period date seems too far in the past for a current pregnancy.");
+          return;
+        }
+      }
+
       const emptyAlbums: MemoryAlbums = { bump: [], baby: [], ultrasound: [], nursery: [], family: [], other: [] };
       const newProfile: PregnancyProfile = { 
         userName,
@@ -85,7 +108,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
       onComplete(newProfile);
     } catch (err) {
       console.error("Error finishing setup:", err);
-      alert("Something went wrong. Please try again.");
+      setError("Something went wrong. Please try again.");
     }
   };
 
@@ -110,6 +133,11 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
       </div>
 
       <div className="max-w-lg mx-auto w-full flex-1 flex flex-col justify-center gap-10 relative z-10">
+        {error && (
+          <div className="absolute top-4 left-0 right-0 p-4 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-2xl text-center border border-rose-100 z-50">
+            {error}
+          </div>
+        )}
         <AnimatePresence mode="wait">
           <motion.div
             key={step}

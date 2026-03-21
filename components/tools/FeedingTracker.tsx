@@ -18,6 +18,7 @@ export const FeedingTracker: React.FC<FeedingTrackerProps> = ({
   const [feedingSide, setFeedingSide] = useState<'left' | 'right' | 'both'>('both');
   const [feedingAmount, setFeedingAmount] = useState('120');
   const [feedingDuration, setFeedingDuration] = useState('15');
+  const [error, setError] = useState<string | null>(null);
 
   const currentBabyId = selectedBabyId || profile.babies?.[0]?.id || '';
 
@@ -25,6 +26,14 @@ export const FeedingTracker: React.FC<FeedingTrackerProps> = ({
     <div className="space-y-8 animate-in fade-in">
       <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
         <h3 className="text-xl font-serif text-rose-800">Feeding Tracker</h3>
+        <p className="text-xs text-slate-500 italic">
+          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+        </p>
+        {error && (
+          <div className="p-3 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-xl border border-rose-100 text-center">
+            {error}
+          </div>
+        )}
         <div className="space-y-6">
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             {profile.babies?.map((baby, idx) => (
@@ -93,14 +102,26 @@ export const FeedingTracker: React.FC<FeedingTrackerProps> = ({
           </div>
 
           <button 
-            onClick={() => onAddFeeding({ 
-              babyId: currentBabyId, 
-              type: feedingType, 
-              subType: feedingType === 'bottle' ? feedingSubType : undefined,
-              side: feedingType === 'breast' ? feedingSide : undefined,
-              amount: parseFloat(feedingAmount) || 0,
-              duration: parseFloat(feedingDuration) || 0
-            })}
+            onClick={() => {
+              const amount = parseFloat(feedingAmount) || 0;
+              const duration = parseFloat(feedingDuration) || 0;
+              
+              if ((amount > 0 && amount < 1000) || (duration > 0 && duration < 180)) {
+                onAddFeeding({ 
+                  babyId: currentBabyId, 
+                  type: feedingType, 
+                  subType: feedingType === 'bottle' ? feedingSubType : undefined,
+                  side: feedingType === 'breast' ? feedingSide : undefined,
+                  amount,
+                  duration
+                });
+                setFeedingAmount('');
+                setFeedingDuration('');
+                setError(null);
+              } else {
+                setError("Please enter a valid amount or duration.");
+              }
+            }}
             className="w-full py-5 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
           >
             Log Feeding Session

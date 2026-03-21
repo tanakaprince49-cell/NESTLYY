@@ -25,6 +25,7 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
   const [bpNotes, setBpNotes] = useState('');
   const [babyWeightInput, setBabyWeightInput] = useState('');
   const [babyHeightInput, setBabyHeightInput] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const weightChartData = useMemo(() => {
     return [...weightLogs]
@@ -50,6 +51,11 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in">
+      {error && (
+        <div className="p-3 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-xl border border-rose-100 text-center">
+          {error}
+        </div>
+      )}
       {profile.lifecycleStage === LifecycleStage.NEWBORN && (
         <div className="card-premium p-8 bg-white space-y-6 shadow-sm border-2 border-white">
           <h3 className="text-xl font-serif text-rose-800">Baby Growth Tracker</h3>
@@ -72,9 +78,16 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
             <button 
               onClick={() => {
                 if (babyWeightInput && babyHeightInput && selectedBabyId) {
-                  onAddBabyGrowth({ babyId: selectedBabyId, weight: parseFloat(babyWeightInput) || 0, height: parseFloat(babyHeightInput) || 0 });
-                  setBabyWeightInput('');
-                  setBabyHeightInput('');
+                  const weight = parseFloat(babyWeightInput);
+                  const height = parseFloat(babyHeightInput);
+                  if (weight > 0 && weight < 50 && height > 0 && height < 150) {
+                    onAddBabyGrowth({ babyId: selectedBabyId, weight, height });
+                    setBabyWeightInput('');
+                    setBabyHeightInput('');
+                    setError(null);
+                  } else {
+                    setError("Please enter valid weight and height values.");
+                  }
                 }
               }} 
               className="w-full py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg"
@@ -116,13 +129,20 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
 
       <div className="card-premium p-8 bg-white space-y-6 shadow-sm border-2 border-white">
         <h3 className="text-xl font-serif text-rose-800">{profile.lifecycleStage === LifecycleStage.NEWBORN ? 'Parent Weight Tracker' : 'Weight Tracker'}</h3>
+        <p className="text-xs text-slate-500 italic">
+          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+        </p>
         <div className="flex gap-3">
           <input type="number" step="0.1" value={weightInput} onChange={e => setWeightInput(e.target.value)} placeholder="Current weight (kg)" className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
           <button 
             onClick={() => {
-              if (weightInput) {
-                onAddWeight(parseFloat(weightInput) || 0);
+              const val = parseFloat(weightInput);
+              if (val && val > 0 && val < 500) {
+                onAddWeight(val);
                 setWeightInput('');
+                setError(null);
+              } else if (weightInput) {
+                setError("Please enter a valid weight.");
               }
             }} 
             className="px-10 py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest"
@@ -160,16 +180,25 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
             <button 
               onClick={() => {
                 if (bpSystolic && bpDiastolic) {
-                  onAddBloodPressure({
-                    systolic: parseInt(bpSystolic),
-                    diastolic: parseInt(bpDiastolic),
-                    pulse: bpPulse ? parseInt(bpPulse) : undefined,
-                    notes: bpNotes
-                  });
-                  setBpSystolic('');
-                  setBpDiastolic('');
-                  setBpPulse('');
-                  setBpNotes('');
+                  const sys = parseInt(bpSystolic);
+                  const dia = parseInt(bpDiastolic);
+                  const pul = bpPulse ? parseInt(bpPulse) : undefined;
+                  
+                  if (sys > 0 && sys < 300 && dia > 0 && dia < 200 && (!pul || (pul > 0 && pul < 300))) {
+                    onAddBloodPressure({
+                      systolic: sys,
+                      diastolic: dia,
+                      pulse: pul,
+                      notes: bpNotes
+                    });
+                    setBpSystolic('');
+                    setBpDiastolic('');
+                    setBpPulse('');
+                    setBpNotes('');
+                    setError(null);
+                  } else {
+                    setError("Please enter valid blood pressure values.");
+                  }
                 }
               }} 
               className="px-10 py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest"
