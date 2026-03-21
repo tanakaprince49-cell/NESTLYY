@@ -62,60 +62,11 @@ function debounce<T extends (...args: any[]) => any>(func: T, wait: number) {
 }
 
 export const syncToFirestore = debounce(async (email: string) => {
-  if (!auth.currentUser) return;
-  
-  const path = `users/${auth.currentUser.uid}`;
-  try {
-    const dataToSync: Record<string, any> = {};
-    
-    // Collect all local storage keys for this user
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(`${email}_`)) {
-        try {
-          const value = localStorage.getItem(key);
-          if (value) {
-            dataToSync[key] = JSON.parse(value);
-          }
-        } catch (e) {
-          // Ignore parse errors
-        }
-      }
-    }
-
-    // Save to Firestore
-    await setDoc(doc(db, 'users', auth.currentUser.uid), {
-      uid: auth.currentUser.uid,
-      email: email,
-      profileData: JSON.stringify(dataToSync),
-      updatedAt: Date.now()
-    }, { merge: true });
-    
-  } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, path);
-  }
+  // Firestore sync disabled for now
+  return;
 }, 2000);
 
 export const loadFromFirestore = async (email: string) => {
-  if (!auth.currentUser) return false;
-  
-  const path = `users/${auth.currentUser.uid}`;
-  try {
-    const docSnap = await getDoc(doc(db, 'users', auth.currentUser.uid));
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (data.profileData) {
-        const parsedData = JSON.parse(data.profileData);
-        
-        // Restore to local storage
-        for (const [key, value] of Object.entries(parsedData)) {
-          localStorage.setItem(key, JSON.stringify(value));
-        }
-        return true;
-      }
-    }
-  } catch (error) {
-    handleFirestoreError(error, OperationType.GET, path);
-  }
+  // Firestore load disabled for now
   return false;
 };
