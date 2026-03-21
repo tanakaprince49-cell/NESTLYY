@@ -43,7 +43,6 @@ Return ONLY the JSON.`,
             content: `Analyze this food: ${foodName}`,
           },
         ],
-        response_format: { type: "json_object" },
         temperature: 0.3,
       }),
     });
