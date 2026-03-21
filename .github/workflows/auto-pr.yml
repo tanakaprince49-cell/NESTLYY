@@ -1,0 +1,35 @@
+name: Auto PR to upstream
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create or update PR to upstream
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_PAT }}
+        run: |
+          UPSTREAM="tanakaprince49-cell/NESTLYY"
+          FORK_OWNER="${{ github.repository_owner }}"
+
+          # Check if an open PR from this fork already exists
+          existing_pr=$(gh pr list --repo "$UPSTREAM" --head "${FORK_OWNER}:main" --state open --json number --jq '.[0].number')
+
+          if [ -n "$existing_pr" ]; then
+            echo "PR #${existing_pr} already exists — new commits are included automatically."
+          else
+            gh pr create \
+              --repo "$UPSTREAM" \
+              --head "${FORK_OWNER}:main" \
+              --base main \
+              --title "feat: changes from ${FORK_OWNER}" \
+              --body "Automated PR from fork \`${FORK_OWNER}/NESTLYY-dev\`. Review the commits below."
+            echo "New PR created."
+          fi
