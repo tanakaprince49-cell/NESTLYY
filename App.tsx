@@ -6,14 +6,12 @@ import { ToolsHub } from './components/ToolsHub.tsx';
 import { SetupScreen } from './components/SetupScreen.tsx';
 import { EducationHub } from './components/EducationHub.tsx';
 import { AuthScreen } from './components/AuthScreen.tsx';
-import { PrivacyScreen } from './components/PrivacyScreen.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
 import { AvaChat } from './components/AvaChat.tsx';
 import { SplashScreen } from './components/SplashScreen.tsx';
 import { Settings } from './components/Settings.tsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
-import { loadFromFirestore } from './services/syncService.ts';
 import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders, setupForegroundMessaging } from './services/pushService.ts';
 import { auth } from './firebase.ts';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
@@ -45,7 +43,6 @@ import {
 
 const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
-  const [hasAcceptedPrivacy, setHasAcceptedPrivacy] = useState<boolean>(() => storage.hasAcceptedPrivacy());
   const [userUid, setUserUid] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -115,14 +112,9 @@ const App: React.FC = () => {
       setLoading(true);
       if (user) {
         const identifier = user.email || `anon-${user.uid}`;
-        storage.setAuthEmail(identifier);
-        
-        // Load from Firestore before setting state and loading user data
-        await loadFromFirestore(identifier);
-        
         setAuthEmail(identifier);
         setUserUid(user.uid);
-        setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
+        storage.setAuthEmail(identifier);
         
         loadUserData();
         setLoading(false);
@@ -216,15 +208,6 @@ const App: React.FC = () => {
 
   if (!authEmail) return <AuthScreen onAuthComplete={(e) => setAuthEmail(e)} />;
   
-  if (!hasAcceptedPrivacy) {
-    return (
-      <PrivacyScreen onAccept={() => {
-        storage.acceptPrivacy();
-        setHasAcceptedPrivacy(true);
-      }} />
-    );
-  }
-
   if (!profile || isEditingProfile) {
     return (
       <SetupScreen 

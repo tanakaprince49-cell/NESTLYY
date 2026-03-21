@@ -42,9 +42,6 @@ export const ReportCenter: React.FC = () => {
           <h3 className="text-2xl font-serif text-rose-900">Report Center</h3>
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Archive and export your journey</p>
         </div>
-        <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
-        </p>
 
         <div className="space-y-6">
           <div className="space-y-2">

@@ -52,9 +52,6 @@ export const TummyTimeTracker: React.FC<TummyTimeTrackerProps> = ({ tummyTimeLog
           <h3 className="text-2xl font-serif text-rose-900">Tummy Time Tracker</h3>
           <p className="text-xs text-slate-400 font-medium">Log your baby's daily stomach-down playtime to support motor skill development.</p>
         </div>
-        <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
-        </p>
 
         <div className="py-8">
           <div className="text-6xl font-mono font-black text-rose-900 tracking-tighter">

@@ -213,12 +213,6 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?
         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-6">Experience the AR Size Visualizer</p>
         <button onClick={() => setShowAR(true)} className="w-full sm:w-auto px-10 py-4 bg-rose-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl">Launch AR Explorer</button>
       </div>
-
-      <div className="text-center px-4 mt-8">
-        <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-          <strong>Medical Disclaimer:</strong> Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
-        </p>
-      </div>
     </div>
   );
 };

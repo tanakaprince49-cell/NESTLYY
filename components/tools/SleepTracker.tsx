@@ -19,7 +19,6 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
   const [sleepQuality, setSleepQuality] = useState<SleepLog['quality']>(3);
   const [sleepType, setSleepType] = useState<'nap' | 'night'>('night');
   const [showSleepTooltip, setShowSleepTooltip] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const sleepChartData = useMemo(() => {
     return [...sleepLogs]
@@ -33,7 +32,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
 
   const handleSleepLog = () => {
     const hrs = parseFloat(sleepHours);
-    if (!isNaN(hrs) && hrs > 0 && hrs <= 24) {
+    if (!isNaN(hrs)) {
       onAddSleep({ 
         hours: hrs, 
         quality: sleepQuality, 
@@ -42,9 +41,6 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
         startTime: Date.now() - (hrs * 60 * 60 * 1000),
         endTime: Date.now()
       });
-      setError(null);
-    } else {
-      setError("Please enter a valid sleep duration between 0 and 24 hours.");
     }
   };
 
@@ -75,14 +71,6 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
           </div>
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Track your sleep quality and duration</p>
         </div>
-        <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
-        </p>
-        {error && (
-          <div className="p-3 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-xl border border-rose-100 text-center">
-            {error}
-          </div>
-        )}
 
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">

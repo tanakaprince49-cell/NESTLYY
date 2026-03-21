@@ -17,9 +17,6 @@ export const VitaminTracker: React.FC<VitaminTrackerProps> = ({ vitamins, onAddV
           <Pill className="w-5 h-5 text-indigo-500" />
           Log Vitamin
         </h3>
-        <p className="text-xs text-slate-500 mb-4 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
-        </p>
         <div className="flex gap-2 mb-4">
           <input
             type="text"

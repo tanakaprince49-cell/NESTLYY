@@ -165,8 +165,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const pregnancyProgress = useMemo(() => {
     if (isPostpartum) return null;
     const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
-    const totalDays = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-    const weeks = Math.min(42, Math.floor(totalDays / 7));
+    const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(totalDays / 7);
     const days = totalDays % 7;
     return { weeks, days };
   }, [profile, isPostpartum]);
@@ -772,12 +772,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-
-      <div className="text-center px-4 mt-8">
-        <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-          <strong>Medical Disclaimer:</strong> Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
-        </p>
-      </div>
     </motion.div>
   );
 };

@@ -21,9 +21,6 @@ export const DiaperTracker: React.FC<DiaperTrackerProps> = ({
     <div className="space-y-8 animate-in fade-in">
       <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
         <h3 className="text-xl font-serif text-rose-800">Diaper Tracker</h3>
-        <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
-        </p>
         <div className="space-y-6">
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             {profile.babies?.map((baby, idx) => (

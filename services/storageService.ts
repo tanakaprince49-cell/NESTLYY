@@ -71,10 +71,7 @@ const KEYS = {
   TUMMY_TIME: 'tummy_time_logs',
   BLOOD_PRESSURE: 'blood_pressure_logs',
   KEGELS: 'kegel_logs',
-  PRIVACY_ACCEPTED: 'privacy_accepted',
 };
-
-import { syncToFirestore } from './syncService.ts';
 
 class StorageService {
   private getUserKey(key: string): string {
@@ -102,14 +99,6 @@ class StorageService {
     try {
       const finalKey = isGlobal ? key : this.getUserKey(key);
       localStorage.setItem(finalKey, JSON.stringify(value));
-      
-      // Sync to Firestore if it's a user-specific key
-      if (!isGlobal) {
-        const email = this.getAuthEmail();
-        if (email) {
-          syncToFirestore(email);
-        }
-      }
     } catch (e) {
       console.error("Storage error:", e);
       // If it's a quota error, we might want to alert the user or clear some space
@@ -143,9 +132,6 @@ class StorageService {
     return p;
   }
   saveProfile(profile: PregnancyProfile): void { this.setItem(KEYS.PROFILE, profile); }
-
-  hasAcceptedPrivacy(): boolean { return this.getItem<boolean>(KEYS.PRIVACY_ACCEPTED, false); }
-  acceptPrivacy(): void { this.setItem(KEYS.PRIVACY_ACCEPTED, true); }
 
   getBabyNames(): {name: string, gender: string, rating: number}[] { 
     const val = this.getItem(KEYS.BABY_NAMES, []);
