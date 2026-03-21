@@ -54,7 +54,10 @@ Return ONLY the JSON.`,
 
     const data = await response.json();
     const content = data.choices[0].message.content;
-    const analysis = JSON.parse(content);
+
+    // Strip markdown code fences if present (e.g. ```json ... ```)
+    const cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+    const analysis = JSON.parse(cleaned);
 
     return res.status(200).json(analysis);
   } catch (err) {
