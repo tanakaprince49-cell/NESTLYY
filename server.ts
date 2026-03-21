@@ -63,14 +63,14 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  // Proxy OpenRouter Chat
-  app.post("/api/ava/chat", authenticate, async (req, res) => {
-    const { messages } = req.body;
-    if (!messages || !Array.isArray(messages)) {
-      return res.status(400).json({ error: "Messages are required" });
-    }
-
+  // Proxy OpenRouter Chat (Secure Backend)
+  app.post("/api/ava", async (req, res) => {
     try {
+      const { messages } = req.body;
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: "Messages are required" });
+      }
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -84,13 +84,11 @@ async function startServer() {
           messages: [
             {
               role: "system",
-              content: `
-You are Ava, a pregnancy companion.
+              content: `You are Ava, a pregnancy companion.
 Be VERY concise.
 Max 2-3 short sentences.
 Warm but direct.
-No long explanations.
-`,
+No long explanations.`,
             },
             ...messages,
           ],
@@ -100,16 +98,18 @@ No long explanations.
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("OpenRouter Error:", errorText);
-        return res.status(response.status).json({ error: "OpenRouter request failed" });
+        const err = await response.text();
+        console.error("OpenRouter Error:", err);
+        return res.status(500).json({ error: err });
       }
 
       const data = await response.json();
-      res.json(data);
+      const reply = data.choices[0].message.content;
+
+      return res.status(200).json({ reply });
     } catch (error) {
       console.error("Proxy Error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      return res.status(500).json({ error: "Server error" });
     }
   });
 

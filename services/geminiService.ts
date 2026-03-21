@@ -1,10 +1,8 @@
 /* ==========================================
-   AVA – Fast, Short, Smart, With Memory + Voice
+   AVA – SAFE FRONTEND (NO API KEY)
 ========================================== */
 
-import { auth } from "../firebase.ts";
-
-const AVA_CHAT_URL = "/api/ava/chat";
+const API_URL = "/api/ava";
 
 /* ==========================================
    MEMORY (Local Storage)
@@ -22,54 +20,40 @@ function loadMemory() {
 }
 
 /* ==========================================
-   CORE FAST CALL
+   CORE CALL (TO BACKEND)
 ========================================== */
 
 async function callAva(messages: any[]) {
-  const user = auth.currentUser;
-  if (!user) {
-    throw new Error("User not authenticated");
-  }
-
-  const idToken = await user.getIdToken();
-
-  const response = await fetch(AVA_CHAT_URL, {
+  const response = await fetch(API_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${idToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      messages: messages,
-    }),
+    body: JSON.stringify({ messages }),
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to get response from Ava");
+    throw new Error(await response.text());
   }
 
   const data = await response.json();
-  return data.choices[0].message.content;
+  return data.reply;
 }
 
 /* ==========================================
-   PUBLIC CHAT FUNCTION (With Memory)
+   PUBLIC CHAT FUNCTION
 ========================================== */
 
 export async function getAvaResponse(userMessage: string) {
   try {
     let memory = loadMemory();
 
-    // Add new user message
     memory.push({ role: "user", content: userMessage });
 
-    // Keep only last 6 messages (faster)
     memory = memory.slice(-6);
 
     const reply = await callAva(memory);
 
-    // Save assistant reply
     memory.push({ role: "assistant", content: reply });
     saveMemory(memory);
 
@@ -101,11 +85,6 @@ export function listen(callback: (text: string) => void) {
   const SpeechRecognition =
     (window as any).SpeechRecognition ||
     (window as any).webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    console.error("Speech Recognition not supported in this browser.");
-    return;
-  }
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
