@@ -1,6 +1,8 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { updatePassword } from 'firebase/auth';
+import { auth } from '../firebase.ts';
 import { PregnancyProfile, LifecycleStage, BabyAvatar } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { Camera, Plus, Trash2, Baby } from 'lucide-react';
@@ -59,17 +61,22 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
     const updatedProfile = { ...profile, userName: name };
     storage.saveProfile(updatedProfile);
     onUpdateProfile(updatedProfile);
-    
-    // Update local password if applicable
-    const email = storage.getAuthEmail();
-    if (email && password) {
-      const localUsers = JSON.parse(localStorage.getItem('nestly_local_users') || '{}');
-      if (localUsers[email]) {
-        localUsers[email].password = password;
-        localStorage.setItem('nestly_local_users', JSON.stringify(localUsers));
+
+    if (password && auth.currentUser) {
+      try {
+        await updatePassword(auth.currentUser, password);
+      } catch (err: any) {
+        if (err.code === 'auth/requires-recent-login') {
+          alert('For security reasons, please sign out and sign back in before changing your password.');
+        } else {
+          alert('Failed to update password. Please try again.');
+        }
       }
     }
-    
+
+    // Clean up any legacy plaintext password data
+    localStorage.removeItem('nestly_local_users');
+
     setSaving(false);
     setPassword('');
   };
