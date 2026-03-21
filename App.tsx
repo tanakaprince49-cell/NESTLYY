@@ -6,12 +6,14 @@ import { ToolsHub } from './components/ToolsHub.tsx';
 import { SetupScreen } from './components/SetupScreen.tsx';
 import { EducationHub } from './components/EducationHub.tsx';
 import { AuthScreen } from './components/AuthScreen.tsx';
+import { PrivacyScreen } from './components/PrivacyScreen.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
 import { AvaChat } from './components/AvaChat.tsx';
 import { SplashScreen } from './components/SplashScreen.tsx';
 import { Settings } from './components/Settings.tsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
+import { loadFromFirestore } from './services/syncService.ts';
 import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders, setupForegroundMessaging } from './services/pushService.ts';
 import { auth } from './firebase.ts';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
@@ -43,6 +45,7 @@ import {
 
 const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
+  const [hasAcceptedPrivacy, setHasAcceptedPrivacy] = useState<boolean>(() => storage.hasAcceptedPrivacy());
   const [userUid, setUserUid] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -78,26 +81,30 @@ const App: React.FC = () => {
   const [medicationLogs, setMedicationLogs] = useState<MedicationLog[]>([]);
 
   const loadUserData = useCallback(() => {
-    setProfile(storage.getProfile());
-    setEntries(storage.getFoodEntries());
-    setSymptoms(storage.getSymptoms());
-    setVitamins(storage.getVitamins());
-    setContractions(storage.getContractions());
-    setJournalEntries(storage.getJournalEntries());
-    setCalendarEvents(storage.getCalendarEvents());
-    setWeightLogs(storage.getWeightLogs());
-    setSleepLogs(storage.getSleepLogs());
-    setFeedingLogs(storage.getFeedingLogs());
-    setMilestones(storage.getMilestones());
-    setHealthLogs(storage.getHealthLogs());
-    setReactions(storage.getReactions());
-    setBabyGrowthLogs(storage.getBabyGrowthLogs());
-    setTummyTimeLogs(storage.getTummyTimeLogs());
-    setBloodPressureLogs(storage.getBloodPressureLogs());
-    setKickLogs(storage.getKickLogs());
-    setKegelLogs(storage.getKegelLogs());
-    setDiaperLogs(storage.getDiaperLogs());
-    setMedicationLogs(storage.getMedications());
+    try {
+      setProfile(storage.getProfile());
+      setEntries(storage.getFoodEntries());
+      setSymptoms(storage.getSymptoms());
+      setVitamins(storage.getVitamins());
+      setContractions(storage.getContractions());
+      setJournalEntries(storage.getJournalEntries());
+      setCalendarEvents(storage.getCalendarEvents());
+      setWeightLogs(storage.getWeightLogs());
+      setSleepLogs(storage.getSleepLogs());
+      setFeedingLogs(storage.getFeedingLogs());
+      setMilestones(storage.getMilestones());
+      setHealthLogs(storage.getHealthLogs());
+      setReactions(storage.getReactions());
+      setBabyGrowthLogs(storage.getBabyGrowthLogs());
+      setTummyTimeLogs(storage.getTummyTimeLogs());
+      setBloodPressureLogs(storage.getBloodPressureLogs());
+      setKickLogs(storage.getKickLogs());
+      setKegelLogs(storage.getKegelLogs());
+      setDiaperLogs(storage.getDiaperLogs());
+      setMedicationLogs(storage.getMedications());
+    } catch (err) {
+      console.error("Error loading user data from storage:", err);
+    }
   }, []);
 
   // Firebase Auth Listener
@@ -105,22 +112,36 @@ const App: React.FC = () => {
     // Fallback to stop loading if Firebase takes too long
     const fallbackTimer = setTimeout(() => {
       setLoading(false);
-    }, 5000);
+    }, 8000);
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      clearTimeout(fallbackTimer);
-      setLoading(true);
-      if (user) {
-        const identifier = user.email || `anon-${user.uid}`;
-        setAuthEmail(identifier);
-        setUserUid(user.uid);
-        storage.setAuthEmail(identifier);
-        
-        loadUserData();
-        setLoading(false);
-      } else {
-        setAuthEmail(null);
-        setUserUid(null);
+      try {
+        clearTimeout(fallbackTimer);
+        setLoading(true);
+        if (user) {
+          const identifier = user.email || `anon-${user.uid}`;
+          storage.setAuthEmail(identifier);
+          
+          // Load from Firestore before setting state and loading user data
+          try {
+            await loadFromFirestore(identifier);
+          } catch (fsErr) {
+            console.error("Firestore sync error during auth:", fsErr);
+          }
+          
+          setAuthEmail(identifier);
+          setUserUid(user.uid);
+          setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
+          
+          loadUserData();
+          setLoading(false);
+        } else {
+          setAuthEmail(null);
+          setUserUid(null);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Auth state change error:", err);
         setLoading(false);
       }
     });
@@ -208,6 +229,15 @@ const App: React.FC = () => {
 
   if (!authEmail) return <AuthScreen onAuthComplete={(e) => setAuthEmail(e)} />;
   
+  if (!hasAcceptedPrivacy) {
+    return (
+      <PrivacyScreen onAccept={() => {
+        storage.acceptPrivacy();
+        setHasAcceptedPrivacy(true);
+      }} />
+    );
+  }
+
   if (!profile || isEditingProfile) {
     return (
       <SetupScreen 

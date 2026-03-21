@@ -44,14 +44,18 @@ export interface WeightLog {
   timestamp: number;
 }
 
+export type SleepMode = 'pregnancy' | 'newborn';
+export type SleepQuality = 'poor' | 'okay' | 'good';
+
 export interface SleepLog {
   id: string;
+  userId: string;
   babyId?: string;
-  hours: number;
-  quality: number; // 1-5 scale
-  type: 'nap' | 'night';
-  startTime: number;
-  endTime?: number;
+  startTime: string; // ISO string
+  endTime: string;   // ISO string
+  mode: SleepMode;
+  quality?: SleepQuality;
+  type: 'night' | 'nap';
   notes?: string;
   timestamp: number;
 }

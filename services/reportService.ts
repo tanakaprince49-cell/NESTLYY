@@ -1,6 +1,7 @@
 import { storage } from './storageService.ts';
 import { Trimester } from '../types.ts';
 import { jsPDF } from 'jspdf';
+import { calculateDurationMinutes } from '../src/utils/sleepUtils';
 
 export const generatePregnancyDailyReport = (date: Date) => {
   const profile = storage.getProfile();
@@ -117,7 +118,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
   doc.setFontSize(10);
   doc.setTextColor(slateText[0], slateText[1], slateText[2]);
   doc.text(`Weight: ${weightLogs.length > 0 ? weightLogs[0].weight + ' kg' : '---'}`, 25, y + 24);
-  doc.text(`Sleep: ${sleep ? sleep.hours + ' hrs' : '---'}`, 25, y + 31);
+  doc.text(`Sleep: ${sleep ? (calculateDurationMinutes(sleep.startTime, sleep.endTime) / 60).toFixed(1) + ' hrs' : '---'}`, 25, y + 31);
 
   // Pregnancy Specifics Box
   doc.setFillColor(boxBg[0], boxBg[1], boxBg[2]);
@@ -217,7 +218,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   const journal = (storage.getJournalEntries() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
 
   const totalMilk = feedings.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalSleep = babySleep.reduce((acc, curr) => acc + curr.hours, 0);
+  const totalSleep = babySleep.reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0);
   const totalTummy = Math.floor(tummyTime.reduce((acc, curr) => acc + curr.duration, 0) / 60);
 
   const pinkPrimary = [190, 24, 93];

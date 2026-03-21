@@ -28,6 +28,9 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Track your pregnancy safe meds</p>
           </div>
         </div>
+        <p className="text-xs text-slate-500 italic">
+          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+        </p>
 
         <div className="space-y-4">
           <div className="space-y-1">

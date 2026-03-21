@@ -28,7 +28,8 @@ export default async function handler(req, res) {
 Be VERY concise.
 Max 2-3 short sentences.
 Warm but direct.
-No long explanations.`,
+No long explanations.
+CRITICAL: You are not a doctor. Never provide medical diagnoses or prescribe treatments. Always advise consulting a healthcare professional for medical concerns.`,
           },
           ...messages,
         ],

@@ -11,6 +11,14 @@ export const ARVisualizer: React.FC<ARVisualizerProps> = ({ onClose, babySize, b
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(true);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   useEffect(() => {
     let activeStream: MediaStream | null = null;
@@ -154,7 +162,7 @@ export const ARVisualizer: React.FC<ARVisualizerProps> = ({ onClose, babySize, b
               onClick={() => {
                 const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
                 audio.play().catch(() => {});
-                alert("Snapshot saved to your Nestly Memory Album! ✨");
+                setToast("Snapshot saved to your Nestly Memory Album! ✨");
               }}
               className="w-20 h-20 bg-white rounded-full border-8 border-rose-100 shadow-2xl flex items-center justify-center active:scale-90 transition-all pointer-events-auto group"
             >
@@ -195,6 +203,12 @@ export const ARVisualizer: React.FC<ARVisualizerProps> = ({ onClose, babySize, b
           Spatial Visualizer
         </div>
       </div>
+
+      {toast && (
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-[600] px-6 py-3 bg-white text-rose-500 rounded-full shadow-lg font-bold text-sm animate-in fade-in slide-in-from-top-4">
+          {toast}
+        </div>
+      )}
 
       <style>{`
         @keyframes float-ar {

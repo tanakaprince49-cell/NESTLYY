@@ -15,6 +15,7 @@ export const NutritionTracker: React.FC<NutritionTrackerProps> = ({ foodEntries,
   const [foodFolate, setFoodFolate] = useState('');
   const [foodIron, setFoodIron] = useState('');
   const [foodCalcium, setFoodCalcium] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">
@@ -23,6 +24,14 @@ export const NutritionTracker: React.FC<NutritionTrackerProps> = ({ foodEntries,
           <Soup className="w-5 h-5 text-orange-500" />
           Log Nutrition
         </h3>
+        <p className="text-xs text-slate-500 mb-4 italic">
+          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+        </p>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+            {error}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <input
             type="text"
@@ -70,20 +79,31 @@ export const NutritionTracker: React.FC<NutritionTrackerProps> = ({ foodEntries,
         <button
           onClick={() => {
             if (foodName) {
-              onAddFoodEntry({
-                name: foodName,
-                calories: parseFloat(foodCals) || 0,
-                protein: parseFloat(foodProtein) || 0,
-                folate: parseFloat(foodFolate) || 0,
-                iron: parseFloat(foodIron) || 0,
-                calcium: parseFloat(foodCalcium) || 0
-              });
-              setFoodName('');
-              setFoodCals('');
-              setFoodProtein('');
-              setFoodFolate('');
-              setFoodIron('');
-              setFoodCalcium('');
+              const cals = parseFloat(foodCals) || 0;
+              const protein = parseFloat(foodProtein) || 0;
+              const folate = parseFloat(foodFolate) || 0;
+              const iron = parseFloat(foodIron) || 0;
+              const calcium = parseFloat(foodCalcium) || 0;
+              
+              if (cals >= 0 && cals < 10000 && protein >= 0 && protein < 1000 && folate >= 0 && folate < 10000 && iron >= 0 && iron < 1000 && calcium >= 0 && calcium < 10000) {
+                onAddFoodEntry({
+                  name: foodName,
+                  calories: cals,
+                  protein: protein,
+                  folate: folate,
+                  iron: iron,
+                  calcium: calcium
+                });
+                setFoodName('');
+                setFoodCals('');
+                setFoodProtein('');
+                setFoodFolate('');
+                setFoodIron('');
+                setFoodCalcium('');
+                setError(null);
+              } else {
+                setError("Please enter valid nutrition values.");
+              }
             }
           }}
           className="w-full py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"

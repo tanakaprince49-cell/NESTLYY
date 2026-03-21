@@ -19,6 +19,9 @@ export const KickCounter: React.FC<KickCounterProps> = ({
     <div className="space-y-8 animate-in fade-in">
       <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
         <h3 className="text-xl font-serif text-rose-800">Kick Counter</h3>
+        <p className="text-xs text-slate-500 italic">
+          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+        </p>
         <div className="flex justify-center gap-4">
           {profile.babies?.map((baby, idx) => (
             <button

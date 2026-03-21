@@ -16,6 +16,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
   const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [showAddBaby, setShowAddBaby] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string, onConfirm: () => void } | null>(null);
   const [newBaby, setNewBaby] = useState<Partial<BabyAvatar>>({
     name: '',
     gender: 'neutral',
@@ -44,14 +45,18 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
   };
 
   const handleRemoveBaby = (id: string) => {
-    if (confirm('Remove this baby from your tracking?')) {
-      const updatedProfile = {
-        ...profile,
-        babies: profile.babies.filter(b => b.id !== id)
-      };
-      storage.saveProfile(updatedProfile);
-      onUpdateProfile(updatedProfile);
-    }
+    setConfirmDialog({
+      message: 'Remove this baby from your tracking?',
+      onConfirm: () => {
+        const updatedProfile = {
+          ...profile,
+          babies: profile.babies.filter(b => b.id !== id)
+        };
+        storage.saveProfile(updatedProfile);
+        onUpdateProfile(updatedProfile);
+        setConfirmDialog(null);
+      }
+    });
   };
 
   const handleSaveProfile = async () => {
@@ -404,15 +409,40 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
 
       <button 
         onClick={() => {
-          if (confirm('Are you sure you want to delete your account? This will permanently erase all your data from this device.')) {
-            storage.deleteAccount();
-            window.location.reload();
-          }
+          setConfirmDialog({
+            message: 'Are you sure you want to delete your account? This will permanently erase all your data from this device.',
+            onConfirm: () => {
+              storage.deleteAccount();
+              window.location.reload();
+            }
+          });
         }}
         className="w-full py-4 text-rose-300 text-[10px] font-black uppercase tracking-[0.2em] hover:text-rose-600 transition-colors"
       >
         Delete My Nest
       </button>
+
+      {confirmDialog && (
+        <div className="fixed inset-0 z-[700] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95">
+            <h3 className="text-xl font-bold text-slate-900 mb-6">{confirmDialog.message}</h3>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setConfirmDialog(null)}
+                className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDialog.onConfirm}
+                className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-xl hover:bg-rose-600 transition-colors shadow-lg shadow-rose-200"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };

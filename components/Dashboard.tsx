@@ -45,6 +45,8 @@ import {
   Activity,
   Droplet
 } from 'lucide-react';
+import { calculateDurationMinutes } from '../src/utils/sleepUtils';
+import { FoodResearchAI } from './FoodResearchAI.tsx';
 import { 
   FoodEntry, 
   Trimester, 
@@ -272,7 +274,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         date: d.toLocaleDateString([], { weekday: 'short' }),
         fuel: dayEntries.reduce((acc, curr) => acc + (curr.calories || 0), 0),
         weight: dayWeight?.weight || (weightLogs?.[0]?.weight || profile.startingWeight || 0),
-        sleep: daySleep.reduce((acc, curr) => acc + curr.hours, 0),
+        sleep: daySleep.reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0),
         feeding: dayFeeding.length,
         tummy: dayTummy.reduce((acc, curr) => acc + curr.duration, 0) / 60, // minutes
       };
@@ -309,6 +311,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
+      <FoodResearchAI onAddEntry={onAddEntry} />
+
       {isPostpartum && (
         <div className="space-y-6">
           {/* Sleep Analysis Card - Moved to Top for Newborn Mode */}
@@ -321,7 +325,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
                   <p className="text-3xl font-bold text-blue-900">
-                    {(sleepLogs.reduce((acc, curr) => acc + curr.hours, 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
+                    {(sleepLogs.reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
                   </p>
                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg / Session</p>
                 </div>
@@ -406,7 +410,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Sleep</span>
               <div className="mt-2">
                 <span className="text-2xl font-bold text-slate-900">
-                  {(sleepLogs || []).filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).reduce((acc, curr) => acc + curr.hours, 0).toFixed(1)}
+                  {(sleepLogs || []).filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0).toFixed(1)}
                 </span>
                 <span className="text-[10px] text-slate-400 ml-1 font-medium">hrs</span>
               </div>
@@ -525,7 +529,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div>
                 <p className="text-3xl font-bold text-blue-900">
-                  {(sleepLogs.reduce((acc, curr) => acc + curr.hours, 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
+                  {(sleepLogs.reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
                 </p>
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg / Session</p>
               </div>
@@ -602,7 +606,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] text-slate-400 font-bold">Sleep</span>
-                    <span className="text-sm font-bold text-slate-800">{sleepLogs[0]?.hours || '--'} <span className="text-[8px] font-normal">hrs</span></span>
+                    <span className="text-sm font-bold text-slate-800">{sleepLogs[0] ? (calculateDurationMinutes(sleepLogs[0].startTime, sleepLogs[0].endTime) / 60).toFixed(1) : '--'} <span className="text-[8px] font-normal">hrs</span></span>
                   </div>
                 </div>
               </div>

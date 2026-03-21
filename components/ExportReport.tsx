@@ -157,6 +157,9 @@ export const ExportReport: React.FC<ExportReportProps> = ({
         <div className="text-center space-y-2">
           <h3 className="text-2xl font-serif text-rose-800">Comprehensive Health Report</h3>
           <p className="text-xs text-slate-400 font-medium">Select a date range to generate your personalized report.</p>
+          <p className="text-xs text-slate-500 italic">
+            Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
