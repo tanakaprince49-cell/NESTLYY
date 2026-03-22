@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { createServer as createViteServer } from "vite";
 import { Resend } from "resend";
 import cron from "node-cron";
@@ -27,33 +27,36 @@ if (!admin.apps.length) {
 const messaging = admin.messaging();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Auth middleware — verifies Firebase ID token from Authorization header
-async function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers.authorization?.split("Bearer ")[1];
-  if (!token) return res.status(401).json({ error: "Unauthorized" });
-  try {
-    (req as any).user = await admin.auth().verifyIdToken(token);
-    next();
-  } catch {
-    res.status(401).json({ error: "Invalid token" });
-  }
-}
-
-// Admin middleware — checks if user UID is in ADMIN_UIDS env var
-function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  const user = (req as any).user;
-  const adminUids = (process.env.ADMIN_UIDS || "").split(",").filter(Boolean);
-  if (!user || !adminUids.includes(user.uid)) {
-    return res.status(403).json({ error: "Forbidden" });
-  }
-  next();
-}
-
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(express.json());
+
+  // Authentication Middleware
+  const authenticate = async (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const idToken = authHeader.split("Bearer ")[1];
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+      req.user = decodedToken;
+      next();
+    } catch (error) {
+      console.error("Auth Error:", error);
+      res.status(401).json({ error: "Invalid token" });
+    }
+  };
+
+  const adminOnly = (req: any, res: any, next: any) => {
+    if (req.user && req.user.email === 'tanakaprince49@gmail.com') {
+      next();
+    } else {
+      res.status(403).json({ error: "Forbidden: Admin only" });
+    }
+  };
 
   // API Health Check
   app.get("/api/health", (req, res) => {
@@ -61,7 +64,7 @@ async function startServer() {
   });
 
   // Proxy OpenRouter Chat (Secure Backend)
-  app.post("/api/ava", requireAuth, async (req, res) => {
+  app.post("/api/ava", async (req, res) => {
     try {
       const { messages } = req.body;
       if (!messages || !Array.isArray(messages)) {
@@ -169,13 +172,13 @@ Return ONLY the JSON.`,
   });
 
   // Store FCM Token
-  app.post("/api/push/token", requireAuth, async (req, res) => {
+  app.post("/api/push/token", authenticate, async (req, res) => {
     // Disabled as per request to keep Firebase for Auth only
     res.json({ success: true, message: "FCM token storage disabled (Local only mode)" });
   });
 
   // Admin Broadcast Push
-  app.post("/api/admin/broadcast", requireAuth, requireAdmin, async (req, res) => {
+  app.post("/api/admin/broadcast", authenticate, adminOnly, async (req, res) => {
     const { title, body, url } = req.body;
     if (!title || !body) return res.status(400).send("Title and body required");
 
