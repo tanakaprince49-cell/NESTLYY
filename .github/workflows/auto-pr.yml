@@ -25,7 +25,8 @@ jobs:
             gh pr create \
               --head dev \
               --base main \
+              --draft \
               --title "feat: changes from dev" \
-              --body "Automated PR from dev branch. Review the commits below."
+              --body "Automated PR from dev branch. Mark as Ready for review when done to trigger CI/CD."
             echo "New PR created."
           fi
