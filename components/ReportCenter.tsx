@@ -88,13 +88,15 @@ export const ReportCenter: React.FC = () => {
               </button>
             )}
 
-            <button 
-              onClick={handleDownloadArchive}
-              className="w-full py-5 bg-rose-50 text-rose-900 font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-rose-100 active:scale-95 transition-all flex items-center justify-center gap-3"
-            >
-              <FileArchive size={18} strokeWidth={3} />
-              {isNewbornStage ? 'Full Newborn Archive' : 'Full Pregnancy Archive'}
-            </button>
+            {isNewbornStage && (
+              <button 
+                onClick={handleDownloadArchive}
+                className="w-full py-5 bg-rose-50 text-rose-900 font-black rounded-2xl text-[10px] uppercase tracking-[0.2em] hover:bg-rose-100 active:scale-95 transition-all flex items-center justify-center gap-3"
+              >
+                <FileArchive size={18} strokeWidth={3} />
+                Full Newborn Archive
+              </button>
+            )}
           </div>
         </div>
 
