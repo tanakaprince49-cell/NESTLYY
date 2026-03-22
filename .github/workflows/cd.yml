@@ -3,10 +3,10 @@ name: Vercel CD Pipeline
 on:
   push:
     branches:
-      - main
+      - production
   pull_request:
     branches:
-      - main
+      - production
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -50,7 +50,7 @@ jobs:
 
   Deploy-Production:
     name: Deploy Production (Main)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
