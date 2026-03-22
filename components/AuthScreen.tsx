@@ -270,7 +270,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthComplete }) => {
         
         <div className="text-center px-4">
           <p className="text-[10px] text-rose-800/60 font-medium leading-relaxed">
-            <strong>Medical Disclaimer:</strong> Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+            Your private pregnancy companion.
           </p>
         </div>
       </div>

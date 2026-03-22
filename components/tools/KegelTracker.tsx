@@ -36,7 +36,7 @@ export const KegelTracker: React.FC<KegelTrackerProps> = ({ kegelLogs, onAddKege
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-relaxed">Press and hold to contract.<br/>Release to rest.</p>
         </div>
         <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Track your Kegel sessions with Nestly.
         </p>
 
         <button 

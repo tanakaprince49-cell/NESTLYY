@@ -23,7 +23,7 @@ export const TeethingTracker: React.FC<TeethingTrackerProps> = ({ journalEntries
         <h3 className="text-xl font-serif text-yellow-800">Teething Tracker</h3>
         <p className="text-xs text-slate-400 font-medium">Log teething symptoms and milestones.</p>
         <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Track your baby's teething milestones with Nestly.
         </p>
         <div className="flex gap-4">
           <input 

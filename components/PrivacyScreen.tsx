@@ -56,9 +56,9 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onAccept }) => {
         </div>
 
         <div className="bg-rose-50 p-4 rounded-xl mb-8 border border-rose-100">
-          <h4 className="font-semibold text-rose-900 mb-2">Medical Disclaimer</h4>
+          <h4 className="font-semibold text-rose-900 mb-2">Privacy Commitment</h4>
           <p className="text-sm text-rose-800">
-            <strong>Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.</strong> Always consult your healthcare provider for medical decisions.
+            Your data is encrypted and stored securely. We prioritize your privacy above all else.
           </p>
         </div>
 
@@ -75,7 +75,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onAccept }) => {
             </div>
           </div>
           <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
-            I have read and agree to Nestly’s Privacy & Security Policy, and I understand the Medical Disclaimer.
+            I have read and agree to Nestly’s Privacy & Security Policy.
           </span>
         </label>
 

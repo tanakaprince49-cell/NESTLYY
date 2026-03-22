@@ -13,7 +13,7 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({ symptoms, onLogS
         <h3 className="text-xl font-serif text-rose-800">Symptom Tracker</h3>
         <p className="text-xs text-slate-400 font-medium">Log your symptoms to track patterns.</p>
         <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Track your symptoms with Nestly.
         </p>
         <div className="grid grid-cols-2 gap-4">
           {['Nausea', 'Headache', 'Fatigue', 'Heartburn', 'Cramps', 'Back Pain'].map(sym => (

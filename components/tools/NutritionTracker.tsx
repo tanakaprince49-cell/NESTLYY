@@ -25,7 +25,7 @@ export const NutritionTracker: React.FC<NutritionTrackerProps> = ({ foodEntries,
           Log Nutrition
         </h3>
         <p className="text-xs text-slate-500 mb-4 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Track your daily nutrition with Nestly.
         </p>
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">

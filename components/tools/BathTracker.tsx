@@ -15,7 +15,7 @@ export const BathTracker: React.FC<BathTrackerProps> = ({ journalEntries, onAddJ
         <h3 className="text-xl font-serif text-cyan-800">Bath Tracker</h3>
         <p className="text-xs text-slate-400 font-medium">Keep track of your baby's bath schedule.</p>
         <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Track your baby's bath schedule with Nestly.
         </p>
         <button 
           onClick={() => onAddJournal(`[Bath] Given a bath`, 'clean')}

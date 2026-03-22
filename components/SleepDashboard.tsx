@@ -164,14 +164,6 @@ export const SleepDashboard: React.FC = () => {
           onEdit={handleEditSession}
           onDelete={handleDeleteSession}
         />
-
-        {/* Disclaimer */}
-        <div className="p-4 bg-slate-100 rounded-2xl border border-slate-200 flex gap-3 items-start">
-          <Info className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-500 leading-relaxed">
-            <strong>Disclaimer:</strong> This feature provides general sleep tracking and is not medical advice. Always consult with a healthcare professional for concerns about your or your baby's health.
-          </p>
-        </div>
       </main>
 
       {/* Floating Action Button */}

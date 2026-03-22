@@ -21,10 +21,7 @@ export const PumpingTracker: React.FC<PumpingTrackerProps> = ({ journalEntries, 
     <div className="space-y-8 animate-in fade-in">
       <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
         <h3 className="text-xl font-serif text-pink-800">Pumping Log</h3>
-        <p className="text-xs text-slate-400 font-medium">Track your pumping sessions and amounts.</p>
-        <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
-        </p>
+        <p className="text-xs text-slate-400 font-medium">Track your pumping sessions and amounts with Nestly.</p>
         <div className="flex gap-4">
           <input 
             type="number" 

@@ -21,7 +21,7 @@ export const CalmTracker: React.FC<CalmTrackerProps> = ({ onAddJournal, journalE
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Breathe in peace, breathe out stress.</p>
         </div>
         <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Find your moment of peace with Nestly.
         </p>
 
         <div className="grid grid-cols-1 gap-6">

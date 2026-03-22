@@ -153,14 +153,6 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
           />
         )}
       </AnimatePresence>
-
-      {/* Disclaimer */}
-      <div className="p-6 bg-slate-100/50 rounded-3xl border border-slate-200 flex gap-4 items-start">
-        <Info className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
-        <p className="text-[10px] text-slate-500 leading-relaxed uppercase tracking-wider font-bold">
-          <strong>Disclaimer:</strong> This feature provides general sleep tracking and is not medical advice. Always consult with a healthcare professional for concerns about your or your baby's health.
-        </p>
-      </div>
     </div>
   );
 };

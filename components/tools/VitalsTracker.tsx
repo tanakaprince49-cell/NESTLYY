@@ -130,7 +130,7 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
       <div className="card-premium p-8 bg-white space-y-6 shadow-sm border-2 border-white">
         <h3 className="text-xl font-serif text-rose-800">{profile.lifecycleStage === LifecycleStage.NEWBORN ? 'Parent Weight Tracker' : 'Weight Tracker'}</h3>
         <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Monitor your health journey with Nestly.
         </p>
         <div className="flex gap-3">
           <input type="number" step="0.1" value={weightInput} onChange={e => setWeightInput(e.target.value)} placeholder="Current weight (kg)" className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />

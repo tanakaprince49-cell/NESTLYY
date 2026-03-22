@@ -29,7 +29,7 @@ export const MedicationTracker: React.FC<MedicationTrackerProps> = ({
           </div>
         </div>
         <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Track your medications with Nestly.
         </p>
 
         <div className="space-y-4">

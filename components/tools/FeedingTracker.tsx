@@ -27,7 +27,7 @@ export const FeedingTracker: React.FC<FeedingTrackerProps> = ({
       <div className="card-premium p-8 bg-white border-2 border-white space-y-6">
         <h3 className="text-xl font-serif text-rose-800">Feeding Tracker</h3>
         <p className="text-xs text-slate-500 italic">
-          Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Track your baby's feeding with Nestly.
         </p>
         {error && (
           <div className="p-3 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-xl border border-rose-100 text-center">

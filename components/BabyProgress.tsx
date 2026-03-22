@@ -216,7 +216,7 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?
 
       <div className="text-center px-4 mt-8">
         <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-          <strong>Medical Disclaimer:</strong> Nestly provides informational support only and is not a substitute for professional medical advice, diagnosis, or treatment.
+          Track your baby's growth and development journey with Nestly.
         </p>
       </div>
     </div>

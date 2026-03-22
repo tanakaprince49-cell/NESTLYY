@@ -486,12 +486,12 @@ export const generateLaborReport = (date: Date) => {
     doc.text('No contractions recorded for this date.', 15, y);
   }
 
-  // Disclaimer
+  // Footer
   const footerY = doc.internal.pageSize.getHeight() - 20;
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(8);
   doc.setTextColor(slateText[0], slateText[1], slateText[2]);
-  doc.text('Nestly assists in tracking but does not replace medical advice. Contact your provider if labor intensifies.', pageWidth / 2, footerY, { align: 'center' });
+  doc.text('Your journey is tracked securely with Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
   doc.save(`Nestly_Labor_Summary_${date.toISOString().split('T')[0]}.pdf`);
 };
