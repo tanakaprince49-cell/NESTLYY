@@ -1,9 +1,11 @@
 export default async function handler(req, res) {
+  const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+  const MODEL = "deepseek/deepseek-chat";
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // TODO: Add Firebase auth token verification once FIREBASE_SERVICE_ACCOUNT is configured
   try {
     const { messages } = req.body;
 
@@ -11,16 +13,14 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Missing API key" });
     }
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch(OPENROUTER_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://nestly.app",
-        "X-Title": "Ava AI",
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-chat",
+        model: MODEL,
         messages: [
           {
             role: "system",
@@ -47,6 +47,7 @@ CRITICAL: You are not a doctor. Never provide medical diagnoses or prescribe tre
     return res.status(200).json({
       reply: data.choices?.[0]?.message?.content || "No response",
     });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
