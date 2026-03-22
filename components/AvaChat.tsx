@@ -264,6 +264,11 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
       </div>
 
       <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-2">
+        <div className="text-center px-4">
+          <p className="text-[9px] text-rose-800/60 font-medium leading-relaxed bg-white/50 backdrop-blur-sm py-1 px-3 rounded-full inline-block">
+            <strong>Medical Disclaimer:</strong> Ava provides informational support only and is not a substitute for professional medical advice.
+          </p>
+        </div>
         <div className="bg-white/30 backdrop-blur-2xl p-3 rounded-[2.2rem] border border-white/60 shadow-xl">
           <form onSubmit={handleSend} className="relative">
             <input 

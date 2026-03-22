@@ -20,16 +20,6 @@ export const FoodResearchAI: React.FC<FoodResearchAIProps> = ({ onAddEntry }) =>
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [recentResearch, setRecentResearch] = useState<string[]>(() => {
-    const saved = localStorage.getItem('recent_food_research');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const saveToRecent = (name: string) => {
-    const updated = [name, ...recentResearch.filter(r => r !== name)].slice(0, 3);
-    setRecentResearch(updated);
-    localStorage.setItem('recent_food_research', JSON.stringify(updated));
-  };
 
   const handleResearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +54,6 @@ export const FoodResearchAI: React.FC<FoodResearchAIProps> = ({ onAddEntry }) =>
         calcium: data.calcium || 0,
       });
 
-      saveToRecent(foodName);
       setShowSuccess(true);
       setFoodName('');
       
@@ -78,11 +67,7 @@ export const FoodResearchAI: React.FC<FoodResearchAIProps> = ({ onAddEntry }) =>
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="card-premium p-6 bg-white border-2 border-slate-50 mb-8 overflow-hidden relative"
-    >
+    <div className="card-premium p-6 bg-white border-2 border-slate-50 mb-8 overflow-hidden relative">
       <div className="absolute top-0 right-0 p-8 opacity-5 text-emerald-900">
         <Apple size={120} />
       </div>
@@ -115,20 +100,6 @@ export const FoodResearchAI: React.FC<FoodResearchAIProps> = ({ onAddEntry }) =>
             {loading ? <Loader2 size={18} className="animate-spin" /> : 'Research'}
           </button>
         </form>
-
-        {recentResearch.length > 0 && !loading && !showSuccess && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {recentResearch.map((item, idx) => (
-              <button
-                key={idx}
-                onClick={() => setFoodName(item)}
-                className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full hover:bg-emerald-100 transition-colors"
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        )}
 
         <AnimatePresence>
           {error && (
@@ -177,6 +148,6 @@ export const FoodResearchAI: React.FC<FoodResearchAIProps> = ({ onAddEntry }) =>
           <span>Enter any food to get an instant AI analysis and automatic log.</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
