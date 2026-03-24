@@ -496,6 +496,110 @@ export const generateLaborReport = (date: Date) => {
   doc.save(`Nestly_Labor_Summary_${date.toISOString().split('T')[0]}.pdf`);
 };
 
+export const generateFullPregnancyReport = () => {
+  const profile = storage.getProfile();
+  if (!profile) return;
+
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pinkPrimary = [190, 24, 93];
+  const pinkAccent = [236, 72, 153];
+  const slateText = [71, 85, 105];
+
+  // Header
+  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.rect(0, 0, pageWidth, 50, 'F');
+
+  doc.setFont('times', 'bold');
+  doc.setFontSize(36);
+  doc.setTextColor(255, 255, 255);
+  doc.text('Pregnancy Archive', 20, 30);
+
+  doc.setFontSize(10);
+  doc.text('A COMPLETE RECORD OF YOUR PREGNANCY JOURNEY', 20, 40);
+
+  let y = 70;
+
+  // Profile Section
+  doc.setFont('times', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.text('Mama Profile', 20, y);
+  y += 15;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.text(`Name: ${profile.userName}`, 25, y);
+  y += 8;
+  doc.text(`Due Date: ${new Date(profile.dueDate).toLocaleDateString()}`, 25, y);
+  y += 8;
+  doc.text(`Pregnancy Type: ${profile.pregnancyType.toUpperCase()}`, 25, y);
+  y += 20;
+
+  // Babies Section
+  doc.setFont('times', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.text('The Babies', 20, y);
+  y += 15;
+
+  (profile.babies || []).forEach((baby, idx) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
+    doc.text(`Baby ${idx + 1}: ${baby.name || 'Unnamed'}`, 25, y);
+    y += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+    doc.text(`Gender: ${baby.gender.toUpperCase()}`, 30, y);
+    y += 10;
+  });
+
+  // Summary Stats
+  const kicks = storage.getKickLogs() || [];
+  const weightLogs = storage.getWeightLogs() || [];
+  const symptoms = storage.getSymptoms() || [];
+  const kegels = storage.getKegelLogs() || [];
+
+  if (y > 220) { doc.addPage(); y = 30; }
+
+  doc.setFont('times', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.text('Pregnancy Statistics', 20, y);
+  y += 15;
+
+  const stats = [
+    { label: 'Total Kick Sessions', value: kicks.length },
+    { label: 'Total Weight Entries', value: weightLogs.length },
+    { label: 'Total Symptoms Logged', value: symptoms.length },
+    { label: 'Total Kegel Sessions', value: kegels.length }
+  ];
+
+  stats.forEach(s => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+    doc.text(`${s.label}:`, 25, y);
+    doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
+    doc.text(`${s.value}`, 80, y);
+    y += 10;
+  });
+
+  y += 15;
+
+  // Final Footer
+  const footerY = doc.internal.pageSize.getHeight() - 20;
+  doc.setFont('times', 'italic');
+  doc.setFontSize(10);
+  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.text('A lifetime of pregnancy memories, preserved by Nestly.', pageWidth / 2, footerY, { align: 'center' });
+
+  doc.save(`Nestly_Full_Pregnancy_Archive.pdf`);
+};
+
 export const generateFullNewbornReport = () => {
   const profile = storage.getProfile();
   if (!profile) return;

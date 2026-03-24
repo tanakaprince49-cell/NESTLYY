@@ -229,7 +229,7 @@ const App: React.FC = () => {
 
   if (!authEmail) return <AuthScreen onAuthComplete={(e) => setAuthEmail(e)} />;
   
-  if (!hasAcceptedPrivacy) {
+  if (!hasAcceptedPrivacy && !profile) {
     return (
       <PrivacyScreen onAccept={() => {
         storage.acceptPrivacy();
