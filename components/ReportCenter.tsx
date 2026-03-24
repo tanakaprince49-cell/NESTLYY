@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { storage } from '../services/storageService.ts';
-import { 
-  generatePregnancyDailyReport, 
-  generateNewbornDailyReport, 
-  generateLaborReport, 
+import {
+  generatePregnancyDailyReport,
+  generateNewbornDailyReport,
+  generateLaborReport,
+  generateFullPregnancyReport,
   generateFullNewbornReport
 } from '../services/reportService.ts';
 import { Download, ChevronDown, FileArchive } from 'lucide-react';
@@ -29,6 +30,8 @@ export const ReportCenter: React.FC = () => {
   const handleDownloadArchive = () => {
     if (isNewbornStage) {
       generateFullNewbornReport();
+    } else {
+      generateFullPregnancyReport();
     }
   };
 
