@@ -446,10 +446,10 @@ const App: React.FC = () => {
                   }}
                 />
               )}
-              {activeTab === 'settings' && <Settings profile={profile} onUpdateProfile={(p) => { 
-                storage.saveProfile(p); 
-                setProfile(p); 
-              }} userUid={userUid} onLogout={handleLogout} />}
+              {activeTab === 'settings' && <Settings profile={profile} onUpdateProfile={(p) => {
+                storage.saveProfile(p);
+                setProfile(p);
+              }} userUid={userUid} />}
               {activeTab === 'admin' && isAdmin && <AdminDashboard />}
             </motion.div>
           </Suspense>
