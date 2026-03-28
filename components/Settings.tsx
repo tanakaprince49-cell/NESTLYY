@@ -1,6 +1,8 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { updatePassword } from 'firebase/auth';
+import { auth } from '../firebase.ts';
 import { PregnancyProfile, LifecycleStage, BabyAvatar } from '../types.ts';
 import { storage } from '../services/storageService.ts';
 import { Camera, Plus, Trash2, Baby } from 'lucide-react';
@@ -64,7 +66,22 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
     const updatedProfile = { ...profile, userName: name };
     storage.saveProfile(updatedProfile);
     onUpdateProfile(updatedProfile);
-    
+
+    if (password && auth.currentUser) {
+      try {
+        await updatePassword(auth.currentUser, password);
+      } catch (err: any) {
+        if (err.code === 'auth/requires-recent-login') {
+          alert('For security reasons, please sign out and sign back in before changing your password.');
+        } else {
+          alert('Failed to update password. Please try again.');
+        }
+      }
+    }
+
+    // Clean up any legacy plaintext password data
+    localStorage.removeItem('nestly_local_users');
+
     setSaving(false);
     setPassword('');
   };
@@ -153,13 +170,25 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
           <div className="space-y-3">
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1">Name</label>
-              <input 
-                type="text" 
-                value={name} 
-                onChange={e => setName(e.target.value)} 
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
                 className="w-full p-3 bg-slate-50 border-2 border-transparent rounded-xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all"
                 placeholder="Your Name"
               />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1">New Password (Optional)</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full p-3 bg-slate-50 border-2 border-transparent rounded-xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all"
+                placeholder="••••••••"
+              />
+              <p className="text-[10px] text-slate-400 ml-2 mt-1">Only applies if you signed up with Email & Password.</p>
             </div>
           </div>
 
