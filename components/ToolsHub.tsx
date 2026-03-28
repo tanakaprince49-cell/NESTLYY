@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { 
   SymptomLog, 
   Contraction, 
@@ -56,30 +56,30 @@ import {
   Book
 } from 'lucide-react';
 
-// Import extracted components
-import { SymptomTracker } from './tools/SymptomTracker.tsx';
-import { VitaminTracker } from './tools/VitaminTracker.tsx';
-import { NutritionTracker } from './tools/NutritionTracker.tsx';
-import { ContractionTimer } from './tools/ContractionTimer.tsx';
-import { FeedingTracker } from './tools/FeedingTracker.tsx';
-import { DiaperTracker } from './tools/DiaperTracker.tsx';
-import { SleepTracker } from './tools/SleepTracker.tsx';
-import { KickCounter } from './tools/KickCounter.tsx';
-import { KegelTracker } from './tools/KegelTracker.tsx';
-import { MedicationTracker } from './tools/MedicationTracker.tsx';
-import { AppointmentTracker } from './tools/AppointmentTracker.tsx';
-import { ChecklistTracker } from './tools/ChecklistTracker.tsx';
-import { VitalsTracker } from './tools/VitalsTracker.tsx';
-import { BabyNames } from './tools/BabyNames.tsx';
-import { BumpDiary } from './tools/BumpDiary.tsx';
-import { MemoriesTracker } from './tools/MemoriesTracker.tsx';
-import { CalmTracker } from './tools/CalmTracker.tsx';
-import { BirthOnboarding } from './tools/BirthOnboarding.tsx';
-import { JournalTracker } from './tools/JournalTracker.tsx';
-import { BathTracker } from './tools/BathTracker.tsx';
-import { PumpingTracker } from './tools/PumpingTracker.tsx';
-import { TeethingTracker } from './tools/TeethingTracker.tsx';
-import { TummyTimeTracker } from './tools/TummyTimeTracker.tsx';
+// Lazy load tracker components
+const SymptomTracker = lazy(() => import('./tools/SymptomTracker.tsx').then(m => ({ default: m.SymptomTracker })));
+const VitaminTracker = lazy(() => import('./tools/VitaminTracker.tsx').then(m => ({ default: m.VitaminTracker })));
+const NutritionTracker = lazy(() => import('./tools/NutritionTracker.tsx').then(m => ({ default: m.NutritionTracker })));
+const ContractionTimer = lazy(() => import('./tools/ContractionTimer.tsx').then(m => ({ default: m.ContractionTimer })));
+const FeedingTracker = lazy(() => import('./tools/FeedingTracker.tsx').then(m => ({ default: m.FeedingTracker })));
+const DiaperTracker = lazy(() => import('./tools/DiaperTracker.tsx').then(m => ({ default: m.DiaperTracker })));
+const SleepTracker = lazy(() => import('./tools/SleepTracker.tsx').then(m => ({ default: m.SleepTracker })));
+const KickCounter = lazy(() => import('./tools/KickCounter.tsx').then(m => ({ default: m.KickCounter })));
+const KegelTracker = lazy(() => import('./tools/KegelTracker.tsx').then(m => ({ default: m.KegelTracker })));
+const MedicationTracker = lazy(() => import('./tools/MedicationTracker.tsx').then(m => ({ default: m.MedicationTracker })));
+const AppointmentTracker = lazy(() => import('./tools/AppointmentTracker.tsx').then(m => ({ default: m.AppointmentTracker })));
+const ChecklistTracker = lazy(() => import('./tools/ChecklistTracker.tsx').then(m => ({ default: m.ChecklistTracker })));
+const VitalsTracker = lazy(() => import('./tools/VitalsTracker.tsx').then(m => ({ default: m.VitalsTracker })));
+const BabyNames = lazy(() => import('./tools/BabyNames.tsx').then(m => ({ default: m.BabyNames })));
+const BumpDiary = lazy(() => import('./tools/BumpDiary.tsx').then(m => ({ default: m.BumpDiary })));
+const MemoriesTracker = lazy(() => import('./tools/MemoriesTracker.tsx').then(m => ({ default: m.MemoriesTracker })));
+const CalmTracker = lazy(() => import('./tools/CalmTracker.tsx').then(m => ({ default: m.CalmTracker })));
+const BirthOnboarding = lazy(() => import('./tools/BirthOnboarding.tsx').then(m => ({ default: m.BirthOnboarding })));
+const JournalTracker = lazy(() => import('./tools/JournalTracker.tsx').then(m => ({ default: m.JournalTracker })));
+const BathTracker = lazy(() => import('./tools/BathTracker.tsx').then(m => ({ default: m.BathTracker })));
+const PumpingTracker = lazy(() => import('./tools/PumpingTracker.tsx').then(m => ({ default: m.PumpingTracker })));
+const TeethingTracker = lazy(() => import('./tools/TeethingTracker.tsx').then(m => ({ default: m.TeethingTracker })));
+const TummyTimeTracker = lazy(() => import('./tools/TummyTimeTracker.tsx').then(m => ({ default: m.TummyTimeTracker })));
 
 const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, bgColor: string }> = {
   vitals: { label: 'Vitals', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
@@ -377,7 +377,13 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           >
             <ArrowLeft size={16} /> Back to Tools
           </button>
-          {renderTool()}
+          <Suspense fallback={
+            <div className="flex items-center justify-center p-12">
+              <div className="w-8 h-8 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin"></div>
+            </div>
+          }>
+            {renderTool()}
+          </Suspense>
         </div>
       )}
     </motion.div>

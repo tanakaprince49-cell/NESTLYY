@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Layout } from './components/Layout.tsx';
-import { Dashboard } from './components/Dashboard.tsx';
-import { BabyProgress } from './components/BabyProgress.tsx';
-import { ToolsHub } from './components/ToolsHub.tsx';
-import { SetupScreen } from './components/SetupScreen.tsx';
-import { EducationHub } from './components/EducationHub.tsx';
-import { AuthScreen } from './components/AuthScreen.tsx';
-import { PrivacyScreen } from './components/PrivacyScreen.tsx';
-import { AdminDashboard } from './components/AdminDashboard.tsx';
-import { AvaChat } from './components/AvaChat.tsx';
-import { SplashScreen } from './components/SplashScreen.tsx';
-import { Settings } from './components/Settings.tsx';
+const Dashboard = lazy(() => import('./components/Dashboard.tsx').then(m => ({ default: m.Dashboard })));
+const BabyProgress = lazy(() => import('./components/BabyProgress.tsx').then(m => ({ default: m.BabyProgress })));
+const ToolsHub = lazy(() => import('./components/ToolsHub.tsx').then(m => ({ default: m.ToolsHub })));
+const SetupScreen = lazy(() => import('./components/SetupScreen.tsx').then(m => ({ default: m.SetupScreen })));
+const EducationHub = lazy(() => import('./components/EducationHub.tsx').then(m => ({ default: m.EducationHub })));
+const AuthScreen = lazy(() => import('./components/AuthScreen.tsx').then(m => ({ default: m.AuthScreen })));
+const PrivacyScreen = lazy(() => import('./components/PrivacyScreen.tsx').then(m => ({ default: m.PrivacyScreen })));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard.tsx').then(m => ({ default: m.AdminDashboard })));
+const AvaChat = lazy(() => import('./components/AvaChat.tsx').then(m => ({ default: m.AvaChat })));
+const SplashScreen = lazy(() => import('./components/SplashScreen.tsx').then(m => ({ default: m.SplashScreen })));
+const Settings = lazy(() => import('./components/Settings.tsx').then(m => ({ default: m.Settings })));
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
 import { loadFromFirestore } from './services/syncService.ts';
@@ -45,10 +45,14 @@ import {
 
 const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
-  const [hasAcceptedPrivacy, setHasAcceptedPrivacy] = useState<boolean>(() => storage.hasAcceptedPrivacy());
+  const [hasAcceptedPrivacy, setHasAcceptedPrivacy] = useState<boolean>(false);
   const [userUid, setUserUid] = useState<string | null>(null);
   const [showSplash, setShowSplash] = useState(true);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
+  }, [authEmail]);
 
   useEffect(() => {
     setupForegroundMessaging();
@@ -211,9 +215,7 @@ const App: React.FC = () => {
     setActiveTab('dashboard');
   };
 
-  useEffect(() => {
-    loadUserData();
-  }, [loadUserData]);
+  // Redundant loadUserData call removed
 
   useEffect(() => {
     if (profile) {
@@ -229,7 +231,7 @@ const App: React.FC = () => {
 
   if (!authEmail) return <AuthScreen onAuthComplete={(e) => setAuthEmail(e)} />;
   
-  if (!hasAcceptedPrivacy && !profile) {
+  if (!hasAcceptedPrivacy) {
     return (
       <PrivacyScreen onAccept={() => {
         storage.acceptPrivacy();
@@ -258,193 +260,199 @@ const App: React.FC = () => {
       <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
       <div className="max-w-4xl mx-auto px-4 py-4">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {activeTab === 'dashboard' && (
-              <Dashboard 
-                entries={entries} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
-                feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
-                journalEntries={journalEntries} babyGrowthLogs={babyGrowthLogs} diaperLogs={diaperLogs}
-                tummyTimeLogs={tummyTimeLogs}
-                medicationLogs={medicationLogs}
-                bloodPressureLogs={bloodPressureLogs}
-                trimester={trimester} profile={profile}
-                onAddEntry={(e) => { 
-                  storage.addFoodEntry({...e, id: crypto.randomUUID(), timestamp: Date.now()} as any); 
-                  setEntries(storage.getFoodEntries()); 
-                }}
-                onRemoveEntry={(id) => { 
-                  storage.removeFoodEntry(id); 
-                  setEntries(storage.getFoodEntries()); 
-                }}
-                onLogVitamin={(n) => { 
-                  storage.addVitamin({id: crypto.randomUUID(), name: n, timestamp: Date.now()}); 
-                  setVitamins(storage.getVitamins()); 
-                }}
-                onAddBabyGrowth={(g) => { 
-                  storage.addBabyGrowthLog({...g, id: crypto.randomUUID(), timestamp: Date.now()}); 
-                  setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
-                }}
-                onAddMedication={(m) => {
-                  storage.addMedication({ name: m.name, dosage: m.dosage, time: m.time, id: crypto.randomUUID(), timestamp: Date.now() });
-                  setMedicationLogs(storage.getMedications());
-                }}
-                onRemoveMedication={(id) => {
-                  storage.removeMedication(id);
-                  setMedicationLogs(storage.getMedications());
-                }}
-                onQuickTool={(cat) => { setActiveTab('tools'); setActiveToolCat(cat); }}
-                onEditProfile={() => setIsEditingProfile(true)}
-                onUpdateProfile={(p) => { 
-                  storage.saveProfile(p); 
-                  setProfile(p); 
-                }}
-                onNavigate={(tab) => setActiveTab(tab)}
-              />
-            )}
-            {activeTab === 'baby' && <BabyProgress profile={profile} babyGrowthLogs={babyGrowthLogs} />}
-            {activeTab === 'ava' && <AvaChat profile={profile} />}
-            {activeTab === 'education' && (
-              <EducationHub 
-                trimester={trimester} 
-                isPostpartum={profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY} 
-              />
-            )}
-            {activeTab === 'tools' && (
-              <ToolsHub 
-                symptoms={symptoms} onLogSymptom={(t, s) => { 
-                  storage.addSymptom({id: crypto.randomUUID(), type: t, severity: s, timestamp: Date.now()}); 
-                  setSymptoms(storage.getSymptoms()); 
-                }}
-                onAddFoodEntry={(f) => {
-                  storage.addFoodEntry({ ...f, id: crypto.randomUUID(), timestamp: Date.now() });
-                  setEntries(storage.getFoodEntries());
-                }}
-                onRemoveFoodEntry={(id) => {
-                  storage.removeFoodEntry(id);
-                  setEntries(storage.getFoodEntries());
-                }}
-                onAddVitamin={(v) => {
-                  storage.addVitamin({ ...v, id: crypto.randomUUID(), timestamp: Date.now() });
-                  setVitamins(storage.getVitamins());
-                }}
-                contractions={contractions} onUpdateContractions={(c) => { 
-                  storage.saveContractions(c); 
-                  setContractions(c); 
-                }}
-                journalEntries={journalEntries} onAddJournal={(c, m) => { 
-                  storage.addJournalEntry({id: crypto.randomUUID(), content: c, mood: m, timestamp: Date.now()}); 
-                  setJournalEntries(storage.getJournalEntries()); 
-                }}
-                onRemoveJournal={(id) => { 
-                  storage.removeJournalEntry(id); 
-                  setJournalEntries(storage.getJournalEntries()); 
-                }}
-                calendarEvents={calendarEvents} onAddEvent={(t,d,ty,tm) => { 
-                  storage.addCalendarEvent({id: crypto.randomUUID(), title: t, date: d, type: ty, time: tm}); 
-                  setCalendarEvents(storage.getCalendarEvents()); 
-                }}
-                onRemoveEvent={(id) => { 
-                  storage.removeCalendarEvent(id); 
-                  setCalendarEvents(storage.getCalendarEvents()); 
-                }}
-                weightLogs={weightLogs} onAddWeight={(w) => { 
-                  storage.addWeightLog({id: crypto.randomUUID(), weight: w, timestamp: Date.now()}); 
-                  setWeightLogs(storage.getWeightLogs()); 
-                }}
-                sleepLogs={sleepLogs} onAddSleep={(s) => { 
-                  storage.addSleepLog({id: crypto.randomUUID(), ...s, timestamp: Date.now()}); 
-                  setSleepLogs(storage.getSleepLogs()); 
-                }}
-                onRemoveSleep={(id) => { 
-                  storage.removeSleepLog(id); 
-                  setSleepLogs(storage.getSleepLogs()); 
-                }}
-                feedingLogs={feedingLogs} onAddFeeding={(f) => { 
-                  storage.addFeedingLog({id: crypto.randomUUID(), ...f, timestamp: Date.now()}); 
-                  setFeedingLogs(storage.getFeedingLogs()); 
-                }}
-                diaperLogs={diaperLogs} onAddDiaper={(d) => { 
-                  storage.addDiaperLog({id: crypto.randomUUID(), ...d, timestamp: Date.now()}); 
-                  setDiaperLogs(storage.getDiaperLogs()); 
-                }}
-                milestones={milestones} onAddMilestone={(m) => { 
-                  storage.addMilestone({id: crypto.randomUUID(), ...m, timestamp: Date.now()}); 
-                  setMilestones(storage.getMilestones()); 
-                }}
-                healthLogs={healthLogs} onAddHealth={(h) => { 
-                  storage.addHealthLog({id: crypto.randomUUID(), ...h, timestamp: Date.now()}); 
-                  setHealthLogs(storage.getHealthLogs()); 
-                }}
-                reactions={reactions} onAddReaction={(r) => { 
-                  storage.addReaction({id: crypto.randomUUID(), ...r, timestamp: Date.now()}); 
-                  setReactions(storage.getReactions()); 
-                }}
-                kickLogs={kickLogs} onAddKick={(k) => { 
-                  storage.addKickLog({id: crypto.randomUUID(), ...k, timestamp: Date.now()}); 
-                  setKickLogs(storage.getKickLogs()); 
-                }}
-                kegelLogs={kegelLogs} onAddKegel={(k) => {
-                  storage.addKegelLog({id: crypto.randomUUID(), ...k, timestamp: Date.now()});
-                  setKegelLogs(storage.getKegelLogs());
-                }}
-                medicationLogs={medicationLogs}
-                onAddMedication={(m) => {
-                  storage.addMedication({ ...m, id: crypto.randomUUID(), timestamp: Date.now() });
-                  setMedicationLogs(storage.getMedications());
-                }}
-                onRemoveMedication={(id) => {
-                  storage.removeMedication(id);
-                  setMedicationLogs(storage.getMedications());
-                }}
-                babyGrowthLogs={babyGrowthLogs}
-                tummyTimeLogs={tummyTimeLogs}
-                onAddTummyTime={(t) => {
-                  storage.addTummyTimeLog({id: crypto.randomUUID(), ...t, timestamp: Date.now()});
-                  setTummyTimeLogs(storage.getTummyTimeLogs());
-                }}
-                bloodPressureLogs={bloodPressureLogs}
-                onAddBloodPressure={(b) => {
-                  storage.addBloodPressureLog({id: crypto.randomUUID(), ...b, timestamp: Date.now()});
-                  setBloodPressureLogs(storage.getBloodPressureLogs());
-                }}
-                onAddBabyGrowth={(g) => { 
-                  storage.addBabyGrowthLog({id: crypto.randomUUID(), ...g, timestamp: Date.now()}); 
-                  setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
-                }}
-                foodEntries={entries}
-                vitamins={vitamins}
-                trimester={trimester} profile={profile}
-                activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}
-                onUpdateProfile={(p) => { 
-                  storage.saveProfile(p); 
-                  setProfile(p); 
-                }}
-                onUpdateChecklist={() => {
-                  // Local update handled via storage
-                }}
-                onUpdateBumpPhotos={() => {
-                  // Local update handled via storage
-                }}
-                onUpdateBabyNames={() => {
-                  // Local update handled via storage
-                }}
-                onUpdateArchive={() => {
-                  // Local update handled via storage
-                }}
-              />
-            )}
-            {activeTab === 'settings' && <Settings profile={profile} onUpdateProfile={(p) => { 
-              storage.saveProfile(p); 
-              setProfile(p); 
-            }} userUid={userUid} />}
-            {activeTab === 'admin' && isAdmin && <AdminDashboard />}
-          </motion.div>
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-[60vh]">
+              <div className="w-8 h-8 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin"></div>
+            </div>
+          }>
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeTab === 'dashboard' && (
+                <Dashboard 
+                  entries={entries} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
+                  feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
+                  journalEntries={journalEntries} babyGrowthLogs={babyGrowthLogs} diaperLogs={diaperLogs}
+                  tummyTimeLogs={tummyTimeLogs}
+                  medicationLogs={medicationLogs}
+                  bloodPressureLogs={bloodPressureLogs}
+                  trimester={trimester} profile={profile}
+                  onAddEntry={(e) => { 
+                    storage.addFoodEntry({...e, id: crypto.randomUUID(), timestamp: Date.now()} as any); 
+                    setEntries(storage.getFoodEntries()); 
+                  }}
+                  onRemoveEntry={(id) => { 
+                    storage.removeFoodEntry(id); 
+                    setEntries(storage.getFoodEntries()); 
+                  }}
+                  onLogVitamin={(n) => { 
+                    storage.addVitamin({id: crypto.randomUUID(), name: n, timestamp: Date.now()}); 
+                    setVitamins(storage.getVitamins()); 
+                  }}
+                  onAddBabyGrowth={(g) => { 
+                    storage.addBabyGrowthLog({...g, id: crypto.randomUUID(), timestamp: Date.now()}); 
+                    setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
+                  }}
+                  onAddMedication={(m) => {
+                    storage.addMedication({ name: m.name, dosage: m.dosage, time: m.time, id: crypto.randomUUID(), timestamp: Date.now() });
+                    setMedicationLogs(storage.getMedications());
+                  }}
+                  onRemoveMedication={(id) => {
+                    storage.removeMedication(id);
+                    setMedicationLogs(storage.getMedications());
+                  }}
+                  onQuickTool={(cat) => { setActiveTab('tools'); setActiveToolCat(cat); }}
+                  onEditProfile={() => setIsEditingProfile(true)}
+                  onUpdateProfile={(p) => { 
+                    storage.saveProfile(p); 
+                    setProfile(p); 
+                  }}
+                  onNavigate={(tab) => setActiveTab(tab)}
+                />
+              )}
+              {activeTab === 'baby' && <BabyProgress profile={profile} babyGrowthLogs={babyGrowthLogs} />}
+              {activeTab === 'ava' && <AvaChat profile={profile} />}
+              {activeTab === 'education' && (
+                <EducationHub 
+                  trimester={trimester} 
+                  isPostpartum={profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY} 
+                />
+              )}
+              {activeTab === 'tools' && (
+                <ToolsHub 
+                  symptoms={symptoms} onLogSymptom={(t, s) => { 
+                    storage.addSymptom({id: crypto.randomUUID(), type: t, severity: s, timestamp: Date.now()}); 
+                    setSymptoms(storage.getSymptoms()); 
+                  }}
+                  onAddFoodEntry={(f) => {
+                    storage.addFoodEntry({ ...f, id: crypto.randomUUID(), timestamp: Date.now() });
+                    setEntries(storage.getFoodEntries());
+                  }}
+                  onRemoveFoodEntry={(id) => {
+                    storage.removeFoodEntry(id);
+                    setEntries(storage.getFoodEntries());
+                  }}
+                  onAddVitamin={(v) => {
+                    storage.addVitamin({ ...v, id: crypto.randomUUID(), timestamp: Date.now() });
+                    setVitamins(storage.getVitamins());
+                  }}
+                  contractions={contractions} onUpdateContractions={(c) => { 
+                    storage.saveContractions(c); 
+                    setContractions(c); 
+                  }}
+                  journalEntries={journalEntries} onAddJournal={(c, m) => { 
+                    storage.addJournalEntry({id: crypto.randomUUID(), content: c, mood: m, timestamp: Date.now()}); 
+                    setJournalEntries(storage.getJournalEntries()); 
+                  }}
+                  onRemoveJournal={(id) => { 
+                    storage.removeJournalEntry(id); 
+                    setJournalEntries(storage.getJournalEntries()); 
+                  }}
+                  calendarEvents={calendarEvents} onAddEvent={(t,d,ty,tm) => { 
+                    storage.addCalendarEvent({id: crypto.randomUUID(), title: t, date: d, type: ty, time: tm}); 
+                    setCalendarEvents(storage.getCalendarEvents()); 
+                  }}
+                  onRemoveEvent={(id) => { 
+                    storage.removeCalendarEvent(id); 
+                    setCalendarEvents(storage.getCalendarEvents()); 
+                  }}
+                  weightLogs={weightLogs} onAddWeight={(w) => { 
+                    storage.addWeightLog({id: crypto.randomUUID(), weight: w, timestamp: Date.now()}); 
+                    setWeightLogs(storage.getWeightLogs()); 
+                  }}
+                  sleepLogs={sleepLogs} onAddSleep={(s) => { 
+                    storage.addSleepLog({id: crypto.randomUUID(), ...s, timestamp: Date.now()}); 
+                    setSleepLogs(storage.getSleepLogs()); 
+                  }}
+                  onRemoveSleep={(id) => { 
+                    storage.removeSleepLog(id); 
+                    setSleepLogs(storage.getSleepLogs()); 
+                  }}
+                  feedingLogs={feedingLogs} onAddFeeding={(f) => { 
+                    storage.addFeedingLog({id: crypto.randomUUID(), ...f, timestamp: Date.now()}); 
+                    setFeedingLogs(storage.getFeedingLogs()); 
+                  }}
+                  diaperLogs={diaperLogs} onAddDiaper={(d) => { 
+                    storage.addDiaperLog({id: crypto.randomUUID(), ...d, timestamp: Date.now()}); 
+                    setDiaperLogs(storage.getDiaperLogs()); 
+                  }}
+                  milestones={milestones} onAddMilestone={(m) => { 
+                    storage.addMilestone({id: crypto.randomUUID(), ...m, timestamp: Date.now()}); 
+                    setMilestones(storage.getMilestones()); 
+                  }}
+                  healthLogs={healthLogs} onAddHealth={(h) => { 
+                    storage.addHealthLog({id: crypto.randomUUID(), ...h, timestamp: Date.now()}); 
+                    setHealthLogs(storage.getHealthLogs()); 
+                  }}
+                  reactions={reactions} onAddReaction={(r) => { 
+                    storage.addReaction({id: crypto.randomUUID(), ...r, timestamp: Date.now()}); 
+                    setReactions(storage.getReactions()); 
+                  }}
+                  kickLogs={kickLogs} onAddKick={(k) => { 
+                    storage.addKickLog({id: crypto.randomUUID(), ...k, timestamp: Date.now()}); 
+                    setKickLogs(storage.getKickLogs()); 
+                  }}
+                  kegelLogs={kegelLogs} onAddKegel={(k) => {
+                    storage.addKegelLog({id: crypto.randomUUID(), ...k, timestamp: Date.now()});
+                    setKegelLogs(storage.getKegelLogs());
+                  }}
+                  medicationLogs={medicationLogs}
+                  onAddMedication={(m) => {
+                    storage.addMedication({ ...m, id: crypto.randomUUID(), timestamp: Date.now() });
+                    setMedicationLogs(storage.getMedications());
+                  }}
+                  onRemoveMedication={(id) => {
+                    storage.removeMedication(id);
+                    setMedicationLogs(storage.getMedications());
+                  }}
+                  babyGrowthLogs={babyGrowthLogs}
+                  tummyTimeLogs={tummyTimeLogs}
+                  onAddTummyTime={(t) => {
+                    storage.addTummyTimeLog({id: crypto.randomUUID(), ...t, timestamp: Date.now()});
+                    setTummyTimeLogs(storage.getTummyTimeLogs());
+                  }}
+                  bloodPressureLogs={bloodPressureLogs}
+                  onAddBloodPressure={(b) => {
+                    storage.addBloodPressureLog({id: crypto.randomUUID(), ...b, timestamp: Date.now()});
+                    setBloodPressureLogs(storage.getBloodPressureLogs());
+                  }}
+                  onAddBabyGrowth={(g) => { 
+                    storage.addBabyGrowthLog({id: crypto.randomUUID(), ...g, timestamp: Date.now()}); 
+                    setBabyGrowthLogs(storage.getBabyGrowthLogs()); 
+                  }}
+                  foodEntries={entries}
+                  vitamins={vitamins}
+                  trimester={trimester} profile={profile}
+                  activeCategory={activeToolCat} setActiveCategory={setActiveToolCat}
+                  onUpdateProfile={(p) => { 
+                    storage.saveProfile(p); 
+                    setProfile(p); 
+                  }}
+                  onUpdateChecklist={() => {
+                    // Local update handled via storage
+                  }}
+                  onUpdateBumpPhotos={() => {
+                    // Local update handled via storage
+                  }}
+                  onUpdateBabyNames={() => {
+                    // Local update handled via storage
+                  }}
+                  onUpdateArchive={() => {
+                    // Local update handled via storage
+                  }}
+                />
+              )}
+              {activeTab === 'settings' && <Settings profile={profile} onUpdateProfile={(p) => { 
+                storage.saveProfile(p); 
+                setProfile(p); 
+              }} userUid={userUid} onLogout={handleLogout} />}
+              {activeTab === 'admin' && isAdmin && <AdminDashboard />}
+            </motion.div>
+          </Suspense>
         </AnimatePresence>
       </div>
       </Layout>

@@ -86,6 +86,7 @@ export interface PregnancyProfile {
   lifecycleStage: LifecycleStage;
   notificationsEnabled?: boolean;
   emailNotifications?: boolean;
+  privacyAccepted?: boolean;
 }
 
 export interface ArchivedPregnancy {
