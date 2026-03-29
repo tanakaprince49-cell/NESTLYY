@@ -3,7 +3,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // TODO: Add Firebase auth token verification once FIREBASE_SERVICE_ACCOUNT is configured
+  // Auth skipped: FIREBASE_SERVICE_ACCOUNT is not configured on Vercel (Hobby plan).
+  // Endpoint is protected by server-side OPENROUTER_API_KEY only.
   try {
     const { foodName } = req.body;
 
