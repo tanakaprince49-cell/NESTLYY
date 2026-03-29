@@ -253,7 +253,8 @@ const App: React.FC = () => {
     );
   }
 
-  const isAdmin = authEmail === 'tanakaprince49@gmail.com';
+  const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map((e: string) => e.trim()).filter(Boolean);
+  const isAdmin = !!authEmail && adminEmails.includes(authEmail);
 
   return (
     <ErrorBoundary>

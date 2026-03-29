@@ -23,7 +23,8 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLogout }) => {
-  const isAdmin = storage.getAuthEmail() === 'tanakaprince49@gmail.com';
+  const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map((e: string) => e.trim()).filter(Boolean);
+  const isAdmin = adminEmails.includes(storage.getAuthEmail() || '');
 
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden h-screen bg-rose-50">
