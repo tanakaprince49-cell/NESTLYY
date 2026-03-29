@@ -19,19 +19,6 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      },
-      build: {
-        rollupOptions: {
-          output: {
-            manualChunks: {
-              'vendor-react': ['react', 'react-dom'],
-              'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/messaging'],
-              'vendor-charts': ['recharts'],
-              'vendor-motion': ['motion/react'],
-              'vendor-pdf': ['jspdf', 'html2pdf.js'],
-            }
-          }
-        }
       }
     };
 });
