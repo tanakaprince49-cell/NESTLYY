@@ -13,28 +13,10 @@
     <link rel="manifest" href="./manifest.json" />
     
     <title>Nestly - Pregnancy Companion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              rose: {
-                50: 'var(--soft-bg)',
-                100: 'var(--theme-100)',
-                400: 'var(--rose-main)',
-                500: 'var(--rose-main)',
-                600: 'var(--rose-main)',
-                700: 'var(--nestly-burgundy)',
-                800: 'var(--nestly-burgundy)',
-                900: 'var(--nestly-burgundy)',
-              }
-            }
-          }
-        }
-      }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
     <style>
       :root {
         --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);

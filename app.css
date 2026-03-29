@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rose-50: var(--soft-bg);
+  --color-rose-100: var(--theme-100);
+  --color-rose-400: var(--rose-main);
+  --color-rose-500: var(--rose-main);
+  --color-rose-600: var(--rose-main);
+  --color-rose-700: var(--nestly-burgundy);
+  --color-rose-800: var(--nestly-burgundy);
+  --color-rose-900: var(--nestly-burgundy);
+}
