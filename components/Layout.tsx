@@ -37,6 +37,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  useEffect(() => {
+    document.getElementById('main-scroll')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab]);
+
   const navItems = [
     { id: 'dashboard' as const, label: 'Nest', icon: Home },
     { id: 'baby' as const, label: 'Growth', icon: TrendingUp },
@@ -199,7 +203,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           </header>
         )}
 
-        <main className="flex-1 relative z-10 overflow-y-auto no-scrollbar pb-safe">
+        <main id="main-scroll" className="flex-1 relative z-10 overflow-y-auto no-scrollbar pb-safe">
           <div className="animate-slide-up pb-32 lg:pb-12">
             {children}
             

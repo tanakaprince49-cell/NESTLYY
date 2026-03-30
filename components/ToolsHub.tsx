@@ -217,6 +217,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
     }
   }, [profile.babies, selectedBabyId]);
 
+  useEffect(() => {
+    document.getElementById('main-scroll')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeCategory]);
+
   const progressWeeks = useMemo(() => {
     const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
@@ -327,7 +331,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6 pb-24"
+      className="w-full max-w-5xl mx-auto space-y-6 pb-24 px-5 pt-4"
     >
       {activeCategory === 'all' ? (
         <div className="space-y-6">
@@ -348,7 +352,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {filteredCategories.map(cat => {
               const meta = TOOL_METADATA[cat] || { label: cat, icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' };
               const Icon = meta.icon;
