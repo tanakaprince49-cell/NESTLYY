@@ -83,18 +83,18 @@ export const FoodResearchAI: React.FC<FoodResearchAIProps> = ({ onAddEntry }) =>
       animate={{ opacity: 1, y: 0 }}
       className="card-premium p-6 bg-white border-2 border-slate-50 mb-8 overflow-hidden relative"
     >
-      <div className="absolute top-0 right-0 p-8 opacity-5 text-emerald-900">
+      <div className="absolute top-0 right-0 p-8 opacity-5 text-rose-900">
         <Apple size={120} />
       </div>
 
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+          <div className="p-2 bg-rose-100 rounded-lg text-rose-600">
             <Search size={20} />
           </div>
           <div>
             <h2 className="text-xl font-bold text-slate-900">Food Research AI</h2>
-            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600/60">AI-Powered Nutrition Analysis</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-rose-600/60">AI-Powered Nutrition Analysis</p>
           </div>
         </div>
 
@@ -104,13 +104,13 @@ export const FoodResearchAI: React.FC<FoodResearchAIProps> = ({ onAddEntry }) =>
             value={foodName}
             onChange={(e) => setFoodName(e.target.value)}
             placeholder="What did you eat today?"
-            className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-200 transition-all"
+            className="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-200 transition-all"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !foodName.trim()}
-            className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center gap-2"
+            className="bg-rose-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-rose-700 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center gap-2"
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : 'Research'}
           </button>
@@ -122,7 +122,7 @@ export const FoodResearchAI: React.FC<FoodResearchAIProps> = ({ onAddEntry }) =>
               <button
                 key={idx}
                 onClick={() => setFoodName(item)}
-                className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full hover:bg-emerald-100 transition-colors"
+                className="text-[10px] font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-full hover:bg-rose-100 transition-colors"
               >
                 {item}
               </button>
@@ -147,22 +147,22 @@ export const FoodResearchAI: React.FC<FoodResearchAIProps> = ({ onAddEntry }) =>
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl mb-4"
+              className="p-4 bg-rose-50 border border-rose-100 rounded-2xl mb-4"
             >
               <div className="flex items-start gap-3">
-                <div className="p-1 bg-emerald-500 text-white rounded-full mt-0.5">
+                <div className="p-1 bg-rose-500 text-white rounded-full mt-0.5">
                   <CheckCircle size={14} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-emerald-900">Successfully Recorded!</p>
-                  <p className="text-xs text-emerald-700 mt-1 leading-relaxed italic">
+                  <p className="text-sm font-bold text-rose-900">Successfully Recorded!</p>
+                  <p className="text-xs text-rose-700 mt-1 leading-relaxed italic">
                     {result.explanation}
                   </p>
                   <div className="flex gap-4 mt-2">
-                    <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter">
+                    <div className="text-[10px] font-bold text-rose-600 uppercase tracking-tighter">
                       {result.calories} kcal
                     </div>
-                    <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter">
+                    <div className="text-[10px] font-bold text-rose-600 uppercase tracking-tighter">
                       {result.protein}g protein
                     </div>
                   </div>

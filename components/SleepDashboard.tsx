@@ -102,7 +102,7 @@ export const SleepDashboard: React.FC = () => {
             <button
               onClick={() => setMode('pregnancy')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                mode === 'pregnancy' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                mode === 'pregnancy' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <User className="w-4 h-4" />
@@ -111,7 +111,7 @@ export const SleepDashboard: React.FC = () => {
             <button
               onClick={() => setMode('newborn')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                mode === 'newborn' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                mode === 'newborn' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Baby className="w-4 h-4" />
@@ -121,15 +121,15 @@ export const SleepDashboard: React.FC = () => {
         </div>
 
         {/* Today's Summary Card */}
-        <div className="max-w-2xl mx-auto bg-indigo-600 rounded-3xl p-6 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
+        <div className="max-w-2xl mx-auto bg-rose-600 rounded-3xl p-6 text-white shadow-2xl shadow-rose-200 relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-4">
-              <span className="text-indigo-100 text-xs font-bold uppercase tracking-widest">Today's Sleep</span>
-              <Calendar className="w-5 h-5 text-indigo-200" />
+              <span className="text-rose-100 text-xs font-bold uppercase tracking-widest">Today's Sleep</span>
+              <Calendar className="w-5 h-5 text-rose-200" />
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-5xl font-black">{formatDuration(totalSleepToday)}</span>
-              <span className="text-indigo-200 text-sm font-medium">total</span>
+              <span className="text-rose-200 text-sm font-medium">total</span>
             </div>
             <div className="mt-6 flex gap-4">
               <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm">
@@ -144,7 +144,7 @@ export const SleepDashboard: React.FC = () => {
           </div>
           {/* Decorative background circles */}
           <div className="absolute -right-8 -bottom-8 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute -left-8 -top-8 w-32 h-32 bg-indigo-400/20 rounded-full blur-2xl" />
+          <div className="absolute -left-8 -top-8 w-32 h-32 bg-rose-400/20 rounded-full blur-2xl" />
         </div>
       </header>
 
@@ -172,7 +172,7 @@ export const SleepDashboard: React.FC = () => {
           setEditingSession(null);
           setIsFormOpen(true);
         }}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl shadow-indigo-300 flex items-center justify-center hover:bg-indigo-700 active:scale-90 transition-all z-20"
+        className="fixed bottom-8 right-8 w-16 h-16 bg-rose-600 text-white rounded-full shadow-2xl shadow-rose-300 flex items-center justify-center hover:bg-rose-700 active:scale-90 transition-all z-20"
       >
         <Plus className="w-8 h-8" />
       </button>

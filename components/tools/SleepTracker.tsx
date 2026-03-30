@@ -65,7 +65,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
           <button
             onClick={() => setMode('pregnancy')}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              mode === 'pregnancy' ? 'bg-white text-indigo-600 shadow-md' : 'text-slate-500 hover:text-slate-700'
+              mode === 'pregnancy' ? 'bg-white text-rose-600 shadow-md' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <User className="w-4 h-4" />
@@ -74,7 +74,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
           <button
             onClick={() => setMode('newborn')}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              mode === 'newborn' ? 'bg-white text-indigo-600 shadow-md' : 'text-slate-500 hover:text-slate-700'
+              mode === 'newborn' ? 'bg-white text-rose-600 shadow-md' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <Baby className="w-4 h-4" />
@@ -87,16 +87,16 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden"
+        className="bg-gradient-to-br from-rose-600 to-violet-700 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-rose-200 relative overflow-hidden"
       >
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-6">
             <div className="space-y-1">
-              <span className="text-indigo-100 text-[10px] font-black uppercase tracking-[0.2em]">Today's Rest</span>
+              <span className="text-rose-100 text-[10px] font-black uppercase tracking-[0.2em]">Today's Rest</span>
               <h2 className="text-4xl font-black tracking-tight">{formatDuration(totalSleepToday)}</h2>
             </div>
             <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
-              <Moon className="w-6 h-6 text-indigo-100" />
+              <Moon className="w-6 h-6 text-rose-100" />
             </div>
           </div>
           
@@ -112,7 +112,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
           </div>
         </div>
         <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute -left-12 -top-12 w-48 h-48 bg-indigo-400/20 rounded-full blur-2xl" />
+        <div className="absolute -left-12 -top-12 w-48 h-48 bg-rose-400/20 rounded-full blur-2xl" />
       </motion.div>
 
       {/* Insights Section */}
@@ -135,7 +135,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
       <div className="flex justify-center pt-4">
         <button
           onClick={() => { setEditingSession(null); setIsFormOpen(true); }}
-          className="flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all"
+          className="flex items-center gap-3 px-8 py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-rose-200 hover:bg-rose-700 active:scale-95 transition-all"
         >
           <Plus className="w-5 h-5" />
           Log Sleep

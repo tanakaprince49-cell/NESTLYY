@@ -12,14 +12,14 @@ export const BathTracker: React.FC<BathTrackerProps> = ({ journalEntries, onAddJ
   return (
     <div className="space-y-8 animate-in fade-in">
       <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
-        <h3 className="text-xl font-serif text-cyan-800">Bath Tracker</h3>
+        <h3 className="text-xl font-serif text-rose-800">Bath Tracker</h3>
         <p className="text-xs text-slate-400 font-medium">Keep track of your baby's bath schedule.</p>
         <p className="text-xs text-slate-500 italic">
           Track your baby's bath schedule with Nestly.
         </p>
         <button 
           onClick={() => onAddJournal(`[Bath] Given a bath`, 'clean')}
-          className="w-full py-4 bg-cyan-500 text-white rounded-2xl font-bold shadow-lg shadow-cyan-200 hover:bg-cyan-600 transition-colors"
+          className="w-full py-4 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-600 transition-colors"
         >
           Log Bath Today
         </button>

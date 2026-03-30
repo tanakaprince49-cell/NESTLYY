@@ -41,7 +41,7 @@ export const AchievementToast: React.FC<AchievementToastProps> = ({ achievement,
           ))}
         </div>
 
-        <div className="bg-gradient-to-br from-rose-500 to-pink-500 p-6 rounded-[2.3rem] flex items-center gap-5 text-white">
+        <div className="bg-gradient-to-br from-rose-500 to-rose-500 p-6 rounded-[2.3rem] flex items-center gap-5 text-white">
           <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl shadow-lg border border-white/30 animate-pulse">
             {achievement.icon}
           </div>

@@ -54,7 +54,7 @@ export const SleepEntryForm: React.FC<SleepEntryFormProps> = ({ onSave, onClose,
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-indigo-500" />
+            <Clock className="w-5 h-5 text-rose-500" />
             {initialData ? 'Edit Sleep' : 'Log Sleep'}
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
@@ -78,7 +78,7 @@ export const SleepEntryForm: React.FC<SleepEntryFormProps> = ({ onSave, onClose,
                 type="datetime-local"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-all"
                 required
               />
             </div>
@@ -91,7 +91,7 @@ export const SleepEntryForm: React.FC<SleepEntryFormProps> = ({ onSave, onClose,
                 type="datetime-local"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-all"
                 required
               />
             </div>
@@ -109,8 +109,8 @@ export const SleepEntryForm: React.FC<SleepEntryFormProps> = ({ onSave, onClose,
                       onClick={() => setQuality(q)}
                       className={`p-3 rounded-xl border text-sm font-medium capitalize transition-all ${
                         quality === q
-                          ? 'bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-200'
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300'
+                          ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-200'
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'
                       }`}
                     >
                       {q}
@@ -128,14 +128,14 @@ export const SleepEntryForm: React.FC<SleepEntryFormProps> = ({ onSave, onClose,
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Any interruptions or dreams?"
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-24 resize-none"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-all h-24 resize-none"
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-semibold shadow-xl shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all"
+            className="w-full py-4 bg-rose-600 text-white rounded-2xl font-semibold shadow-xl shadow-rose-200 hover:bg-rose-700 active:scale-95 transition-all"
           >
             {initialData ? 'Update Session' : 'Save Session'}
           </button>

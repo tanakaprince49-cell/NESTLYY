@@ -14,10 +14,10 @@ export const CalmTracker: React.FC<CalmTrackerProps> = ({ onAddJournal, journalE
   return (
     <div className="space-y-8 animate-in fade-in">
       <div className="card-premium p-10 bg-white border-2 border-white text-center space-y-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-100 via-emerald-400 to-emerald-100" />
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-100 via-rose-400 to-rose-100" />
         
         <div className="space-y-2">
-          <h3 className="text-2xl font-serif text-emerald-800">Peaceful Nest</h3>
+          <h3 className="text-2xl font-serif text-rose-800">Peaceful Nest</h3>
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Breathe in peace, breathe out stress.</p>
         </div>
         <p className="text-xs text-slate-500 italic">
@@ -27,9 +27,9 @@ export const CalmTracker: React.FC<CalmTrackerProps> = ({ onAddJournal, journalE
         <div className="grid grid-cols-1 gap-6">
           {[
             { title: "The Safe Breath", chant: "I am safe. My baby is safe. We are held in love.", icon: Heart, color: "text-rose-400" },
-            { title: "Strength Chant", chant: "My body is strong. My mind is calm. I trust the journey.", icon: Sparkles, color: "text-amber-400" },
-            { title: "Connection", chant: "I am connected to my baby. We are growing together in peace.", icon: Baby, color: "text-blue-400" },
-            { title: "Release", chant: "I release all tension. I embrace this moment with grace.", icon: Flower, color: "text-emerald-400" }
+            { title: "Strength Chant", chant: "My body is strong. My mind is calm. I trust the journey.", icon: Sparkles, color: "text-rose-400" },
+            { title: "Connection", chant: "I am connected to my baby. We are growing together in peace.", icon: Baby, color: "text-rose-400" },
+            { title: "Release", chant: "I release all tension. I embrace this moment with grace.", icon: Flower, color: "text-rose-400" }
           ].map((item, idx) => (
             <motion.div 
               key={idx}
@@ -49,11 +49,11 @@ export const CalmTracker: React.FC<CalmTrackerProps> = ({ onAddJournal, journalE
           ))}
         </div>
 
-        <div className="p-6 bg-emerald-50 rounded-[2rem] border border-emerald-100 flex items-center gap-5">
-          <div className="text-emerald-500">
+        <div className="p-6 bg-rose-50 rounded-[2rem] border border-rose-100 flex items-center gap-5">
+          <div className="text-rose-500">
             <Activity size={32} />
           </div>
-          <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-widest leading-relaxed text-left">
+          <p className="text-[10px] text-rose-700 font-bold uppercase tracking-widest leading-relaxed text-left">
             When you feel stressed, try the 4-7-8 breathing technique: Inhale for 4, hold for 7, exhale for 8.
           </p>
         </div>

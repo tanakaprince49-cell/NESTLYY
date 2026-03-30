@@ -165,7 +165,7 @@ export const SleepCharts: React.FC<SleepChartsProps> = ({ sessions, mode }) => {
               todaySessions.map((s, i) => (
                 <div key={i} className="relative h-8 bg-slate-50 rounded-full overflow-hidden">
                   <div
-                    className="absolute h-full bg-indigo-500 opacity-80"
+                    className="absolute h-full bg-rose-500 opacity-80"
                     style={{
                       left: `${(s.start / 24) * 100}%`,
                       width: `${(s.duration / 24) * 100}%`,

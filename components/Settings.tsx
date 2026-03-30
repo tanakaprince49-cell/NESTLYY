@@ -362,16 +362,16 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
               >
                 <div className={`w-6 h-6 rounded-full shadow-inner ${
                   color === 'pink' ? 'bg-rose-400' : 
-                  color === 'blue' ? 'bg-blue-400' : 
+                  color === 'blue' ? 'bg-rose-400' : 
                   color === 'neutral' ? 'bg-slate-400' :
-                  color === 'orange' ? 'bg-orange-400' :
-                  color === 'sage' ? 'bg-emerald-400' :
-                  color === 'lavender' ? 'bg-purple-400' :
+                  color === 'orange' ? 'bg-rose-400' :
+                  color === 'sage' ? 'bg-rose-400' :
+                  color === 'lavender' ? 'bg-rose-400' :
                   color === 'sand' ? 'bg-stone-400' :
-                  color === 'mint' ? 'bg-emerald-300' :
+                  color === 'mint' ? 'bg-rose-300' :
                   color === 'sky' ? 'bg-sky-300' :
-                  color === 'peach' ? 'bg-orange-300' :
-                  color === 'lilac' ? 'bg-purple-300' :
+                  color === 'peach' ? 'bg-rose-300' :
+                  color === 'lilac' ? 'bg-rose-300' :
                   'bg-stone-300'
                 }`} />
                 <span className="text-[8px] font-black uppercase tracking-widest truncate w-full text-center">{color}</span>

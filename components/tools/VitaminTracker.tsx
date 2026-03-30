@@ -14,7 +14,7 @@ export const VitaminTracker: React.FC<VitaminTrackerProps> = ({ vitamins, onAddV
     <div className="space-y-6">
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Pill className="w-5 h-5 text-indigo-500" />
+          <Pill className="w-5 h-5 text-rose-500" />
           Log Vitamin
         </h3>
         <p className="text-xs text-slate-500 mb-4 italic">
@@ -35,7 +35,7 @@ export const VitaminTracker: React.FC<VitaminTrackerProps> = ({ vitamins, onAddV
                 setVitaminName('');
               }
             }}
-            className="px-6 py-3 bg-indigo-500 text-white rounded-xl font-medium hover:bg-indigo-600 transition-colors"
+            className="px-6 py-3 bg-rose-500 text-white rounded-xl font-medium hover:bg-rose-600 transition-colors"
           >
             Log
           </button>
@@ -48,8 +48,8 @@ export const VitaminTracker: React.FC<VitaminTrackerProps> = ({ vitamins, onAddV
           {vitamins.filter(v => new Date(v.timestamp).toDateString() === new Date().toDateString()).map(v => (
             <div key={v.id} className="flex items-center justify-between p-3 bg-stone-50 rounded-xl">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <Check className="w-4 h-4 text-indigo-600" />
+                <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center">
+                  <Check className="w-4 h-4 text-rose-600" />
                 </div>
                 <div>
                   <p className="font-medium">{v.name}</p>

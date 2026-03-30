@@ -147,7 +147,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
         <div className="text-sm font-bold text-slate-700">{label}</div>
         {subValue && <div className="text-[10px] text-slate-400 font-medium">{subValue}</div>}
       </div>
-      <div className="text-sm font-black text-pink-600">{value}</div>
+      <div className="text-sm font-black text-rose-600">{value}</div>
     </div>
   );
 
@@ -173,8 +173,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                 const today = new Date().toISOString().split('T')[0];
                 if (val <= today) setStartDate(val);
               }}
-              className={`w-full px-4 py-3 bg-pink-50/50 rounded-xl text-sm font-bold border-2 transition-all ${
-                startDate > endDate ? 'border-rose-300 bg-rose-50' : 'border-pink-100 focus:ring-2 focus:ring-pink-200 focus:border-pink-300'
+              className={`w-full px-4 py-3 bg-rose-50/50 rounded-xl text-sm font-bold border-2 transition-all ${
+                startDate > endDate ? 'border-rose-300 bg-rose-50' : 'border-rose-100 focus:ring-2 focus:ring-rose-200 focus:border-rose-300'
               }`}
             />
           </div>
@@ -188,8 +188,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                 const today = new Date().toISOString().split('T')[0];
                 if (val <= today) setEndDate(val);
               }}
-              className={`w-full px-4 py-3 bg-pink-50/50 rounded-xl text-sm font-bold border-2 transition-all ${
-                startDate > endDate ? 'border-rose-300 bg-rose-50' : 'border-pink-100 focus:ring-2 focus:ring-pink-200 focus:border-pink-300'
+              className={`w-full px-4 py-3 bg-rose-50/50 rounded-xl text-sm font-bold border-2 transition-all ${
+                startDate > endDate ? 'border-rose-300 bg-rose-50' : 'border-rose-100 focus:ring-2 focus:ring-rose-200 focus:border-rose-300'
               }`}
             />
           </div>
@@ -202,7 +202,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
         )}
 
         {recentReports.length > 0 && (
-          <div className="pt-4 border-t border-pink-50">
+          <div className="pt-4 border-t border-rose-50">
             <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3">Recently Generated</h4>
             <div className="flex flex-wrap gap-2">
               {recentReports.map(report => (
@@ -214,8 +214,8 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                   }}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
                     startDate === report.start && endDate === report.end
-                      ? 'bg-pink-500 text-white shadow-md'
-                      : 'bg-pink-50 text-pink-600 hover:bg-pink-100'
+                      ? 'bg-rose-500 text-white shadow-md'
+                      : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
                   }`}
                 >
                   {new Date(report.start).toLocaleDateString()} - {new Date(report.end).toLocaleDateString()}
@@ -234,7 +234,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               setStartDate(start.toISOString().split('T')[0]);
               setEndDate(end.toISOString().split('T')[0]);
             }}
-            className="px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-[10px] font-black uppercase tracking-wider hover:bg-pink-100 transition-colors"
+            className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-wider hover:bg-rose-100 transition-colors"
           >
             Last 7 Days
           </button>
@@ -246,7 +246,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               setStartDate(start.toISOString().split('T')[0]);
               setEndDate(end.toISOString().split('T')[0]);
             }}
-            className="px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-[10px] font-black uppercase tracking-wider hover:bg-pink-100 transition-colors"
+            className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-wider hover:bg-rose-100 transition-colors"
           >
             Last 30 Days
           </button>
@@ -258,7 +258,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               setStartDate(start.toISOString().split('T')[0]);
               setEndDate(end.toISOString().split('T')[0]);
             }}
-            className="px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-[10px] font-black uppercase tracking-wider hover:bg-pink-100 transition-colors"
+            className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-wider hover:bg-rose-100 transition-colors"
           >
             Full Journey
           </button>
@@ -270,7 +270,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           className={`w-full py-4 text-white rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 active:scale-95 ${
             startDate > endDate 
               ? 'bg-slate-200 cursor-not-allowed shadow-none' 
-              : 'bg-pink-500 shadow-pink-200 hover:bg-pink-600'
+              : 'bg-rose-500 shadow-rose-200 hover:bg-rose-600'
           }`}
         >
           <Download size={20} />
@@ -285,7 +285,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
           {/* HEADER */}
           <div className="text-center mb-12 space-y-4">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-pink-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+              <div className="w-16 h-16 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
                 <Baby size={40} />
               </div>
             </div>
@@ -295,7 +295,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               <p className="text-sm font-medium text-slate-400">
                 Period: {new Date(startDate).toLocaleDateString()} — {new Date(endDate).toLocaleDateString()}
               </p>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-pink-300">Generated on {new Date().toLocaleDateString()}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-300">Generated on {new Date().toLocaleDateString()}</p>
             </div>
           </div>
 
@@ -303,9 +303,9 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             {/* EXECUTIVE SUMMARY */}
             <Section title="Executive Summary" icon={Sparkles} color="amber">
               <div className="grid grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-pink-50 rounded-2xl">
+                <div className="text-center p-4 bg-rose-50 rounded-2xl">
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Activities</div>
-                  <div className="text-2xl font-black text-pink-600">
+                  <div className="text-2xl font-black text-rose-600">
                     {filteredData.feeding.length + filteredData.sleep.length + filteredData.diaper.length + filteredData.kicks.length}
                   </div>
                 </div>
@@ -315,9 +315,9 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                     {filteredData.health.length + filteredData.bp.length + filteredData.meds.length}
                   </div>
                 </div>
-                <div className="text-center p-4 bg-amber-50 rounded-2xl">
+                <div className="text-center p-4 bg-rose-50 rounded-2xl">
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Journal</div>
-                  <div className="text-2xl font-black text-amber-600">{filteredData.journal.length}</div>
+                  <div className="text-2xl font-black text-rose-600">{filteredData.journal.length}</div>
                 </div>
               </div>
             </Section>
@@ -417,7 +417,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               <Section title="Milestones & Journal" icon={Trophy} color="amber">
                 <div className="space-y-6">
                   {filteredData.milestones.map(m => (
-                    <div key={m.id} className="p-4 bg-amber-50/50 rounded-xl border border-amber-100">
+                    <div key={m.id} className="p-4 bg-rose-50/50 rounded-xl border border-rose-100">
                       <div className="text-sm font-bold text-slate-800">{m.title}</div>
                       <div className="text-[10px] text-slate-400 font-medium">{new Date(m.timestamp).toLocaleDateString()}</div>
                     </div>
@@ -443,7 +443,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
               <p className="text-sm font-medium text-slate-500 max-w-lg mx-auto">
                 Your data is processed securely and remains private with Nestly.
               </p>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-pink-300">
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-rose-300">
                 Generated by Nestly • nestlyapp.com • {new Date().getFullYear()}
               </p>
             </div>

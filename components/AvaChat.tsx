@@ -136,7 +136,7 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
           <div>
             <h2 className="text-xl font-serif text-slate-900 leading-none tracking-tight">Ava</h2>
             <div className="flex items-center gap-1.5 mt-1.5">
-              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+              <span className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse" />
               <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">WHO-Verified Companion</span>
             </div>
           </div>

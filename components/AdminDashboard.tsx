@@ -316,7 +316,7 @@ export const AdminDashboard: React.FC = () => {
           <button 
             type="submit"
             disabled={isSending}
-            className="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50"
+            className="w-full bg-rose-600 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50"
           >
             {isSending ? 'Sending...' : 'Send Broadcast Notification'}
           </button>
@@ -463,7 +463,7 @@ export const AdminDashboard: React.FC = () => {
           </div>
           <button 
             type="submit"
-            className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all"
+            className="w-full bg-rose-600 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest active:scale-95 transition-all"
           >
             {editingVideoId ? 'Update Video' : 'Post Video'}
           </button>
@@ -505,7 +505,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => handleEdit(article)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
+                  <button onClick={() => handleEdit(article)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Edit2 size={16} /></button>
                   <button onClick={() => handleDelete(article.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={16} /></button>
                 </div>
               </div>
@@ -526,7 +526,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => handleEditVideo(video)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"><Edit2 size={16} /></button>
+                  <button onClick={() => handleEditVideo(video)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Edit2 size={16} /></button>
                   <button onClick={() => handleDeleteVideo(video.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={16} /></button>
                 </div>
               </div>
@@ -546,7 +546,7 @@ const MetricCard = ({ label, value, trend, status, icon: Icon }: any) => (
     </div>
     <div className="mt-2 flex items-baseline gap-2">
       <span className="text-3xl font-serif text-slate-900">{value}</span>
-      {trend && <span className="text-[9px] font-black text-emerald-500">{trend}</span>}
+      {trend && <span className="text-[9px] font-black text-rose-500">{trend}</span>}
     </div>
   </div>
 );

@@ -24,7 +24,7 @@ export const BirthOnboarding: React.FC<BirthOnboardingProps> = ({ profile, onUpd
           
           <button 
             onClick={() => setIsBirthOnboarding(true)}
-            className="w-full py-5 bg-emerald-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-2"
+            className="w-full py-5 bg-rose-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-2"
           >
             <Baby size={18} /> Mark as Born & Switch to Newborn Mode
           </button>

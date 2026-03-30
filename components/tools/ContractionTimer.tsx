@@ -86,11 +86,11 @@ export const ContractionTimer: React.FC<ContractionTimerProps> = ({ contractions
         ))}
       </div>
 
-      <div className="p-6 bg-amber-50 rounded-[2rem] border border-amber-100 flex items-center gap-5">
-        <div className="text-amber-500">
+      <div className="p-6 bg-rose-50 rounded-[2rem] border border-rose-100 flex items-center gap-5">
+        <div className="text-rose-500">
           <Bell size={32} />
         </div>
-        <p className="text-[10px] text-amber-700 font-bold uppercase tracking-widest leading-relaxed">If contractions are 5 mins apart and last 1 min for 1 hour, contact your provider.</p>
+        <p className="text-[10px] text-rose-700 font-bold uppercase tracking-widest leading-relaxed">If contractions are 5 mins apart and last 1 min for 1 hour, contact your provider.</p>
       </div>
     </div>
   );

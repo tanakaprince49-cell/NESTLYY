@@ -34,7 +34,7 @@ export const SleepHistory: React.FC<SleepHistoryProps> = ({ sessions, onEdit, on
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-xl ${session.type === 'night' ? 'bg-indigo-50 text-indigo-500' : 'bg-amber-50 text-amber-500'}`}>
+                  <div className={`p-3 rounded-xl ${session.type === 'night' ? 'bg-rose-50 text-rose-500' : 'bg-rose-50 text-rose-500'}`}>
                     {session.type === 'night' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                   </div>
                   <div>
@@ -56,7 +56,7 @@ export const SleepHistory: React.FC<SleepHistoryProps> = ({ sessions, onEdit, on
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={() => onEdit(session)}
-                    className="p-2 hover:bg-slate-100 text-slate-400 hover:text-indigo-500 rounded-lg transition-colors"
+                    className="p-2 hover:bg-slate-100 text-slate-400 hover:text-rose-500 rounded-lg transition-colors"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>

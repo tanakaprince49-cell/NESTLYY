@@ -74,7 +74,7 @@ export const ChecklistTracker: React.FC<ChecklistTrackerProps> = ({ checklists, 
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => handleToggleItem(item)}
-                  className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${item.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-white'}`}
+                  className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${item.completed ? 'bg-rose-500 border-rose-500 text-white' : 'border-slate-200 bg-white'}`}
                 >
                   {item.completed && '✓'}
                 </button>

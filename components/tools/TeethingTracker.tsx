@@ -20,7 +20,7 @@ export const TeethingTracker: React.FC<TeethingTrackerProps> = ({ journalEntries
   return (
     <div className="space-y-8 animate-in fade-in">
       <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
-        <h3 className="text-xl font-serif text-yellow-800">Teething Tracker</h3>
+        <h3 className="text-xl font-serif text-rose-800">Teething Tracker</h3>
         <p className="text-xs text-slate-400 font-medium">Log teething symptoms and milestones.</p>
         <p className="text-xs text-slate-500 italic">
           Track your baby's teething milestones with Nestly.
@@ -29,14 +29,14 @@ export const TeethingTracker: React.FC<TeethingTrackerProps> = ({ journalEntries
           <input 
             type="text" 
             placeholder="Symptoms or tooth spotted..." 
-            className="flex-1 p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-yellow-200 text-sm outline-none"
+            className="flex-1 p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-rose-200 text-sm outline-none"
             value={teethingInput}
             onChange={(e) => setTeethingInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleLogTeething()}
           />
           <button 
             onClick={handleLogTeething}
-            className="px-6 bg-yellow-500 text-white rounded-2xl font-bold shadow-lg shadow-yellow-200 hover:bg-yellow-600 transition-colors"
+            className="px-6 bg-rose-500 text-white rounded-2xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-600 transition-colors"
           >
             Log
           </button>
