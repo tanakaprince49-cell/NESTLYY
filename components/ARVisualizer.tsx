@@ -138,7 +138,7 @@ export const ARVisualizer: React.FC<ARVisualizerProps> = ({ onClose, babySize, b
               {/* Floating metadata label */}
               <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 glass px-10 py-4 rounded-[2.5rem] border-2 border-white/90 shadow-2xl flex flex-col items-center min-w-[200px] backdrop-blur-2xl">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                  <span className="w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
                   <span className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em]">Live Scale</span>
                 </div>
                 <span className="text-slate-900 font-bold text-xl tracking-tight">{babySize}</span>

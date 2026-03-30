@@ -69,7 +69,7 @@ export const NotificationService: React.FC = () => {
           key={n.id} 
           className="bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-rose-100 flex gap-4 animate-in slide-in-from-top-full duration-500 pointer-events-auto"
         >
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${n.type === 'milestone' ? 'bg-amber-100 text-amber-500' : 'bg-rose-100 text-rose-500'}`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${n.type === 'milestone' ? 'bg-rose-100 text-rose-500' : 'bg-rose-100 text-rose-500'}`}>
             {n.type === 'milestone' ? '✨' : '🔔'}
           </div>
           <div className="flex-1 min-w-0">

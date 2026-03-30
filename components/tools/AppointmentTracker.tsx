@@ -75,7 +75,7 @@ export const AppointmentTracker: React.FC<AppointmentTrackerProps> = ({ calendar
           .map(event => (
             <div key={event.id} className="card-premium p-6 bg-white border-2 border-white shadow-sm flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${event.type === 'appointment' ? 'bg-blue-50 text-blue-500' : event.type === 'milestone' ? 'bg-amber-50 text-amber-500' : 'bg-rose-50 text-rose-500'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${event.type === 'appointment' ? 'bg-rose-50 text-rose-500' : event.type === 'milestone' ? 'bg-rose-50 text-rose-500' : 'bg-rose-50 text-rose-500'}`}>
                   {event.type === 'appointment' ? <Hospital size={20} /> : event.type === 'milestone' ? <Trophy size={20} /> : <Bell size={20} />}
                 </div>
                 <div>

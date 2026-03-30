@@ -94,9 +94,9 @@ export const BabyNames: React.FC<BabyNamesProps> = ({ babyNames, onUpdateBabyNam
               >
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
-                    item.gender === 'boy' ? 'bg-blue-50 text-blue-500' : 
-                    item.gender === 'girl' ? 'bg-pink-50 text-pink-500' : 
-                    'bg-emerald-50 text-emerald-500'
+                    item.gender === 'boy' ? 'bg-rose-50 text-rose-500' : 
+                    item.gender === 'girl' ? 'bg-rose-50 text-rose-500' : 
+                    'bg-rose-50 text-rose-500'
                   }`}>
                     <Sparkles className="w-4 h-4" />
                   </div>

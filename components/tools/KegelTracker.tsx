@@ -79,7 +79,7 @@ export const KegelTracker: React.FC<KegelTrackerProps> = ({ kegelLogs, onAddKege
                   <div className="text-[9px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                 </div>
               </div>
-              <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Recorded</div>
+              <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Recorded</div>
             </div>
           ))}
           {kegelLogs.length === 0 && (

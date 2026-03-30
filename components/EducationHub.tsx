@@ -118,6 +118,87 @@ const educationalContent: LocalArticle[] = [
     source: 'WHO',
     link: 'https://www.who.int/elena/titles/guidance_summaries/daily_iron_folic_pregnant/en/',
     summary: 'WHO recommends daily oral iron and folic acid supplementation with 30 mg to 60 mg of elemental iron and 400 µg (0.4 mg) of folic acid for pregnant women to prevent maternal anaemia, puerperal sepsis, low birth weight, and preterm birth. This intervention is particularly critical in the first trimester when fetal organ development is most rapid. Regular supplementation has been shown to improve maternal iron stores and reduce the incidence of neural tube defects. The guidelines provide clear instructions on dosage and duration to ensure maximum benefit. This is a vital component of standard prenatal care globally. It ensures that both mother and baby have the necessary nutrients for a healthy start.'
+  },
+  {
+    id: '12',
+    title: 'Managing Morning Sickness effectively',
+    category: 'Pregnancy Health',
+    trimester: Trimester.FIRST,
+    source: 'Mayo Clinic',
+    link: 'https://www.mayoclinic.org/diseases-conditions/morning-sickness/symptoms-causes/syc-20375254',
+    summary: 'Nausea and vomiting during early pregnancy can be challenging. This guide outlines proven strategies to manage morning sickness, including eating small, frequent meals, staying hydrated, and avoiding common triggers. It explores remedies such as ginger and vitamin B6 supplementation. Knowing when to contact your healthcare provider if symptoms become severe is also covered to ensure maternal safety.'
+  },
+  {
+    id: '13',
+    title: 'Crucial First Trimester Screenings',
+    category: 'Pregnancy Health',
+    trimester: Trimester.FIRST,
+    source: 'ACOG',
+    link: 'https://www.acog.org/womens-health/faqs/routine-tests-during-pregnancy',
+    summary: 'The first trimester involves several important diagnostic tests. This article explains what to expect during initial blood work and ultrasound appointments. It details the purpose of genetic screening panels and how they help assess the risk of chromosomal differences, giving parents peace of mind and the necessary information to prepare.'
+  },
+  {
+    id: '14',
+    title: 'Staying Active: Early Pregnancy Fitness',
+    category: 'Pregnancy Health',
+    trimester: Trimester.FIRST,
+    source: 'NHS',
+    link: 'https://www.nhs.uk/pregnancy/keeping-well/exercise/',
+    summary: 'Maintaining a safe exercise routine during the first trimester has significant benefits for both physical endurance and mental well-being. This guide highlights recommended activities like walking, swimming, and prenatal yoga, while indicating which high-impact activities to avoid. Consistent, moderate exercise helps prepare the body for the journey ahead.'
+  },
+  {
+    id: '15',
+    title: 'Preparing for the Anatomy Scan',
+    category: 'Baby Development',
+    trimester: Trimester.SECOND,
+    source: 'March of Dimes',
+    link: 'https://www.marchofdimes.org/find-support/topics/pregnancy/ultrasound-during-pregnancy',
+    summary: 'Usually performed around 20 weeks, the anatomy scan provides a comprehensive look at your baby’s development. This informative article walks you through exactly what technicians are looking for, including organ function and limb development. It also discusses the exciting possibility of discovering the baby’s sex, if desired.'
+  },
+  {
+    id: '16',
+    title: 'Sleeping Comfortably With a Growing Bump',
+    category: 'Pregnancy Health',
+    trimester: Trimester.SECOND,
+    source: 'Sleep Foundation',
+    link: 'https://www.sleepfoundation.org/pregnancy/sleeping-during-2nd-trimester',
+    summary: 'As your baby grows, finding a comfortable sleep position becomes more difficult. This comprehensive guide explains the benefits of sleeping on your side (particularly the left side) to improve blood flow to the uterus. It also offers practical advice on utilizing pregnancy pillows to provide necessary support for your back and abdomen.'
+  },
+  {
+    id: '17',
+    title: 'Managing Pregnancy Heartburn',
+    category: 'Nutrition',
+    trimester: Trimester.SECOND,
+    source: 'ACOG',
+    link: 'https://www.acog.org/womens-health/experts-and-stories/ask-acog/what-can-i-take-for-heartburn-during-pregnancy',
+    summary: 'Hormonal changes and physical pressure frequently cause heartburn in the second trimester. This resource provides dietary modifications, such as avoiding spicy or acidic foods and not eating close to bedtime. It also reviews safe, over-the-counter antacid options to help manage ongoing discomfort.'
+  },
+  {
+    id: '18',
+    title: 'Braxton Hicks vs. Real Labor',
+    category: 'Pregnancy Health',
+    trimester: Trimester.THIRD,
+    source: 'Mayo Clinic',
+    link: 'https://www.mayoclinic.org/healthy-lifestyle/labor-and-delivery/in-depth/signs-of-labor/art-20046184',
+    summary: 'Understanding the difference between practice contractions and actual true labor is essential in the final stretch. This article explains how to identify Braxton Hicks contractions, which are typically irregular and relieve with movement or hydration, compared to the consistent, intensifying rhythm of true labor contractions.'
+  },
+  {
+    id: '19',
+    title: 'Packing Your Hospital Bag',
+    category: 'Pregnancy Health',
+    trimester: Trimester.THIRD,
+    source: 'NHS',
+    link: 'https://www.nhs.uk/pregnancy/labour-and-birth/preparing-for-the-birth/pack-your-bag-for-labour/',
+    summary: 'An essential checklist for the final weeks of pregnancy. This detailed guide covers exactly what you need to pack for yourself, your birth partner, and your newborn. From comfortable clothing and important medical records to baby outfits and postpartum care supplies, this ensures you are fully prepared for the big day.'
+  },
+  {
+    id: '20',
+    title: 'Preparing for Breastfeeding',
+    category: 'Nutrition',
+    trimester: Trimester.THIRD,
+    source: 'CDC',
+    link: 'https://www.cdc.gov/breastfeeding/about/preparing-to-breastfeed.html',
+    summary: 'Laying the groundwork before the baby arrives can make the initial breastfeeding experience much smoother. This article covers the importance of lactation education, gathering the right supplies like supportive bras and nipple cream, and understanding early baby feeding cues to set both mother and baby up for success.'
   }
 ];
 

@@ -317,20 +317,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="space-y-6">
           {/* Sleep Analysis Card - Moved to Top for Newborn Mode */}
           <div className="card-premium p-6 bg-white border-2 border-slate-50 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-900">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-rose-900">
               <Moon size={120} />
             </div>
             <div className="relative z-10">
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-900/40">Sleep Analysis</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-900/40">Sleep Analysis</span>
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <p className="text-3xl font-bold text-blue-900">
+                  <p className="text-3xl font-bold text-rose-900">
                     {(sleepLogs.reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
                   </p>
                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg / Session</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-blue-900">
+                  <p className="text-3xl font-bold text-rose-900">
                     {(sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length)}
                   </p>
                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Sessions Today</p>
@@ -407,7 +407,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
             <div className="card-premium p-5 bg-white border-2 border-white flex flex-col justify-between min-h-[120px]">
-              <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Sleep</span>
+              <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Sleep</span>
               <div className="mt-2">
                 <span className="text-2xl font-bold text-slate-900">
                   {(sleepLogs || []).filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0).toFixed(1)}
@@ -419,7 +419,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
             <div className="card-premium p-5 bg-white border-2 border-white flex flex-col justify-between min-h-[120px]">
-              <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Diapers</span>
+              <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Diapers</span>
               <div className="mt-2">
                 <span className="text-2xl font-bold text-slate-900">
                   {(diaperLogs || []).filter(d => new Date(d.timestamp).setHours(0,0,0,0) === today).length}
@@ -435,12 +435,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
             <div className="card-premium p-5 bg-white border-2 border-white flex flex-col justify-between min-h-[120px]">
-              <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest">Mood</span>
+              <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Mood</span>
               <div className="mt-2">
                 <span className="text-2xl font-bold text-slate-900">
                   {(journalEntries || []).filter(j => new Date(j.timestamp).setHours(0,0,0,0) === today && j.mood).length > 0 
                     ? (journalEntries || []).filter(j => new Date(j.timestamp).setHours(0,0,0,0) === today && j.mood)[0].mood 
-                    : <Smile className="text-amber-400" size={24} />}
+                    : <Smile className="text-rose-400" size={24} />}
                 </span>
               </div>
               <div className="text-[8px] text-slate-300 font-bold uppercase mt-1">Daily Vibe</div>
@@ -521,20 +521,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Sleep Analysis Card - Only for Pregnancy Mode (Newborn has it at top) */}
       {!isPostpartum && (
         <div className="card-premium p-6 bg-white border-2 border-slate-50 overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-900">
+          <div className="absolute top-0 right-0 p-8 opacity-5 text-rose-900">
             <Moon size={120} />
           </div>
           <div className="relative z-10">
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-900/40">Sleep Analysis</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-900/40">Sleep Analysis</span>
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div>
-                <p className="text-3xl font-bold text-blue-900">
+                <p className="text-3xl font-bold text-rose-900">
                   {(sleepLogs.reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0) / Math.max(1, sleepLogs.length)).toFixed(1)}h
                 </p>
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg / Session</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-blue-900">
+                <p className="text-3xl font-bold text-rose-900">
                   {(sleepLogs.filter(s => new Date(s.timestamp).setHours(0,0,0,0) === today).length)}
                 </p>
                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Sessions Today</p>
@@ -568,7 +568,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="space-y-4">
               <div className="flex justify-between items-center px-1">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Month Recaps</h3>
-                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{remainingMonths} Months Remaining</span>
+                <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest">{remainingMonths} Months Remaining</span>
               </div>
               <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-5 px-5">
                 {monthRecaps.map((recap) => (
@@ -616,8 +616,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                    Baby Growth
                  </span>
                  <div className="mt-2 text-center">
-                   <span className="text-[12px] font-serif block leading-tight text-indigo-900">Size of {profile.pregnancyType === 'singleton' ? 'a' : profile.pregnancyType === 'twins' ? 'two' : 'three'} {baby?.size}</span>
-                   <span className="text-[10px] font-black uppercase tracking-widest text-indigo-900 mt-2 block">Week {weeks}</span>
+                   <span className="text-[12px] font-serif block leading-tight text-rose-900">Size of {profile.pregnancyType === 'singleton' ? 'a' : profile.pregnancyType === 'twins' ? 'two' : 'three'} {baby?.size}</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest text-rose-900 mt-2 block">Week {weeks}</span>
                  </div>
               </div>
             </div>
@@ -649,9 +649,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                      <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest">Time Lapsed</span>
                      <div className="text-xl font-bold text-rose-900">{Math.round((weeks / 40) * 100)}%</div>
                   </div>
-                  <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                     <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Weeks Left</span>
-                     <div className="text-xl font-bold text-emerald-900">{Math.max(0, 40 - weeks)}</div>
+                  <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100">
+                     <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest">Weeks Left</span>
+                     <div className="text-xl font-bold text-rose-900">{Math.max(0, 40 - weeks)}</div>
                   </div>
                </div>
             </div>
@@ -659,7 +659,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           {/* Tip Card */}
           <div className="p-6 bg-gradient-to-br from-rose-50 to-white rounded-[2.5rem] border border-rose-100/50 shadow-sm relative overflow-hidden group">
-             <div className="absolute top-0 right-0 px-3 py-1 bg-blue-600 text-white text-[7px] font-black uppercase tracking-widest rounded-bl-xl flex items-center gap-1 shadow-sm">
+             <div className="absolute top-0 right-0 px-3 py-1 bg-rose-600 text-white text-[7px] font-black uppercase tracking-widest rounded-bl-xl flex items-center gap-1 shadow-sm">
                <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                WHO Recommended
              </div>
@@ -677,7 +677,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Nutrient Grid */}
           <div className="grid grid-cols-2 gap-4">
             <NutrientCard title="Daily Fuel" current={totals.calories} target={targets.cals} unit="kcal" gradient="from-rose-400 to-rose-600" />
-            <NutrientCard title="Protein" current={totals.protein} target={targets.protein} unit="g" gradient="from-emerald-400 to-emerald-600" />
+            <NutrientCard title="Protein" current={totals.protein} target={targets.protein} unit="g" gradient="from-rose-400 to-rose-600" />
           </div>
 
           {/* Manual Entry */}

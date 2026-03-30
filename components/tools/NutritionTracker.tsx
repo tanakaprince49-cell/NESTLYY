@@ -21,7 +21,7 @@ export const NutritionTracker: React.FC<NutritionTrackerProps> = ({ foodEntries,
     <div className="space-y-6">
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-black/5">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Soup className="w-5 h-5 text-orange-500" />
+          <Soup className="w-5 h-5 text-rose-500" />
           Log Nutrition
         </h3>
         <p className="text-xs text-slate-500 mb-4 italic">
@@ -106,7 +106,7 @@ export const NutritionTracker: React.FC<NutritionTrackerProps> = ({ foodEntries,
               }
             }
           }}
-          className="w-full py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"
+          className="w-full py-3 bg-rose-500 text-white rounded-xl font-medium hover:bg-rose-600 transition-colors"
         >
           Log Food
         </button>

@@ -30,7 +30,7 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ title, current, targ
         </div>
         <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
           <span className="text-slate-300">Goal: {target}</span>
-          <span className={percentage >= 100 ? 'text-emerald-500' : 'text-rose-400'}>
+          <span className={percentage >= 100 ? 'text-rose-500' : 'text-rose-400'}>
             {percentage >= 100 ? 'Achieved' : `${Math.round(percentage)}%`}
           </span>
         </div>

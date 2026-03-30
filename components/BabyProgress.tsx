@@ -57,15 +57,15 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?
             </div>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-emerald-50 rounded-2xl">
-                <span className="block text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Current Weight</span>
-                <span className="text-xl font-bold text-emerald-900">
+              <div className="p-4 bg-rose-50 rounded-2xl">
+                <span className="block text-[8px] font-black text-rose-400 uppercase tracking-widest mb-1">Current Weight</span>
+                <span className="text-xl font-bold text-rose-900">
                   {(babyGrowthLogs || []).filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.weight || '--'} kg
                 </span>
               </div>
-              <div className="p-4 bg-blue-50 rounded-2xl">
-                <span className="block text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Height</span>
-                <span className="text-xl font-bold text-blue-900">
+              <div className="p-4 bg-rose-50 rounded-2xl">
+                <span className="block text-[8px] font-black text-rose-400 uppercase tracking-widest mb-1">Height</span>
+                <span className="text-xl font-bold text-rose-900">
                   {(babyGrowthLogs || []).filter(l => l.babyId === b.id).sort((a, b) => b.timestamp - a.timestamp)[0]?.height || '--'} cm
                 </span>
               </div>

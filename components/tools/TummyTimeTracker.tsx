@@ -45,7 +45,7 @@ export const TummyTimeTracker: React.FC<TummyTimeTrackerProps> = ({ tummyTimeLog
   return (
     <div className="space-y-6 animate-in fade-in">
       <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-6">
-        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto text-orange-500">
+        <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto text-rose-500">
           <Activity size={40} />
         </div>
         <div className="space-y-2">

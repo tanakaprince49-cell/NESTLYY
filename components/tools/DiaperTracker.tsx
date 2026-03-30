@@ -30,7 +30,7 @@ export const DiaperTracker: React.FC<DiaperTrackerProps> = ({
               <button
                 key={baby.id}
                 onClick={() => setSelectedBabyId(baby.id)}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${selectedBabyId === baby.id ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-400 border-slate-50'}`}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${selectedBabyId === baby.id ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-slate-400 border-slate-50'}`}
               >
                 {baby.name || `Baby ${idx + 1}`}
               </button>
@@ -42,9 +42,9 @@ export const DiaperTracker: React.FC<DiaperTrackerProps> = ({
               <button 
                 key={type}
                 onClick={() => setDiaperType(type)}
-                className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${diaperType === type ? 'bg-emerald-50 border-emerald-500 text-emerald-600 shadow-md' : 'bg-white border-slate-50 opacity-60'}`}
+                className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${diaperType === type ? 'bg-rose-50 border-rose-500 text-rose-600 shadow-md' : 'bg-white border-slate-50 opacity-60'}`}
               >
-                <span className="text-emerald-500">
+                <span className="text-rose-500">
                   {type === 'wet' ? <Droplet size={32} /> : type === 'dirty' ? <Trash2 size={32} /> : <Droplets size={32} />}
                 </span>
                 <span className="text-[9px] font-black uppercase tracking-widest">{type}</span>
@@ -58,7 +58,7 @@ export const DiaperTracker: React.FC<DiaperTrackerProps> = ({
               type: diaperType,
               notes: ''
             })}
-            className="w-full py-5 bg-emerald-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+            className="w-full py-5 bg-rose-600 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all"
           >
             Log Diaper Change
           </button>
@@ -68,7 +68,7 @@ export const DiaperTracker: React.FC<DiaperTrackerProps> = ({
         {diaperLogs.filter(d => d.babyId === currentBabyId).map(log => (
           <div key={log.id} className="card-premium p-4 bg-white border-2 border-white flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <span className="text-emerald-500">
+              <span className="text-rose-500">
                 {log.type === 'wet' ? <Droplet size={20} /> : log.type === 'dirty' ? <Trash2 size={20} /> : <Droplets size={20} />}
               </span>
               <div>

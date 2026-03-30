@@ -31,7 +31,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onAccept }) => {
 
         <div className="space-y-6 mb-8 text-gray-700">
           <div className="flex gap-4">
-            <div className="mt-1"><CheckCircle2 className="w-6 h-6 text-emerald-500" /></div>
+            <div className="mt-1"><CheckCircle2 className="w-6 h-6 text-rose-500" /></div>
             <div>
               <h3 className="font-semibold text-gray-900">What data we collect</h3>
               <p className="text-sm">We collect pregnancy data, health inputs, and usage metrics to personalize your experience and provide relevant insights.</p>
@@ -39,7 +39,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onAccept }) => {
           </div>
 
           <div className="flex gap-4">
-            <div className="mt-1"><Lock className="w-6 h-6 text-emerald-500" /></div>
+            <div className="mt-1"><Lock className="w-6 h-6 text-rose-500" /></div>
             <div>
               <h3 className="font-semibold text-gray-900">How it's protected</h3>
               <p className="text-sm">Your sensitive health data is stored securely using industry-standard encryption. We do not sell your personal data to third parties.</p>
@@ -47,7 +47,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onAccept }) => {
           </div>
 
           <div className="flex gap-4">
-            <div className="mt-1"><Trash2 className="w-6 h-6 text-emerald-500" /></div>
+            <div className="mt-1"><Trash2 className="w-6 h-6 text-rose-500" /></div>
             <div>
               <h3 className="font-semibold text-gray-900">Your rights</h3>
               <p className="text-sm">You have full control over your data. You can request data removal or delete your account at any time from the settings menu.</p>

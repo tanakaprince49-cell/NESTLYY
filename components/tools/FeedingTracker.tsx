@@ -82,7 +82,7 @@ export const FeedingTracker: React.FC<FeedingTrackerProps> = ({
                   <button 
                     key={sub}
                     onClick={() => setFeedingSubType(sub)}
-                    className={`p-3 rounded-xl border-2 text-[8px] font-black uppercase tracking-widest transition-all ${feedingSubType === sub ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-slate-400 border-slate-50'}`}
+                    className={`p-3 rounded-xl border-2 text-[8px] font-black uppercase tracking-widest transition-all ${feedingSubType === sub ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-slate-400 border-slate-50'}`}
                   >
                     {sub}
                   </button>
