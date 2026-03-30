@@ -25,8 +25,10 @@ import {
   ChecklistItem
 } from '../types.ts';
 import { storage } from '../services/storageService.ts';
-import { ReportCenter } from './ReportCenter.tsx';
-import { ExportReport } from './ExportReport.tsx';
+const reportCenterImport = () => import('./ReportCenter.tsx');
+const exportReportImport = () => import('./ExportReport.tsx');
+const ReportCenter = lazy(() => reportCenterImport().then(m => ({ default: m.ReportCenter })));
+const ExportReport = lazy(() => exportReportImport().then(m => ({ default: m.ExportReport })));
 import { motion } from 'motion/react';
 import { 
   Sparkles, 
@@ -183,6 +185,12 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   activeCategory, setActiveCategory, onUpdateProfile, onUpdateChecklist, onUpdateBumpPhotos, onUpdateBabyNames, onUpdateArchive
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Prefetch PDF-heavy chunks when Tools tab opens so they're cached before user clicks
+  useEffect(() => {
+    reportCenterImport();
+    exportReportImport();
+  }, []);
   const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies?.[0]?.id || '');
   const [babyNames, setBabyNames] = useState(storage.getBabyNames());
   const [bumpPhotos, setBumpPhotos] = useState(storage.getBumpPhotos());
