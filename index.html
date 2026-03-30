@@ -21,13 +21,13 @@
       :root {
         --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
         --safe-area-inset-top: env(safe-area-inset-top, 0px);
-        --app-width: 500px;
         --rose-main: #f43f5e;
         --nestly-burgundy: #7e1631;
         --soft-bg: #fffaf9;
         --body-bg: #fdf8f7;
         --theme-100: #ffe4e6;
         --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        --sidebar-width: 0px;
       }
       * {
         box-sizing: border-box;
@@ -56,14 +56,33 @@
       }
       #root {
         width: 100%;
-        max-width: var(--app-width);
         min-height: 100vh;
         background: var(--soft-bg);
         position: relative;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 0 100px rgba(126, 22, 49, 0.04);
         transition: background-color 0.5s ease;
+      }
+
+      /* Tablet: 768px+ */
+      @media (min-width: 768px) {
+        #root {
+          box-shadow: none;
+        }
+      }
+
+      /* Desktop: 1024px+ — sidebar nav layout */
+      @media (min-width: 1024px) {
+        :root {
+          --sidebar-width: 260px;
+        }
+        body {
+          background: var(--body-bg);
+        }
+        #root {
+          flex-direction: row;
+          max-width: 100%;
+        }
       }
       .font-serif {
         font-family: 'Fraunces', serif;

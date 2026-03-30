@@ -40,7 +40,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-rose-50"
-          style={{ maxWidth: 'var(--app-width)', margin: '0 auto' }}
         >
           {/* Background Decorative Elements */}
           <motion.div 

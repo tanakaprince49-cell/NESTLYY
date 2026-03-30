@@ -9,26 +9,35 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
-    : undefined;
+// Initialize Firebase Admin (graceful fallback for local dev)
+let firebaseInitialized = false;
+try {
+  if (!admin.apps?.length) {
+    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
+      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
+      : undefined;
 
-  if (serviceAccount) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-  } else {
-    admin.initializeApp();
+    if (serviceAccount) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      firebaseInitialized = true;
+    } else {
+      console.warn("[WARN] No FIREBASE_SERVICE_ACCOUNT set. Firebase Admin features disabled.");
+    }
   }
+} catch (e) {
+  console.warn("[WARN] Firebase Admin init failed:", e);
 }
 
-const messaging = admin.messaging();
-const resend = new Resend(process.env.RESEND_API_KEY);
+const messaging = firebaseInitialized ? admin.messaging() : null;
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Auth middleware — verifies Firebase ID token from Authorization header
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!firebaseInitialized) {
+    return res.status(503).json({ error: "Auth service unavailable" });
+  }
   const token = req.headers.authorization?.split("Bearer ")[1];
   if (!token) return res.status(401).json({ error: "Unauthorized" });
   try {
@@ -230,6 +239,10 @@ Return ONLY the JSON.`,
 }
 
 async function sendEmail(to: string, subject: string, body: string) {
+  if (!resend) {
+    console.warn("[WARN] Email sending disabled - no RESEND_API_KEY");
+    return;
+  }
   try {
     await resend.emails.send({
       from: "Nestly <updates@nestly.run.app>",
