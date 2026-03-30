@@ -19,7 +19,7 @@ interface SetupScreenProps {
   initialProfile?: PregnancyProfile | null;
 }
 
-type SetupStep = 'welcome' | 'lifecycle' | 'name' | 'lmp' | 'calculation' | 'multiples' | 'baby_details' | 'theme' | 'weight' | 'nutrition' | 'photo' | 'final';
+type SetupStep = 'welcome' | 'lifecycle' | 'name' | 'lmp' | 'calculation' | 'multiples' | 'baby_details' | 'theme' | 'weight' | 'nutrition' | 'diet' | 'photo' | 'final';
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialProfile }) => {
   const [step, setStep] = useState<SetupStep>(initialProfile ? 'name' : 'welcome');
@@ -36,6 +36,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
   const [profileImage, setProfileImage] = useState(initialProfile?.profileImage || '');
   const [notificationsEnabled, setNotificationsEnabled] = useState(initialProfile?.notificationsEnabled ?? true);
   const [emailNotifications, setEmailNotifications] = useState(initialProfile?.emailNotifications ?? true);
+  const [dietPreference, setDietPreference] = useState<'normal' | 'vegan' | 'vegetarian' | 'pescatarian' | 'gluten-free' | 'dairy-free'>(initialProfile?.dietPreference || 'normal');
   
   // Nutrition Targets
   const [useCustomTargets, setUseCustomTargets] = useState(!!initialProfile?.customTargets);
@@ -102,7 +103,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         albums: initialProfile?.albums || emptyAlbums,
         lifecycleStage,
         notificationsEnabled,
-        emailNotifications
+        emailNotifications,
+        dietPreference
       };
 
       onComplete(newProfile);
@@ -505,7 +507,34 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
               )}
             </div>
             
-            <button onClick={() => goTo('photo')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest shadow-lg">Confirm Goals</button>
+            <button onClick={() => goTo('diet')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest shadow-lg">Confirm Goals</button>
+          </div>
+        )}
+
+        {step === 'diet' && (
+          <div className="space-y-8 w-full text-center">
+            <h2 className="text-3xl font-serif text-slate-900">Dietary Preference</h2>
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">To personalize your nutrition plans</p>
+            <div className="grid grid-cols-2 gap-3 max-h-[45vh] overflow-y-auto no-scrollbar p-2">
+              {[
+                { id: 'normal', label: 'Balanced', desc: 'No restrictions' },
+                { id: 'vegan', label: 'Vegan', desc: 'Plant-based only' },
+                { id: 'vegetarian', label: 'Vegetarian', desc: 'No meat' },
+                { id: 'pescatarian', label: 'Pescatarian', desc: 'Fish & plants' },
+                { id: 'gluten-free', label: 'Gluten-Free', desc: 'No wheat/gluten' },
+                { id: 'dairy-free', label: 'Dairy-Free', desc: 'No milk products' }
+              ].map(d => (
+                <button
+                  key={d.id}
+                  onClick={() => setDietPreference(d.id as any)}
+                  className={`p-5 rounded-[2rem] border-2 transition-all text-left flex flex-col gap-1 ${dietPreference === d.id ? 'bg-rose-900 text-white border-rose-900 shadow-xl' : 'bg-white border-rose-50 text-slate-400'}`}
+                >
+                  <span className="text-[11px] font-black uppercase tracking-widest">{d.label}</span>
+                  <span className={`text-[8px] font-bold ${dietPreference === d.id ? 'text-rose-200' : 'text-slate-300'}`}>{d.desc}</span>
+                </button>
+              ))}
+            </div>
+            <button onClick={() => goTo('photo')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest shadow-lg">Next</button>
           </div>
         )}
 

@@ -72,6 +72,7 @@ const KEYS = {
   BLOOD_PRESSURE: 'blood_pressure_logs',
   KEGELS: 'kegel_logs',
   PRIVACY_ACCEPTED: 'privacy_accepted',
+  CUSTOM_PLAN: 'custom_plan_v1',
 };
 
 import { syncToFirestore } from './syncService.ts';
@@ -404,6 +405,14 @@ class StorageService {
       videos[index] = video;
       this.setItem(KEYS.VIDEOS, videos, true);
     }
+  }
+
+  getCustomPlan(): any {
+    return this.getItem(KEYS.CUSTOM_PLAN, null);
+  }
+
+  saveCustomPlan(plan: any): void {
+    this.setItem(KEYS.CUSTOM_PLAN, plan);
   }
 }
 
