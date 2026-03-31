@@ -2,6 +2,8 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { subscribeUserToPush } from '../services/pushService.ts';
 import { NutrientCard } from './NutrientCard.tsx';
+import { CelebrationModal } from './CelebrationModal.tsx';
+import { storage } from '../services/storageService.ts';
 import { getBabyGrowth, babyGrowthData } from '../services/babyGrowth.ts';
 import { 
   ResponsiveContainer, 
@@ -142,6 +144,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [foodCals, setFoodCals] = useState('');
   const [foodProtein, setFoodProtein] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  
+  // Milestone Celebration State
+  const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
+  const [celebrationData, setCelebrationData] = useState({ title: '', subtitle: '', message: '' });
 
   useEffect(() => {
     if (toast) {
@@ -163,6 +169,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const tips = isPostpartum ? NEWBORN_TIPS : PREGNANCY_TIPS;
     setDailyTip(tips[day % tips.length]);
   }, [isPostpartum]);
+
+  // Milestone Celebration Logic
+  useEffect(() => {
+    if (isPostpartum) return;
+    
+    const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
+    const currentWeek = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
+    const lastCelebrated = storage.getLastWeekCelebrated();
+
+    if (currentWeek > lastCelebrated && currentWeek > 0) {
+      const growth = getBabyGrowth(currentWeek);
+      setCelebrationData({
+        title: `Welcome to Week ${currentWeek}!`,
+        subtitle: "A New Chapter Begins",
+        message: `Your little one is now the size of a ${growth.size}! ${growth.summary}`
+      });
+      setIsCelebrationOpen(true);
+      storage.setLastWeekCelebrated(currentWeek);
+    }
+  }, [profile.lmpDate, isPostpartum]);
 
   const pregnancyProgress = useMemo(() => {
     if (isPostpartum) return null;
@@ -776,6 +802,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CelebrationModal 
+        isOpen={isCelebrationOpen}
+        onClose={() => setIsCelebrationOpen(false)}
+        title={celebrationData.title}
+        subtitle={celebrationData.subtitle}
+        message={celebrationData.message}
+      />
     </motion.div>
   );
 };

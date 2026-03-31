@@ -70,9 +70,9 @@ async function startServer() {
   });
 
   // Proxy OpenRouter Chat (Secure Backend)
-  app.post("/api/ava", requireAuth, async (req, res) => {
+app.post("/api/ava", requireAuth, async (req, res) => {
     try {
-      const { messages } = req.body;
+      const { messages, userProfile } = req.body;
       if (!messages || !Array.isArray(messages)) {
         return res.status(400).json({ error: "Messages are required" });
       }
@@ -90,16 +90,25 @@ async function startServer() {
           messages: [
             {
               role: "system",
-              content: `You are Ava, a pregnancy companion.
-Be VERY concise.
-Max 2-3 short sentences.
-Warm but direct.
-No long explanations.`,
+              content: `You are Ava, a pregnancy and postpartum companion.
+Current User Context:
+- Name: ${userProfile?.userName || 'Parent'}
+- Stage: ${userProfile?.lifecycleStage || 'Pregnancy'}
+- Trimester: ${userProfile?.trimester || 'Unknown'} (if applicable)
+- Diet: ${userProfile?.dietPreference || 'Normal'}
+
+Your Personality:
+1. Be EXTREMELY warm, supportive, and empathetic. 
+2. Use the user's name naturally.
+3. Be concise (max 3 short sentences) but meaningful.
+4. Don't just answer; occasionally ask how they're feeling emotionally.
+5. If they mention symptoms, gently validate them before providing light advice.
+6. Safety First: If they mention concerning symptoms (heavy bleeding, severe pain), advise contacting their healthcare provider immediately.`,
             },
             ...messages,
           ],
-          temperature: 0.5,
-          max_tokens: 120,
+          temperature: 0.6,
+          max_tokens: 150,
         }),
       });
 
@@ -115,6 +124,67 @@ No long explanations.`,
       return res.status(200).json({ reply });
     } catch (error) {
       console.error("Proxy Error:", error);
+      return res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  // Symptom Decoder AI Endpoint (Trust/Anxiety Reduction)
+  app.post("/api/symptom-decode", requireAuth, async (req, res) => {
+    try {
+      const { symptoms, trimester } = req.body;
+      if (!symptoms) return res.status(400).json({ error: "Symptoms are required" });
+
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://nestly.app",
+          "X-Title": "Symptom Decoder",
+        },
+        body: JSON.stringify({
+          model: "deepseek/deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: `You are an expert pregnancy symptom decoder. Analyze the user's input and return a JSON object.
+JSON Structure:
+{
+  "validation": "string (start with empathy and validation)",
+  "safetyRating": "Green | Amber | Red",
+  "explanation": "string (1-2 sentences of why this may be happening)",
+  "action": "string (1 specific actionable tip)",
+  "medicalNote": "string (when to call a doctor)"
+}
+Rules:
+- Non-alarmist but realistic.
+- Tailor to trimester: ${trimester}.
+- Red safety = Heavy bleeding, severe cramping, no movement.
+- Return ONLY the JSON object.`,
+            },
+            {
+              role: "user",
+              content: `I'm feeling: ${symptoms}`,
+            },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.3,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        console.error("OpenRouter Error:", err);
+        return res.status(500).json({ error: err });
+      }
+
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      const analysis = JSON.parse(content);
+
+      return res.status(200).json(analysis);
+    } catch (error) {
+      console.error("Symptom Decoder Error:", error);
       return res.status(500).json({ error: "Server error" });
     }
   });

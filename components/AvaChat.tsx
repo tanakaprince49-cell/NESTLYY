@@ -60,7 +60,24 @@ export const AvaChat: React.FC<{ profile: PregnancyProfile }> = ({ profile }) =>
         text: m.text
       }));
 
-      const response = await getAvaResponse(userText);
+      const response = await fetch('/api/ava', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          messages: historyForApi.map(m => ({ 
+            role: m.role, 
+            content: m.text // The server expects 'content' for OpenRouter messages array
+          })),
+          userProfile: {
+            userName: profile.userName,
+            lifecycleStage: profile.lifecycleStage,
+            dietPreference: profile.dietPreference
+          }
+        })
+      });
 
       const modelMsg: ChatMessage = { id: crypto.randomUUID(), role: 'model', text: response, timestamp: Date.now() };
       setMessages([...newMessages, modelMsg]);

@@ -224,6 +224,19 @@ const App: React.FC = () => {
       if (weeks < 13) setTrimester(Trimester.FIRST);
       else if (weeks < 27) setTrimester(Trimester.SECOND);
       else setTrimester(Trimester.THIRD);
+
+      // Automatic Postpartum Detection
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dueDate = new Date(profile.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+
+      if (today >= dueDate && profile.lifecycleStage === LifecycleStage.PREGNANCY) {
+        const updatedProfile = { ...profile, lifecycleStage: LifecycleStage.NEWBORN };
+        storage.saveProfile(updatedProfile);
+        setProfile(updatedProfile);
+        showLocalNotification('Welcome to Motherhood! ❤️', 'Nestly has automatically switched to Newborn mode. We are here for your recovery.');
+      }
     }
   }, [profile]);
 
