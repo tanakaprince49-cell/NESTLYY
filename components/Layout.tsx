@@ -12,15 +12,16 @@ import {
   LogOut,
   ToyBrick,
   Menu,
-  X
+  X,
+  Users
 } from 'lucide-react';
 import { storage } from '../services/storageService.ts';
 import { Logo } from './Logo.tsx';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeTab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings';
-  setActiveTab: (tab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings') => void;
+  activeTab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village';
+  setActiveTab: (tab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village') => void;
   onLogout: () => void;
 }
 
@@ -48,6 +49,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     { id: 'education' as const, label: 'Articles', icon: BookOpen },
     { id: 'tools' as const, label: 'Tools', icon: LayoutGrid },
     { id: 'settings' as const, label: 'Settings', icon: User },
+    { id: 'village' as const, label: 'Village', icon: Users },
     ...(isAdmin ? [{ id: 'admin' as const, label: 'Admin', icon: ShieldCheck }] : []),
   ];
 
@@ -188,7 +190,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           <header className="hidden lg:flex relative z-[110] px-8 pt-6 pb-4 items-center justify-between shrink-0 bg-rose-50/40 backdrop-blur-sm border-b border-rose-100/30">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">
-                {activeTab === 'dashboard' ? 'Home' : activeTab === 'baby' ? 'Baby Growth' : activeTab === 'ava' ? 'AI Assistant' : activeTab === 'education' ? 'Education' : activeTab === 'tools' ? 'Tools Hub' : activeTab === 'settings' ? 'Settings' : 'Admin'}
+                {activeTab === 'dashboard' ? 'Home' : activeTab === 'baby' ? 'Baby Growth' : activeTab === 'ava' ? 'AI Assistant' : activeTab === 'education' ? 'Education' : activeTab === 'tools' ? 'Tools Hub' : activeTab === 'settings' ? 'Settings' : activeTab === 'village' ? 'The Village' : 'Admin'}
               </p>
             </div>
             <div className="flex items-center gap-4">

@@ -1,3 +1,72 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  .animate-float-slow {
+    animation: float 10s ease-in-out infinite;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out forwards;
+  }
+  .animate-pulse-subtle {
+    animation: pulseSubtle 4s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Stage: Newborn - Soft Midnight & Blue Overrides */
+.stage-newborn {
+  --bg-primary: #f8fafc;
+  --text-accent: #1e3a8a; /* Deep Blue for Calm */
+}
+
+.stage-newborn .card-premium {
+  border-color: #f1f5f9;
+}
+
+.stage-newborn .bg-rose-500 {
+  background-color: #2563eb !important; /* Switch main action to blue */
+}
+
+.stage-newborn .text-rose-500 {
+  color: #2563eb !important;
+}
+
+.stage-newborn .bg-rose-900 {
+  background-color: #1e3a8a !important; /* Deep Blue header */
+}
+
+/* Glassmorphism Utils */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

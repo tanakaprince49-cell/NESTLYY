@@ -86,11 +86,20 @@ export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimest
             Generate a custom daily routine with nutrition, fitness, and medical guidance tailored to your <b>{trimester}</b> and <b>{profile.dietPreference}</b> diet.
           </p>
         </div>
+
+        {error && (
+          <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 flex items-center gap-3 text-left">
+            <AlertCircle size={20} className="shrink-0" />
+            <span className="text-xs font-bold leading-tight">{error}</span>
+          </div>
+        )}
+
         <button 
           onClick={generatePlan}
-          className="w-full py-5 bg-rose-900 text-white font-black rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-xl hover:shadow-2xl transition-all active:scale-95"
+          disabled={loading}
+          className="w-full py-5 bg-rose-900 text-white font-black rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-xl hover:shadow-2xl transition-all active:scale-95 disabled:opacity-50"
         >
-          Generate My Plan
+          {loading ? 'Consulting Experts...' : 'Generate My Plan'}
         </button>
       </div>
     );

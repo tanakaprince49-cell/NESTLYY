@@ -11,6 +11,7 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard.tsx').then
 const AvaChat = lazy(() => import('./components/AvaChat.tsx').then(m => ({ default: m.AvaChat })));
 const SplashScreen = lazy(() => import('./components/SplashScreen.tsx').then(m => ({ default: m.SplashScreen })));
 const Settings = lazy(() => import('./components/Settings.tsx').then(m => ({ default: m.Settings })));
+const VillageHub = lazy(() => import('./components/VillageHub.tsx').then(m => ({ default: m.VillageHub })));
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
 import { loadFromFirestore } from './services/syncService.ts';
@@ -61,7 +62,7 @@ const App: React.FC = () => {
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [trimester, setTrimester] = useState<Trimester>(Trimester.FIRST);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village'>('dashboard');
   const [activeToolCat, setActiveToolCat] = useState<string>('all');
 
   const [entries, setEntries] = useState<FoodEntry[]>([]);
@@ -464,6 +465,7 @@ const App: React.FC = () => {
                 storage.saveProfile(p);
                 setProfile(p);
               }} userUid={userUid} />}
+              {activeTab === 'village' && <VillageHub profile={profile} />}
               {activeTab === 'admin' && isAdmin && <AdminDashboard />}
             </motion.div>
           </Suspense>
