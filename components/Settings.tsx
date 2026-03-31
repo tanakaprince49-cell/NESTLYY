@@ -204,6 +204,31 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
         <div className="h-px bg-slate-50" />
 
         <div className="space-y-4">
+          <h3 className="font-bold text-slate-800">Dietary Preference</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'normal', label: 'Balanced' },
+              { id: 'vegan', label: 'Vegan' },
+              { id: 'vegetarian', label: 'Vegetarian' },
+              { id: 'pescatarian', label: 'Pescatarian' },
+              { id: 'gluten-free', label: 'Gluten-Free' },
+              { id: 'dairy-free', label: 'Dairy-Free' }
+            ].map(d => (
+              <button
+                key={d.id}
+                onClick={() => onUpdateProfile({ ...profile, dietPreference: d.id as any })}
+                className={`py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${profile.dietPreference === d.id ? 'bg-rose-900 border-rose-900 text-white shadow-md' : 'bg-white border-slate-50 text-slate-400'}`}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-400 ml-2">This adjusts your AI-generated daily plans.</p>
+        </div>
+
+        <div className="h-px bg-slate-50" />
+
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-slate-800">My Babies</h3>
             <button 

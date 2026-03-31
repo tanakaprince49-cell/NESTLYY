@@ -87,6 +87,7 @@ export interface PregnancyProfile {
   notificationsEnabled?: boolean;
   emailNotifications?: boolean;
   privacyAccepted?: boolean;
+  dietPreference?: 'normal' | 'vegan' | 'vegetarian' | 'pescatarian' | 'gluten-free' | 'dairy-free';
 }
 
 export interface ArchivedPregnancy {
@@ -320,4 +321,32 @@ export interface FertilityPrediction {
   ovulationDay: string;
   fertileWindow: string[];
   advice: string;
+}
+
+export interface CustomPlan {
+  id: string;
+  trimester: Trimester;
+  dietPreference: string;
+  timestamp: number;
+  nutrition: {
+    breakfast: string[];
+    lunch: string[];
+    dinner: string[];
+    snacks: string[];
+    nutrients: { name: string, importance: string }[];
+  };
+  fitness: {
+    exercises: string[];
+    safety: string[];
+    frequency: string;
+  };
+  routine: {
+    morning: string[];
+    afternoon: string[];
+    evening: string[];
+  };
+  medical: {
+    upcoming: string[];
+    questions: string[];
+  };
 }

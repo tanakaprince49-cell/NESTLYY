@@ -176,6 +176,83 @@ Return ONLY the JSON.`,
       return res.status(500).json({ error: "Server error" });
     }
   });
+  
+  // Custom Plan AI Endpoint
+  app.post("/api/custom-plan", requireAuth, async (req, res) => {
+    try {
+      const { trimester, dietPreference, additionalInfo } = req.body;
+      if (!trimester || !dietPreference) {
+        return res.status(400).json({ error: "Trimester and dietPreference are required" });
+      }
+  
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://nestly.app",
+          "X-Title": "Nestly Custom Plan",
+        },
+        body: JSON.stringify({
+          model: "deepseek/deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: `You are a pregnancy health expert. Create a personalized daily plan and return a JSON object.
+  The JSON must follow this structure exactly:
+  {
+    "nutrition": {
+      "breakfast": ["string"],
+      "lunch": ["string"],
+      "dinner": ["string"],
+      "snacks": ["string"],
+      "nutrients": [{"name": "string", "importance": "string"}]
+    },
+    "fitness": {
+      "exercises": ["string"],
+      "safety": ["string"],
+      "frequency": "string"
+    },
+    "routine": {
+      "morning": ["string"],
+      "afternoon": ["string"],
+      "evening": ["string"]
+    },
+    "medical": {
+      "upcoming": ["string"],
+      "questions": ["string"]
+    }
+  }
+  Tailor the response to the user's trimester: ${trimester} and diet preference: ${dietPreference}.
+  If diet is Vegan, ensure no animal products. If Gluten-Free, ensure no gluten.
+  Keep descriptions concise and actionable.`,
+            },
+            {
+              role: "user",
+              content: `Generate a plan for ${trimester} with a ${dietPreference} diet. ${additionalInfo || ''}`,
+            },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.4,
+        }),
+      });
+  
+      if (!response.ok) {
+        const err = await response.text();
+        console.error("OpenRouter Error:", err);
+        return res.status(500).json({ error: err });
+      }
+  
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      const plan = JSON.parse(content);
+  
+      return res.status(200).json(plan);
+    } catch (error) {
+      console.error("Custom Plan Error:", error);
+      return res.status(500).json({ error: "Server error" });
+    }
+  });
 
   // Store FCM Token
   app.post("/api/push/token", requireAuth, async (req, res) => {
