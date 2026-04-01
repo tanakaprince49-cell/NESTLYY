@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const Logo: React.FC<{ className?: string }> = ({ className = "w-10 h-10" }) => {
-  const logoUrl = "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp";
+  const logoUrl = "/logo.webp";
 
   return (
     <div className={`relative flex items-center justify-center ${className} group`}>
