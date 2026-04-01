@@ -38,12 +38,6 @@ messaging.onBackgroundMessage((payload) => {
 // --- WIDGET & GENERIC PUSH LOGIC (from sw.js) ---
 const WIDGET_TAG = 'nestly-stats';
 
-// Cache Firebase auth iframe (90 KiB, default 30 min TTL) for 24h
-const CACHE_NAME = 'nestly-ext-v1';
-const CACHED_URL_PATTERNS = [
-  /firebaseapp\.com\/.*\/auth\/iframe/
-];
-
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
