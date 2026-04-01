@@ -11,19 +11,19 @@
   "theme_color": "#7e1631",
   "icons": [
     {
-      "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp",
+      "src": "/logo.webp",
       "sizes": "192x192",
       "type": "image/webp",
       "purpose": "any"
     },
     {
-      "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp",
+      "src": "/logo.webp",
       "sizes": "512x512",
       "type": "image/webp",
       "purpose": "any"
     },
     {
-      "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp",
+      "src": "/logo.webp",
       "sizes": "512x512",
       "type": "image/webp",
       "purpose": "maskable"
@@ -35,14 +35,14 @@
       "short_name": "Ava",
       "url": "/?tab=ava",
       "description": "Ask Ava about nutrition and safety",
-      "icons": [{ "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp", "sizes": "192x192" }]
+      "icons": [{ "src": "/logo.webp", "sizes": "192x192" }]
     },
     {
       "name": "Log Tools",
       "short_name": "Tools",
       "url": "/?tab=tools",
       "description": "Log weight, sleep, or contractions",
-      "icons": [{ "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp", "sizes": "192x192" }]
+      "icons": [{ "src": "/logo.webp", "sizes": "192x192" }]
     }
   ],
   "widgets": [
@@ -55,7 +55,7 @@
       "ms_ac_template": "nestly-widget-adaptive-card.json",
       "icons": [
         {
-          "src": "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp",
+          "src": "/logo.webp",
           "sizes": "192x192",
           "type": "image/webp"
         }

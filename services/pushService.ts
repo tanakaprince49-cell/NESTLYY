@@ -22,7 +22,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
-const BRAND_LOGO = "https://i.ibb.co/qLkMSD9n/Screenshot-20260211-190854-com-android-gallery3d.webp";
+const BRAND_LOGO = "/logo.webp";
 
 /**
  * Ensure Service Worker is registered
