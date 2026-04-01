@@ -13,19 +13,15 @@ const SplashScreen = lazy(() => import('./components/SplashScreen.tsx').then(m =
 const Settings = lazy(() => import('./components/Settings.tsx').then(m => ({ default: m.Settings })));
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
-import { loadFromFirestore } from './services/syncService.ts';
-import { subscribeUserToPush, showLocalNotification, scheduleReminders, processReminders, setupForegroundMessaging } from './services/pushService.ts';
-import { auth } from './firebase.ts';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
-import { onAuthStateChanged } from 'firebase/auth';
-import { 
-  Trimester, 
-  FoodEntry, 
-  PregnancyProfile, 
-  SymptomLog, 
-  VitaminLog, 
-  Contraction, 
-  JournalEntry, 
+import {
+  Trimester,
+  FoodEntry,
+  PregnancyProfile,
+  SymptomLog,
+  VitaminLog,
+  Contraction,
+  JournalEntry,
   CalendarEvent,
   WeightLog,
   SleepLog,
@@ -55,7 +51,7 @@ const App: React.FC = () => {
   }, [authEmail]);
 
   useEffect(() => {
-    setupForegroundMessaging();
+    import('./services/pushService.ts').then(m => m.setupForegroundMessaging());
   }, []);
 
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
@@ -111,46 +107,45 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Firebase Auth Listener
+  // Firebase Auth Listener (dynamically imported to keep Firebase out of initial bundle)
   useEffect(() => {
-    // Fallback to stop loading if Firebase takes too long
-    const fallbackTimer = setTimeout(() => {
-      setLoading(false);
-    }, 8000);
+    let unsubscribe: (() => void) | undefined;
+    const fallbackTimer = setTimeout(() => setLoading(false), 3000);
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      try {
-        clearTimeout(fallbackTimer);
-        setLoading(true);
-        if (user) {
-          const identifier = user.email || `anon-${user.uid}`;
-          storage.setAuthEmail(identifier);
-          
-          // Load from Firestore before setting state and loading user data
-          try {
-            await loadFromFirestore(identifier);
-          } catch (fsErr) {
-            console.error("Firestore sync error during auth:", fsErr);
+    (async () => {
+      const [{ auth }, { onAuthStateChanged }] = await Promise.all([
+        import('./firebase.ts'),
+        import('firebase/auth')
+      ]);
+
+      unsubscribe = onAuthStateChanged(auth, async (user) => {
+        try {
+          clearTimeout(fallbackTimer);
+          setLoading(true);
+          if (user) {
+            const identifier = user.email || `anon-${user.uid}`;
+            storage.setAuthEmail(identifier);
+
+            setAuthEmail(identifier);
+            setUserUid(user.uid);
+            setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
+
+            loadUserData();
+            setLoading(false);
+          } else {
+            setAuthEmail(null);
+            setUserUid(null);
+            setLoading(false);
           }
-          
-          setAuthEmail(identifier);
-          setUserUid(user.uid);
-          setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
-          
-          loadUserData();
-          setLoading(false);
-        } else {
-          setAuthEmail(null);
-          setUserUid(null);
+        } catch (err) {
+          console.error("Auth state change error:", err);
           setLoading(false);
         }
-      } catch (err) {
-        console.error("Auth state change error:", err);
-        setLoading(false);
-      }
-    });
+      });
+    })();
+
     return () => {
-      unsubscribe();
+      unsubscribe?.();
       clearTimeout(fallbackTimer);
     };
   }, [loadUserData]);
@@ -162,26 +157,21 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!authEmail || !profile) return;
 
-    const runReminders = async () => {
-      // 1. Schedule new ones based on current state
-      scheduleReminders(
-        profile,
-        calendarEvents,
-        vitamins,
-        feedingLogs,
-        sleepLogs,
-        milestones,
-        medicationLogs
-      );
-      
-      // 2. Process and show due ones
-      await processReminders();
-    };
+    let interval: ReturnType<typeof setInterval> | undefined;
 
-    const interval = setInterval(runReminders, 10000); // Check every 10 seconds
-    runReminders(); // Initial check
+    (async () => {
+      const { scheduleReminders, processReminders } = await import('./services/pushService.ts');
 
-    return () => clearInterval(interval);
+      const runReminders = async () => {
+        scheduleReminders(profile, calendarEvents, vitamins, feedingLogs, sleepLogs, milestones, medicationLogs);
+        await processReminders();
+      };
+
+      interval = setInterval(runReminders, 10000);
+      runReminders();
+    })();
+
+    return () => { if (interval) clearInterval(interval); };
   }, [authEmail, profile, calendarEvents, vitamins, feedingLogs, sleepLogs, milestones]);
 
   useEffect(() => {
@@ -206,7 +196,8 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const { auth } = await import('./firebase.ts');
     auth.signOut();
     storage.logout();
     setAuthEmail(null);
