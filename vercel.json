@@ -1,15 +1,7 @@
 {
   "version": 2,
-  "headers": [
-    {
-      "source": "/js/script.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=86400" }
-      ]
-    }
-  ],
   "rewrites": [
-    { "source": "/js/script.js", "destination": "https://plausible.io/js/pa-qu38XzloqDhefv3GNak5F.js" },
+    { "source": "/js/script.js", "destination": "/api/js/script.js" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/firebase-messaging-sw.js", "destination": "/firebase-messaging-sw.js" },
     { "source": "/manifest.json", "destination": "/manifest.json" },

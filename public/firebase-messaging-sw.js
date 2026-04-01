@@ -46,21 +46,6 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
-  if (!CACHED_URL_PATTERNS.some(p => p.test(url))) return;
-
-  event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      const cached = await cache.match(event.request);
-      if (cached) return cached;
-      const response = await fetch(event.request);
-      if (response.ok) cache.put(event.request, response.clone());
-      return response;
-    })
-  );
-});
-
 self.addEventListener('widgetinstall', event => {
   event.waitUntil(updateWidget(event.widget));
 });
