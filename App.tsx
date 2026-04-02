@@ -9,7 +9,6 @@ const AuthScreen = lazy(() => import('./components/AuthScreen.tsx').then(m => ({
 const PrivacyScreen = lazy(() => import('./components/PrivacyScreen.tsx').then(m => ({ default: m.PrivacyScreen })));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard.tsx').then(m => ({ default: m.AdminDashboard })));
 const AvaChat = lazy(() => import('./components/AvaChat.tsx').then(m => ({ default: m.AvaChat })));
-const SplashScreen = lazy(() => import('./components/SplashScreen.tsx').then(m => ({ default: m.SplashScreen })));
 const Settings = lazy(() => import('./components/Settings.tsx').then(m => ({ default: m.Settings })));
 import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
@@ -43,7 +42,6 @@ const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
   const [hasAcceptedPrivacy, setHasAcceptedPrivacy] = useState<boolean>(false);
   const [userUid, setUserUid] = useState<string | null>(null);
-  const [showSplash, setShowSplash] = useState(true);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -152,6 +150,17 @@ const App: React.FC = () => {
 
   // Removed Firestore Syncing Logic
 
+  // Dismiss the static HTML splash screen once the app is ready
+  useEffect(() => {
+    if (!loading) {
+      const splash = document.getElementById('static-splash');
+      if (splash) {
+        splash.style.transition = 'opacity 400ms cubic-bezier(0.4, 0, 1, 1)';
+        splash.style.opacity = '0';
+        splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+      }
+    }
+  }, [loading]);
 
   // Notification Polling
   useEffect(() => {
@@ -218,7 +227,7 @@ const App: React.FC = () => {
     }
   }, [profile]);
 
-  if (showSplash || loading) return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  if (loading) return null;
 
   if (!authEmail) return <AuthScreen onAuthComplete={(e) => setAuthEmail(e)} />;
   
