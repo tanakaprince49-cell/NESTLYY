@@ -148,19 +148,15 @@ const App: React.FC = () => {
     };
   }, [loadUserData]);
 
-  // Removed Firestore Syncing Logic
-
-  // Dismiss the static HTML splash screen once the app is ready
+  // Dismiss static splash screen once app is ready or after safety timeout
   useEffect(() => {
+    const splash = document.getElementById('static-splash');
+    if (!splash) return;
+
     if (!loading) {
-      const splash = document.getElementById('static-splash');
-      if (splash) {
-        splash.getBoundingClientRect();
-        splash.style.transition = 'opacity 400ms cubic-bezier(0.4, 0, 1, 1)';
-        splash.style.opacity = '0';
-        splash.addEventListener('transitionend', () => splash.remove(), { once: true });
-        setTimeout(() => splash.remove(), 500);
-      }
+      splash.style.transition = 'opacity 500ms ease-out';
+      splash.style.opacity = '0';
+      setTimeout(() => splash.remove(), 600);
     }
   }, [loading]);
 
