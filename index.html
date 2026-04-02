@@ -263,11 +263,151 @@
         /* Subtle shifts for newborn stage */
       }
 
+      /* Static splash screen (painted before JS loads) */
+      #static-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #fff5f6 0%, #fff1f2 50%, #ffe8ea 100%);
+      }
+
+      #static-splash .splash-logo-wrap {
+        position: relative;
+        width: 128px;
+        height: 128px;
+        margin-bottom: 2rem;
+        animation: splash-pop 1s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+      }
+
+      #static-splash .splash-logo-ring {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #ffe4e6, #ffffff);
+        border-radius: 32%;
+        transform: rotate(5deg);
+        box-shadow: 0 10px 15px -3px rgba(251,113,133,0.3);
+        border: 1px solid #fff;
+      }
+
+      #static-splash .splash-logo-img {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        border-radius: 30%;
+        overflow: hidden;
+        border: 2px solid #fff;
+        background: #fff;
+      }
+
+      #static-splash .splash-logo-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      #static-splash .splash-title {
+        font-family: 'Fraunces', serif;
+        font-size: 3rem;
+        color: #881337;
+        letter-spacing: -0.025em;
+        margin: 0;
+        animation: splash-fade-up 0.8s ease 0.6s both;
+      }
+
+      #static-splash .splash-subtitle {
+        font-size: 0.875rem;
+        font-weight: 500;
+        font-style: italic;
+        color: #9f1239;
+        margin-top: 1.5rem;
+        animation: splash-fade-up 0.8s ease 0.9s both;
+      }
+
+      #static-splash .splash-loader {
+        position: absolute;
+        bottom: 4rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        animation: splash-fade-up 0.8s ease 1.2s both;
+      }
+
+      #static-splash .splash-loader-bar {
+        width: 12rem;
+        height: 2px;
+        background: #ffe4e6;
+        border-radius: 9999px;
+        overflow: hidden;
+      }
+
+      #static-splash .splash-loader-bar::after {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, #f43f5e, transparent);
+        animation: splash-shimmer 1.5s ease-in-out infinite;
+      }
+
+      #static-splash .splash-loader-text {
+        font-size: 9px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: #fda4af;
+        animation: splash-pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes splash-pop {
+        from { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+        to   { transform: scale(1) rotate(0deg); opacity: 1; }
+      }
+
+      @keyframes splash-fade-up {
+        from { transform: translateY(20px); opacity: 0; }
+        to   { transform: translateY(0); opacity: 1; }
+      }
+
+      @keyframes splash-shimmer {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+
+      @keyframes splash-pulse {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0.5; }
+      }
+
     </style>
     <!-- Privacy-friendly analytics by Plausible -->
     <script async src="/js/script.js"></script>
 </head>
   <body>
+    <div id="static-splash">
+      <div style="position:relative;display:flex;flex-direction:column;align-items:center">
+        <div class="splash-logo-wrap">
+          <div class="splash-logo-ring"></div>
+          <div class="splash-logo-img">
+            <img src="/logo.webp" alt="Nestly Logo" width="128" height="128" fetchpriority="high">
+          </div>
+        </div>
+        <div style="text-align:center">
+          <h1 class="splash-title">Nestly</h1>
+          <p class="splash-subtitle">Your AI pregnancy companion</p>
+        </div>
+      </div>
+      <div class="splash-loader">
+        <div class="splash-loader-bar"></div>
+        <span class="splash-loader-text">Preparing your journey</span>
+      </div>
+    </div>
+    <noscript><style>#static-splash .splash-loader { display: none; }</style></noscript>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
