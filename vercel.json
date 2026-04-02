@@ -6,6 +6,7 @@
     { "source": "/firebase-messaging-sw.js", "destination": "/firebase-messaging-sw.js" },
     { "source": "/manifest.json", "destination": "/manifest.json" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
