@@ -18,6 +18,17 @@ export default defineConfig(({ mode }) => {
       esbuild: {
         legalComments: 'none',
       },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'react-vendor': ['react', 'react-dom'],
+              'motion': ['motion/react'],
+              'firebase': ['firebase/app', 'firebase/auth', 'firebase/messaging'],
+            },
+          },
+        },
+      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
