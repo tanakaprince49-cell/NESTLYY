@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => {
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || ''),
         'process.env.VITE_FIREBASE_VAPID_KEY': JSON.stringify(env.VITE_FIREBASE_VAPID_KEY || 'BHTkgWO-8sV1VPqnnq400neqyKIqN1nDAkmI_1HAr59O9wrDDbwPLR1HBI8j_JbLcMj0QYVXufaU6gl6OTjWMIM'),
       },
+      esbuild: {
+        legalComments: 'none',
+      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
