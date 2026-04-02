@@ -83,6 +83,7 @@ const PumpingTracker = lazy(() => import('./tools/PumpingTracker.tsx').then(m =>
 const TeethingTracker = lazy(() => import('./tools/TeethingTracker.tsx').then(m => ({ default: m.TeethingTracker })));
 const TummyTimeTracker = lazy(() => import('./tools/TummyTimeTracker.tsx').then(m => ({ default: m.TummyTimeTracker })));
 const CustomPlanView = lazy(() => import('./CustomPlanView.tsx').then(m => ({ default: m.CustomPlanView })));
+const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m => ({ default: m.SymptomDecoder })));
 
 const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, bgColor: string }> = {
   vitals: { label: 'Vitals', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
@@ -113,6 +114,7 @@ const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, b
   calendar: { label: 'Calendar', icon: CalendarIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   checklists: { label: 'Checklists', icon: ListTodo, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   symptoms: { label: 'Symptoms', icon: Thermometer, color: 'text-red-400', bgColor: 'bg-red-50' },
+  symptom_decoder: { label: 'Symptom AI', icon: Stethoscope, color: 'text-rose-500', bgColor: 'bg-rose-100' },
   sleep: { label: 'Sleep', icon: Moon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   custom_plan: { label: 'AI Plan', icon: Sparkles, color: 'text-rose-500', bgColor: 'bg-rose-100' },
 };
@@ -208,9 +210,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['custom_plan', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
+      return ['custom_plan', 'symptom_decoder', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
     }
-    return ['custom_plan', 'vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
+    return ['custom_plan', 'symptom_decoder', 'vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
   }, [isPostpartum]);
 
   const filteredCategories = useMemo(() => {
@@ -312,6 +314,11 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
         const currentTrimester = weeks < 13 ? Trimester.FIRST : weeks < 27 ? Trimester.SECOND : Trimester.THIRD;
         return <CustomPlanView profile={profile} trimester={currentTrimester} />;
+      case 'symptom_decoder':
+        const diffSymptom = new Date().getTime() - new Date(profile.lmpDate).getTime();
+        const weeksSymptom = Math.floor(diffSymptom / (1000 * 60 * 60 * 24 * 7));
+        const currentTrimesterSymptom = weeksSymptom < 13 ? Trimester.FIRST : weeksSymptom < 27 ? Trimester.SECOND : Trimester.THIRD;
+        return <SymptomDecoder trimester={currentTrimesterSymptom} />;
       case 'reports':
         return <ReportCenter />;
       case 'export':
