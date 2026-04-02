@@ -280,7 +280,7 @@
         width: 128px;
         height: 128px;
         margin-bottom: 2rem;
-        animation: splash-pop 1s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+        /* No opacity animation — immediately visible for FCP */
       }
 
       #static-splash .splash-logo-ring {
@@ -316,7 +316,7 @@
         color: #881337;
         letter-spacing: -0.025em;
         margin: 0;
-        animation: splash-fade-up 0.8s ease 0.6s both;
+        /* No opacity animation — immediately visible for FCP */
       }
 
       #static-splash .splash-subtitle {
@@ -325,7 +325,7 @@
         font-style: italic;
         color: #9f1239;
         margin-top: 1.5rem;
-        animation: splash-fade-up 0.8s ease 0.9s both;
+        /* No opacity animation — immediately visible for FCP */
       }
 
       #static-splash .splash-loader {
@@ -362,11 +362,6 @@
         letter-spacing: 0.15em;
         color: #fda4af;
         animation: splash-pulse 2s ease-in-out infinite;
-      }
-
-      @keyframes splash-pop {
-        from { transform: scale(0.5) rotate(-10deg); opacity: 0; }
-        to   { transform: scale(1) rotate(0deg); opacity: 1; }
       }
 
       @keyframes splash-fade-up {
