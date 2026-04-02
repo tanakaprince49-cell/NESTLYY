@@ -161,7 +161,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setCelebrationData({
         title: `Welcome to Week ${currentWeek}!`,
         subtitle: "A New Chapter Begins",
-        message: `Your little one is now the size of a ${growth.size}! ${growth.summary}`
+        message: `Your little one is now the size of a ${growth.size}! ${growth.description}`
       });
       setIsCelebrationOpen(true);
       storage.setLastWeekCelebrated(currentWeek);
