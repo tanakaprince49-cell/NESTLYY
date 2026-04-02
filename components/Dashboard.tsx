@@ -1,8 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { subscribeUserToPush } from '../services/pushService.ts';
 import { NutrientCard } from './NutrientCard.tsx';
 import { getBabyGrowth, babyGrowthData } from '../services/babyGrowth.ts';
+import { CelebrationModal } from './CelebrationModal.tsx';
+import { storage } from '../services/storageService.ts';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -142,6 +145,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [foodCals, setFoodCals] = useState('');
   const [foodProtein, setFoodProtein] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
+  const [celebrationData, setCelebrationData] = useState({ title: '', subtitle: '', message: '' });
+
+  // Milestone Celebration Logic
+  useEffect(() => {
+    if (isPostpartum) return;
+    
+    const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
+    const currentWeek = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
+    const lastCelebrated = storage.getLastWeekCelebrated();
+
+    if (currentWeek > lastCelebrated && currentWeek > 0) {
+      const growth = getBabyGrowth(currentWeek);
+      setCelebrationData({
+        title: `Welcome to Week ${currentWeek}!`,
+        subtitle: "A New Chapter Begins",
+        message: `Your little one is now the size of a ${growth.size}! ${growth.summary}`
+      });
+      setIsCelebrationOpen(true);
+      storage.setLastWeekCelebrated(currentWeek);
+    }
+  }, [profile.lmpDate, isPostpartum]);
 
   useEffect(() => {
     if (toast) {
@@ -752,13 +777,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </>
       )}
 
-      <AnimatePresence>
-        {toast && (
+      {toast && createPortal(
+        <AnimatePresence>
           <motion.div 
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[600] px-12 py-8 bg-white text-slate-900 rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.2)] flex flex-col items-center gap-6 border-4 border-rose-50 min-w-[340px] text-center"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] px-12 py-8 bg-white text-slate-900 rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.3)] flex flex-col items-center gap-6 border-4 border-rose-50 min-w-[340px] text-center"
           >
             <div className="w-20 h-20 bg-gradient-to-br from-rose-400 to-rose-600 rounded-full flex items-center justify-center shadow-xl shadow-rose-200 animate-pulse">
               <Sparkles className="text-white w-10 h-10" />
@@ -774,8 +799,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
               Dismiss
             </button>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {createPortal(
+        <CelebrationModal 
+          isOpen={isCelebrationOpen}
+          onClose={() => setIsCelebrationOpen(false)}
+          title={celebrationData.title}
+          subtitle={celebrationData.subtitle}
+          message={celebrationData.message}
+        />,
+        document.body
+      )}
     </motion.div>
   );
 };

@@ -73,6 +73,7 @@ const KEYS = {
   KEGELS: 'kegel_logs',
   PRIVACY_ACCEPTED: 'privacy_accepted',
   CUSTOM_PLAN: 'custom_plan_v1',
+  LAST_WEEK_CELEBRATED: 'last_week_celebrated',
 };
 
 import { syncToFirestore } from './syncService.ts';
@@ -413,6 +414,14 @@ class StorageService {
 
   saveCustomPlan(plan: any): void {
     this.setItem(KEYS.CUSTOM_PLAN, plan);
+  }
+
+  getLastWeekCelebrated(): number {
+    return this.getItem<number>(KEYS.LAST_WEEK_CELEBRATED, 0);
+  }
+
+  setLastWeekCelebrated(week: number): void {
+    this.setItem(KEYS.LAST_WEEK_CELEBRATED, week);
   }
 }
 
