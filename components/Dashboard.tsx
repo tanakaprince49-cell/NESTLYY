@@ -393,7 +393,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Today's Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="card-premium p-5 bg-white border-2 border-white flex flex-col justify-between min-h-[120px]">
               <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Feedings</span>
               <div className="mt-2">
@@ -594,7 +594,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Summary Widgets Section */}
           <div className="space-y-3">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 ml-1">Daily Glance</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div onClick={() => onQuickTool('vitals')} className="card-premium p-5 bg-white border-2 border-slate-50 flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]">
                 <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">
                   Vital Stats
@@ -644,7 +644,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                </div>
 
-               <div className="grid grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 bg-rose-50 rounded-2xl border border-rose-100">
                      <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest">Time Lapsed</span>
                      <div className="text-xl font-bold text-rose-900">{Math.round((weeks / 40) * 100)}%</div>
@@ -675,7 +675,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Nutrient Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <NutrientCard title="Daily Fuel" current={totals.calories} target={targets.cals} unit="kcal" gradient="from-rose-400 to-rose-600" />
             <NutrientCard title="Protein" current={totals.protein} target={targets.protein} unit="g" gradient="from-rose-400 to-rose-600" />
           </div>
