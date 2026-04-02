@@ -155,9 +155,11 @@ const App: React.FC = () => {
     if (!loading) {
       const splash = document.getElementById('static-splash');
       if (splash) {
+        splash.getBoundingClientRect();
         splash.style.transition = 'opacity 400ms cubic-bezier(0.4, 0, 1, 1)';
         splash.style.opacity = '0';
         splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+        setTimeout(() => splash.remove(), 500);
       }
     }
   }, [loading]);
