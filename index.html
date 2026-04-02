@@ -19,251 +19,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
     <style>
-      :root {
-        --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-        --safe-area-inset-top: env(safe-area-inset-top, 0px);
-        --rose-main: #f43f5e;
-        --nestly-burgundy: #7e1631;
-        --soft-bg: #fffaf9;
-        --body-bg: #fdf8f7;
-        --theme-100: #ffe4e6;
-        --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-        --sidebar-width: 0px;
-      }
-      * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-        scrollbar-width: none;
-        transition-timing-function: var(--transition-smooth);
-      }
-      *::-webkit-scrollbar { display: none; }
-
-      html {
-        scroll-behavior: smooth;
-      }
-
-      body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        background: var(--body-bg);
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        color: #1e293b;
-        line-height: 1.5;
-        font-size: 16px;
-        overflow-x: hidden;
-        overscroll-behavior-y: none;
-        transition: background-color 0.5s ease;
-      }
-      #root {
-        width: 100%;
-        min-height: 100vh;
-        background: var(--soft-bg);
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        transition: background-color 0.5s ease;
-      }
-
-      /* Tablet: 768px+ */
-      @media (min-width: 768px) {
-        #root {
-          box-shadow: none;
-        }
-      }
-
-      /* Desktop: 1024px+ — sidebar nav layout */
-      @media (min-width: 1024px) {
-        :root {
-          --sidebar-width: 260px;
-        }
-        body {
-          background: var(--body-bg);
-        }
-        #root {
-          flex-direction: row;
-          max-width: 100%;
-        }
-      }
-      .font-serif {
-        font-family: 'Fraunces', serif;
-        font-variation-settings: "SOFT" 100;
-      }
-      .glass {
-        background: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(30px) saturate(150%);
-        -webkit-backdrop-filter: blur(30px) saturate(150%);
-        border: 1px solid rgba(255, 255, 255, 0.8);
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
-      }
-      .card-premium {
-        background: rgba(255, 255, 255, 0.5) !important;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 2.25rem;
-        box-shadow: 0 10px 30px -5px rgba(126, 22, 49, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.6) !important;
-        transition: all 0.4s var(--transition-smooth);
-      }
-      .card-premium:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 15px 30px -5px rgba(126, 22, 49, 0.06);
-      }
-      .btn-nestly {
-        background: var(--nestly-burgundy);
-        color: white;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        border-radius: 1.5rem;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-      .btn-nestly:active, button:active {
-        transform: scale(0.96);
-        opacity: 0.85;
-      }
-      
-      input, select, textarea {
-        font-size: 16px !important;
-        background: #ffffff;
-        border: 1.5px solid #f1f5f9;
-        border-radius: 1.25rem;
-        padding: 16px 20px;
-        width: 100%;
-        color: #0f172a;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        -webkit-appearance: none;
-      }
-      input:focus {
-        border-color: var(--rose-main);
-        outline: none;
-        box-shadow: 0 0 0 5px rgba(244, 63, 94, 0.05);
-      }
-      
-      @keyframes float {
-        0%, 100% { transform: translate3d(0, 0, 0); }
-        50% { transform: translate3d(0, -12px, 0); }
-      }
-      .animate-float { animation: float 6s ease-in-out infinite; }
-
-      @keyframes float-teddy {
-        0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-        25% { transform: translate3d(10px, -15px, 0) rotate(5deg); }
-        50% { transform: translate3d(-5px, -25px, 0) rotate(-5deg); }
-        75% { transform: translate3d(-12px, -10px, 0) rotate(3deg); }
-      }
-      .animate-float-teddy { 
-        animation: float-teddy 12s ease-in-out infinite; 
-        will-change: transform;
-      }
-
-      @keyframes slideUp {
-        from { transform: translate3d(0, 20px, 0); opacity: 0; }
-        to { transform: translate3d(0, 0, 0); opacity: 1; }
-      }
-      .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-      .pwa-tap-fix {
-        cursor: pointer;
-        user-select: none;
-      }
-
-      /* Theme specific overrides */
-      .theme-pink {
-        --rose-main: #f43f5e;
-        --nestly-burgundy: #7e1631;
-        --soft-bg: #fffaf9;
-        --body-bg: #fdf8f7;
-        --theme-100: #ffe4e6;
-      }
-      .theme-blue {
-        --rose-main: #3b82f6;
-        --nestly-burgundy: #1e3a8a;
-        --soft-bg: #f0f9ff;
-        --body-bg: #f8fafc;
-        --theme-100: #dbeafe;
-      }
-      .theme-neutral {
-        --rose-main: #64748b;
-        --nestly-burgundy: #1e293b;
-        --soft-bg: #f8fafc;
-        --body-bg: #f1f5f9;
-        --theme-100: #f1f5f9;
-      }
-      .theme-orange {
-        --rose-main: #f97316;
-        --nestly-burgundy: #7c2d12;
-        --soft-bg: #fff7ed;
-        --body-bg: #fffaf5;
-        --theme-100: #ffedd5;
-      }
-      .theme-sage {
-        --rose-main: #10b981;
-        --nestly-burgundy: #064e3b;
-        --soft-bg: #f0fdf4;
-        --body-bg: #f7fee7;
-        --theme-100: #d1fae5;
-      }
-      .theme-lavender {
-        --rose-main: #8b5cf6;
-        --nestly-burgundy: #4c1d95;
-        --soft-bg: #f5f3ff;
-        --body-bg: #faf5ff;
-        --theme-100: #ede9fe;
-      }
-      .theme-sand {
-        --rose-main: #d97706;
-        --nestly-burgundy: #78350f;
-        --soft-bg: #fefce8;
-        --body-bg: #fffbeb;
-        --theme-100: #fef08a;
-      }
-      .theme-mint {
-        --rose-main: #34d399;
-        --nestly-burgundy: #065f46;
-        --soft-bg: #f0fdfa;
-        --body-bg: #f9fefc;
-        --theme-100: #ccfbf1;
-      }
-      .theme-sky {
-        --rose-main: #38bdf8;
-        --nestly-burgundy: #075985;
-        --soft-bg: #f0f9ff;
-        --body-bg: #f9fcff;
-        --theme-100: #e0f2fe;
-      }
-      .theme-peach {
-        --rose-main: #fb923c;
-        --nestly-burgundy: #9a3412;
-        --soft-bg: #fff7ed;
-        --body-bg: #fffbf9;
-        --theme-100: #ffedd5;
-      }
-      .theme-lilac {
-        --rose-main: #c084fc;
-        --nestly-burgundy: #6b21a8;
-        --soft-bg: #fdf4ff;
-        --body-bg: #fefaff;
-        --theme-100: #f3e8ff;
-      }
-      .theme-stone {
-        --rose-main: #a8a29e;
-        --nestly-burgundy: #44403c;
-        --soft-bg: #f5f5f4;
-        --body-bg: #fafaf9;
-        --theme-100: #e7e5e4;
-      }
-
-      /* Lifecycle specific overrides (can combine with colors) */
-      .stage-newborn {
-        /* Subtle shifts for newborn stage */
-      }
-
-      /* Static splash screen (painted before JS loads) */
+      /* Critical CSS: only what's needed to paint the splash screen */
+      body { margin: 0; background: #fdf8f7; }
+      #root { display: none; }
       #static-splash {
         position: fixed;
         inset: 0;
@@ -274,15 +32,12 @@
         justify-content: center;
         background: linear-gradient(180deg, #fff5f6 0%, #fff1f2 50%, #ffe8ea 100%);
       }
-
       #static-splash .splash-logo-wrap {
         position: relative;
         width: 128px;
         height: 128px;
         margin-bottom: 2rem;
-        /* No opacity animation — immediately visible for FCP */
       }
-
       #static-splash .splash-logo-ring {
         position: absolute;
         inset: 0;
@@ -292,7 +47,6 @@
         box-shadow: 0 10px 15px -3px rgba(251,113,133,0.3);
         border: 1px solid #fff;
       }
-
       #static-splash .splash-logo-img {
         position: relative;
         z-index: 10;
@@ -303,31 +57,21 @@
         border: 2px solid #fff;
         background: #fff;
       }
-
-      #static-splash .splash-logo-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
+      #static-splash .splash-logo-img img { width: 100%; height: 100%; object-fit: cover; }
       #static-splash .splash-title {
-        font-family: 'Fraunces', serif;
+        font-family: 'Fraunces', Georgia, serif;
         font-size: 3rem;
         color: #881337;
         letter-spacing: -0.025em;
         margin: 0;
-        /* No opacity animation — immediately visible for FCP */
       }
-
       #static-splash .splash-subtitle {
         font-size: 0.875rem;
         font-weight: 500;
         font-style: italic;
         color: #9f1239;
         margin-top: 1.5rem;
-        /* No opacity animation — immediately visible for FCP */
       }
-
       #static-splash .splash-loader {
         position: absolute;
         bottom: 4rem;
@@ -335,9 +79,7 @@
         flex-direction: column;
         align-items: center;
         gap: 1rem;
-        animation: splash-fade-up 0.8s ease 1.2s both;
       }
-
       #static-splash .splash-loader-bar {
         width: 12rem;
         height: 2px;
@@ -345,7 +87,6 @@
         border-radius: 9999px;
         overflow: hidden;
       }
-
       #static-splash .splash-loader-bar::after {
         content: '';
         display: block;
@@ -354,31 +95,17 @@
         background: linear-gradient(90deg, transparent, #f43f5e, transparent);
         animation: splash-shimmer 1.5s ease-in-out infinite;
       }
-
       #static-splash .splash-loader-text {
         font-size: 9px;
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 0.15em;
         color: #fda4af;
-        animation: splash-pulse 2s ease-in-out infinite;
       }
-
-      @keyframes splash-fade-up {
-        from { transform: translateY(20px); opacity: 0; }
-        to   { transform: translateY(0); opacity: 1; }
-      }
-
       @keyframes splash-shimmer {
         0%   { transform: translateX(-100%); }
         100% { transform: translateX(100%); }
       }
-
-      @keyframes splash-pulse {
-        0%, 100% { opacity: 1; }
-        50%      { opacity: 0.5; }
-      }
-
     </style>
     <!-- Privacy-friendly analytics by Plausible -->
     <script async src="/js/script.js"></script>
