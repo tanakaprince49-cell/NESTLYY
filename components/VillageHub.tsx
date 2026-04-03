@@ -51,10 +51,11 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
   }, [categoryFilter]);
 
   const joinedNests = useMemo(() => {
-    const templates = TEMPLATE_NESTS.filter(n => joinedIds.has(n.id));
-    const custom = customNests.filter(n => joinedIds.has(n.id));
+    const ids = new Set(memberships.map(m => m.nestId));
+    const templates = TEMPLATE_NESTS.filter(n => ids.has(n.id));
+    const custom = customNests.filter(n => ids.has(n.id));
     return [...custom, ...templates];
-  }, [joinedIds, customNests]);
+  }, [memberships, customNests]);
 
   const openNest = (nestId: string) => {
     setSelectedNestId(nestId);
@@ -200,9 +201,12 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
           </div>
         ) : (
           <div className="space-y-3 px-1">
-            {joinedNests.map(nest => {
-              const postCount = storage.getNestPosts(nest.id).length +
-                getTemplatePosts().filter(p => p.nestId === nest.id).length;
+            {(() => {
+              const templatePosts = getTemplatePosts();
+              const allUserPosts = storage.getAllNestPosts();
+              return joinedNests.map(nest => {
+              const postCount = allUserPosts.filter(p => p.nestId === nest.id).length +
+                templatePosts.filter(p => p.nestId === nest.id).length;
               return (
                 <button
                   key={nest.id}
@@ -221,18 +225,31 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
                   <ChevronRight size={18} className="text-slate-300" />
                 </button>
               );
-            })}
+            });
+            })()}
           </div>
         )}
 
         <div className="px-1">
           <button
-            onClick={() => { setView('discover'); setShowCreateModal(true); }}
+            onClick={() => setShowCreateModal(true)}
             className="w-full p-4 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-rose-300 hover:text-rose-400 transition-all flex items-center justify-center gap-2"
           >
             <Plus size={16} /> Create Your Own Nest
           </button>
         </div>
+
+        {showCreateModal && (
+          <CreateNestModal
+            onClose={() => setShowCreateModal(false)}
+            onCreate={(nest) => {
+              storage.addCustomNest(nest);
+              storage.joinNest(nest.id);
+              setShowCreateModal(false);
+              openNest(nest.id);
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -267,9 +284,12 @@ function NestCard({ nest, isJoined, onJoin, onOpen, delay }: {
 }) {
   return (
     <div
-      className="bg-white/60 backdrop-blur-xl p-6 rounded-[2.5rem] border-2 border-slate-50 hover:border-rose-100 transition-all group cursor-pointer shadow-sm hover:shadow-xl animate-slide-up"
+      className={`bg-white/60 backdrop-blur-xl p-6 rounded-[2.5rem] border-2 border-slate-50 hover:border-rose-100 transition-all group shadow-sm hover:shadow-xl animate-slide-up ${isJoined ? 'cursor-pointer' : ''}`}
       style={{ animationDelay: `${delay}s` }}
+      role={isJoined ? 'button' : undefined}
+      tabIndex={isJoined ? 0 : undefined}
       onClick={isJoined ? onOpen : undefined}
+      onKeyDown={isJoined ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } } : undefined}
     >
       <div className="flex justify-between items-start mb-5">
         <div className="w-14 h-14 bg-rose-50 rounded-[1.5rem] flex items-center justify-center text-2xl shadow-inner group-hover:bg-rose-100 transition-colors">
@@ -317,8 +337,8 @@ function NestDetailView({ nest, profile, onBack, onLeave, onDelete, rerender }: 
 }) {
   const [newPost, setNewPost] = useState('');
 
+  const seedPosts = useMemo(() => getTemplatePosts().filter(p => p.nestId === nest.id), [nest.id]);
   const userPosts = storage.getNestPosts(nest.id);
-  const seedPosts = getTemplatePosts().filter(p => p.nestId === nest.id);
   const allPosts = [...userPosts, ...seedPosts].sort((a, b) => b.timestamp - a.timestamp);
 
   const handlePost = () => {
@@ -345,6 +365,7 @@ function NestDetailView({ nest, profile, onBack, onLeave, onDelete, rerender }: 
   };
 
   const handleDeletePost = (postId: string) => {
+    if (!confirm('Delete this post?')) return;
     storage.removeNestPost(postId);
     rerender();
   };

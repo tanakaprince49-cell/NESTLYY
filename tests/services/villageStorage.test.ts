@@ -114,6 +114,14 @@ describe('like toggle', () => {
     expect(post.likeCount).toBe(4);
   });
 
+  it('likeCount does not go below zero', () => {
+    storage.addNestPost(makePost({ id: 'p1', likedByUser: true, likeCount: 0 }));
+    storage.toggleNestPostLike('p1');
+    const post = storage.getAllNestPosts()[0];
+    expect(post.likedByUser).toBe(false);
+    expect(post.likeCount).toBe(0);
+  });
+
   it('toggle on nonexistent does not throw', () => {
     expect(() => storage.toggleNestPostLike('nonexistent')).not.toThrow();
   });
