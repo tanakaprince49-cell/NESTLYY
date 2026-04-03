@@ -2,29 +2,30 @@ import express, { Request, Response, NextFunction } from "express";
 import { createServer as createViteServer } from "vite";
 import { Resend } from "resend";
 import cron from "node-cron";
-import * as admin from "firebase-admin";
+import admin from "firebase-admin";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Firebase Admin (graceful fallback for local dev)
 let firebaseInitialized = false;
 try {
-  if (!admin.apps?.length) {
-    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
-      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
-      : undefined;
+  const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT;
+  const serviceAccount = serviceAccountStr ? JSON.parse(serviceAccountStr) : undefined;
 
-    if (serviceAccount) {
+  if (serviceAccount) {
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+    }
+    if (!admin.apps?.length) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
-      firebaseInitialized = true;
-    } else {
-      console.warn("[WARN] No FIREBASE_SERVICE_ACCOUNT set. Firebase Admin features disabled.");
     }
+    firebaseInitialized = true;
+  } else {
+    console.warn("[WARN] No FIREBASE_SERVICE_ACCOUNT set. Firebase Admin features disabled.");
   }
 } catch (e) {
   console.warn("[WARN] Firebase Admin init failed:", e);

@@ -25,7 +25,7 @@ service cloud.firestore {
 
     // Village Hub Real-Time Community Rules
     match /nests/{nestId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && (
         request.auth.uid == resource.data.ownerId || 
