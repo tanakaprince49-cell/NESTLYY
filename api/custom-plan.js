@@ -1,3 +1,7 @@
+const ALLOWED_TRIMESTERS = ["First Trimester", "Second Trimester", "Third Trimester"];
+const ALLOWED_DIETS = ["normal", "vegan", "vegetarian", "pescatarian", "gluten-free", "dairy-free"];
+const MAX_INFO_LENGTH = 500;
+
 export default async function handler(req, res) {
   const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
   const MODEL = "deepseek/deepseek-chat";
@@ -7,20 +11,53 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Verify Firebase auth token
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Missing authorization token" });
+    }
+
+    const { initializeApp, cert, getApps } = await import("firebase-admin/app");
+    const { getAuth } = await import("firebase-admin/auth");
+
+    if (!getApps().length) {
+      const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+        ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+        : undefined;
+      initializeApp(serviceAccount ? { credential: cert(serviceAccount) } : {});
+    }
+
+    const token = authHeader.split("Bearer ")[1];
+    try {
+      await getAuth().verifyIdToken(token);
+    } catch {
+      return res.status(401).json({ error: "Invalid authorization token" });
+    }
+
     const { trimester, dietPreference, additionalInfo } = req.body;
 
     if (!trimester || !dietPreference) {
       return res.status(400).json({ error: "Trimester and dietPreference are required" });
     }
 
+    const safeTrimester = String(trimester).trim();
+    const safeDiet = String(dietPreference).trim();
+
+    if (!ALLOWED_TRIMESTERS.includes(safeTrimester)) {
+      return res.status(400).json({ error: "Invalid trimester value" });
+    }
+    if (!ALLOWED_DIETS.includes(safeDiet)) {
+      return res.status(400).json({ error: "Invalid diet preference value" });
+    }
+
+    const safeInfo = additionalInfo
+      ? String(additionalInfo).trim().slice(0, MAX_INFO_LENGTH)
+      : "";
+
     if (!process.env.OPENROUTER_API_KEY) {
       console.error("Custom Plan: OPENROUTER_API_KEY is not set");
       return res.status(500).json({ error: "Missing API key" });
     }
-
-    const safeTrimester = String(trimester).trim();
-    const safeDiet = String(dietPreference).trim();
-    const safeInfo = additionalInfo ? String(additionalInfo).trim() : "";
 
     const response = await fetch(OPENROUTER_URL, {
       method: "POST",
@@ -81,9 +118,20 @@ Keep descriptions concise and actionable.`,
     }
 
     const data = await response.json();
-    const raw = data.choices?.[0]?.message?.content || "{}";
-    const cleaned = raw.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
+    const raw = data.choices?.[0]?.message?.content;
+
+    if (!raw) {
+      console.error("Custom Plan: empty response from AI");
+      return res.status(500).json({ error: "Empty AI response" });
+    }
+
+    const cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "");
     const plan = JSON.parse(cleaned);
+
+    if (!plan.nutrition || !plan.fitness || !plan.routine || !plan.medical) {
+      console.error("Custom Plan: incomplete response shape");
+      return res.status(500).json({ error: "Incomplete AI response" });
+    }
 
     return res.status(200).json(plan);
 
