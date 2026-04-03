@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight } from 'lucide-react';
 import { PregnancyProfile, NestCategory, Nest, NestPost } from '../types.ts';
 import { storage } from '../services/storageService.ts';
-import { TEMPLATE_NESTS, TEMPLATE_POSTS } from '../services/villageTemplates.ts';
+import { TEMPLATE_NESTS, getTemplatePosts } from '../services/villageTemplates.ts';
 
 interface VillageHubProps {
   profile: PregnancyProfile;
@@ -202,7 +202,7 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
           <div className="space-y-3 px-1">
             {joinedNests.map(nest => {
               const postCount = storage.getNestPosts(nest.id).length +
-                TEMPLATE_POSTS.filter(p => p.nestId === nest.id).length;
+                getTemplatePosts().filter(p => p.nestId === nest.id).length;
               return (
                 <button
                   key={nest.id}
@@ -318,7 +318,7 @@ function NestDetailView({ nest, profile, onBack, onLeave, onDelete, rerender }: 
   const [newPost, setNewPost] = useState('');
 
   const userPosts = storage.getNestPosts(nest.id);
-  const seedPosts = TEMPLATE_POSTS.filter(p => p.nestId === nest.id);
+  const seedPosts = getTemplatePosts().filter(p => p.nestId === nest.id);
   const allPosts = [...userPosts, ...seedPosts].sort((a, b) => b.timestamp - a.timestamp);
 
   const handlePost = () => {
@@ -392,6 +392,7 @@ function NestDetailView({ nest, profile, onBack, onLeave, onDelete, rerender }: 
           onChange={(e) => setNewPost(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handlePost()}
           placeholder="Share something with the nest..."
+          maxLength={500}
           className="flex-1 h-12 px-5 bg-white/60 backdrop-blur-xl rounded-2xl border border-slate-200 text-sm focus:outline-none focus:border-rose-300 transition-colors"
         />
         <button

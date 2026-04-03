@@ -461,7 +461,7 @@ class StorageService {
       posts[index] = {
         ...posts[index],
         likedByUser: !posts[index].likedByUser,
-        likeCount: posts[index].likedByUser ? posts[index].likeCount - 1 : posts[index].likeCount + 1,
+        likeCount: posts[index].likedByUser ? Math.max(0, posts[index].likeCount - 1) : posts[index].likeCount + 1,
       };
       this.setItem(KEYS.VILLAGE_POSTS, posts);
     }
