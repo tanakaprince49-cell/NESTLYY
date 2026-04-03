@@ -350,3 +350,35 @@ export interface CustomPlan {
     questions: string[];
   };
 }
+
+// Village Hub
+export type NestCategory =
+  | 'trimester' | 'lifestyle' | 'diet'
+  | 'support' | 'postpartum' | 'general';
+
+export interface Nest {
+  id: string;
+  name: string;
+  description: string;
+  category: NestCategory;
+  emoji: string;
+  memberCount: number;
+  isTemplate: boolean;
+  createdAt: number;
+}
+
+export interface NestMembership {
+  nestId: string;
+  joinedAt: number;
+}
+
+export interface NestPost {
+  id: string;
+  nestId: string;
+  authorName: string;
+  content: string;
+  likedByUser: boolean;
+  likeCount: number;
+  timestamp: number;
+  isTemplate: boolean;
+}
