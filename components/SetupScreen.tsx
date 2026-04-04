@@ -156,7 +156,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                   <h1 className="text-5xl font-serif text-slate-900 leading-tight">Welcome, <br/>Parent.</h1>
                   <p className="text-slate-400 font-medium px-4">Let's set up your private nest.</p>
                 </div>
-                <button onClick={() => goTo('lifecycle')} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Start Setup</button>
+                <button onClick={() => goTo('lifecycle')} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] transition-all press-cloud">Start Setup</button>
               </div>
             )}
 
@@ -193,7 +193,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
             <input autoFocus value={userName} onChange={e => setUserName(e.target.value)} placeholder="Your Name" className="w-full text-center text-2xl font-serif border-b-2 border-rose-100 p-4 focus:border-rose-500 outline-none bg-transparent" />
             <button 
               onClick={() => goTo(lifecycleStage === LifecycleStage.NEWBORN ? 'multiples' : 'lmp')} 
-              className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4"
+              className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 press-cloud"
             >
               Next
             </button>
@@ -257,7 +257,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                 if (calculationMode === 'lmp' && !lmp) return;
                 goTo('calculation');
               }} 
-              className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 disabled:opacity-50"
+              className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 disabled:opacity-50 press-cloud"
               disabled={(calculationMode === 'week' && !currentWeek) || (calculationMode === 'lmp' && !lmp)}
             >
               Calculate Due Date
@@ -294,7 +294,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Time Remaining</span>
                <div className="text-3xl font-bold text-rose-900">{remainingWeeks} Weeks Left</div>
             </div>
-            <button onClick={() => goTo('multiples')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Continue</button>
+            <button onClick={() => goTo('multiples')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 press-cloud">Continue</button>
           </div>
         )}
 
@@ -319,7 +319,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                 </button>
               ))}
             </div>
-            <button onClick={() => goTo('baby_details')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Next</button>
+            <button onClick={() => goTo('baby_details')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 press-cloud">Next</button>
           </div>
         )}
 
@@ -414,7 +414,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                 </div>
               ))}
             </div>
-            <button onClick={() => goTo('theme')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Continue</button>
+            <button onClick={() => goTo('theme')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 press-cloud">Continue</button>
           </div>
         )}
 
@@ -446,7 +446,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                 </button>
               ))}
             </div>
-            <button onClick={() => goTo('weight')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Next</button>
+            <button onClick={() => goTo('weight')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 press-cloud">Next</button>
           </div>
         )}
 
@@ -457,7 +457,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
               <input type="number" step="0.1" autoFocus value={weight} onChange={e => setWeight(e.target.value)} placeholder="00.0" className="w-32 text-4xl font-serif text-center bg-transparent border-b-2 border-rose-200 focus:border-rose-500 outline-none p-0" />
               <span className="text-2xl font-serif text-rose-400 italic">kg</span>
             </div>
-            <button onClick={() => goTo('nutrition')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Next</button>
+            <button onClick={() => goTo('nutrition')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 press-cloud">Next</button>
           </div>
         )}
 
@@ -507,7 +507,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
               )}
             </div>
             
-            <button onClick={() => goTo('diet')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest shadow-lg">Confirm Goals</button>
+            <button onClick={() => goTo('diet')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest shadow-lg press-cloud">Confirm Goals</button>
           </div>
         )}
 
@@ -534,7 +534,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                 </button>
               ))}
             </div>
-            <button onClick={() => goTo('photo')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest shadow-lg">Next</button>
+            <button onClick={() => goTo('photo')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest shadow-lg press-cloud">Next</button>
           </div>
         )}
 
@@ -588,7 +588,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                 }
               }} />
             </div>
-            <button onClick={() => goTo('final')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4">Almost Done</button>
+            <button onClick={() => goTo('final')} className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4 press-cloud">Almost Done</button>
           </div>
         )}
 
@@ -630,7 +630,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
               </div>
             </div>
 
-            <button onClick={handleFinish} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] active:scale-95 transition-all">Enter My Nest</button>
+            <button onClick={handleFinish} className="w-full py-6 bg-rose-900 text-white font-black rounded-[2rem] shadow-xl text-[11px] uppercase tracking-[0.3em] transition-all press-cloud">Enter My Nest</button>
           </div>
         )}
       </motion.div>

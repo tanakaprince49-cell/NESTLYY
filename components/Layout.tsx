@@ -53,7 +53,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   ];
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden h-screen bg-rose-50">
+    <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden h-screen bg-[var(--soft-bg)] transition-colors duration-500">
       {/* Background Decor — CSS animations to avoid motion/react in critical path */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.08]">
         <div className="absolute top-[10%] left-[15%] text-rose-900 animate-float" style={{ animationDuration: '8s' }}>
@@ -140,7 +140,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       {/* ===== MAIN CONTENT AREA ===== */}
       <div className="flex-1 flex flex-col min-w-0 h-screen">
         {/* Header (mobile & tablet only) */}
-        <header className="lg:hidden relative z-[110] px-6 pt-6 pb-2 flex items-center justify-between shrink-0 bg-rose-50/60 backdrop-blur-md">
+        <header className="lg:hidden relative z-[110] px-6 pt-6 pb-2 flex items-center justify-between shrink-0 bg-white/35 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <Logo className="w-10 h-10" />
             <h1 className="text-2xl font-serif text-rose-900 tracking-tight">Nestly</h1>
@@ -165,7 +165,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
         {/* Desktop Top Bar */}
         {isDesktop && (
-          <header className="hidden lg:flex relative z-[110] px-8 pt-6 pb-4 items-center justify-between shrink-0 bg-rose-50/40 backdrop-blur-sm border-b border-rose-100/30">
+          <header className="hidden lg:flex relative z-[110] px-8 pt-6 pb-4 items-center justify-between shrink-0 bg-white/25 backdrop-blur-sm border-b border-rose-100/30">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">
                 {activeTab === 'dashboard' ? 'Home' : activeTab === 'baby' ? 'Baby Growth' : activeTab === 'ava' ? 'AI Assistant' : activeTab === 'education' ? 'Education' : activeTab === 'tools' ? 'Tools Hub' : activeTab === 'village' ? 'Village Hub' : activeTab === 'settings' ? 'Settings' : 'Admin'}
