@@ -73,6 +73,8 @@ export interface BabyAvatar {
 
 export interface PregnancyProfile {
   userName: string;
+  age?: number;
+  conditions?: string;
   lmpDate: string;
   dueDate: string;
   isManualDueDate: boolean;

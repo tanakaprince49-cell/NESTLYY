@@ -30,10 +30,12 @@ import {
   MedicationLog,
   TummyTimeLog,
   BloodPressureLog,
+  CustomPlan,
   Nest,
   NestMembership,
   NestPost
 } from '../types.ts';
+import { getDateKey } from './customPlanService.ts';
 
 const KEYS = {
   PROFILE: 'profile_v5',
@@ -414,12 +416,38 @@ class StorageService {
     }
   }
 
-  getCustomPlan(): any {
-    return this.getItem(KEYS.CUSTOM_PLAN, null);
+  getCustomPlan(dateKey?: string): CustomPlan | null {
+    const stored = this.getItem<any>(KEYS.CUSTOM_PLAN, null);
+    if (!stored) return null;
+
+    // Back-compat: older versions stored a single plan object
+    if (stored && typeof stored === 'object' && 'nutrition' in stored && 'fitness' in stored && 'routine' in stored) {
+      return stored as CustomPlan;
+    }
+
+    const key = dateKey || getDateKey(new Date());
+    if (stored && typeof stored === 'object') {
+      return (stored[key] as CustomPlan) || null;
+    }
+    return null;
   }
 
-  saveCustomPlan(plan: any): void {
-    this.setItem(KEYS.CUSTOM_PLAN, plan);
+  saveCustomPlan(plan: CustomPlan, dateKey?: string): void {
+    const key = dateKey || getDateKey(new Date());
+    const stored = this.getItem<any>(KEYS.CUSTOM_PLAN, null);
+
+    // If a legacy single plan exists, preserve it under its own day (best effort)
+    if (stored && typeof stored === 'object' && 'nutrition' in stored && 'fitness' in stored && 'routine' in stored) {
+      const legacy = stored as CustomPlan;
+      const legacyKey = getDateKey(new Date(legacy.timestamp || Date.now()));
+      const nextMap: Record<string, CustomPlan> = { [legacyKey]: legacy, [key]: plan };
+      this.setItem(KEYS.CUSTOM_PLAN, nextMap);
+      return;
+    }
+
+    const map: Record<string, CustomPlan> = stored && typeof stored === 'object' ? { ...stored } : {};
+    map[key] = plan;
+    this.setItem(KEYS.CUSTOM_PLAN, map);
   }
 
   getLastWeekCelebrated(): number {

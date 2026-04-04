@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Utensils, 
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { PregnancyProfile, CustomPlan, Trimester } from '../types.ts';
 import { storage } from '../services/storageService.ts';
-import { auth } from '../firebase.ts';
+import { generateDailyCustomPlan, getDateKey, getPregnancyWeek } from '../services/customPlanService.ts';
 
 interface CustomPlanViewProps {
   profile: PregnancyProfile;
@@ -24,7 +24,8 @@ interface CustomPlanViewProps {
 }
 
 export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimester }) => {
-  const [plan, setPlan] = useState<CustomPlan | null>(storage.getCustomPlan());
+  const todayKey = useMemo(() => getDateKey(new Date()), []);
+  const [plan, setPlan] = useState<CustomPlan | null>(storage.getCustomPlan(todayKey));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeSegment, setActiveSegment] = useState<'nutrition' | 'fitness' | 'routine' | 'medical'>('nutrition');
@@ -33,39 +34,27 @@ export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimest
     setLoading(true);
     setError(null);
     try {
-      const token = await auth.currentUser?.getIdToken();
-      const response = await fetch('/api/custom-plan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          trimester,
-          dietPreference: profile.dietPreference || 'normal'
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to generate plan');
-      
-      const newPlan = await response.json();
-      const planWithMeta: CustomPlan = {
-        ...newPlan,
-        id: crypto.randomUUID(),
-        trimester,
-        dietPreference: profile.dietPreference || 'normal',
-        timestamp: Date.now()
-      };
-      
-      storage.saveCustomPlan(planWithMeta);
-      setPlan(planWithMeta);
+      const generated = generateDailyCustomPlan(profile, new Date());
+      storage.saveCustomPlan(generated, todayKey);
+      setPlan(generated);
     } catch (err) {
       console.error(err);
-      setError('Could not generate your personalized plan. Please try again.');
+      setError('Could not generate your plan. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const existing = storage.getCustomPlan(todayKey);
+    if (existing) {
+      setPlan(existing);
+      return;
+    }
+    const generated = generateDailyCustomPlan(profile, new Date());
+    storage.saveCustomPlan(generated, todayKey);
+    setPlan(generated);
+  }, [todayKey, profile.lmpDate, profile.dietPreference, profile.age, profile.conditions]);
 
   const segments = [
     { id: 'nutrition', label: 'Nutrition', icon: Utensils, color: 'bg-rose-500' },
@@ -83,7 +72,7 @@ export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimest
         <div className="space-y-2">
           <h3 className="text-2xl font-serif text-slate-900">Your Personalized Plan</h3>
           <p className="text-sm text-slate-400 max-w-xs mx-auto">
-            Generate a custom daily routine with nutrition, fitness, and medical guidance tailored to your <b>{trimester}</b> and <b>{profile.dietPreference}</b> diet.
+            Your plan updates daily based on your <b>{trimester}</b> and <b>{profile.dietPreference}</b> diet.
           </p>
         </div>
         <button 
@@ -121,7 +110,9 @@ export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimest
           </div>
           <div>
             <h3 className="text-lg font-serif text-slate-900">Personalized Companion</h3>
-            <p className="text-[9px] font-black uppercase text-rose-400 tracking-widest">Updated {new Date(plan!.timestamp).toLocaleDateString()}</p>
+            <p className="text-[9px] font-black uppercase text-rose-400 tracking-widest">
+              Day {Math.max(1, Math.floor((new Date(todayKey).getTime() - new Date(profile.lmpDate).getTime()) / (1000 * 60 * 60 * 24)) + 1)} • Week {getPregnancyWeek(profile, new Date())} • Updated {new Date(plan!.timestamp).toLocaleDateString()}
+            </p>
           </div>
         </div>
         <button onClick={generatePlan} className="p-3 text-slate-300 hover:text-rose-500 transition-colors">
