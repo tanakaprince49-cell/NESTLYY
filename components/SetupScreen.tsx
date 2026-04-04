@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ToyBrick, 
@@ -19,12 +19,14 @@ interface SetupScreenProps {
   initialProfile?: PregnancyProfile | null;
 }
 
-type SetupStep = 'welcome' | 'lifecycle' | 'name' | 'lmp' | 'calculation' | 'multiples' | 'baby_details' | 'theme' | 'weight' | 'nutrition' | 'diet' | 'photo' | 'final';
+type SetupStep = 'welcome' | 'lifecycle' | 'name' | 'health' | 'lmp' | 'calculation' | 'multiples' | 'baby_details' | 'theme' | 'weight' | 'nutrition' | 'diet' | 'photo' | 'final';
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialProfile }) => {
   const [step, setStep] = useState<SetupStep>(initialProfile ? 'name' : 'welcome');
   const [lifecycleStage, setLifecycleStage] = useState<LifecycleStage>(initialProfile?.lifecycleStage || LifecycleStage.PREGNANCY);
   const [userName, setUserName] = useState(initialProfile?.userName || '');
+  const [age, setAge] = useState<string>(initialProfile?.age ? String(initialProfile.age) : '');
+  const [conditions, setConditions] = useState<string>(initialProfile?.conditions || '');
   const [lmp, setLmp] = useState(initialProfile?.lmpDate ? initialProfile.lmpDate.split('T')[0] : '');
   const [currentWeek, setCurrentWeek] = useState<string>('');
   const [calculationMode, setCalculationMode] = useState<'lmp' | 'week'>('lmp');
@@ -91,6 +93,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
       const emptyAlbums: MemoryAlbums = { bump: [], baby: [], ultrasound: [], nursery: [], family: [], other: [] };
       const newProfile: PregnancyProfile = { 
         userName,
+        age: age ? parseInt(age) : undefined,
+        conditions: conditions.trim() || undefined,
         lmpDate: lmp ? new Date(lmp).toISOString() : new Date().toISOString(), 
         dueDate: dueDate ? new Date(dueDate).toISOString() : new Date().toISOString(), 
         isManualDueDate,
@@ -192,10 +196,52 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
             <h2 className="text-4xl font-serif text-slate-900">What's your name?</h2>
             <input autoFocus value={userName} onChange={e => setUserName(e.target.value)} placeholder="Your Name" className="w-full text-center text-2xl font-serif border-b-2 border-rose-100 p-4 focus:border-rose-500 outline-none bg-transparent" />
             <button 
-              onClick={() => goTo(lifecycleStage === LifecycleStage.NEWBORN ? 'multiples' : 'lmp')} 
+              onClick={() => goTo('health')} 
               className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4"
             >
               Next
+            </button>
+          </div>
+        )}
+
+        {step === 'health' && (
+          <div className="space-y-8 w-full text-center">
+            <h2 className="text-4xl font-serif text-slate-900">A bit about you</h2>
+            <p className="text-xs text-slate-400 font-medium max-w-sm mx-auto">
+              This helps Nestly tailor your daily plan. You can leave these blank.
+            </p>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Age (optional)</label>
+                <input
+                  type="number"
+                  min="12"
+                  max="60"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  placeholder="e.g. 28"
+                  className="w-full bg-white border-2 border-rose-50 rounded-[2rem] px-8 py-6 text-xl font-bold text-center outline-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Conditions (optional)</label>
+                <textarea
+                  value={conditions}
+                  onChange={(e) => setConditions(e.target.value)}
+                  rows={3}
+                  placeholder="e.g. anemia, diabetes, high blood pressure…"
+                  className="w-full bg-white border-2 border-rose-50 rounded-[2rem] px-8 py-6 text-sm font-semibold outline-none resize-none"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => goTo(lifecycleStage === LifecycleStage.NEWBORN ? 'multiples' : 'lmp')}
+              className="w-full py-6 bg-rose-500 text-white font-black rounded-[2rem] text-[11px] uppercase tracking-widest mt-4"
+            >
+              Continue
             </button>
           </div>
         )}
