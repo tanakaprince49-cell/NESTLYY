@@ -1,5 +1,4 @@
 import { storage } from './storageService.ts';
-import { Trimester } from '../types.ts';
 import { jsPDF } from 'jspdf';
 import { calculateDurationMinutes } from '../src/utils/sleepUtils';
 
@@ -330,7 +329,7 @@ export const generateNewbornDailyReport = (date: Date) => {
 
   const lastGrowth = [...growth].sort((a, b) => b.timestamp - a.timestamp)[0];
   if (lastGrowth) {
-    doc.text(`Latest Growth: ${lastGrowth.weight} kg, ${lastGrowth.height} cm`, 15, y);
+    doc.text(`Latest Growth: ${lastGrowth.weight.toFixed(1)} kg, ${lastGrowth.height.toFixed(1)} cm`, 15, y);
   } else {
     doc.text('Latest Growth: ---', 15, y);
   }
