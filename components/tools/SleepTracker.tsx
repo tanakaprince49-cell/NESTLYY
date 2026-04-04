@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Baby, User, Moon, Sun, Calendar, Info, Clock, Edit2, Trash2 } from 'lucide-react';
 import { SleepLog, PregnancyProfile, LifecycleStage } from '../../types.ts';
 import { motion, AnimatePresence } from 'motion/react';
@@ -8,38 +8,62 @@ import { SleepCharts } from '../SleepCharts';
 import { SleepInsights } from '../SleepInsights';
 import { SleepHistory } from '../SleepHistory';
 import { startOfDay } from 'date-fns';
+import { storage } from '../../services/storageService.ts';
 
 interface SleepTrackerProps {
   sleepLogs: SleepLog[];
   onAddSleep: (log: Omit<SleepLog, 'id' | 'timestamp'>) => void;
   onRemoveSleep: (id: string) => void;
   profile: PregnancyProfile;
-  selectedBabyId: string;
 }
 
 export const SleepTracker: React.FC<SleepTrackerProps> = ({ 
-  sleepLogs, onAddSleep, onRemoveSleep, profile, selectedBabyId 
+  sleepLogs, onAddSleep, onRemoveSleep, profile,
 }) => {
+  const babies = profile.babies || [];
+  const [selectedBabyId, setSelectedBabyId] = useState<string>(() => babies[0]?.id || '');
   const [mode, setMode] = useState<SleepMode>(
-    profile.lifecycleStage === LifecycleStage.NEWBORN || profile.lifecycleStage === LifecycleStage.INFANT ? 'newborn' : 'pregnancy'
+    profile.lifecycleStage === LifecycleStage.NEWBORN ||
+      profile.lifecycleStage === LifecycleStage.INFANT ||
+      profile.lifecycleStage === LifecycleStage.TODDLER ||
+      profile.lifecycleStage === LifecycleStage.BIRTH
+      ? 'newborn'
+      : 'pregnancy'
   );
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<SleepLog | null>(null);
+  const currentBabyId = selectedBabyId || babies[0]?.id || '';
+
+  useEffect(() => {
+    if (babies.length === 0) return;
+    if (!selectedBabyId || !babies.some((b) => b.id === selectedBabyId)) {
+      setSelectedBabyId(babies[0].id);
+    }
+  }, [babies, selectedBabyId]);
+
+  const filteredSleepLogs = useMemo(() => {
+    return sleepLogs.filter((s) => {
+      if (s.mode && s.mode !== mode) return false;
+      if (mode === 'newborn') return (s.babyId || '') === currentBabyId;
+      return true;
+    });
+  }, [sleepLogs, mode, currentBabyId]);
 
   const handleSaveSession = (sessionData: Partial<SleepLog>) => {
+    const userId = storage.getAuthEmail() || 'guest';
     if (editingSession) {
       // The existing app doesn't have an onUpdateSleep, so we remove and add
       onRemoveSleep(editingSession.id);
       onAddSleep({
         ...sessionData,
         userId: editingSession.userId,
-        babyId: selectedBabyId || profile.babies?.[0]?.id || '',
+        babyId: mode === 'newborn' ? currentBabyId : undefined,
       } as Omit<SleepLog, 'id' | 'timestamp'>);
     } else {
       onAddSleep({
         ...sessionData,
-        userId: 'user1',
-        babyId: selectedBabyId || profile.babies?.[0]?.id || '',
+        userId,
+        babyId: mode === 'newborn' ? currentBabyId : undefined,
       } as Omit<SleepLog, 'id' | 'timestamp'>);
     }
     setIsFormOpen(false);
@@ -48,14 +72,14 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
 
   const todaySessions = useMemo(() => {
     const today = startOfDay(new Date());
-    return sleepLogs.filter(s => new Date(s.startTime) >= today);
-  }, [sleepLogs]);
+    return filteredSleepLogs.filter(s => new Date(s.startTime) >= today);
+  }, [filteredSleepLogs]);
 
   const totalSleepToday = useMemo(() => {
     return todaySessions.reduce((acc, s) => acc + calculateDurationMinutes(s.startTime, s.endTime), 0);
   }, [todaySessions]);
 
-  const insights = useMemo(() => generateInsights(sleepLogs, mode), [sleepLogs, mode]);
+  const insights = useMemo(() => generateInsights(filteredSleepLogs, mode), [filteredSleepLogs, mode]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -82,6 +106,32 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
           </button>
         </div>
       </div>
+
+      {mode === 'newborn' && babies.length > 1 && (
+        <div className="flex justify-center">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+            {babies.map((baby, idx) => (
+              <button
+                key={baby.id}
+                onClick={() => setSelectedBabyId(baby.id)}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${
+                  currentBabyId === baby.id ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-slate-400 border-slate-50'
+                }`}
+              >
+                {baby.name || `Baby ${idx + 1}`}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {mode === 'newborn' && babies.length === 0 && (
+        <div className="card-premium p-6 bg-white border-2 border-white text-center">
+          <div className="text-sm font-semibold text-slate-600">
+            Add a baby first (Settings → My Babies) to track newborn sleep.
+          </div>
+        </div>
+      )}
 
       {/* Today's Summary Card */}
       <motion.div 
@@ -121,12 +171,12 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
       {/* Charts Section */}
       <div className="space-y-6">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] px-2">Sleep Analytics</h3>
-        <SleepCharts sessions={sleepLogs} mode={mode} />
+        <SleepCharts sessions={filteredSleepLogs} mode={mode} />
       </div>
 
       {/* History Section */}
       <SleepHistory 
-        sessions={sleepLogs} 
+        sessions={filteredSleepLogs} 
         onEdit={(s) => { setEditingSession(s); setIsFormOpen(true); }}
         onDelete={onRemoveSleep}
       />
@@ -135,7 +185,8 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
       <div className="flex justify-center pt-4">
         <button
           onClick={() => { setEditingSession(null); setIsFormOpen(true); }}
-          className="flex items-center gap-3 px-8 py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-rose-200 hover:bg-rose-700 active:scale-95 transition-all"
+          disabled={mode === 'newborn' && babies.length === 0}
+          className="flex items-center gap-3 px-8 py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-rose-200 hover:bg-rose-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
         >
           <Plus className="w-5 h-5" />
           Log Sleep
