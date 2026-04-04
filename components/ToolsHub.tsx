@@ -112,7 +112,7 @@ const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, b
   reports: { label: 'Reports', icon: FileText, color: 'text-slate-700', bgColor: 'bg-slate-50' },
   calendar: { label: 'Calendar', icon: CalendarIcon, color: 'text-blue-600', bgColor: 'bg-blue-50' },
   checklists: { label: 'Checklists', icon: ListTodo, color: 'text-slate-700', bgColor: 'bg-slate-50' },
-  symptoms: { label: 'Symptoms', icon: Thermometer, color: 'text-red-400', bgColor: 'bg-red-50' },
+  symptoms: { label: 'Symptoms', icon: Thermometer, color: 'text-red-600', bgColor: 'bg-red-50' },
   sleep: { label: 'Sleep', icon: Moon, color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
   custom_plan: { label: 'AI Plan', icon: Sparkles, color: 'text-rose-500', bgColor: 'bg-rose-100' },
 };
