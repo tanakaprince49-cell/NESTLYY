@@ -30,12 +30,10 @@ import {
   MedicationLog,
   TummyTimeLog,
   BloodPressureLog,
-  CustomPlan,
   Nest,
   NestMembership,
   NestPost
 } from '../types.ts';
-import { getDateKey } from './customPlanService.ts';
 
 const KEYS = {
   PROFILE: 'profile_v5',
@@ -416,48 +414,12 @@ class StorageService {
     }
   }
 
-  getCustomPlan(dateKey?: string): CustomPlan | null {
-    const stored = this.getItem<any>(KEYS.CUSTOM_PLAN, null);
-    if (!stored) return null;
-
-    // Back-compat: older versions stored a single plan object
-    if (stored && typeof stored === 'object' && 'nutrition' in stored && 'fitness' in stored && 'routine' in stored) {
-      const legacy = stored as CustomPlan;
-      const legacyKey = getDateKey(new Date(legacy.timestamp || Date.now()));
-      const requestedKey = dateKey || getDateKey(new Date());
-      return legacyKey === requestedKey ? legacy : null;
-    }
-
-    const key = dateKey || getDateKey(new Date());
-    if (stored && typeof stored === 'object') {
-      return (stored[key] as CustomPlan) || null;
-    }
-    return null;
+  getCustomPlan(): any {
+    return this.getItem(KEYS.CUSTOM_PLAN, null);
   }
 
-  saveCustomPlan(plan: CustomPlan, dateKey?: string): void {
-    const key = dateKey || getDateKey(new Date());
-    const stored = this.getItem<any>(KEYS.CUSTOM_PLAN, null);
-    const MAX_DAYS = 14;
-
-    // If a legacy single plan exists, preserve it under its own day (best effort)
-    if (stored && typeof stored === 'object' && 'nutrition' in stored && 'fitness' in stored && 'routine' in stored) {
-      const legacy = stored as CustomPlan;
-      const legacyKey = getDateKey(new Date(legacy.timestamp || Date.now()));
-      const nextMap: Record<string, CustomPlan> = { [legacyKey]: legacy, [key]: plan };
-      const keys = Object.keys(nextMap).sort().slice(-MAX_DAYS);
-      const pruned: Record<string, CustomPlan> = {};
-      for (const k of keys) pruned[k] = nextMap[k];
-      this.setItem(KEYS.CUSTOM_PLAN, pruned);
-      return;
-    }
-
-    const map: Record<string, CustomPlan> = stored && typeof stored === 'object' ? { ...stored } : {};
-    map[key] = plan;
-    const keys = Object.keys(map).sort().slice(-MAX_DAYS);
-    const pruned: Record<string, CustomPlan> = {};
-    for (const k of keys) pruned[k] = map[k];
-    this.setItem(KEYS.CUSTOM_PLAN, pruned);
+  saveCustomPlan(plan: any): void {
+    this.setItem(KEYS.CUSTOM_PLAN, plan);
   }
 
   getLastWeekCelebrated(): number {
