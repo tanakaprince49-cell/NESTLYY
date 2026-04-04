@@ -19,7 +19,6 @@ import {
   DiaperLog,
   TummyTimeLog,
   MedicationLog,
-  BloodPressureLog,
   VitaminLog,
   FoodEntry,
   ChecklistItem
@@ -87,7 +86,6 @@ const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m =>
 
 const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, bgColor: string }> = {
   vitals: { label: 'Vitals', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  blood_pressure: { label: 'Blood Pressure', icon: Heart, color: 'text-red-400', bgColor: 'bg-red-50' },
   medications: { label: 'Medications', icon: Pill, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   names: { label: 'Baby Names', icon: Sparkles, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   bump: { label: 'Bump Photos', icon: CameraIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
@@ -153,8 +151,6 @@ interface ToolsHubProps {
   onAddBabyGrowth: (log: Omit<BabyGrowthLog, 'id' | 'timestamp'>) => void;
   tummyTimeLogs: TummyTimeLog[];
   onAddTummyTime: (log: Omit<TummyTimeLog, 'id' | 'timestamp'>) => void;
-  bloodPressureLogs: BloodPressureLog[];
-  onAddBloodPressure: (log: Omit<BloodPressureLog, 'id' | 'timestamp'>) => void;
   medicationLogs: MedicationLog[];
   onAddMedication: (log: Omit<MedicationLog, 'id' | 'timestamp'>) => void;
   onRemoveMedication: (id: string) => void;
@@ -181,7 +177,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   feedingLogs, onAddFeeding, diaperLogs, onAddDiaper, milestones, onAddMilestone, healthLogs, onAddHealth, 
   reactions, onAddReaction, kickLogs, onAddKick, kegelLogs, onAddKegel, babyGrowthLogs, onAddBabyGrowth,
   tummyTimeLogs, onAddTummyTime,
-  bloodPressureLogs, onAddBloodPressure,
   medicationLogs, onAddMedication, onRemoveMedication,
   foodEntries, onAddFoodEntry, onRemoveFoodEntry,
   vitamins, onAddVitamin,
@@ -210,9 +205,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['custom_plan', 'symptom_decoder', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
+      return ['custom_plan', 'symptom_decoder', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
     }
-    return ['custom_plan', 'symptom_decoder', 'vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
+    return ['custom_plan', 'symptom_decoder', 'vitals', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
   }, [isPostpartum]);
 
   const filteredCategories = useMemo(() => {
@@ -275,13 +270,10 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       case 'checklists':
         return <ChecklistTracker checklists={checklists} onUpdateChecklist={handleUpdateChecklist} />;
       case 'vitals':
-      case 'blood_pressure':
         return (
           <VitalsTracker 
             weightLogs={weightLogs} 
             onAddWeight={onAddWeight} 
-            bloodPressureLogs={bloodPressureLogs} 
-            onAddBloodPressure={onAddBloodPressure} 
             babyGrowthLogs={babyGrowthLogs} 
             onAddBabyGrowth={onAddBabyGrowth} 
             profile={profile} 
@@ -339,7 +331,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           kegelLogs={kegelLogs} 
           babyGrowthLogs={babyGrowthLogs} 
           tummyTimeLogs={tummyTimeLogs} 
-          bloodPressureLogs={bloodPressureLogs} 
           medicationLogs={medicationLogs} 
           foodEntries={foodEntries} 
           vitamins={vitamins} 

@@ -29,7 +29,6 @@ import {
   Video,
   MedicationLog,
   TummyTimeLog,
-  BloodPressureLog,
   Nest,
   NestMembership,
   NestPost
@@ -72,7 +71,6 @@ const KEYS = {
   BUMP_PHOTOS: 'bump_photos',
   MEDICATIONS: 'medication_logs',
   TUMMY_TIME: 'tummy_time_logs',
-  BLOOD_PRESSURE: 'blood_pressure_logs',
   KEGELS: 'kegel_logs',
   PRIVACY_ACCEPTED: 'privacy_accepted',
   CUSTOM_PLAN: 'custom_plan_v1',
@@ -195,10 +193,6 @@ class StorageService {
 
   getTummyTimeLogs(): TummyTimeLog[] { return this.getItem<TummyTimeLog[]>(KEYS.TUMMY_TIME, []); }
   addTummyTimeLog(log: TummyTimeLog): void { this.setItem(KEYS.TUMMY_TIME, [log, ...this.getTummyTimeLogs()]); }
-
-  getBloodPressureLogs(): BloodPressureLog[] { return this.getItem<BloodPressureLog[]>(KEYS.BLOOD_PRESSURE, []); }
-  addBloodPressureLog(log: BloodPressureLog): void { this.setItem(KEYS.BLOOD_PRESSURE, [log, ...this.getBloodPressureLogs()]); }
-  removeBloodPressureLog(id: string): void { this.setItem(KEYS.BLOOD_PRESSURE, this.getBloodPressureLogs().filter(l => l.id !== id)); }
 
   getKegelLogs(): KegelLog[] { return this.getItem<KegelLog[]>(KEYS.KEGELS, []); }
   addKegelLog(log: KegelLog): void { this.setItem(KEYS.KEGELS, [log, ...this.getKegelLogs()]); }

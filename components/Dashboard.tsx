@@ -67,7 +67,6 @@ import {
   DiaperLog,
   TummyTimeLog,
   MedicationLog,
-  BloodPressureLog
 } from '../types.ts';
 
 interface DashboardProps {
@@ -84,7 +83,6 @@ interface DashboardProps {
   diaperLogs: DiaperLog[];
   tummyTimeLogs: TummyTimeLog[];
   medicationLogs: MedicationLog[];
-  bloodPressureLogs: BloodPressureLog[];
   trimester: Trimester;
   profile: PregnancyProfile;
   onAddEntry: (entry: Omit<FoodEntry, 'id' | 'timestamp'>) => void;
@@ -122,7 +120,7 @@ const NEWBORN_TIPS = [
 export const Dashboard: React.FC<DashboardProps> = ({ 
   entries = [], vitamins = [], weightLogs = [], sleepLogs = [], 
   feedingLogs = [], milestones = [], healthLogs = [], reactions = [], journalEntries = [], babyGrowthLogs = [], diaperLogs = [],
-  tummyTimeLogs = [], medicationLogs = [], bloodPressureLogs = [],
+  tummyTimeLogs = [], medicationLogs = [],
   trimester, profile, 
   onAddEntry, onRemoveEntry, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onAddMedication, onRemoveMedication, onNavigate
 }) => {

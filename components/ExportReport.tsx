@@ -8,7 +8,7 @@ import {
 import { 
   PregnancyProfile, FeedingLog, SleepLog, DiaperLog, BabyGrowthLog, 
   MilestoneLog, HealthLog, TummyTimeLog, JournalEntry, KickLog, 
-  ReactionLog, CalendarEvent, BloodPressureLog, MedicationLog, 
+  ReactionLog, CalendarEvent, MedicationLog, 
   WeightLog, SymptomLog, VitaminLog, Contraction,
   KegelLog, FoodEntry
 } from '../types.ts';
@@ -26,7 +26,6 @@ interface ExportReportProps {
   kickLogs: KickLog[];
   reactions: ReactionLog[];
   calendarEvents: CalendarEvent[];
-  bloodPressureLogs: BloodPressureLog[];
   medicationLogs: MedicationLog[];
   weightLogs: WeightLog[];
   symptoms: SymptomLog[];
@@ -49,7 +48,6 @@ export const ExportReport: React.FC<ExportReportProps> = ({
   kickLogs,
   reactions,
   calendarEvents,
-  bloodPressureLogs,
   medicationLogs,
   weightLogs,
   symptoms,
@@ -87,7 +85,6 @@ export const ExportReport: React.FC<ExportReportProps> = ({
       kicks: filter(kickLogs),
       reactions: filter(reactions),
       events: filter(calendarEvents),
-      bp: filter(bloodPressureLogs),
       meds: filter(medicationLogs),
       weight: filter(weightLogs),
       symptoms: filter(symptoms),
@@ -96,7 +93,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
       kegels: filter(kegelLogs),
       nutrition: filter(foodEntries)
     };
-  }, [startDate, endDate, feedingLogs, sleepLogs, diaperLogs, babyGrowthLogs, milestones, healthLogs, tummyTimeLogs, journalEntries, kickLogs, reactions, calendarEvents, bloodPressureLogs, medicationLogs, weightLogs, symptoms, vitamins, contractions, kegelLogs, foodEntries]);
+  }, [startDate, endDate, feedingLogs, sleepLogs, diaperLogs, babyGrowthLogs, milestones, healthLogs, tummyTimeLogs, journalEntries, kickLogs, reactions, calendarEvents, medicationLogs, weightLogs, symptoms, vitamins, contractions, kegelLogs, foodEntries]);
 
   const handleExport = () => {
     if (!reportRef.current) return;
@@ -312,7 +309,7 @@ export const ExportReport: React.FC<ExportReportProps> = ({
                 <div className="text-center p-4 bg-rose-50 rounded-2xl">
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Health Logs</div>
                   <div className="text-2xl font-black text-rose-600">
-                    {filteredData.health.length + filteredData.bp.length + filteredData.meds.length}
+                    {filteredData.health.length + filteredData.meds.length}
                   </div>
                 </div>
                 <div className="text-center p-4 bg-rose-50 rounded-2xl">
@@ -325,19 +322,6 @@ export const ExportReport: React.FC<ExportReportProps> = ({
             {/* MATERNAL HEALTH */}
             <Section title="Maternal Wellness" icon={Heart} color="rose">
               <div className="space-y-6">
-                {filteredData.bp.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Blood Pressure</h4>
-                    {filteredData.bp.map(log => (
-                      <DataRow 
-                        key={log.id} 
-                        label={`${log.systolic}/${log.diastolic} mmHg`} 
-                        value={log.pulse ? `${log.pulse} bpm` : ""} 
-                        subValue={new Date(log.timestamp).toLocaleString()} 
-                      />
-                    ))}
-                  </div>
-                )}
                 {filteredData.weight.length > 0 && (
                   <div>
                     <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Weight Tracking</h4>

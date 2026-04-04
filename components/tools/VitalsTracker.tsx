@@ -1,12 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line } from 'recharts';
-import { WeightLog, BloodPressureLog, BabyGrowthLog, PregnancyProfile, LifecycleStage } from '../../types.ts';
+import { WeightLog, BabyGrowthLog, PregnancyProfile, LifecycleStage } from '../../types.ts';
 
 interface VitalsTrackerProps {
   weightLogs: WeightLog[];
   onAddWeight: (val: number) => void;
-  bloodPressureLogs: BloodPressureLog[];
-  onAddBloodPressure: (log: Omit<BloodPressureLog, 'id' | 'timestamp'>) => void;
   babyGrowthLogs: BabyGrowthLog[];
   onAddBabyGrowth: (log: Omit<BabyGrowthLog, 'id' | 'timestamp'>) => void;
   profile: PregnancyProfile;
@@ -15,14 +13,10 @@ interface VitalsTrackerProps {
 }
 
 export const VitalsTracker: React.FC<VitalsTrackerProps> = ({ 
-  weightLogs, onAddWeight, bloodPressureLogs, onAddBloodPressure, 
+  weightLogs, onAddWeight,
   babyGrowthLogs, onAddBabyGrowth, profile, selectedBabyId, setSelectedBabyId 
 }) => {
   const [weightInput, setWeightInput] = useState('');
-  const [bpSystolic, setBpSystolic] = useState('');
-  const [bpDiastolic, setBpDiastolic] = useState('');
-  const [bpPulse, setBpPulse] = useState('');
-  const [bpNotes, setBpNotes] = useState('');
   const [babyWeightInput, setBabyWeightInput] = useState('');
   const [babyHeightInput, setBabyHeightInput] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -167,66 +161,6 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
         )}
       </div>
 
-      <div className="card-premium p-8 bg-white space-y-6 shadow-sm border-2 border-white">
-        <h3 className="text-xl font-serif text-rose-800">Blood Pressure Tracker</h3>
-        <div className="space-y-4">
-          <div className="flex gap-3">
-            <input type="number" value={bpSystolic} onChange={e => setBpSystolic(e.target.value)} placeholder="Systolic (e.g. 120)" className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
-            <span className="text-2xl text-slate-300 font-light flex items-center">/</span>
-            <input type="number" value={bpDiastolic} onChange={e => setBpDiastolic(e.target.value)} placeholder="Diastolic (e.g. 80)" className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
-          </div>
-          <div className="flex gap-3">
-            <input type="number" value={bpPulse} onChange={e => setBpPulse(e.target.value)} placeholder="Pulse (bpm) - Optional" className="flex-1 px-5 py-4 bg-slate-50 rounded-2xl text-sm font-bold" />
-            <button 
-              onClick={() => {
-                if (bpSystolic && bpDiastolic) {
-                  const sys = parseInt(bpSystolic);
-                  const dia = parseInt(bpDiastolic);
-                  const pul = bpPulse ? parseInt(bpPulse) : undefined;
-                  
-                  if (sys > 0 && sys < 300 && dia > 0 && dia < 200 && (!pul || (pul > 0 && pul < 300))) {
-                    onAddBloodPressure({
-                      systolic: sys,
-                      diastolic: dia,
-                      pulse: pul,
-                      notes: bpNotes
-                    });
-                    setBpSystolic('');
-                    setBpDiastolic('');
-                    setBpPulse('');
-                    setBpNotes('');
-                    setError(null);
-                  } else {
-                    setError("Please enter valid blood pressure values.");
-                  }
-                }
-              }} 
-              className="px-10 py-4 bg-rose-500 text-white font-black rounded-2xl text-[10px] uppercase tracking-widest"
-            >
-              Log
-            </button>
-          </div>
-        </div>
-        
-        {bloodPressureLogs.length > 0 && (
-          <div className="pt-6 border-t border-slate-50 space-y-4">
-            <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-4 block">Recent Readings</span>
-            <div className="space-y-3">
-              {bloodPressureLogs.slice(0, 5).map(log => (
-                <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                  <div>
-                    <div className="text-lg font-bold text-slate-800">{log.systolic}/{log.diastolic} <span className="text-xs text-slate-400 font-normal">mmHg</span></div>
-                    {log.pulse && <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Pulse: {log.pulse} bpm</div>}
-                  </div>
-                  <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-                    {new Date(log.timestamp).toLocaleDateString()}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

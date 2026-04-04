@@ -34,8 +34,7 @@ import {
   BabyGrowthLog,
   DiaperLog,
   MedicationLog,
-  TummyTimeLog,
-  BloodPressureLog
+  TummyTimeLog
 } from './types.ts';
 
 const App: React.FC = () => {
@@ -72,7 +71,6 @@ const App: React.FC = () => {
   const [reactions, setReactions] = useState<ReactionLog[]>([]);
   const [babyGrowthLogs, setBabyGrowthLogs] = useState<BabyGrowthLog[]>([]);
   const [tummyTimeLogs, setTummyTimeLogs] = useState<TummyTimeLog[]>([]);
-  const [bloodPressureLogs, setBloodPressureLogs] = useState<BloodPressureLog[]>([]);
   const [kickLogs, setKickLogs] = useState<KickLog[]>([]);
   const [kegelLogs, setKegelLogs] = useState<KegelLog[]>([]);
   const [diaperLogs, setDiaperLogs] = useState<DiaperLog[]>([]);
@@ -95,7 +93,6 @@ const App: React.FC = () => {
       setReactions(storage.getReactions());
       setBabyGrowthLogs(storage.getBabyGrowthLogs());
       setTummyTimeLogs(storage.getTummyTimeLogs());
-      setBloodPressureLogs(storage.getBloodPressureLogs());
       setKickLogs(storage.getKickLogs());
       setKegelLogs(storage.getKegelLogs());
       setDiaperLogs(storage.getDiaperLogs());
@@ -272,7 +269,6 @@ const App: React.FC = () => {
                   journalEntries={journalEntries} babyGrowthLogs={babyGrowthLogs} diaperLogs={diaperLogs}
                   tummyTimeLogs={tummyTimeLogs}
                   medicationLogs={medicationLogs}
-                  bloodPressureLogs={bloodPressureLogs}
                   trimester={trimester} profile={profile}
                   onAddEntry={(e) => { 
                     storage.addFoodEntry({...e, id: crypto.randomUUID(), timestamp: Date.now()} as any); 
@@ -407,11 +403,6 @@ const App: React.FC = () => {
                   onAddTummyTime={(t) => {
                     storage.addTummyTimeLog({id: crypto.randomUUID(), ...t, timestamp: Date.now()});
                     setTummyTimeLogs(storage.getTummyTimeLogs());
-                  }}
-                  bloodPressureLogs={bloodPressureLogs}
-                  onAddBloodPressure={(b) => {
-                    storage.addBloodPressureLog({id: crypto.randomUUID(), ...b, timestamp: Date.now()});
-                    setBloodPressureLogs(storage.getBloodPressureLogs());
                   }}
                   onAddBabyGrowth={(g) => { 
                     storage.addBabyGrowthLog({id: crypto.randomUUID(), ...g, timestamp: Date.now()}); 
