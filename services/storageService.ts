@@ -434,8 +434,15 @@ class StorageService {
   getNestMemberships(): NestMembership[] { return this.getItem<NestMembership[]>(KEYS.VILLAGE_MEMBERSHIPS, []); }
   joinNest(nestId: string): void {
     const memberships = this.getNestMemberships();
+    console.log('[VillageHub] joinNest:', nestId, '| auth:', this.getAuthEmail(), '| existing:', memberships.length);
     if (!memberships.find(m => m.nestId === nestId)) {
-      this.setItem(KEYS.VILLAGE_MEMBERSHIPS, [...memberships, { nestId, joinedAt: Date.now() }]);
+      const updated = [...memberships, { nestId, joinedAt: Date.now() }];
+      this.setItem(KEYS.VILLAGE_MEMBERSHIPS, updated);
+      // Verify write
+      const check = this.getNestMemberships();
+      console.log('[VillageHub] joinNest saved:', check.length, '| includes:', check.some(m => m.nestId === nestId));
+    } else {
+      console.log('[VillageHub] joinNest: already joined');
     }
   }
   leaveNest(nestId: string): void {
@@ -450,7 +457,11 @@ class StorageService {
   getNestPosts(nestId: string): NestPost[] {
     return this.getAllNestPosts().filter(p => p.nestId === nestId);
   }
-  addNestPost(post: NestPost): void { this.setItem(KEYS.VILLAGE_POSTS, [post, ...this.getAllNestPosts()]); }
+  addNestPost(post: NestPost): void {
+    console.log('[VillageHub] addNestPost:', post.id, '| nest:', post.nestId, '| auth:', this.getAuthEmail());
+    this.setItem(KEYS.VILLAGE_POSTS, [post, ...this.getAllNestPosts()]);
+    console.log('[VillageHub] addNestPost saved, total:', this.getAllNestPosts().length);
+  }
   removeNestPost(id: string): void {
     this.setItem(KEYS.VILLAGE_POSTS, this.getAllNestPosts().filter(p => p.id !== id));
   }
@@ -469,7 +480,12 @@ class StorageService {
 
   // Village Hub: Custom Nests
   getCustomNests(): Nest[] { return this.getItem<Nest[]>(KEYS.VILLAGE_CUSTOM_NESTS, []); }
-  addCustomNest(nest: Nest): void { this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, [nest, ...this.getCustomNests()]); }
+  addCustomNest(nest: Nest): void {
+    console.log('[VillageHub] addCustomNest:', nest.id, nest.name, '| auth:', this.getAuthEmail());
+    this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, [nest, ...this.getCustomNests()]);
+    const check = this.getCustomNests();
+    console.log('[VillageHub] addCustomNest saved:', check.length, '| includes:', check.some(n => n.id === nest.id));
+  }
   removeCustomNest(id: string): void {
     this.leaveNest(id);
     this.setItem(KEYS.VILLAGE_POSTS, this.getAllNestPosts().filter(p => p.nestId !== id));
