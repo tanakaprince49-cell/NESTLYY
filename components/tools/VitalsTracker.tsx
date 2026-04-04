@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Line } from 'recharts';
 import { WeightLog, BloodPressureLog, BabyGrowthLog, PregnancyProfile, LifecycleStage } from '../../types.ts';
 
@@ -18,6 +18,15 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
   weightLogs, onAddWeight, bloodPressureLogs, onAddBloodPressure, 
   babyGrowthLogs, onAddBabyGrowth, profile, selectedBabyId, setSelectedBabyId 
 }) => {
+  const babies = (profile.babies && profile.babies.length > 0)
+    ? profile.babies
+    : [{ id: '1', name: 'Baby' } as any];
+
+  useEffect(() => {
+    if (profile.lifecycleStage !== LifecycleStage.NEWBORN) return;
+    if (!selectedBabyId && babies.length > 0) setSelectedBabyId(babies[0].id);
+  }, [babies, profile.lifecycleStage, selectedBabyId, setSelectedBabyId]);
+
   const [weightInput, setWeightInput] = useState('');
   const [bpSystolic, setBpSystolic] = useState('');
   const [bpDiastolic, setBpDiastolic] = useState('');
@@ -61,7 +70,7 @@ export const VitalsTracker: React.FC<VitalsTrackerProps> = ({
           <h3 className="text-xl font-serif text-rose-800">Baby Growth Tracker</h3>
           <div className="space-y-4">
             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-              {profile.babies?.map(b => (
+              {babies.map(b => (
                 <button
                   key={b.id}
                   onClick={() => setSelectedBabyId(b.id)}

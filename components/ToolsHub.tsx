@@ -82,6 +82,8 @@ const BathTracker = lazy(() => import('./tools/BathTracker.tsx').then(m => ({ de
 const PumpingTracker = lazy(() => import('./tools/PumpingTracker.tsx').then(m => ({ default: m.PumpingTracker })));
 const TeethingTracker = lazy(() => import('./tools/TeethingTracker.tsx').then(m => ({ default: m.TeethingTracker })));
 const TummyTimeTracker = lazy(() => import('./tools/TummyTimeTracker.tsx').then(m => ({ default: m.TummyTimeTracker })));
+const MilestonesTracker = lazy(() => import('./tools/MilestonesTracker.tsx').then(m => ({ default: m.MilestonesTracker })));
+const HealthTracker = lazy(() => import('./tools/HealthTracker.tsx').then(m => ({ default: m.HealthTracker })));
 const CustomPlanView = lazy(() => import('./CustomPlanView.tsx').then(m => ({ default: m.CustomPlanView })));
 const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m => ({ default: m.SymptomDecoder })));
 
@@ -95,8 +97,8 @@ const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, b
   vitamins: { label: 'Vitamins', icon: Pill, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   feeding: { label: 'Feeding', icon: Milk, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   diaper: { label: 'Diaper', icon: Droplets, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  milestones: { label: 'Milestones', icon: Trophy, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  health: { label: 'Health', icon: Stethoscope, color: 'text-red-400', bgColor: 'bg-red-50' },
+  milestones: { label: 'Milestones', icon: Trophy, color: 'text-indigo-500', bgColor: 'bg-indigo-50' },
+  health: { label: 'Health', icon: Stethoscope, color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
   tummy_time: { label: 'Tummy Time', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   bath: { label: 'Bath', icon: Droplet, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   pumping: { label: 'Pumping', icon: Droplets, color: 'text-rose-400', bgColor: 'bg-rose-50' },
@@ -270,6 +272,26 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         return <KegelTracker kegelLogs={kegelLogs} onAddKegel={onAddKegel} />;
       case 'medications':
         return <MedicationTracker medicationLogs={medicationLogs} onAddMedication={onAddMedication} onRemoveMedication={onRemoveMedication} />;
+      case 'milestones':
+        return (
+          <MilestonesTracker
+            profile={profile}
+            milestones={milestones}
+            onAddMilestone={onAddMilestone}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
+          />
+        );
+      case 'health':
+        return (
+          <HealthTracker
+            profile={profile}
+            healthLogs={healthLogs}
+            onAddHealth={onAddHealth}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
+          />
+        );
       case 'calendar':
         return <AppointmentTracker calendarEvents={calendarEvents} onAddEvent={onAddEvent} onRemoveEvent={onRemoveEvent} />;
       case 'checklists':
