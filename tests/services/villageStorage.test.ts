@@ -162,6 +162,65 @@ describe('custom nests', () => {
   });
 });
 
+describe('Tanaka repro: persistence after navigation (#83)', () => {
+  it('custom nest persists after simulated re-render (create -> exit -> come back)', () => {
+    // Simulate: user creates nest
+    const nest = makeNest({ id: 'my-nest', name: 'My Nest' });
+    storage.addCustomNest(nest);
+    storage.joinNest(nest.id);
+
+    // Simulate: user navigates away and comes back (fresh read from storage)
+    const memberships = storage.getNestMemberships();
+    const customNests = storage.getCustomNests();
+    const joinedIds = new Set(memberships.map(m => m.nestId));
+    const joinedNests = customNests.filter(n => joinedIds.has(n.id));
+
+    expect(joinedNests).toHaveLength(1);
+    expect(joinedNests[0].id).toBe('my-nest');
+    expect(joinedNests[0].name).toBe('My Nest');
+  });
+
+  it('template join persists after simulated re-render', () => {
+    storage.joinNest('tmpl-1');
+    storage.joinNest('tmpl-3');
+
+    // Simulate: fresh read
+    const memberships = storage.getNestMemberships();
+    const joinedIds = new Set(memberships.map(m => m.nestId));
+
+    expect(joinedIds.has('tmpl-1')).toBe(true);
+    expect(joinedIds.has('tmpl-3')).toBe(true);
+    expect(memberships).toHaveLength(2);
+  });
+
+  it('post persists in nest after simulated re-render', () => {
+    storage.joinNest('tmpl-1');
+    storage.addNestPost(makePost({ id: 'p1', nestId: 'tmpl-1', content: 'Hello world' }));
+
+    // Simulate: fresh read
+    const posts = storage.getNestPosts('tmpl-1');
+    expect(posts).toHaveLength(1);
+    expect(posts[0].content).toBe('Hello world');
+  });
+
+  it('data persists across auth re-read (simulates page refresh)', () => {
+    // User creates data
+    const nest = makeNest({ id: 'refresh-nest' });
+    storage.addCustomNest(nest);
+    storage.joinNest('refresh-nest');
+    storage.joinNest('tmpl-2');
+    storage.addNestPost(makePost({ id: 'rp1', nestId: 'refresh-nest' }));
+
+    // Simulate page refresh: re-set same auth email, read everything fresh
+    storage.setAuthEmail('village@test.com');
+
+    expect(storage.getCustomNests()).toHaveLength(1);
+    expect(storage.getNestMemberships()).toHaveLength(2);
+    expect(storage.getNestPosts('refresh-nest')).toHaveLength(1);
+    expect(storage.isNestJoined('tmpl-2')).toBe(true);
+  });
+});
+
 describe('cross-user isolation', () => {
   it('different users have separate memberships and posts', () => {
     storage.setAuthEmail('user-a@test.com');
