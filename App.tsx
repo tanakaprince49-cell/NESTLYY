@@ -185,7 +185,15 @@ const App: React.FC = () => {
     if (!profile) return;
     const isPostpartum = profile.lifecycleStage === LifecycleStage.NEWBORN;
     const allowedThemes = ['pink', 'blue', 'orange'] as const;
-    const theme = (allowedThemes as readonly string[]).includes(profile.themeColor) ? profile.themeColor : 'pink';
+    const theme = (allowedThemes as readonly string[]).includes(profile.themeColor as unknown as string)
+      ? profile.themeColor
+      : 'pink';
+
+    if (theme !== profile.themeColor) {
+      const nextProfile = { ...profile, themeColor: theme };
+      storage.saveProfile(nextProfile);
+      setProfile(nextProfile);
+    }
     document.body.className = `theme-${theme} ${isPostpartum ? 'stage-newborn' : 'stage-pregnancy'}`;
   }, [profile?.lifecycleStage, profile?.themeColor]);
 
