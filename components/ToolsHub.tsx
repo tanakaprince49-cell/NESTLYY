@@ -35,6 +35,7 @@ import {
   Footprints, 
   Smile, 
   Heart, 
+  HeartPulse,
   Milk, 
   Soup, 
   Droplet, 
@@ -82,6 +83,7 @@ const BathTracker = lazy(() => import('./tools/BathTracker.tsx').then(m => ({ de
 const PumpingTracker = lazy(() => import('./tools/PumpingTracker.tsx').then(m => ({ default: m.PumpingTracker })));
 const TeethingTracker = lazy(() => import('./tools/TeethingTracker.tsx').then(m => ({ default: m.TeethingTracker })));
 const TummyTimeTracker = lazy(() => import('./tools/TummyTimeTracker.tsx').then(m => ({ default: m.TummyTimeTracker })));
+const PelvicFloorTracker = lazy(() => import('./tools/PelvicFloorTracker.tsx').then(m => ({ default: m.PelvicFloorTracker })));
 const CustomPlanView = lazy(() => import('./CustomPlanView.tsx').then(m => ({ default: m.CustomPlanView })));
 const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m => ({ default: m.SymptomDecoder })));
 
@@ -109,6 +111,7 @@ const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, b
   calm: { label: 'Calm', icon: Wind, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   birth: { label: 'Birth', icon: Gift, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   kegels: { label: 'Kegels', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
+  pelvic_floor: { label: 'Pelvic Floor', icon: HeartPulse, color: 'text-fuchsia-600', bgColor: 'bg-fuchsia-50' },
   memories: { label: 'Memories', icon: CameraIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   reports: { label: 'Reports', icon: FileText, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   calendar: { label: 'Calendar', icon: CalendarIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
@@ -210,9 +213,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['custom_plan', 'symptom_decoder', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
+      return ['custom_plan', 'symptom_decoder', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'pelvic_floor', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
     }
-    return ['custom_plan', 'symptom_decoder', 'vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
+    return ['custom_plan', 'symptom_decoder', 'vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'pelvic_floor', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
   }, [isPostpartum]);
 
   const filteredCategories = useMemo(() => {
@@ -268,6 +271,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         return <KickCounter kickLogs={kickLogs} onAddKick={onAddKick} profile={profile} selectedBabyId={selectedBabyId} setSelectedBabyId={setSelectedBabyId} />;
       case 'kegels':
         return <KegelTracker kegelLogs={kegelLogs} onAddKegel={onAddKegel} />;
+      case 'pelvic_floor':
+        return <PelvicFloorTracker kegelLogs={kegelLogs} onAddKegel={onAddKegel} />;
       case 'medications':
         return <MedicationTracker medicationLogs={medicationLogs} onAddMedication={onAddMedication} onRemoveMedication={onRemoveMedication} />;
       case 'calendar':
