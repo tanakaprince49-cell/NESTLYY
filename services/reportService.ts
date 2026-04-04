@@ -186,7 +186,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
   doc.setTextColor(255, 255, 255);
   doc.text('YOU ARE DOING AMAZING, MAMA.', pageWidth / 2, footerY + 18, { align: 'center' });
 
-  doc.save(`Nestly_Pregnancy_Report_${date.toISOString().split('T')[0]}.pdf`);
+  doc.save(`Nestly_Pregnancy_Daily_Report_${date.toISOString().split('T')[0]}.pdf`);
 };
 
 export const generateNewbornDailyReport = (date: Date) => {
@@ -372,7 +372,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   doc.setTextColor(255, 255, 255);
   doc.text('YOU ARE DOING AMAZING, PARENT.', pageWidth / 2, footerY + 18, { align: 'center' });
 
-  doc.save(`Nestly_Newborn_Report_${date.toISOString().split('T')[0]}.pdf`);
+  doc.save(`Nestly_Newborn_Daily_Report_${date.toISOString().split('T')[0]}.pdf`);
 };
 
 export const generateLaborReport = (date: Date) => {
@@ -493,7 +493,7 @@ export const generateLaborReport = (date: Date) => {
   doc.setTextColor(slateText[0], slateText[1], slateText[2]);
   doc.text('Your journey is tracked securely with Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
-  doc.save(`Nestly_Labor_Summary_${date.toISOString().split('T')[0]}.pdf`);
+  doc.save(`Nestly_Pregnancy_Labor_Summary_${date.toISOString().split('T')[0]}.pdf`);
 };
 
 export const generateFullPregnancyReport = () => {
@@ -597,7 +597,7 @@ export const generateFullPregnancyReport = () => {
   doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('A lifetime of pregnancy memories, preserved by Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
-  doc.save(`Nestly_Full_Pregnancy_Archive.pdf`);
+  doc.save(`Nestly_Pregnancy_Full_Archive.pdf`);
 };
 
 export const generateFullNewbornReport = () => {
@@ -729,5 +729,5 @@ export const generateFullNewbornReport = () => {
   doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('A lifetime of newborn memories, preserved by Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
-  doc.save(`Nestly_Full_Newborn_Archive.pdf`);
+  doc.save(`Nestly_Newborn_Full_Archive.pdf`);
 };

@@ -12,6 +12,7 @@ import {
   WeightLog, SymptomLog, VitaminLog, Contraction,
   KegelLog, FoodEntry
 } from '../types.ts';
+import { LifecycleStage } from '../types.ts';
 
 interface ExportReportProps {
   profile: PregnancyProfile;
@@ -105,9 +106,12 @@ export const ExportReport: React.FC<ExportReportProps> = ({
     if (startDate > today || endDate > today) return;
     if (startDate > endDate) return;
     
+    const isNewbornLike = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
+    const reportKind = isNewbornLike ? 'newborn' : 'pregnancy';
+
     const opt: any = {
       margin:       [10, 10, 10, 10],
-      filename:     `nestly-report-${startDate}-to-${endDate}.pdf`,
+      filename:     `nestly-${reportKind}-report-${startDate}-to-${endDate}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { 
         scale: 2, 
