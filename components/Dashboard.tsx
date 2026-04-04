@@ -50,13 +50,11 @@ import {
 } from 'lucide-react';
 import { calculateDurationMinutes } from '../src/utils/sleepUtils';
 import { FoodResearchAI } from './FoodResearchAI.tsx';
-import { generateDailyCustomPlan, getDateKey } from '../services/customPlanService.ts';
 import { 
   FoodEntry, 
   Trimester, 
   VitaminLog, 
   PregnancyProfile, 
-  CustomPlan,
   WeightLog, 
   SleepLog,
   LifecycleStage,
@@ -130,8 +128,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
   const [activeMetric, setActiveMetric] = useState<'fuel' | 'weight' | 'sleep' | 'feeding' | 'tummy'>(isPostpartum ? 'feeding' : 'fuel');
-  const todayKey = useMemo(() => getDateKey(new Date()), []);
-  const [todayPlan, setTodayPlan] = useState<CustomPlan | null>(() => storage.getCustomPlan(todayKey));
 
   useEffect(() => {
     if (isPostpartum && (activeMetric === 'fuel' || activeMetric === 'weight')) {
@@ -192,18 +188,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const tips = isPostpartum ? NEWBORN_TIPS : PREGNANCY_TIPS;
     setDailyTip(tips[day % tips.length]);
   }, [isPostpartum]);
-
-  useEffect(() => {
-    if (isPostpartum) return;
-    const existing = storage.getCustomPlan(todayKey);
-    if (existing) {
-      setTodayPlan(existing);
-      return;
-    }
-    const generated = generateDailyCustomPlan(profile, new Date());
-    storage.saveCustomPlan(generated, todayKey);
-    setTodayPlan(generated);
-  }, [isPostpartum, todayKey, profile.lmpDate, profile.dietPreference, profile.age, profile.conditions]);
 
   const pregnancyProgress = useMemo(() => {
     if (isPostpartum) return null;
@@ -651,27 +635,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 </div>
               </div>
-
-              {!isPostpartum && (
-                <div
-                  onClick={() => onQuickTool('custom_plan')}
-                  className="card-premium p-5 bg-white border-2 border-slate-50 flex flex-col justify-between cursor-pointer active:scale-95 transition-transform min-h-[140px]"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-rose-400">Today’s Plan</span>
-                    <div className="w-9 h-9 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                      <Sparkles size={18} />
-                    </div>
-                  </div>
-                  <div className="mt-2 space-y-1">
-                    <div className="text-sm font-bold text-slate-900">Daily value, personalized</div>
-                    <div className="text-[10px] text-slate-400 font-bold">
-                      {todayPlan ? 'Tap to view Nutrition • Fitness • Routine • Medical' : 'Generating…'}
-                    </div>
-                  </div>
-                  <div className="text-[9px] font-black uppercase tracking-widest text-rose-500 mt-2">Open</div>
-                </div>
-              )}
 
               <div className="card-premium p-5 bg-white border-2 border-slate-50 flex flex-col justify-between min-h-[140px]">
                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
