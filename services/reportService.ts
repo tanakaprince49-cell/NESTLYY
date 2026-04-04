@@ -3,6 +3,13 @@ import { Trimester } from '../types.ts';
 import { jsPDF } from 'jspdf';
 import { calculateDurationMinutes } from '../src/utils/sleepUtils';
 
+const PDF_COLORS = {
+  pinkPrimary: [190, 24, 93] as const, // #be185d (pink-700)
+  pinkAccent: [236, 72, 153] as const, // #ec4899 (pink-500)
+  slateText: [71, 85, 105] as const, // #475569
+  boxBg: [255, 241, 242] as const, // #fff1f2 (rose-50)
+};
+
 export const generatePregnancyDailyReport = (date: Date) => {
   const profile = storage.getProfile();
   if (!profile) return;
@@ -32,7 +39,8 @@ export const generatePregnancyDailyReport = (date: Date) => {
   const journal = (storage.getJournalEntries() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
   const kicks = (storage.getKickLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
   const kegels = (storage.getKegelLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
-  const bloodPressure = (storage.getBloodPressureLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
+  // NOTE: blood pressure tracking may be removed in other PRs; keep this report resilient.
+  const bloodPressure = (((storage as any).getBloodPressureLogs?.() || []) as any[]).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
 
   const nutritionTotals = foods.reduce((acc, curr) => ({
     c: acc.c + (curr.calories || 0),
@@ -40,10 +48,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
     i: acc.i + (curr.iron || 0),
   }), { c: 0, p: 0, i: 0 });
 
-  const pinkPrimary = [190, 24, 93]; // #be185d (pink-700)
-  const pinkAccent = [236, 72, 153]; // #ec4899 (pink-500)
-  const slateText = [71, 85, 105]; // #475569
-  const boxBg = [255, 241, 242]; // #fff1f2 (rose-50)
+  const { pinkPrimary, pinkAccent, slateText, boxBg } = PDF_COLORS;
 
   // Background
   doc.setFillColor(255, 255, 255);
@@ -221,10 +226,8 @@ export const generateNewbornDailyReport = (date: Date) => {
   const totalSleep = babySleep.reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0);
   const totalTummy = Math.floor(tummyTime.reduce((acc, curr) => acc + curr.duration, 0) / 60);
 
-  const pinkPrimary = [190, 24, 93];
-  const pinkAccent = [236, 72, 153];
-  const slateText = [71, 85, 105];
-  const boxBg = [253, 242, 248]; // #fdf2f8 (pink-50)
+  // Match Pregnancy PDF UI (same palette + card styling)
+  const { pinkPrimary, pinkAccent, slateText, boxBg } = PDF_COLORS;
 
   // Background
   doc.setFillColor(255, 255, 255);
@@ -258,7 +261,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   doc.setFont('times', 'bold');
   doc.setFontSize(12);
   doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
-  doc.text(`Parent: ${parentName}`, 25, y + 12);
+  doc.text(`Mama: ${parentName}`, 25, y + 12);
   
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
@@ -293,7 +296,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
-  doc.text('FEEDING & SLEEP', 25, y + 12);
+  doc.text('VITAL STATS', 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
@@ -309,7 +312,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
-  doc.text('ACTIVITY & CARE', 15 + boxWidth + 25, y + 12);
+  doc.text('BABY CARE', 15 + boxWidth + 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
@@ -370,7 +373,7 @@ export const generateNewbornDailyReport = (date: Date) => {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(255, 255, 255);
-  doc.text('YOU ARE DOING AMAZING, PARENT.', pageWidth / 2, footerY + 18, { align: 'center' });
+  doc.text('YOU ARE DOING AMAZING, MAMA.', pageWidth / 2, footerY + 18, { align: 'center' });
 
   doc.save(`Nestly_Newborn_Report_${date.toISOString().split('T')[0]}.pdf`);
 };
