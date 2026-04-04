@@ -52,7 +52,6 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="space-y-2 px-1">
         <h3 className="text-2xl font-serif text-rose-900">Memories</h3>
-        <p className="text-xs text-slate-400 font-medium">Tap an album for a full-screen, iOS-smooth gallery.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
