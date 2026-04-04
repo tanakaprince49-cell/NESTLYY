@@ -82,6 +82,9 @@ const BathTracker = lazy(() => import('./tools/BathTracker.tsx').then(m => ({ de
 const PumpingTracker = lazy(() => import('./tools/PumpingTracker.tsx').then(m => ({ default: m.PumpingTracker })));
 const TeethingTracker = lazy(() => import('./tools/TeethingTracker.tsx').then(m => ({ default: m.TeethingTracker })));
 const TummyTimeTracker = lazy(() => import('./tools/TummyTimeTracker.tsx').then(m => ({ default: m.TummyTimeTracker })));
+const MilestonesTracker = lazy(() => import('./tools/MilestonesTracker.tsx').then(m => ({ default: m.MilestonesTracker })));
+const HealthTracker = lazy(() => import('./tools/HealthTracker.tsx').then(m => ({ default: m.HealthTracker })));
+const ReactionsTracker = lazy(() => import('./tools/ReactionsTracker.tsx').then(m => ({ default: m.ReactionsTracker })));
 const CustomPlanView = lazy(() => import('./CustomPlanView.tsx').then(m => ({ default: m.CustomPlanView })));
 const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m => ({ default: m.SymptomDecoder })));
 
@@ -309,6 +312,36 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         return <TeethingTracker journalEntries={journalEntries} onAddJournal={onAddJournal} />;
       case 'tummy_time':
         return <TummyTimeTracker tummyTimeLogs={tummyTimeLogs} onAddTummyTime={onAddTummyTime} profile={profile} />;
+      case 'milestones':
+        return (
+          <MilestonesTracker
+            milestones={milestones}
+            onAddMilestone={onAddMilestone}
+            profile={profile}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
+          />
+        );
+      case 'health':
+        return (
+          <HealthTracker
+            healthLogs={healthLogs}
+            onAddHealth={onAddHealth}
+            profile={profile}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
+          />
+        );
+      case 'reactions':
+        return (
+          <ReactionsTracker
+            reactions={reactions}
+            onAddReaction={onAddReaction}
+            profile={profile}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
+          />
+        );
       case 'custom_plan':
         const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
         const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
