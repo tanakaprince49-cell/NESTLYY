@@ -263,7 +263,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       case 'diaper':
         return <DiaperTracker diaperLogs={diaperLogs} onAddDiaper={onAddDiaper} profile={profile} selectedBabyId={selectedBabyId} setSelectedBabyId={setSelectedBabyId} />;
       case 'sleep':
-        return <SleepTracker sleepLogs={sleepLogs} onAddSleep={onAddSleep} onRemoveSleep={onRemoveSleep} profile={profile} selectedBabyId={selectedBabyId} setSelectedBabyId={setSelectedBabyId} />;
+        return <SleepTracker sleepLogs={sleepLogs} onAddSleep={onAddSleep} onRemoveSleep={onRemoveSleep} profile={profile} />;
       case 'kicks':
         return <KickCounter kickLogs={kickLogs} onAddKick={onAddKick} profile={profile} selectedBabyId={selectedBabyId} setSelectedBabyId={setSelectedBabyId} />;
       case 'kegels':
