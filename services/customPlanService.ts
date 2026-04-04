@@ -143,7 +143,7 @@ export function generateDailyCustomPlan(profile: PregnancyProfile, date: Date): 
     },
   } as const;
 
-  const ideas = (mealIdeas as any)[diet] || mealIdeas.normal;
+  const ideas = mealIdeas[diet as keyof typeof mealIdeas] ?? mealIdeas.normal;
   const focus = nutritionFocusByTrimester[trimester];
 
   const conditions = (profile.conditions || '').trim();
@@ -156,7 +156,7 @@ export function generateDailyCustomPlan(profile: PregnancyProfile, date: Date): 
   return {
     id: crypto.randomUUID(),
     trimester,
-    dietPreference: diet as any,
+    dietPreference: diet,
     timestamp: Date.now(),
     nutrition: {
       breakfast: pick(ideas.breakfast, seed, 2),

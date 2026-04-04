@@ -422,7 +422,10 @@ class StorageService {
 
     // Back-compat: older versions stored a single plan object
     if (stored && typeof stored === 'object' && 'nutrition' in stored && 'fitness' in stored && 'routine' in stored) {
-      return stored as CustomPlan;
+      const legacy = stored as CustomPlan;
+      const legacyKey = getDateKey(new Date(legacy.timestamp || Date.now()));
+      const requestedKey = dateKey || getDateKey(new Date());
+      return legacyKey === requestedKey ? legacy : null;
     }
 
     const key = dateKey || getDateKey(new Date());
@@ -435,19 +438,26 @@ class StorageService {
   saveCustomPlan(plan: CustomPlan, dateKey?: string): void {
     const key = dateKey || getDateKey(new Date());
     const stored = this.getItem<any>(KEYS.CUSTOM_PLAN, null);
+    const MAX_DAYS = 14;
 
     // If a legacy single plan exists, preserve it under its own day (best effort)
     if (stored && typeof stored === 'object' && 'nutrition' in stored && 'fitness' in stored && 'routine' in stored) {
       const legacy = stored as CustomPlan;
       const legacyKey = getDateKey(new Date(legacy.timestamp || Date.now()));
       const nextMap: Record<string, CustomPlan> = { [legacyKey]: legacy, [key]: plan };
-      this.setItem(KEYS.CUSTOM_PLAN, nextMap);
+      const keys = Object.keys(nextMap).sort().slice(-MAX_DAYS);
+      const pruned: Record<string, CustomPlan> = {};
+      for (const k of keys) pruned[k] = nextMap[k];
+      this.setItem(KEYS.CUSTOM_PLAN, pruned);
       return;
     }
 
     const map: Record<string, CustomPlan> = stored && typeof stored === 'object' ? { ...stored } : {};
     map[key] = plan;
-    this.setItem(KEYS.CUSTOM_PLAN, map);
+    const keys = Object.keys(map).sort().slice(-MAX_DAYS);
+    const pruned: Record<string, CustomPlan> = {};
+    for (const k of keys) pruned[k] = map[k];
+    this.setItem(KEYS.CUSTOM_PLAN, pruned);
   }
 
   getLastWeekCelebrated(): number {
