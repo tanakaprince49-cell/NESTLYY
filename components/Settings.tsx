@@ -379,7 +379,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
         <div className="space-y-4">
           <h3 className="font-bold text-slate-800">App Theme</h3>
           <div className="grid grid-cols-4 gap-3">
-            {(['pink', 'blue', 'neutral', 'orange', 'sage', 'lavender', 'sand', 'mint', 'sky', 'peach', 'lilac', 'stone'] as const).map(color => (
+            {(['pink', 'blue', 'orange'] as const).map(color => (
               <button
                 key={color}
                 onClick={() => onUpdateProfile({ ...profile, themeColor: color })}
@@ -387,17 +387,8 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
               >
                 <div className={`w-6 h-6 rounded-full shadow-inner ${
                   color === 'pink' ? 'bg-rose-400' : 
-                  color === 'blue' ? 'bg-rose-400' : 
-                  color === 'neutral' ? 'bg-slate-400' :
-                  color === 'orange' ? 'bg-rose-400' :
-                  color === 'sage' ? 'bg-rose-400' :
-                  color === 'lavender' ? 'bg-rose-400' :
-                  color === 'sand' ? 'bg-stone-400' :
-                  color === 'mint' ? 'bg-rose-300' :
-                  color === 'sky' ? 'bg-sky-300' :
-                  color === 'peach' ? 'bg-rose-300' :
-                  color === 'lilac' ? 'bg-rose-300' :
-                  'bg-stone-300'
+                  color === 'blue' ? 'bg-blue-400' : 
+                  'bg-orange-400'
                 }`} />
                 <span className="text-[8px] font-black uppercase tracking-widest truncate w-full text-center">{color}</span>
               </button>
