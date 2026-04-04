@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   Home,
   TrendingUp,
@@ -9,13 +10,13 @@ import {
   User,
   ShieldCheck,
   LogOut,
-  ToyBrick,
   Menu,
   X,
   Users
 } from 'lucide-react';
 import { storage } from '../services/storageService.ts';
 import { Logo } from './Logo.tsx';
+import { FloatingTeddiesBackground } from './FloatingTeddiesBackground.tsx';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -55,17 +56,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   return (
     <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden h-screen bg-rose-50">
       {/* Background Decor — CSS animations to avoid motion/react in critical path */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.08]">
-        <div className="absolute top-[10%] left-[15%] text-rose-900 animate-float" style={{ animationDuration: '8s' }}>
-          <ToyBrick size={64} />
-        </div>
-        <div className="absolute top-[30%] right-[10%] text-rose-900 animate-float" style={{ animationDuration: '10s', animationDelay: '1s' }}>
-          <ToyBrick size={72} />
-        </div>
-        <div className="absolute bottom-[20%] left-[20%] text-rose-900 animate-float" style={{ animationDuration: '12s', animationDelay: '2s' }}>
-          <ToyBrick size={48} />
-        </div>
-      </div>
+      <FloatingTeddiesBackground />
 
       {/* ===== DESKTOP SIDEBAR (lg+) ===== */}
       {isDesktop && (
@@ -184,22 +175,31 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         )}
 
         <main id="main-scroll" className="flex-1 relative z-10 overflow-y-auto no-scrollbar pb-safe">
-          <div className="animate-slide-up pb-32 lg:pb-12">
-            {children}
-            
-            <div className="px-6 py-12 mt-8 border-t border-rose-100/50 text-center space-y-4">
-              <div className="flex justify-center items-center gap-2 text-rose-900/40">
-                <ShieldCheck size={16} />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Clinically Supported</span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10, filter: 'blur(2px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
+              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              className="pb-32 lg:pb-12"
+            >
+              {children}
+
+              <div className="px-6 py-12 mt-8 border-t border-rose-100/50 text-center space-y-4">
+                <div className="flex justify-center items-center gap-2 text-rose-900/40">
+                  <ShieldCheck size={16} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Clinically Supported</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed max-w-[280px] md:max-w-[400px] mx-auto font-medium">
+                  Nestly provides health information supported by clinical guidelines from the <span className="text-rose-900/60 font-bold">World Health Organization (WHO)</span>.
+                </p>
+                <div className="pt-4 opacity-20">
+                  <Logo className="w-6 h-6 mx-auto grayscale" />
+                </div>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed max-w-[280px] md:max-w-[400px] mx-auto font-medium">
-                Nestly provides health information supported by clinical guidelines from the <span className="text-rose-900/60 font-bold">World Health Organization (WHO)</span>.
-              </p>
-              <div className="pt-4 opacity-20">
-                <Logo className="w-6 h-6 mx-auto grayscale" />
-              </div>
-            </div>
-          </div>
+            </motion.div>
+          </AnimatePresence>
         </main>
 
         {/* Bottom Navigation (mobile & tablet only) */}

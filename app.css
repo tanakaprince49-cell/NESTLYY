@@ -35,6 +35,8 @@ body {
   color: #1e293b;
   line-height: 1.5;
   font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overflow-x: hidden;
   overscroll-behavior-y: none;
   transition: background-color 0.5s ease;
@@ -136,6 +138,19 @@ input:focus {
   will-change: transform;
 }
 
+@keyframes teddy-rise {
+  0% { transform: translate3d(0, 10vh, 0) rotate(-6deg); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translate3d(-18px, -45vh, 0) rotate(6deg); }
+  100% { transform: translate3d(14px, -120vh, 0) rotate(-10deg); opacity: 0; }
+}
+.teddy-float {
+  animation-name: teddy-rise;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
 @keyframes slideUp {
   from { transform: translate3d(0, 20px, 0); opacity: 0; }
   to { transform: translate3d(0, 0, 0); opacity: 1; }
@@ -146,6 +161,12 @@ input:focus {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .pwa-tap-fix { cursor: pointer; user-select: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-float, .animate-float-teddy, .animate-slide-up, .teddy-float { animation: none !important; }
+  * { transition-duration: 0.01ms !important; }
+}
 
 /* Theme overrides */
 .theme-pink {
