@@ -308,15 +308,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       case 'teething':
         return <TeethingTracker journalEntries={journalEntries} onAddJournal={onAddJournal} />;
       case 'tummy_time':
-        return (
-          <TummyTimeTracker
-            tummyTimeLogs={tummyTimeLogs}
-            onAddTummyTime={onAddTummyTime}
-            profile={profile}
-            selectedBabyId={selectedBabyId}
-            setSelectedBabyId={setSelectedBabyId}
-          />
-        );
+        return <TummyTimeTracker tummyTimeLogs={tummyTimeLogs} onAddTummyTime={onAddTummyTime} profile={profile} />;
       case 'custom_plan':
         const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
         const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));

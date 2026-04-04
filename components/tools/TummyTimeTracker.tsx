@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, Play, Square } from 'lucide-react';
 import { motion } from 'motion/react';
 import { TummyTimeLog, PregnancyProfile } from '../../types.ts';
@@ -8,23 +8,36 @@ interface TummyTimeTrackerProps {
   tummyTimeLogs: TummyTimeLog[];
   onAddTummyTime: (log: Omit<TummyTimeLog, 'id' | 'timestamp'>) => void;
   profile: PregnancyProfile;
-  selectedBabyId: string;
-  setSelectedBabyId: (id: string) => void;
 }
 
-export const TummyTimeTracker: React.FC<TummyTimeTrackerProps> = ({ tummyTimeLogs, onAddTummyTime, profile, selectedBabyId, setSelectedBabyId }) => {
+export const TummyTimeTracker: React.FC<TummyTimeTrackerProps> = ({ tummyTimeLogs, onAddTummyTime, profile }) => {
+  const babies = profile.babies || [];
+  const [selectedBabyId, setSelectedBabyId] = useState<string>(() => babies[0]?.id || '');
   const [tummyTimer, setTummyTimer] = useState<{ startTime: number | null, duration: number }>({ startTime: null, duration: 0 });
-  const currentBabyId = selectedBabyId || profile.babies?.[0]?.id || '';
+  const currentBabyId = selectedBabyId || babies[0]?.id || '';
 
   useEffect(() => {
-    let interval: any;
+    if (babies.length === 0) return;
+    if (!selectedBabyId || !babies.some((b) => b.id === selectedBabyId)) {
+      setSelectedBabyId(babies[0].id);
+    }
+  }, [babies, selectedBabyId]);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (tummyTimer.startTime) {
       interval = setInterval(() => {
         setTummyTimer(prev => ({ ...prev, duration: Math.floor((Date.now() - (prev.startTime || 0)) / 1000) }));
       }, 1000);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [tummyTimer.startTime]);
+
+  const filteredLogs = useMemo(() => {
+    return tummyTimeLogs.filter((l) => l.babyId === currentBabyId);
+  }, [tummyTimeLogs, currentBabyId]);
 
   const handleToggleTimer = () => {
     if (!tummyTimer.startTime) {
@@ -39,8 +52,26 @@ export const TummyTimeTracker: React.FC<TummyTimeTrackerProps> = ({ tummyTimeLog
     }
   };
 
+  if (babies.length === 0) {
+    return (
+      <div className="space-y-6 animate-in fade-in">
+        <div className="card-premium p-8 bg-white border-2 border-white text-center space-y-4">
+          <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto text-rose-500">
+            <Activity size={40} />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-2xl font-serif text-rose-900">Tummy Time Tracker</h3>
+            <p className="text-sm text-slate-500 font-semibold">
+              Add a baby first (Settings → My Babies) to start tracking tummy time.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const today = new Date().setHours(0,0,0,0);
-  const todayLogs = tummyTimeLogs.filter(l => l.babyId === currentBabyId && l.timestamp >= today);
+  const todayLogs = filteredLogs.filter(l => l.timestamp >= today);
   const totalSecs = todayLogs.reduce((acc, curr) => acc + curr.duration, 0);
   const goalSecs = 30 * 60; // 30 minutes goal
   const progress = Math.min((totalSecs / goalSecs) * 100, 100);
@@ -61,7 +92,7 @@ export const TummyTimeTracker: React.FC<TummyTimeTrackerProps> = ({ tummyTimeLog
 
         {profile.babies?.length > 1 && (
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 justify-center">
-            {profile.babies.map((b, idx) => (
+            {babies.map((b, idx) => (
               <button
                 key={b.id}
                 onClick={() => setSelectedBabyId(b.id)}
@@ -113,11 +144,11 @@ export const TummyTimeTracker: React.FC<TummyTimeTrackerProps> = ({ tummyTimeLog
         </div>
       </div>
       
-      {tummyTimeLogs.filter(l => l.babyId === currentBabyId).length > 0 && (
+      {filteredLogs.length > 0 && (
         <div className="card-premium p-6 bg-white border-2 border-slate-50">
           <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Sessions</h4>
           <div className="space-y-3">
-            {tummyTimeLogs.filter(l => l.babyId === currentBabyId).slice(0, 5).map(log => (
+            {filteredLogs.slice(0, 5).map(log => (
               <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                 <div className="text-sm font-bold text-slate-800">{Math.floor(log.duration / 60)}m {log.duration % 60}s</div>
                 <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
