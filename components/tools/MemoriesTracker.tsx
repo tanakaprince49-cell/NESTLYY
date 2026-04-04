@@ -29,6 +29,8 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
     return ALBUM_TYPES.find((a) => a.id === activeAlbum) || null;
   }, [activeAlbum]);
 
+  const ActiveAlbumIcon = activeAlbumMeta?.icon;
+
   const handleAddPhoto = (type: keyof MemoryAlbums) => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -60,12 +62,20 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
           const cover = photos[0];
           const Icon = album.icon;
           return (
-            <motion.button
+            <motion.div
               key={album.id}
-              type="button"
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => setActiveAlbum(album.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActiveAlbum(album.id);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${album.label} album`}
               className="card-premium p-0 bg-white border-2 border-white overflow-hidden text-left relative"
             >
               <div className="relative h-[180px] md:h-[210px]">
@@ -121,7 +131,7 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500">Tap</span>
                 </div>
               </div>
-            </motion.button>
+            </motion.div>
           );
         })}
       </div>
@@ -146,7 +156,7 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
               <div className="p-6 flex items-center justify-between border-b border-slate-100">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
-                    <activeAlbumMeta.icon size={20} />
+                    {ActiveAlbumIcon && <ActiveAlbumIcon size={20} />}
                   </div>
                   <div>
                     <div className="text-xl font-serif text-slate-900">{activeAlbumMeta.label}</div>
@@ -244,12 +254,14 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
               </div>
               <div className="flex gap-3 pt-2">
                 <button
+                  type="button"
                   onClick={() => setPendingAdd(null)}
                   className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     const photo: MemoryPhoto = {
                       id: crypto.randomUUID(),
@@ -292,14 +304,14 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
                 <div className="max-h-[74vh] bg-black">
                   <img src={activePhoto.url} alt="Memory" className="w-full h-full object-contain max-h-[74vh]" />
                 </div>
-                {(activePhoto.caption || activePhoto.timestamp) && (
-                  <div className="p-5 space-y-1">
-                    {activePhoto.caption && <p className="text-sm font-semibold text-slate-800 whitespace-pre-wrap">{activePhoto.caption}</p>}
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      {new Date(activePhoto.timestamp).toLocaleString()}
-                    </p>
-                  </div>
-                )}
+                <div className="p-5 space-y-1">
+                  {activePhoto.caption && (
+                    <p className="text-sm font-semibold text-slate-800 whitespace-pre-wrap">{activePhoto.caption}</p>
+                  )}
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {new Date(activePhoto.timestamp).toLocaleString()}
+                  </p>
+                </div>
               </div>
             </motion.div>
           </motion.div>
