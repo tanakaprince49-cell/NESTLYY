@@ -82,6 +82,8 @@ const BathTracker = lazy(() => import('./tools/BathTracker.tsx').then(m => ({ de
 const PumpingTracker = lazy(() => import('./tools/PumpingTracker.tsx').then(m => ({ default: m.PumpingTracker })));
 const TeethingTracker = lazy(() => import('./tools/TeethingTracker.tsx').then(m => ({ default: m.TeethingTracker })));
 const TummyTimeTracker = lazy(() => import('./tools/TummyTimeTracker.tsx').then(m => ({ default: m.TummyTimeTracker })));
+const MilestonesTracker = lazy(() => import('./tools/MilestonesTracker.tsx').then(m => ({ default: m.MilestonesTracker })));
+const HealthTracker = lazy(() => import('./tools/HealthTracker.tsx').then(m => ({ default: m.HealthTracker })));
 const CustomPlanView = lazy(() => import('./CustomPlanView.tsx').then(m => ({ default: m.CustomPlanView })));
 const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m => ({ default: m.SymptomDecoder })));
 
@@ -210,9 +212,70 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['custom_plan', 'symptom_decoder', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
+      return [
+        // Most important (daily newborn routine)
+        'feeding',
+        'sleep',
+        'diaper',
+        'vitals',
+        'health',
+        'milestones',
+
+        // Common next
+        'medications',
+        'tummy_time',
+        'pumping',
+        'bath',
+        'teething',
+
+        // Lifestyle / planning
+        'memories',
+        'journal',
+        'calendar',
+        'checklists',
+        'export',
+
+        // Optional
+        'custom_plan',
+        'symptoms',
+        'nutrition',
+        'vitamins',
+        'symptom_decoder',
+        'blood_pressure',
+      ];
     }
-    return ['custom_plan', 'symptom_decoder', 'vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
+    return [
+      // Most important (daily pregnancy needs)
+      'custom_plan',
+      'symptoms',
+      'calendar',
+      'checklists',
+      'vitals',
+      'sleep',
+
+      // Helpful daily/weekly
+      'nutrition',
+      'vitamins',
+      'memories',
+      'journal',
+      'bump',
+
+      // Late pregnancy / situational
+      'kicks',
+      'labor',
+
+      // Optional / advanced
+      'medications',
+      'symptom_decoder',
+      'reports',
+      'export',
+      'names',
+      'calm',
+      'kegels',
+      'birth',
+      'reactions',
+      'blood_pressure',
+    ];
   }, [isPostpartum]);
 
   const filteredCategories = useMemo(() => {
@@ -270,6 +333,26 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         return <KegelTracker kegelLogs={kegelLogs} onAddKegel={onAddKegel} />;
       case 'medications':
         return <MedicationTracker medicationLogs={medicationLogs} onAddMedication={onAddMedication} onRemoveMedication={onRemoveMedication} />;
+      case 'milestones':
+        return (
+          <MilestonesTracker
+            profile={profile}
+            milestones={milestones}
+            onAddMilestone={onAddMilestone}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
+          />
+        );
+      case 'health':
+        return (
+          <HealthTracker
+            profile={profile}
+            healthLogs={healthLogs}
+            onAddHealth={onAddHealth}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
+          />
+        );
       case 'calendar':
         return <AppointmentTracker calendarEvents={calendarEvents} onAddEvent={onAddEvent} onRemoveEvent={onRemoveEvent} />;
       case 'checklists':
