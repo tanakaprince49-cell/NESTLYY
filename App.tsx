@@ -184,7 +184,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!profile) return;
     const isPostpartum = profile.lifecycleStage === LifecycleStage.NEWBORN;
-    const theme = profile.themeColor || 'pink';
+    const allowedThemes = ['pink', 'blue', 'orange'] as const;
+    const theme = (allowedThemes as readonly string[]).includes(profile.themeColor) ? profile.themeColor : 'pink';
     document.body.className = `theme-${theme} ${isPostpartum ? 'stage-newborn' : 'stage-pregnancy'}`;
   }, [profile?.lifecycleStage, profile?.themeColor]);
 

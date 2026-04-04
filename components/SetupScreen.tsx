@@ -30,7 +30,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
   const [calculationMode, setCalculationMode] = useState<'lmp' | 'week'>('lmp');
   const [pregnancyType, setPregnancyType] = useState<'singleton' | 'twins' | 'triplets'>(initialProfile?.pregnancyType || 'singleton');
   const [babies, setBabies] = useState<any[]>(initialProfile?.babies || [{ id: '1', name: '', skinTone: '🏼', gender: 'surprise' }]);
-  const [themeColor, setThemeColor] = useState<'pink' | 'blue' | 'neutral' | 'orange' | 'sage' | 'lavender' | 'sand' | 'mint' | 'sky' | 'peach' | 'lilac' | 'stone'>(initialProfile?.themeColor || 'pink');
+  const [themeColor, setThemeColor] = useState<'pink' | 'blue' | 'orange'>(initialProfile?.themeColor === 'blue' || initialProfile?.themeColor === 'orange' ? initialProfile.themeColor : 'pink');
   const [isManualDueDate, setIsManualDueDate] = useState(initialProfile?.isManualDueDate || false);
   const [weight, setWeight] = useState(initialProfile?.startingWeight?.toString() || '');
   const [profileImage, setProfileImage] = useState(initialProfile?.profileImage || '');
@@ -359,7 +359,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
                             setBabies(newBabies);
                             // Auto-set theme based on first baby or any boy
                             if (idx === 0 || g === 'boy') {
-                              setThemeColor(g === 'boy' ? 'blue' : g === 'girl' ? 'pink' : 'neutral');
+                              setThemeColor(g === 'boy' ? 'blue' : 'pink');
                             }
                           }}
                           className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${baby.gender === g ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-50'}`}
@@ -422,25 +422,16 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
           <div className="space-y-8 w-full text-center">
             <h2 className="text-4xl font-serif text-slate-900">Choose your theme</h2>
             <div className="grid grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto no-scrollbar p-2">
-              {(['pink', 'blue', 'neutral', 'orange', 'sage', 'lavender', 'sand', 'mint', 'sky', 'peach', 'lilac', 'stone'] as const).map(color => (
+              {(['pink', 'blue', 'orange'] as const).map(color => (
                 <button
                   key={color}
                   onClick={() => setThemeColor(color)}
                   className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col items-center gap-3 ${themeColor === color ? 'border-rose-500 bg-rose-50' : 'bg-white border-slate-50'}`}
                 >
                   <div className={`w-10 h-10 rounded-full shadow-inner ${
-                    color === 'pink' ? 'bg-rose-400' : 
-                    color === 'blue' ? 'bg-rose-400' : 
-                    color === 'neutral' ? 'bg-slate-400' :
-                    color === 'orange' ? 'bg-rose-400' :
-                    color === 'sage' ? 'bg-rose-400' :
-                    color === 'lavender' ? 'bg-rose-400' :
-                    color === 'sand' ? 'bg-stone-400' :
-                    color === 'mint' ? 'bg-rose-300' :
-                    color === 'sky' ? 'bg-sky-300' :
-                    color === 'peach' ? 'bg-rose-300' :
-                    color === 'lilac' ? 'bg-rose-300' :
-                    'bg-stone-300'
+                    color === 'pink' ? 'bg-rose-400' :
+                    color === 'blue' ? 'bg-blue-400' :
+                    'bg-orange-400'
                   }`} />
                   <span className="text-[10px] font-black uppercase tracking-widest">{color}</span>
                 </button>
