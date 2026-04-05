@@ -2,6 +2,15 @@ import { mockLocalStorage } from '../helpers';
 
 let ls: ReturnType<typeof mockLocalStorage>;
 
+// Mock firebase.ts so we do not need a real Firebase app in tests
+vi.mock('../../firebase.ts', () => ({
+  auth: {
+    currentUser: {
+      getIdToken: vi.fn().mockResolvedValue('fake-id-token'),
+    },
+  },
+}));
+
 beforeEach(() => {
   ls = mockLocalStorage();
   vi.stubGlobal('localStorage', ls);
@@ -22,7 +31,10 @@ describe('getAvaResponse', () => {
     expect(reply).toBe('Hello!');
     expect(fetch).toHaveBeenCalledWith('/api/ava', expect.objectContaining({
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer fake-id-token',
+      },
     }));
   });
 
