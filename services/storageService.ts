@@ -29,7 +29,10 @@ import {
   Video,
   MedicationLog,
   TummyTimeLog,
-  BloodPressureLog
+  BloodPressureLog,
+  Nest,
+  NestMembership,
+  NestPost
 } from '../types.ts';
 
 const KEYS = {
@@ -74,6 +77,9 @@ const KEYS = {
   PRIVACY_ACCEPTED: 'privacy_accepted',
   CUSTOM_PLAN: 'custom_plan_v1',
   LAST_WEEK_CELEBRATED: 'last_week_celebrated',
+  VILLAGE_MEMBERSHIPS: 'village_memberships',
+  VILLAGE_POSTS: 'village_posts',
+  VILLAGE_CUSTOM_NESTS: 'village_custom_nests',
 };
 
 import { syncToFirestore } from './syncService.ts';
@@ -422,6 +428,68 @@ class StorageService {
 
   setLastWeekCelebrated(week: number): void {
     this.setItem(KEYS.LAST_WEEK_CELEBRATED, week);
+  }
+
+  // Village Hub: Memberships
+  getNestMemberships(): NestMembership[] { return this.getItem<NestMembership[]>(KEYS.VILLAGE_MEMBERSHIPS, []); }
+  joinNest(nestId: string): void {
+    const memberships = this.getNestMemberships();
+    console.log('[VillageHub] joinNest:', nestId, '| auth:', this.getAuthEmail(), '| existing:', memberships.length);
+    if (!memberships.find(m => m.nestId === nestId)) {
+      const updated = [...memberships, { nestId, joinedAt: Date.now() }];
+      this.setItem(KEYS.VILLAGE_MEMBERSHIPS, updated);
+      // Verify write
+      const check = this.getNestMemberships();
+      console.log('[VillageHub] joinNest saved:', check.length, '| includes:', check.some(m => m.nestId === nestId));
+    } else {
+      console.log('[VillageHub] joinNest: already joined');
+    }
+  }
+  leaveNest(nestId: string): void {
+    this.setItem(KEYS.VILLAGE_MEMBERSHIPS, this.getNestMemberships().filter(m => m.nestId !== nestId));
+  }
+  isNestJoined(nestId: string): boolean {
+    return this.getNestMemberships().some(m => m.nestId === nestId);
+  }
+
+  // Village Hub: Posts
+  getAllNestPosts(): NestPost[] { return this.getItem<NestPost[]>(KEYS.VILLAGE_POSTS, []); }
+  getNestPosts(nestId: string): NestPost[] {
+    return this.getAllNestPosts().filter(p => p.nestId === nestId);
+  }
+  addNestPost(post: NestPost): void {
+    console.log('[VillageHub] addNestPost:', post.id, '| nest:', post.nestId, '| auth:', this.getAuthEmail());
+    this.setItem(KEYS.VILLAGE_POSTS, [post, ...this.getAllNestPosts()]);
+    console.log('[VillageHub] addNestPost saved, total:', this.getAllNestPosts().length);
+  }
+  removeNestPost(id: string): void {
+    this.setItem(KEYS.VILLAGE_POSTS, this.getAllNestPosts().filter(p => p.id !== id));
+  }
+  toggleNestPostLike(id: string): void {
+    const posts = this.getAllNestPosts();
+    const index = posts.findIndex(p => p.id === id);
+    if (index >= 0) {
+      posts[index] = {
+        ...posts[index],
+        likedByUser: !posts[index].likedByUser,
+        likeCount: posts[index].likedByUser ? Math.max(0, posts[index].likeCount - 1) : posts[index].likeCount + 1,
+      };
+      this.setItem(KEYS.VILLAGE_POSTS, posts);
+    }
+  }
+
+  // Village Hub: Custom Nests
+  getCustomNests(): Nest[] { return this.getItem<Nest[]>(KEYS.VILLAGE_CUSTOM_NESTS, []); }
+  addCustomNest(nest: Nest): void {
+    console.log('[VillageHub] addCustomNest:', nest.id, nest.name, '| auth:', this.getAuthEmail());
+    this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, [nest, ...this.getCustomNests()]);
+    const check = this.getCustomNests();
+    console.log('[VillageHub] addCustomNest saved:', check.length, '| includes:', check.some(n => n.id === nest.id));
+  }
+  removeCustomNest(id: string): void {
+    this.leaveNest(id);
+    this.setItem(KEYS.VILLAGE_POSTS, this.getAllNestPosts().filter(p => p.nestId !== id));
+    this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, this.getCustomNests().filter(n => n.id !== id));
   }
 }
 

@@ -78,7 +78,7 @@ export interface PregnancyProfile {
   isManualDueDate: boolean;
   pregnancyType: 'singleton' | 'twins' | 'triplets';
   babies: BabyAvatar[];
-  themeColor: 'pink' | 'blue' | 'neutral' | 'orange' | 'sage' | 'lavender' | 'sand' | 'mint' | 'sky' | 'peach' | 'lilac' | 'stone';
+  themeColor: 'pink' | 'blue' | 'orange';
   profileImage?: string;
   startingWeight?: number;
   customTargets?: NutritionTargets;
@@ -349,4 +349,36 @@ export interface CustomPlan {
     upcoming: string[];
     questions: string[];
   };
+}
+
+// Village Hub
+export type NestCategory =
+  | 'trimester' | 'lifestyle' | 'diet'
+  | 'support' | 'postpartum' | 'general';
+
+export interface Nest {
+  id: string;
+  name: string;
+  description: string;
+  category: NestCategory;
+  emoji: string;
+  memberCount: number;
+  isTemplate: boolean;
+  createdAt: number;
+}
+
+export interface NestMembership {
+  nestId: string;
+  joinedAt: number;
+}
+
+export interface NestPost {
+  id: string;
+  nestId: string;
+  authorName: string;
+  content: string;
+  likedByUser: boolean;
+  likeCount: number;
+  timestamp: number;
+  isTemplate: boolean;
 }

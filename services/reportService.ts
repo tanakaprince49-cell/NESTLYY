@@ -1,7 +1,83 @@
 import { storage } from './storageService.ts';
-import { Trimester } from '../types.ts';
 import { jsPDF } from 'jspdf';
 import { calculateDurationMinutes } from '../src/utils/sleepUtils';
+
+const PDF_THEME = {
+  primary: [190, 24, 93] as const, // rose-700
+  accent: [236, 72, 153] as const, // pink-500
+  text: [71, 85, 105] as const, // slate-600
+  pageBg: [255, 255, 255] as const,
+  cardBg: [255, 241, 242] as const, // rose-50
+  softLilac: [245, 243, 255] as const, // violet-50
+  softPeach: [255, 237, 213] as const, // orange-100
+};
+
+const drawSoftBackground = (doc: jsPDF, pageWidth: number, pageHeight: number) => {
+  doc.setFillColor(PDF_THEME.pageBg[0], PDF_THEME.pageBg[1], PDF_THEME.pageBg[2]);
+  doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+  // Decorative “soft blobs” to make the page feel more feminine without overpowering text.
+  doc.setFillColor(255, 228, 230); // rose-100
+  doc.circle(pageWidth * 0.18, 55, 32, 'F');
+  doc.setFillColor(253, 242, 248); // pink-50
+  doc.circle(pageWidth * 0.85, 70, 40, 'F');
+  doc.setFillColor(PDF_THEME.softLilac[0], PDF_THEME.softLilac[1], PDF_THEME.softLilac[2]);
+  doc.circle(pageWidth * 0.72, pageHeight * 0.82, 38, 'F');
+  doc.setFillColor(PDF_THEME.softPeach[0], PDF_THEME.softPeach[1], PDF_THEME.softPeach[2]);
+  doc.circle(pageWidth * 0.22, pageHeight * 0.78, 28, 'F');
+};
+
+const drawHeader = (doc: jsPDF, pageWidth: number, dateStr: string, subtitle: string) => {
+  doc.setFillColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
+  doc.rect(0, 0, pageWidth, 45, 'F');
+
+  doc.setFont('times', 'bold');
+  doc.setFontSize(36);
+  doc.setTextColor(255, 255, 255);
+  doc.text('Nestly', 20, 28);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(255, 255, 255);
+  doc.text(subtitle, 20, 36);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(255, 255, 255);
+  doc.text(dateStr, pageWidth - 20, 28, { align: 'right' });
+};
+
+const drawProfileCard = (doc: jsPDF, pageWidth: number, y: number, line1: string, line2: string) => {
+  doc.setFillColor(PDF_THEME.cardBg[0], PDF_THEME.cardBg[1], PDF_THEME.cardBg[2]);
+  doc.roundedRect(15, y, pageWidth - 30, 30, 8, 8, 'F');
+
+  doc.setFont('times', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
+  doc.text(line1, 25, y + 12);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
+  doc.text(line2, 25, y + 20);
+};
+
+const drawDivider = (doc: jsPDF, pageWidth: number, y: number) => {
+  doc.setDrawColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
+  doc.setLineWidth(0.5);
+  doc.line(15, y, pageWidth - 15, y);
+};
+
+const drawFooter = (doc: jsPDF, pageWidth: number, pageHeight: number, text: string) => {
+  const footerY = pageHeight - 30;
+  doc.setFillColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
+  doc.rect(0, footerY, pageWidth, 30, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(255, 255, 255);
+  doc.text(text, pageWidth / 2, footerY + 18, { align: 'center' });
+};
 
 export const generatePregnancyDailyReport = (date: Date) => {
   const profile = storage.getProfile();
@@ -9,6 +85,7 @@ export const generatePregnancyDailyReport = (date: Date) => {
 
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   
   const dateStr = date.toLocaleDateString('en-GB', { 
     weekday: 'long', 
@@ -32,7 +109,6 @@ export const generatePregnancyDailyReport = (date: Date) => {
   const journal = (storage.getJournalEntries() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
   const kicks = (storage.getKickLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
   const kegels = (storage.getKegelLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
-  const bloodPressure = (storage.getBloodPressureLogs() || []).filter(l => l.timestamp >= startOfDay && l.timestamp <= endOfDay);
 
   const nutritionTotals = foods.reduce((acc, curr) => ({
     c: acc.c + (curr.calories || 0),
@@ -40,65 +116,26 @@ export const generatePregnancyDailyReport = (date: Date) => {
     i: acc.i + (curr.iron || 0),
   }), { c: 0, p: 0, i: 0 });
 
-  const pinkPrimary = [190, 24, 93]; // #be185d (pink-700)
-  const pinkAccent = [236, 72, 153]; // #ec4899 (pink-500)
-  const slateText = [71, 85, 105]; // #475569
-  const boxBg = [255, 241, 242]; // #fff1f2 (rose-50)
-
-  // Background
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, pageWidth, doc.internal.pageSize.getHeight(), 'F');
-
-  // Header Bar
-  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
-  doc.rect(0, 0, pageWidth, 45, 'F');
-
-  doc.setFont('times', 'bold');
-  doc.setFontSize(36);
-  doc.setTextColor(255, 255, 255);
-  doc.text('Nestly', 20, 28);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(255, 255, 255);
-  doc.text('YOUR PREGNANCY COMPANION', 20, 36);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(255, 255, 255);
-  doc.text(dateStr, pageWidth - 20, 28, { align: 'right' });
+  drawSoftBackground(doc, pageWidth, pageHeight);
+  drawHeader(doc, pageWidth, dateStr, 'YOUR PREGNANCY COMPANION');
 
   let y = 60;
   
-  // Profile Info Section
-  doc.setFillColor(boxBg[0], boxBg[1], boxBg[2]);
-  doc.roundedRect(15, y, pageWidth - 30, 30, 8, 8, 'F');
-  
-  doc.setFont('times', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
-  doc.text(`Mama: ${parentName}`, 25, y + 12);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
-  doc.text(`${pregnancyType} Journey: ${babyNames}`, 25, y + 20);
+  drawProfileCard(doc, pageWidth, y, `Mama: ${parentName}`, `${pregnancyType} Journey: ${babyNames}`);
   
   y += 45;
 
-  doc.setDrawColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
-  doc.setLineWidth(0.5);
-  doc.line(15, y, pageWidth - 15, y);
+  drawDivider(doc, pageWidth, y);
   y += 12;
 
   doc.setFont('times', 'bold');
   doc.setFontSize(18);
-  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
   doc.text('Daily Pregnancy Report', 15, y);
   y += 10;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   doc.text('A dedicated summary of your pregnancy well-being.', 15, y);
   y += 15;
 
@@ -106,60 +143,60 @@ export const generatePregnancyDailyReport = (date: Date) => {
   const boxHeight = 45;
 
   // Vital Stats Box
-  doc.setFillColor(boxBg[0], boxBg[1], boxBg[2]);
+  doc.setFillColor(PDF_THEME.cardBg[0], PDF_THEME.cardBg[1], PDF_THEME.cardBg[2]);
   doc.roundedRect(15, y, boxWidth, boxHeight, 8, 8, 'F');
   
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
+  doc.setTextColor(PDF_THEME.accent[0], PDF_THEME.accent[1], PDF_THEME.accent[2]);
   doc.text('VITAL STATS', 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   doc.text(`Weight: ${weightLogs.length > 0 ? weightLogs[0].weight + ' kg' : '---'}`, 25, y + 24);
   doc.text(`Sleep: ${sleep ? (calculateDurationMinutes(sleep.startTime, sleep.endTime) / 60).toFixed(1) + ' hrs' : '---'}`, 25, y + 31);
 
   // Pregnancy Specifics Box
-  doc.setFillColor(boxBg[0], boxBg[1], boxBg[2]);
+  doc.setFillColor(PDF_THEME.cardBg[0], PDF_THEME.cardBg[1], PDF_THEME.cardBg[2]);
   doc.roundedRect(15 + boxWidth + 10, y, boxWidth, boxHeight, 8, 8, 'F');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
+  doc.setTextColor(PDF_THEME.accent[0], PDF_THEME.accent[1], PDF_THEME.accent[2]);
   doc.text('PREGNANCY TRACKING', 15 + boxWidth + 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   doc.text(`Kick Count: ${kicks.length > 0 ? kicks.reduce((a,b) => a + b.count, 0) : '---'}`, 15 + boxWidth + 25, y + 24);
   doc.text(`Kegel Sessions: ${kegels.length}`, 15 + boxWidth + 25, y + 31);
-  doc.text(`BP: ${bloodPressure.length > 0 ? bloodPressure[0].systolic + '/' + bloodPressure[0].diastolic : '---'}`, 15 + boxWidth + 25, y + 38);
+  doc.text(`Symptoms Logged: ${symptoms.length}`, 15 + boxWidth + 25, y + 38);
 
   y += 60;
 
   // Nutrition
   doc.setFont('times', 'bold');
   doc.setFontSize(14);
-  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
   doc.text('Nutrition Summary', 15, y);
   y += 10;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   doc.text(`Calories: ${nutritionTotals.c} kcal | Protein: ${nutritionTotals.p}g | Iron: ${nutritionTotals.i}mg`, 15, y);
   y += 15;
 
   // Reflections
   doc.setFont('times', 'bolditalic');
   doc.setFontSize(14);
-  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
   doc.text('Daily Reflections', 15, y);
   y += 10;
   
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   
   if (journal.length > 0) {
     journal.forEach(j => {
@@ -176,17 +213,9 @@ export const generatePregnancyDailyReport = (date: Date) => {
     doc.text('No reflections recorded today.', 15, y);
   }
 
-  // Footer
-  const footerY = doc.internal.pageSize.getHeight() - 30;
-  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
-  doc.rect(0, footerY, pageWidth, 30, 'F');
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(255, 255, 255);
-  doc.text('YOU ARE DOING AMAZING, MAMA.', pageWidth / 2, footerY + 18, { align: 'center' });
+  drawFooter(doc, pageWidth, pageHeight, 'YOU ARE DOING AMAZING, MAMA.');
 
-  doc.save(`Nestly_Pregnancy_Report_${date.toISOString().split('T')[0]}.pdf`);
+  doc.save(`Nestly_Pregnancy_Daily_Report_${date.toISOString().split('T')[0]}.pdf`);
 };
 
 export const generateNewbornDailyReport = (date: Date) => {
@@ -195,6 +224,7 @@ export const generateNewbornDailyReport = (date: Date) => {
 
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   
   const dateStr = date.toLocaleDateString('en-GB', { 
     weekday: 'long', 
@@ -221,65 +251,26 @@ export const generateNewbornDailyReport = (date: Date) => {
   const totalSleep = babySleep.reduce((acc, curr) => acc + (calculateDurationMinutes(curr.startTime, curr.endTime) / 60), 0);
   const totalTummy = Math.floor(tummyTime.reduce((acc, curr) => acc + curr.duration, 0) / 60);
 
-  const pinkPrimary = [190, 24, 93];
-  const pinkAccent = [236, 72, 153];
-  const slateText = [71, 85, 105];
-  const boxBg = [253, 242, 248]; // #fdf2f8 (pink-50)
-
-  // Background
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, pageWidth, doc.internal.pageSize.getHeight(), 'F');
-
-  // Header Bar
-  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
-  doc.rect(0, 0, pageWidth, 45, 'F');
-
-  doc.setFont('times', 'bold');
-  doc.setFontSize(36);
-  doc.setTextColor(255, 255, 255);
-  doc.text('Nestly', 20, 28);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(255, 255, 255);
-  doc.text('YOUR NEWBORN COMPANION', 20, 36);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(255, 255, 255);
-  doc.text(dateStr, pageWidth - 20, 28, { align: 'right' });
+  drawSoftBackground(doc, pageWidth, pageHeight);
+  drawHeader(doc, pageWidth, dateStr, 'YOUR NEWBORN COMPANION');
 
   let y = 60;
   
-  // Profile Info Section
-  doc.setFillColor(boxBg[0], boxBg[1], boxBg[2]);
-  doc.roundedRect(15, y, pageWidth - 30, 30, 8, 8, 'F');
-  
-  doc.setFont('times', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
-  doc.text(`Parent: ${parentName}`, 25, y + 12);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
-  doc.text(`Baby: ${babyNames}`, 25, y + 20);
+  drawProfileCard(doc, pageWidth, y, `Mama: ${parentName}`, `Baby: ${babyNames}`);
   
   y += 45;
 
-  doc.setDrawColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
-  doc.setLineWidth(0.5);
-  doc.line(15, y, pageWidth - 15, y);
+  drawDivider(doc, pageWidth, y);
   y += 12;
 
   doc.setFont('times', 'bold');
   doc.setFontSize(18);
-  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
   doc.text('Daily Newborn Report', 15, y);
   y += 10;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   doc.text('A dedicated summary of your baby\'s daily milestones and care.', 15, y);
   y += 15;
 
@@ -287,33 +278,33 @@ export const generateNewbornDailyReport = (date: Date) => {
   const boxHeight = 45;
 
   // Care Stats Box
-  doc.setFillColor(boxBg[0], boxBg[1], boxBg[2]);
+  doc.setFillColor(PDF_THEME.cardBg[0], PDF_THEME.cardBg[1], PDF_THEME.cardBg[2]);
   doc.roundedRect(15, y, boxWidth, boxHeight, 8, 8, 'F');
   
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
+  doc.setTextColor(PDF_THEME.accent[0], PDF_THEME.accent[1], PDF_THEME.accent[2]);
   doc.text('FEEDING & SLEEP', 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   doc.text(`Total Milk: ${totalMilk > 0 ? totalMilk + ' ml' : '---'}`, 25, y + 24);
   doc.text(`Feedings: ${feedings.length}`, 25, y + 31);
-  doc.text(`Total Sleep: ${totalSleep > 0 ? totalSleep + ' hrs' : '---'}`, 25, y + 38);
+  doc.text(`Total Sleep: ${totalSleep > 0 ? totalSleep.toFixed(1) + ' hrs' : '---'}`, 25, y + 38);
 
   // Activity Box
-  doc.setFillColor(boxBg[0], boxBg[1], boxBg[2]);
+  doc.setFillColor(PDF_THEME.cardBg[0], PDF_THEME.cardBg[1], PDF_THEME.cardBg[2]);
   doc.roundedRect(15 + boxWidth + 10, y, boxWidth, boxHeight, 8, 8, 'F');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(pinkAccent[0], pinkAccent[1], pinkAccent[2]);
+  doc.setTextColor(PDF_THEME.accent[0], PDF_THEME.accent[1], PDF_THEME.accent[2]);
   doc.text('ACTIVITY & CARE', 15 + boxWidth + 25, y + 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   doc.text(`Diaper Changes: ${diapers.length}`, 15 + boxWidth + 25, y + 24);
   doc.text(`Tummy Time: ${totalTummy > 0 ? totalTummy + ' mins' : '---'}`, 15 + boxWidth + 25, y + 31);
   doc.text(`Growth Logs: ${growth.length}`, 15 + boxWidth + 25, y + 38);
@@ -323,29 +314,37 @@ export const generateNewbornDailyReport = (date: Date) => {
   // Detailed Care
   doc.setFont('times', 'bold');
   doc.setFontSize(14);
-  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
   doc.text('Care Details', 15, y);
   y += 10;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   
   const diaperSummary = diapers.length > 0 
     ? `Diapers: ${diapers.filter(d => d.type === 'wet').length} Wet, ${diapers.filter(d => d.type === 'dirty').length} Dirty`
     : 'No diaper changes logged.';
   doc.text(diaperSummary, 15, y);
+  y += 7;
+
+  const lastGrowth = [...growth].sort((a, b) => b.timestamp - a.timestamp)[0];
+  if (lastGrowth) {
+    doc.text(`Latest Growth: ${lastGrowth.weight.toFixed(1)} kg, ${lastGrowth.height.toFixed(1)} cm`, 15, y);
+  } else {
+    doc.text('Latest Growth: ---', 15, y);
+  }
   y += 15;
 
   // Reflections
   doc.setFont('times', 'bolditalic');
   doc.setFontSize(14);
-  doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
+  doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
   doc.text('Parental Reflections', 15, y);
   y += 10;
   
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
   
   if (journal.length > 0) {
     journal.forEach(j => {
@@ -362,17 +361,9 @@ export const generateNewbornDailyReport = (date: Date) => {
     doc.text('No reflections recorded today.', 15, y);
   }
 
-  // Footer
-  const footerY = doc.internal.pageSize.getHeight() - 30;
-  doc.setFillColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
-  doc.rect(0, footerY, pageWidth, 30, 'F');
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(255, 255, 255);
-  doc.text('YOU ARE DOING AMAZING, PARENT.', pageWidth / 2, footerY + 18, { align: 'center' });
+  drawFooter(doc, pageWidth, pageHeight, 'YOU ARE DOING AMAZING, MAMA.');
 
-  doc.save(`Nestly_Newborn_Report_${date.toISOString().split('T')[0]}.pdf`);
+  doc.save(`Nestly_Newborn_Daily_Report_${date.toISOString().split('T')[0]}.pdf`);
 };
 
 export const generateLaborReport = (date: Date) => {
@@ -493,7 +484,7 @@ export const generateLaborReport = (date: Date) => {
   doc.setTextColor(slateText[0], slateText[1], slateText[2]);
   doc.text('Your journey is tracked securely with Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
-  doc.save(`Nestly_Labor_Summary_${date.toISOString().split('T')[0]}.pdf`);
+  doc.save(`Nestly_Pregnancy_Labor_Summary_${date.toISOString().split('T')[0]}.pdf`);
 };
 
 export const generateFullPregnancyReport = () => {
@@ -597,7 +588,7 @@ export const generateFullPregnancyReport = () => {
   doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('A lifetime of pregnancy memories, preserved by Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
-  doc.save(`Nestly_Full_Pregnancy_Archive.pdf`);
+  doc.save(`Nestly_Pregnancy_Full_Archive.pdf`);
 };
 
 export const generateFullNewbornReport = () => {
@@ -729,5 +720,5 @@ export const generateFullNewbornReport = () => {
   doc.setTextColor(pinkPrimary[0], pinkPrimary[1], pinkPrimary[2]);
   doc.text('A lifetime of newborn memories, preserved by Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
-  doc.save(`Nestly_Full_Newborn_Archive.pdf`);
+  doc.save(`Nestly_Newborn_Full_Archive.pdf`);
 };

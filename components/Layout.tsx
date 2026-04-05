@@ -1,22 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { 
-  Home, 
-  TrendingUp, 
-  Sparkles, 
-  BookOpen, 
-  LayoutGrid, 
-  User, 
+import { AnimatePresence, motion } from 'motion/react';
+import {
+  Home,
+  TrendingUp,
+  Sparkles,
+  BookOpen,
+  LayoutGrid,
+  User,
   ShieldCheck,
   LogOut,
-  ToyBrick,
   Menu,
   X,
   Users
 } from 'lucide-react';
 import { storage } from '../services/storageService.ts';
 import { Logo } from './Logo.tsx';
+import { FloatingTeddiesBackground } from './FloatingTeddiesBackground.tsx';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -55,39 +55,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
   return (
     <div className="flex-1 flex flex-col lg:flex-row relative overflow-hidden h-screen bg-rose-50">
-      {/* Background Decor */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-[0.08]">
-        <motion.div 
-          animate={{ 
-            y: [0, -20, 0],
-            rotate: [0, 5, -5, 0]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[10%] left-[15%] text-rose-900"
-        >
-          <ToyBrick size={64} />
-        </motion.div>
-        <motion.div 
-          animate={{ 
-            y: [0, -15, 0],
-            rotate: [0, -8, 8, 0]
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute top-[30%] right-[10%] text-rose-900"
-        >
-          <ToyBrick size={72} />
-        </motion.div>
-        <motion.div 
-          animate={{ 
-            y: [0, -25, 0],
-            rotate: [0, 10, -10, 0]
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-[20%] left-[20%] text-rose-900"
-        >
-          <ToyBrick size={48} />
-        </motion.div>
-      </div>
+      {/* Background Decor — CSS animations to avoid motion/react in critical path */}
+      <FloatingTeddiesBackground />
 
       {/* ===== DESKTOP SIDEBAR (lg+) ===== */}
       {isDesktop && (
@@ -206,22 +175,31 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         )}
 
         <main id="main-scroll" className="flex-1 relative z-10 overflow-y-auto no-scrollbar pb-safe">
-          <div className="animate-slide-up pb-32 lg:pb-12">
-            {children}
-            
-            <div className="px-6 py-12 mt-8 border-t border-rose-100/50 text-center space-y-4">
-              <div className="flex justify-center items-center gap-2 text-rose-900/40">
-                <ShieldCheck size={16} />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Clinically Supported</span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10, filter: 'blur(2px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
+              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              className="pb-32 lg:pb-12"
+            >
+              {children}
+
+              <div className="px-6 py-12 mt-8 border-t border-rose-100/50 text-center space-y-4">
+                <div className="flex justify-center items-center gap-2 text-rose-900/40">
+                  <ShieldCheck size={16} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Clinically Supported</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed max-w-[280px] md:max-w-[400px] mx-auto font-medium">
+                  Nestly provides health information supported by clinical guidelines from the <span className="text-rose-900/60 font-bold">World Health Organization (WHO)</span>.
+                </p>
+                <div className="pt-4 opacity-20">
+                  <Logo className="w-6 h-6 mx-auto grayscale" />
+                </div>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed max-w-[280px] md:max-w-[400px] mx-auto font-medium">
-                Nestly provides health information supported by clinical guidelines from the <span className="text-rose-900/60 font-bold">World Health Organization (WHO)</span>.
-              </p>
-              <div className="pt-4 opacity-20">
-                <Logo className="w-6 h-6 mx-auto grayscale" />
-              </div>
-            </div>
-          </div>
+            </motion.div>
+          </AnimatePresence>
         </main>
 
         {/* Bottom Navigation (mobile & tablet only) */}
@@ -263,34 +241,27 @@ const SidebarNavItem = ({ active, onClick, label, icon: Icon, isSpecial, collaps
       </span>
     )}
     {active && (
-      <motion.div 
-        layoutId="sidebar-indicator"
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-rose-900 rounded-r-full" 
-      />
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-rose-900 rounded-r-full transition-all duration-200" />
     )}
   </button>
 );
 
 /* ===== Mobile Bottom Nav Item ===== */
 const NavItem = ({ active, onClick, label, icon: Icon, isSpecial }: any) => (
-  <button 
-    onClick={onClick} 
+  <button
+    onClick={onClick}
     className={`flex flex-col items-center flex-1 py-2 transition-all duration-300 rounded-2xl relative ${active ? 'bg-white/40 shadow-sm' : ''}`}
   >
-    <motion.div 
-      animate={active ? { scale: 1.2, y: -2 } : { scale: 1, y: 0 }}
-      className={`mb-0.5 ${active ? 'text-rose-900' : 'text-slate-400'} ${isSpecial && !active ? 'animate-pulse' : ''}`}
+    <div
+      className={`mb-0.5 transition-transform duration-200 ${active ? 'text-rose-900 scale-[1.2] -translate-y-0.5' : 'text-slate-400'} ${isSpecial && !active ? 'animate-pulse' : ''}`}
     >
       <Icon size={20} strokeWidth={active ? 2.5 : 2} />
-    </motion.div>
+    </div>
     <span className={`text-[7px] font-black uppercase tracking-[0.1em] ${active ? 'text-rose-900' : 'text-slate-500'}`}>
       {label}
     </span>
     {active && (
-      <motion.div 
-        layoutId="nav-indicator"
-        className="absolute -bottom-1 w-1 h-1 bg-rose-900 rounded-full" 
-      />
+      <div className="absolute -bottom-1 w-1 h-1 bg-rose-900 rounded-full transition-all duration-200" />
     )}
   </button>
 );

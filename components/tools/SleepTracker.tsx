@@ -22,6 +22,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
 }) => {
   const babies = profile.babies || [];
   const [selectedBabyId, setSelectedBabyId] = useState<string>(() => babies[0]?.id || '');
+<<<<<<< HEAD
   const isBabyStage =
     profile.lifecycleStage === LifecycleStage.NEWBORN ||
     profile.lifecycleStage === LifecycleStage.INFANT ||
@@ -29,6 +30,15 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
     profile.lifecycleStage === LifecycleStage.BIRTH;
   const [mode, setMode] = useState<SleepMode>(
     isBabyStage ? 'newborn' : 'pregnancy'
+=======
+  const [mode, setMode] = useState<SleepMode>(
+    profile.lifecycleStage === LifecycleStage.NEWBORN ||
+      profile.lifecycleStage === LifecycleStage.INFANT ||
+      profile.lifecycleStage === LifecycleStage.TODDLER ||
+      profile.lifecycleStage === LifecycleStage.BIRTH
+      ? 'newborn'
+      : 'pregnancy'
+>>>>>>> eff5d2b3e16c6288859735ca2dd74d1a6e82cab1
   );
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<SleepLog | null>(null);

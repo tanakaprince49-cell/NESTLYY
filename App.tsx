@@ -11,7 +11,6 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard.tsx').then
 const AvaChat = lazy(() => import('./components/AvaChat.tsx').then(m => ({ default: m.AvaChat })));
 const Settings = lazy(() => import('./components/Settings.tsx').then(m => ({ default: m.Settings })));
 const VillageHub = lazy(() => import('./components/VillageHub.tsx').then(m => ({ default: m.VillageHub })));
-import { motion, AnimatePresence } from 'motion/react';
 import { storage } from './services/storageService.ts';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import {
@@ -185,7 +184,16 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!profile) return;
     const isPostpartum = profile.lifecycleStage === LifecycleStage.NEWBORN;
-    const theme = profile.themeColor || 'pink';
+    const allowedThemes = ['pink', 'blue', 'orange'] as const;
+    const theme = (allowedThemes as readonly string[]).includes(profile.themeColor as unknown as string)
+      ? profile.themeColor
+      : 'pink';
+
+    if (theme !== profile.themeColor) {
+      const nextProfile = { ...profile, themeColor: theme };
+      storage.saveProfile(nextProfile);
+      setProfile(nextProfile);
+    }
     document.body.className = `theme-${theme} ${isPostpartum ? 'stage-newborn' : 'stage-pregnancy'}`;
   }, [profile?.lifecycleStage, profile?.themeColor]);
 
@@ -260,19 +268,12 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
       <div className="max-w-4xl mx-auto px-4 py-4">
-        <AnimatePresence mode="wait">
           <Suspense fallback={
             <div className="flex items-center justify-center h-[60vh]">
               <div className="w-8 h-8 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin"></div>
             </div>
           }>
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
+            <div key={activeTab} className="animate-slide-up">
               {activeTab === 'dashboard' && (
                 <Dashboard 
                   entries={entries} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
@@ -453,9 +454,8 @@ const App: React.FC = () => {
                   }} userUid={userUid} />}
               {activeTab === 'village' && <VillageHub profile={profile} />}
               {activeTab === 'admin' && isAdmin && <AdminDashboard />}
-            </motion.div>
+            </div>
           </Suspense>
-        </AnimatePresence>
       </div>
       </Layout>
     </ErrorBoundary>
