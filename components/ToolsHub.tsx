@@ -82,12 +82,14 @@ const BathTracker = lazy(() => import('./tools/BathTracker.tsx').then(m => ({ de
 const PumpingTracker = lazy(() => import('./tools/PumpingTracker.tsx').then(m => ({ default: m.PumpingTracker })));
 const TeethingTracker = lazy(() => import('./tools/TeethingTracker.tsx').then(m => ({ default: m.TeethingTracker })));
 const TummyTimeTracker = lazy(() => import('./tools/TummyTimeTracker.tsx').then(m => ({ default: m.TummyTimeTracker })));
+const MilestonesTracker = lazy(() => import('./tools/MilestonesTracker.tsx').then(m => ({ default: m.MilestonesTracker })));
+const HealthTracker = lazy(() => import('./tools/HealthTracker.tsx').then(m => ({ default: m.HealthTracker })));
+const ReactionsTracker = lazy(() => import('./tools/ReactionsTracker.tsx').then(m => ({ default: m.ReactionsTracker })));
 const CustomPlanView = lazy(() => import('./CustomPlanView.tsx').then(m => ({ default: m.CustomPlanView })));
 const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m => ({ default: m.SymptomDecoder })));
 
 const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, bgColor: string }> = {
   vitals: { label: 'Vitals', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  blood_pressure: { label: 'Blood Pressure', icon: Heart, color: 'text-red-400', bgColor: 'bg-red-50' },
   medications: { label: 'Medications', icon: Pill, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   names: { label: 'Baby Names', icon: Sparkles, color: 'text-rose-400', bgColor: 'bg-rose-50' },
   bump: { label: 'Bump Photos', icon: CameraIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
@@ -210,9 +212,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['custom_plan', 'symptom_decoder', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'blood_pressure', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
+      return ['custom_plan', 'symptom_decoder', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
     }
-    return ['custom_plan', 'symptom_decoder', 'vitals', 'blood_pressure', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
+    return ['custom_plan', 'symptom_decoder', 'vitals', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
   }, [isPostpartum]);
 
   const filteredCategories = useMemo(() => {
@@ -263,7 +265,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       case 'diaper':
         return <DiaperTracker diaperLogs={diaperLogs} onAddDiaper={onAddDiaper} profile={profile} selectedBabyId={selectedBabyId} setSelectedBabyId={setSelectedBabyId} />;
       case 'sleep':
-        return <SleepTracker sleepLogs={sleepLogs} onAddSleep={onAddSleep} onRemoveSleep={onRemoveSleep} profile={profile} selectedBabyId={selectedBabyId} />;
+        return <SleepTracker sleepLogs={sleepLogs} onAddSleep={onAddSleep} onRemoveSleep={onRemoveSleep} profile={profile} />;
       case 'kicks':
         return <KickCounter kickLogs={kickLogs} onAddKick={onAddKick} profile={profile} selectedBabyId={selectedBabyId} setSelectedBabyId={setSelectedBabyId} />;
       case 'kegels':
@@ -275,18 +277,45 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       case 'checklists':
         return <ChecklistTracker checklists={checklists} onUpdateChecklist={handleUpdateChecklist} />;
       case 'vitals':
-      case 'blood_pressure':
         return (
           <VitalsTracker 
             weightLogs={weightLogs} 
             onAddWeight={onAddWeight} 
-            bloodPressureLogs={bloodPressureLogs} 
-            onAddBloodPressure={onAddBloodPressure} 
             babyGrowthLogs={babyGrowthLogs} 
             onAddBabyGrowth={onAddBabyGrowth} 
             profile={profile} 
             selectedBabyId={selectedBabyId} 
             setSelectedBabyId={setSelectedBabyId} 
+          />
+        );
+      case 'milestones':
+        return (
+          <MilestonesTracker
+            milestones={milestones}
+            onAddMilestone={onAddMilestone}
+            profile={profile}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
+          />
+        );
+      case 'health':
+        return (
+          <HealthTracker
+            healthLogs={healthLogs}
+            onAddHealth={onAddHealth}
+            profile={profile}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
+          />
+        );
+      case 'reactions':
+        return (
+          <ReactionsTracker
+            reactions={reactions}
+            onAddReaction={onAddReaction}
+            profile={profile}
+            selectedBabyId={selectedBabyId}
+            setSelectedBabyId={setSelectedBabyId}
           />
         );
       case 'names':

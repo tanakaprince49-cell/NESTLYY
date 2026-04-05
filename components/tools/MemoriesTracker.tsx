@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { storage } from '../../services/storageService.ts';
 import { MemoryAlbums, MemoryPhoto } from '../../types.ts';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Camera as CameraIcon, Baby, Heart, Home, Users, Sparkles, Plus } from 'lucide-react';
 
 interface MemoriesTrackerProps {
@@ -19,6 +19,10 @@ const ALBUM_TYPES: Array<{ id: keyof MemoryAlbums, label: string, icon: any }> =
 ];
 
 export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpdateAlbums }) => {
+  const [pendingAdd, setPendingAdd] = useState<{ type: keyof MemoryAlbums; url: string } | null>(null);
+  const [pendingCaption, setPendingCaption] = useState('');
+  const [activePhoto, setActivePhoto] = useState<MemoryPhoto | null>(null);
+
   const handleAddPhoto = (type: keyof MemoryAlbums) => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -29,13 +33,8 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64String = reader.result as string;
-          const photo: MemoryPhoto = { 
-            id: crypto.randomUUID(), 
-            url: base64String, 
-            timestamp: Date.now() 
-          };
-          storage.saveAlbumPhoto(type, photo);
-          onUpdateAlbums();
+          setPendingCaption('');
+          setPendingAdd({ type, url: base64String });
         };
         reader.readAsDataURL(file);
       }
@@ -70,10 +69,11 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
                 </div>
               ) : (
                 albums[album.id]?.slice(0, 6).map((photo) => (
-                  <motion.div 
+                  <motion.button
                     key={photo.id}
                     layoutId={photo.id}
-                    className="aspect-square rounded-xl overflow-hidden bg-slate-100 relative group"
+                    onClick={() => setActivePhoto(photo)}
+                    className="aspect-square rounded-xl overflow-hidden bg-slate-100 relative group cursor-pointer"
                   >
                     <img 
                       src={photo.url} 
@@ -81,7 +81,7 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />
-                  </motion.div>
+                  </motion.button>
                 ))
               )}
             </div>
@@ -94,6 +94,100 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
           </div>
         ))}
       </div>
+
+      <AnimatePresence>
+        {pendingAdd && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[900] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setPendingAdd(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.96, y: 20 }}
+              className="bg-white rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-serif text-slate-900">Add memory</h3>
+              <div className="aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-100">
+                <img src={pendingAdd.url} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Caption (1–2 lines)</label>
+                <textarea
+                  value={pendingCaption}
+                  onChange={(e) => setPendingCaption(e.target.value)}
+                  rows={2}
+                  maxLength={140}
+                  placeholder="A tiny note about this moment…"
+                  className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all resize-none"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setPendingAdd(null)}
+                  className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const photo: MemoryPhoto = {
+                      id: crypto.randomUUID(),
+                      url: pendingAdd.url,
+                      caption: pendingCaption.trim() || undefined,
+                      timestamp: Date.now(),
+                    };
+                    storage.saveAlbumPhoto(pendingAdd.type, photo);
+                    onUpdateAlbums();
+                    setPendingAdd(null);
+                  }}
+                  className="flex-1 py-4 bg-rose-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-100 active:scale-95 transition-all"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {activePhoto && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[950] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setActivePhoto(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.96, y: 20 }}
+              className="w-full max-w-3xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl">
+                <div className="max-h-[70vh] bg-black">
+                  <img src={activePhoto.url} alt="Memory" className="w-full h-full object-contain max-h-[70vh]" />
+                </div>
+                {(activePhoto.caption || activePhoto.timestamp) && (
+                  <div className="p-5 space-y-1">
+                    {activePhoto.caption && <p className="text-sm font-semibold text-slate-800 whitespace-pre-wrap">{activePhoto.caption}</p>}
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      {new Date(activePhoto.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
