@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { storage } from '../../services/storageService.ts';
-import { MemoryAlbums, MemoryPhoto } from '../../types.ts';
-import { motion, AnimatePresence } from 'motion/react';
-import { Camera as CameraIcon, Baby, Heart, Home, Users, Sparkles, Plus } from 'lucide-react';
-=======
 import React, { useMemo, useState } from 'react';
 import { storage } from '../../services/storageService.ts';
 import { MemoryAlbums, MemoryPhoto } from '../../types.ts';
 import { AnimatePresence, motion } from 'motion/react';
 import { Camera as CameraIcon, Baby, Heart, Home, Users, Sparkles, Plus, X, Images } from 'lucide-react';
->>>>>>> eff5d2b3e16c6288859735ca2dd74d1a6e82cab1
 
 interface MemoriesTrackerProps {
   albums: MemoryAlbums;
@@ -27,11 +19,6 @@ const ALBUM_TYPES: Array<{ id: keyof MemoryAlbums, label: string, icon: any }> =
 ];
 
 export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpdateAlbums }) => {
-<<<<<<< HEAD
-  const [pendingAdd, setPendingAdd] = useState<{ type: keyof MemoryAlbums; url: string } | null>(null);
-  const [pendingCaption, setPendingCaption] = useState('');
-  const [activePhoto, setActivePhoto] = useState<MemoryPhoto | null>(null);
-=======
   const [activeAlbum, setActiveAlbum] = useState<keyof MemoryAlbums | null>(null);
   const [activePhoto, setActivePhoto] = useState<MemoryPhoto | null>(null);
   const [pendingAdd, setPendingAdd] = useState<{ type: keyof MemoryAlbums; url: string } | null>(null);
@@ -43,7 +30,6 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
   }, [activeAlbum]);
 
   const ActiveAlbumIcon = activeAlbumMeta?.icon;
->>>>>>> eff5d2b3e16c6288859735ca2dd74d1a6e82cab1
 
   const handleAddPhoto = (type: keyof MemoryAlbums) => {
     const input = document.createElement('input');
@@ -66,59 +52,6 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-<<<<<<< HEAD
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {ALBUM_TYPES.map((album) => (
-          <div key={album.id} className="card-premium p-6 bg-white border-2 border-white space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-500">
-                  <album.icon size={20} />
-                </div>
-                <h3 className="text-lg font-serif text-slate-800">{album.label}</h3>
-              </div>
-              <button 
-                onClick={() => handleAddPhoto(album.id)}
-                className="p-2 bg-rose-50 text-rose-500 rounded-full hover:bg-rose-100 transition-colors"
-              >
-                <Plus size={20} />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              {albums[album.id]?.length === 0 ? (
-                <div className="col-span-3 py-8 text-center border-2 border-dashed border-slate-100 rounded-2xl">
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">No photos yet</p>
-                </div>
-              ) : (
-                albums[album.id]?.slice(0, 6).map((photo) => (
-                  <motion.button
-                    key={photo.id}
-                    layoutId={photo.id}
-                    onClick={() => setActivePhoto(photo)}
-                    className="aspect-square rounded-xl overflow-hidden bg-slate-100 relative group cursor-pointer"
-                  >
-                    <img 
-                      src={photo.url} 
-                      alt="Memory" 
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  </motion.button>
-                ))
-              )}
-            </div>
-            
-            {albums[album.id]?.length > 6 && (
-              <p className="text-[10px] text-center font-bold text-slate-400">
-                + {albums[album.id].length - 6} more photos
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-
-=======
       <div className="space-y-2 px-1">
         <h3 className="text-2xl font-serif text-rose-900">Memories</h3>
       </div>
@@ -287,28 +220,20 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
         )}
       </AnimatePresence>
 
->>>>>>> eff5d2b3e16c6288859735ca2dd74d1a6e82cab1
       <AnimatePresence>
         {pendingAdd && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-<<<<<<< HEAD
-            className="fixed inset-0 z-[900] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4"
-=======
             className="fixed inset-0 z-[950] bg-slate-900/55 backdrop-blur-sm flex items-center justify-center p-4"
->>>>>>> eff5d2b3e16c6288859735ca2dd74d1a6e82cab1
             onClick={() => setPendingAdd(null)}
           >
             <motion.div
               initial={{ scale: 0.96, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.96, y: 20 }}
-<<<<<<< HEAD
-=======
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
->>>>>>> eff5d2b3e16c6288859735ca2dd74d1a6e82cab1
               className="bg-white rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl space-y-4"
               onClick={(e) => e.stopPropagation()}
             >
@@ -329,20 +254,14 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
               </div>
               <div className="flex gap-3 pt-2">
                 <button
-<<<<<<< HEAD
-=======
                   type="button"
->>>>>>> eff5d2b3e16c6288859735ca2dd74d1a6e82cab1
                   onClick={() => setPendingAdd(null)}
                   className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
                 >
                   Cancel
                 </button>
                 <button
-<<<<<<< HEAD
-=======
                   type="button"
->>>>>>> eff5d2b3e16c6288859735ca2dd74d1a6e82cab1
                   onClick={() => {
                     const photo: MemoryPhoto = {
                       id: crypto.randomUUID(),
@@ -370,30 +289,6 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-<<<<<<< HEAD
-            className="fixed inset-0 z-[950] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={() => setActivePhoto(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.96, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.96, y: 20 }}
-              className="w-full max-w-3xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl">
-                <div className="max-h-[70vh] bg-black">
-                  <img src={activePhoto.url} alt="Memory" className="w-full h-full object-contain max-h-[70vh]" />
-                </div>
-                {(activePhoto.caption || activePhoto.timestamp) && (
-                  <div className="p-5 space-y-1">
-                    {activePhoto.caption && <p className="text-sm font-semibold text-slate-800 whitespace-pre-wrap">{activePhoto.caption}</p>}
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      {new Date(activePhoto.timestamp).toLocaleString()}
-                    </p>
-                  </div>
-                )}
-=======
             className="fixed inset-0 z-[980] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setActivePhoto(null)}
           >
@@ -417,7 +312,6 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
                     {new Date(activePhoto.timestamp).toLocaleString()}
                   </p>
                 </div>
->>>>>>> eff5d2b3e16c6288859735ca2dd74d1a6e82cab1
               </div>
             </motion.div>
           </motion.div>
