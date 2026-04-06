@@ -1,198 +1,210 @@
-import { db, auth } from '../firebase.ts';
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot,
+import {
+  collection,
+  doc,
+  getDoc,
+  setDoc,
   deleteDoc,
-  updateDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  writeBatch,
+  runTransaction,
   serverTimestamp,
+  increment,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  Timestamp,
+  getDocs,
+  type Unsubscribe,
+  type DocumentData,
+  type QueryDocumentSnapshot,
 } from 'firebase/firestore';
-import { Nest, NestPost, NestMembership, NestStory, NestInvite } from '../types.ts';
-import { TEMPLATE_NESTS } from './villageTemplates.ts';
+import { db } from '../firebase.ts';
+import type { Nest, NestMembership, NestPost, NestCategory } from '../types.ts';
 
-class VillageService {
-  // Listeners
-  subscribeToNests(callback: (nests: Nest[]) => void) {
-    const q = query(collection(db, 'nests'), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, (snapshot) => {
-      const nests = snapshot.docs.map(doc => doc.data() as Nest);
-      callback(nests);
-    });
-  }
+const NESTS = 'nests';
+const MEMBERSHIPS = 'memberships';
+const POSTS = 'posts';
 
-  subscribeToPosts(nestId: string, callback: (posts: NestPost[]) => void) {
-    const q = query(collection(db, 'nest_posts'), where('nestId', '==', nestId));
-    return onSnapshot(q, (snapshot) => {
-      const posts = snapshot.docs.map(doc => doc.data() as NestPost);
-      posts.sort((a, b) => b.timestamp - a.timestamp);
-      callback(posts);
-    });
-  }
-
-  subscribeToMemberships(userId: string, callback: (memberships: NestMembership[]) => void) {
-    const q = query(collection(db, 'nest_members'), where('userId', '==', userId));
-    return onSnapshot(q, (snapshot) => {
-      const mems = snapshot.docs.map(doc => doc.data() as NestMembership);
-      callback(mems);
-    });
-  }
-
-  subscribeToStories(nestId: string, callback: (stories: NestStory[]) => void) {
-    const q = query(collection(db, 'nest_stories'), where('nestId', '==', nestId));
-    return onSnapshot(q, (snapshot) => {
-      const now = Date.now();
-      const stories = snapshot.docs
-        .map(doc => doc.data() as NestStory)
-        .filter(s => s.expiresAt > now); // Filter out expired ones
-      stories.sort((a, b) => b.timestamp - a.timestamp);
-      callback(stories);
-    });
-  }
-
-  // Group Management
-  async createNest(nest: Nest) {
-    const nestRef = doc(collection(db, 'nests'), nest.id);
-    await setDoc(nestRef, nest);
-  }
-
-  async uploadProfilePic(nestId: string, dataUrl: string): Promise<string> {
-    // Storing as base64 string directly in Firestore
-    return dataUrl;
-  }
-
-  async uploadMedia(path: string, dataUrl: string): Promise<string> {
-    // Storing as base64 string directly in Firestore
-    return dataUrl;
-  }
-
-  async joinNest(nestId: string, userId: string, role: 'member' | 'admin' = 'member') {
-    const memId = `${nestId}_${userId}`;
-    const memRef = doc(db, 'nest_members', memId);
-    await setDoc(memRef, {
-      id: memId,
-      nestId,
-      userId,
-      role,
-      joinedAt: Date.now()
-    });
-    
-    // Update member count
-    const nestRef = doc(db, 'nests', nestId);
-    const snap = await getDoc(nestRef);
-    if (snap.exists()) {
-      const current = snap.data().memberCount || 0;
-      await updateDoc(nestRef, { memberCount: current + 1 });
-    } else {
-      const template = TEMPLATE_NESTS.find(t => t.id === nestId);
-      if (template) {
-        await setDoc(nestRef, { ...template, memberCount: 1 });
-      }
-    }
-  }
-
-  async leaveNest(nestId: string, userId: string) {
-    const memId = `${nestId}_${userId}`;
-    await deleteDoc(doc(db, 'nest_members', memId));
-
-    // Update member count
-    const nestRef = doc(db, 'nests', nestId);
-    const snap = await getDoc(nestRef);
-    if (snap.exists()) {
-      const current = Math.max(0, (snap.data().memberCount || 1) - 1);
-      await updateDoc(nestRef, { memberCount: current });
-    }
-  }
-
-  async updateNest(nestId: string, data: any) {
-    await updateDoc(doc(db, 'nests', nestId), data);
-  }
-
-  async deleteNest(nestId: string) {
-    await deleteDoc(doc(db, 'nests', nestId));
-  }
-
-  async banUser(nestId: string, userId: string) {
-    const memId = `${nestId}_${userId}`;
-    await deleteDoc(doc(db, 'nest_members', memId));
-    await updateDoc(doc(db, 'nests', nestId), { bannedUsers: arrayUnion(userId) });
-  }
-
-  // Posts
-  async addPost(post: NestPost) {
-    await setDoc(doc(db, 'nest_posts', post.id), post);
-    
-    // Broadcast for global notifications
-    const nestRef = doc(db, 'nests', post.nestId);
-    await updateDoc(nestRef, {
-      lastPostId: post.id,
-      lastPostText: post.content || 'Shared a media attachment',
-      lastPostAuthor: post.authorName,
-      lastPostTime: post.timestamp
-    }).catch(e => console.warn("Failed to update nest last post, might be template"));
-  }
-
-  async deletePost(postId: string) {
-    await deleteDoc(doc(db, 'nest_posts', postId));
-  }
-
-  async toggleLikePost(postId: string, userId: string) {
-    const postRef = doc(db, 'nest_posts', postId);
-    const snap = await getDoc(postRef);
-    if (snap.exists()) {
-      const post = snap.data() as NestPost;
-      const likedBy = post.likedBy || [];
-      const hasLiked = likedBy.includes(userId);
-      
-      const newLikedBy = hasLiked ? likedBy.filter(u => u !== userId) : [...likedBy, userId];
-      
-      await updateDoc(postRef, {
-        likedBy: newLikedBy,
-        likeCount: newLikedBy.length
-      });
-    }
-  }
-
-  async hidePost(postId: string) {
-    await updateDoc(doc(db, 'nest_posts', postId), { isHidden: true });
-  }
-
-  async addComment(postId: string, comment: any) {
-    await updateDoc(doc(db, 'nest_posts', postId), {
-      comments: arrayUnion(comment)
-    });
-  }
-
-  // Stories
-  async addStory(story: NestStory) {
-    await setDoc(doc(db, 'nest_stories', story.id), story);
-  }
-
-  // Invites
-  async createInvite(invite: NestInvite) {
-    await setDoc(doc(db, 'nest_invites', invite.id), invite);
-  }
-
-  async getInvite(inviteId: string): Promise<NestInvite | null> {
-    const snap = await getDoc(doc(db, 'nest_invites', inviteId));
-    return snap.exists() ? (snap.data() as NestInvite) : null;
-  }
-
-  // Admin / Debug wiping
-  async getDocsFromCollection(collectionName: string) {
-     return await getDocs(collection(db, collectionName));
-  }
-
-  async deleteDocument(collectionName: string, documentId: string) {
-     await deleteDoc(doc(db, collectionName, documentId));
-  }
+function tsToMs(value: unknown): number {
+  if (value instanceof Timestamp) return value.toMillis();
+  if (typeof value === 'number') return value;
+  return Date.now();
 }
 
-export const villageService = new VillageService();
+function nestFromDoc(snap: QueryDocumentSnapshot<DocumentData>): Nest {
+  const d = snap.data();
+  return {
+    id: snap.id,
+    name: d.name ?? '',
+    description: d.description ?? '',
+    category: (d.category ?? 'general') as NestCategory,
+    emoji: d.emoji ?? '🌸',
+    memberCount: d.memberCount ?? 0,
+    isTemplate: d.isTemplate ?? false,
+    createdAt: tsToMs(d.createdAt),
+    creatorUid: d.creatorUid ?? null,
+  };
+}
+
+function membershipFromDoc(snap: QueryDocumentSnapshot<DocumentData>): NestMembership {
+  const d = snap.data();
+  return {
+    id: snap.id,
+    nestId: d.nestId ?? '',
+    userId: d.userId ?? '',
+    joinedAt: tsToMs(d.joinedAt),
+  };
+}
+
+function postFromDoc(snap: QueryDocumentSnapshot<DocumentData>, nestId: string): NestPost {
+  const d = snap.data();
+  return {
+    id: snap.id,
+    nestId,
+    authorUid: d.authorUid ?? '',
+    authorName: d.authorName ?? '',
+    content: d.content ?? '',
+    likedBy: Array.isArray(d.likedBy) ? d.likedBy : [],
+    likeCount: d.likeCount ?? 0,
+    createdAt: tsToMs(d.createdAt),
+    isTemplate: d.isTemplate ?? false,
+  };
+}
+
+// --- Nests ---
+
+export function subscribeToNests(callback: (nests: Nest[]) => void): Unsubscribe {
+  const q = query(collection(db, NESTS), orderBy('memberCount', 'desc'));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map(nestFromDoc));
+  });
+}
+
+export async function createNest(
+  input: { name: string; description: string; category: NestCategory; emoji: string },
+  creatorUid: string,
+): Promise<string> {
+  const nestRef = doc(collection(db, NESTS));
+  const batch = writeBatch(db);
+  batch.set(nestRef, {
+    name: input.name,
+    description: input.description,
+    category: input.category,
+    emoji: input.emoji,
+    memberCount: 1,
+    isTemplate: false,
+    createdAt: serverTimestamp(),
+    creatorUid,
+  });
+  const membershipId = `${creatorUid}_${nestRef.id}`;
+  batch.set(doc(db, MEMBERSHIPS, membershipId), {
+    nestId: nestRef.id,
+    userId: creatorUid,
+    joinedAt: serverTimestamp(),
+  });
+  await batch.commit();
+  return nestRef.id;
+}
+
+// TODO: if post count per nest exceeds ~200, move to a Cloud Function (firebase-admin recursive delete)
+export async function deleteNest(nestId: string): Promise<void> {
+  const postsSnap = await getDocs(collection(db, NESTS, nestId, POSTS));
+  const membershipsSnap = await getDocs(query(collection(db, MEMBERSHIPS), where('nestId', '==', nestId)));
+  const batch = writeBatch(db);
+  postsSnap.docs.forEach((p) => batch.delete(p.ref));
+  membershipsSnap.docs.forEach((m) => batch.delete(m.ref));
+  batch.delete(doc(db, NESTS, nestId));
+  await batch.commit();
+}
+
+// --- Memberships ---
+
+export function subscribeToUserMemberships(
+  userId: string,
+  callback: (memberships: NestMembership[]) => void,
+): Unsubscribe {
+  const q = query(collection(db, MEMBERSHIPS), where('userId', '==', userId));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map(membershipFromDoc));
+  });
+}
+
+export async function joinNest(nestId: string, userId: string): Promise<void> {
+  const membershipId = `${userId}_${nestId}`;
+  const membershipRef = doc(db, MEMBERSHIPS, membershipId);
+  const existing = await getDoc(membershipRef);
+  if (existing.exists()) return;
+  const batch = writeBatch(db);
+  batch.set(membershipRef, {
+    nestId,
+    userId,
+    joinedAt: serverTimestamp(),
+  });
+  batch.update(doc(db, NESTS, nestId), { memberCount: increment(1) });
+  await batch.commit();
+}
+
+export async function leaveNest(nestId: string, userId: string): Promise<void> {
+  const membershipId = `${userId}_${nestId}`;
+  const membershipRef = doc(db, MEMBERSHIPS, membershipId);
+  const existing = await getDoc(membershipRef);
+  if (!existing.exists()) return;
+  const batch = writeBatch(db);
+  batch.delete(membershipRef);
+  batch.update(doc(db, NESTS, nestId), { memberCount: increment(-1) });
+  await batch.commit();
+}
+
+// --- Posts ---
+
+export function subscribeToNestPosts(
+  nestId: string,
+  callback: (posts: NestPost[]) => void,
+): Unsubscribe {
+  const q = query(collection(db, NESTS, nestId, POSTS), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => postFromDoc(d, nestId)));
+  });
+}
+
+export async function createPost(
+  nestId: string,
+  input: { content: string; authorUid: string; authorName: string },
+): Promise<string> {
+  const postRef = doc(collection(db, NESTS, nestId, POSTS));
+  await setDoc(postRef, {
+    authorUid: input.authorUid,
+    authorName: input.authorName,
+    content: input.content,
+    likedBy: [],
+    likeCount: 0,
+    createdAt: serverTimestamp(),
+    isTemplate: false,
+  });
+  return postRef.id;
+}
+
+export async function deletePost(nestId: string, postId: string): Promise<void> {
+  await deleteDoc(doc(db, NESTS, nestId, POSTS, postId));
+}
+
+export async function toggleLike(
+  nestId: string,
+  postId: string,
+  userId: string,
+): Promise<void> {
+  const postRef = doc(db, NESTS, nestId, POSTS, postId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(postRef);
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const likedBy: string[] = Array.isArray(data.likedBy) ? data.likedBy : [];
+    const hasLiked = likedBy.includes(userId);
+    tx.update(postRef, {
+      likedBy: hasLiked ? arrayRemove(userId) : arrayUnion(userId),
+      likeCount: increment(hasLiked ? -1 : 1),
+    });
+  });
+}

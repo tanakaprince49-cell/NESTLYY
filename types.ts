@@ -361,73 +361,28 @@ export interface Nest {
   name: string;
   description: string;
   category: NestCategory;
-  emoji?: string;
-  profilePic?: string;
+  emoji: string;
   memberCount: number;
   isTemplate: boolean;
   createdAt: number;
-  createdBy?: string;
-  admins: string[]; // User IDs of admins
-  hasNoAdmin?: boolean; // For demo groups
-  lastPostId?: string;
-  lastPostText?: string;
-  lastPostAuthor?: string;
-  lastPostTime?: number;
+  creatorUid: string | null;
 }
 
 export interface NestMembership {
-  id?: string;
+  id: string;
   nestId: string;
   userId: string;
-  role: 'member' | 'admin';
   joinedAt: number;
-}
-
-export interface NestComment {
-  id: string;
-  authorId: string;
-  authorName: string;
-  authorProfilePic?: string;
-  text: string;
-  timestamp: number;
 }
 
 export interface NestPost {
   id: string;
   nestId: string;
-  authorId: string;
+  authorUid: string;
   authorName: string;
-  authorProfilePic?: string;
   content: string;
-  mediaUrl?: string;
-  mediaType?: 'image' | 'video';
-  hashtags?: string[];
-  taggedUsers?: string[]; // user IDs
-  likedBy: string[]; // array of userIds
+  likedBy: string[];
   likeCount: number;
-  comments?: NestComment[];
-  timestamp: number;
-  isTemplate: boolean;
-  isHidden?: boolean; // admin hidden
-}
-
-export interface NestStory {
-  id: string;
-  nestId: string;
-  authorId: string;
-  mediaUrl: string; // image or video
-  mediaType: 'image' | 'video';
-  caption?: string;
-  timestamp: number;
-  expiresAt: number;
-}
-
-export interface NestInvite {
-  id: string;
-  nestId: string;
-  role: 'member' | 'admin';
-  createdBy: string;
   createdAt: number;
-  expiresAt: number;
+  isTemplate: boolean;
 }
-
