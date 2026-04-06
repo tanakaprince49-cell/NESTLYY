@@ -360,6 +360,7 @@ export interface Nest {
   id: string;
   name: string;
   description: string;
+  rules?: string;
   category: NestCategory;
   emoji: string;
   memberCount: number;
@@ -380,9 +381,25 @@ export interface NestPost {
   nestId: string;
   authorUid: string;
   authorName: string;
+  authorPhoto?: string;
+  content: string;
+  likedBy: string[];
+  likeCount: number;
+  shareCount?: number;
+  createdAt: number;
+  isTemplate: boolean;
+}
+
+export interface NestComment {
+  id: string;
+  nestId: string;
+  postId: string;
+  parentId: string | null;
+  authorUid: string;
+  authorName: string;
+  authorPhoto?: string;
   content: string;
   likedBy: string[];
   likeCount: number;
   createdAt: number;
-  isTemplate: boolean;
 }

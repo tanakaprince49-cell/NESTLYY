@@ -283,7 +283,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
-      <div className="max-w-4xl mx-auto px-4 py-4">
+      <div className={activeTab === 'village' ? 'w-full min-h-full px-3 py-3' : 'max-w-4xl mx-auto px-4 py-4'}>
           <Suspense fallback={
             <div className="flex items-center justify-center h-[60vh]">
               <div className="w-8 h-8 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin"></div>

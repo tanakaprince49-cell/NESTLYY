@@ -1,17 +1,23 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2 } from 'lucide-react';
-import { PregnancyProfile, NestCategory, Nest, NestPost, NestMembership } from '../types.ts';
+import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2, MessageCircle, Reply, Share2, Edit3 } from 'lucide-react';
+import { PregnancyProfile, NestCategory, Nest, NestPost, NestMembership, NestComment } from '../types.ts';
 import {
   subscribeToNests,
   subscribeToUserMemberships,
   subscribeToNestPosts,
   createNest,
+  updateNest,
   deleteNest,
   joinNest,
   leaveNest,
   createPost,
   deletePost,
   toggleLike,
+  incrementShareCount,
+  subscribeToPostComments,
+  createComment,
+  deleteComment,
+  toggleCommentLike,
 } from '../services/villageService.ts';
 
 interface VillageHubProps {
@@ -180,7 +186,7 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
 
   if (view === 'discover') {
     return (
-      <div className="space-y-8 pb-12">
+      <div className="space-y-8 pb-6">
         {/* Hero */}
         <div className="bg-rose-900 text-white p-10 rounded-[3rem] space-y-6 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12">
@@ -271,7 +277,7 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
 
   if (view === 'my-nests') {
     return (
-      <div className="space-y-6 pb-12">
+      <div className="space-y-6 pb-6">
         <div className="flex items-center gap-4 px-1">
           <button onClick={() => setView('discover')} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
             <ArrowLeft size={20} />
@@ -417,6 +423,17 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
   const [newPost, setNewPost] = useState('');
   const [posts, setPosts] = useState<NestPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
+  const [isEditingNest, setIsEditingNest] = useState(false);
+  const [editingName, setEditingName] = useState(nest.name);
+  const [editingDescription, setEditingDescription] = useState(nest.description);
+  const [editingRules, setEditingRules] = useState(nest.rules || '');
+  const isCreator = nest.creatorUid === userUid;
+
+  useEffect(() => {
+    setEditingName(nest.name);
+    setEditingDescription(nest.description);
+    setEditingRules(nest.rules || '');
+  }, [nest.id, nest.name, nest.description, nest.rules]);
 
   useEffect(() => {
     setPostsLoading(true);
@@ -435,6 +452,7 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
         content: text,
         authorUid: userUid,
         authorName: profile.userName || 'Anonymous',
+        authorPhoto: profile.profileImage,
       });
       setNewPost('');
     } catch (err) {
@@ -461,6 +479,22 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
     }
   };
 
+  const handleSaveNest = async () => {
+    if (!isCreator) return;
+    if (!editingName.trim()) return;
+    try {
+      await updateNest(nest.id, {
+        name: editingName,
+        description: editingDescription,
+        rules: editingRules,
+      });
+      setIsEditingNest(false);
+    } catch (err) {
+      console.error('updateNest failed', err);
+      alert('Could not update nest details. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
@@ -474,6 +508,12 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
           </button>
           <h2 className="text-3xl font-serif leading-tight">{nest.name}</h2>
           <p className="text-sm text-rose-100 opacity-80 max-w-xs">{nest.description}</p>
+          {!!nest.rules && (
+            <div className="p-4 rounded-2xl bg-rose-800/60 border border-rose-700/70 max-w-xl">
+              <p className="text-[10px] font-black uppercase tracking-widest text-rose-200">Group Rules</p>
+              <p className="text-xs text-rose-100 mt-1 whitespace-pre-wrap">{nest.rules}</p>
+            </div>
+          )}
           <div className="flex items-center gap-3 pt-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-rose-300">
               {nest.memberCount} {nest.memberCount === 1 ? 'member' : 'members'}
@@ -492,9 +532,47 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
                 <Trash2 size={12} /> Delete
               </button>
             )}
+            {isCreator && (
+              <button
+                onClick={() => setIsEditingNest((v) => !v)}
+                className="text-[10px] font-black uppercase tracking-widest text-rose-300 hover:text-white transition-colors flex items-center gap-1"
+              >
+                <Edit3 size={12} /> {isEditingNest ? 'Cancel Edit' : 'Edit Nest'}
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {isCreator && isEditingNest && (
+        <div className="bg-white/80 border border-slate-100 rounded-[2rem] p-5 space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Edit group details</p>
+          <input
+            value={editingName}
+            onChange={(e) => setEditingName(e.target.value)}
+            placeholder="Group name"
+            className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm"
+          />
+          <textarea
+            value={editingDescription}
+            onChange={(e) => setEditingDescription(e.target.value)}
+            placeholder="Group description"
+            className="w-full h-20 p-4 rounded-xl border border-slate-200 bg-white text-sm resize-none"
+          />
+          <textarea
+            value={editingRules}
+            onChange={(e) => setEditingRules(e.target.value)}
+            placeholder="Group rules (respect, kindness, no spam...)"
+            className="w-full h-24 p-4 rounded-xl border border-slate-200 bg-white text-sm resize-none"
+          />
+          <button
+            onClick={handleSaveNest}
+            className="px-4 py-2 rounded-xl bg-rose-900 text-white text-[10px] font-black uppercase tracking-widest"
+          >
+            Save changes
+          </button>
+        </div>
+      )}
 
       {/* Compose */}
       <div className="flex gap-3 px-1">
@@ -528,43 +606,238 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
           </div>
         ) : (
           posts.map(post => {
-            const isLiked = post.likedBy.includes(userUid);
-            const canDelete = post.authorUid === userUid;
             return (
-              <div key={post.id} className="bg-white/60 backdrop-blur-xl p-5 rounded-[2rem] border border-slate-100 space-y-3 animate-slide-up">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-[10px] font-black text-rose-600">
-                      {post.authorName.charAt(0)}
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-slate-700">{post.authorName}</span>
-                      <span className="text-[10px] text-slate-400 ml-2">{timeAgo(post.createdAt)}</span>
-                    </div>
-                  </div>
-                  {canDelete && (
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="p-1.5 text-slate-300 hover:text-red-400 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                </div>
-                <p className="text-sm text-slate-600 leading-relaxed">{post.content}</p>
-                <button
-                  onClick={() => handleLike(post.id)}
-                  className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors ${
-                    isLiked ? 'text-rose-500' : 'text-slate-400 hover:text-rose-400'
-                  }`}
-                >
-                  <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
-                  {post.likeCount}
-                </button>
-              </div>
+              <PostCard
+                key={post.id}
+                nestId={nest.id}
+                post={post}
+                userUid={userUid}
+                displayName={profile.userName || 'Anonymous'}
+                profileImage={profile.profileImage}
+                onDeletePost={() => handleDeletePost(post.id)}
+              />
             );
           })
         )}
+      </div>
+    </div>
+  );
+}
+
+function PostCard({
+  nestId,
+  post,
+  userUid,
+  displayName,
+  profileImage,
+  onDeletePost,
+}: {
+  nestId: string;
+  post: NestPost;
+  userUid: string;
+  displayName: string;
+  profileImage?: string;
+  onDeletePost: () => void;
+}) {
+  const [comments, setComments] = useState<NestComment[]>([]);
+  const [commentText, setCommentText] = useState('');
+  const [replyToId, setReplyToId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+
+  useEffect(() => {
+    const unsub = subscribeToPostComments(nestId, post.id, setComments);
+    return unsub;
+  }, [nestId, post.id]);
+
+  const topLevelComments = comments.filter((c) => !c.parentId);
+  const getReplies = (commentId: string) => comments.filter((c) => c.parentId === commentId);
+  const isLiked = post.likedBy.includes(userUid);
+  const canDeletePost = post.authorUid === userUid;
+
+  const handleShare = async () => {
+    const shareText = `${post.authorName} in Nestly Village: "${post.content}"`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Nestly Village', text: shareText });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        alert('Post copied to clipboard.');
+      }
+      await incrementShareCount(nestId, post.id);
+    } catch (err) {
+      console.error('share failed', err);
+    }
+  };
+
+  const submitComment = async () => {
+    const text = commentText.trim();
+    if (!text) return;
+    try {
+      await createComment(nestId, post.id, {
+        content: text,
+        authorUid: userUid,
+        authorName: displayName,
+        authorPhoto: profileImage,
+      });
+      setCommentText('');
+    } catch (err) {
+      console.error('createComment failed', err);
+    }
+  };
+
+  const submitReply = async (parentId: string) => {
+    const text = replyText.trim();
+    if (!text) return;
+    try {
+      await createComment(nestId, post.id, {
+        content: text,
+        authorUid: userUid,
+        authorName: displayName,
+        authorPhoto: profileImage,
+        parentId,
+      });
+      setReplyText('');
+      setReplyToId(null);
+    } catch (err) {
+      console.error('createReply failed', err);
+    }
+  };
+
+  return (
+    <div className="bg-white/60 backdrop-blur-xl p-5 rounded-[2rem] border border-slate-100 space-y-3 animate-slide-up">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {post.authorPhoto ? (
+            <img src={post.authorPhoto} alt={post.authorName} className="w-8 h-8 rounded-full object-cover border border-rose-100" />
+          ) : (
+            <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-[10px] font-black text-rose-600">
+              {post.authorName.charAt(0)}
+            </div>
+          )}
+          <div>
+            <span className="text-xs font-bold text-slate-700">{post.authorName}</span>
+            <span className="text-[10px] text-slate-400 ml-2">{timeAgo(post.createdAt)}</span>
+          </div>
+        </div>
+        {canDeletePost && (
+          <button onClick={onDeletePost} className="p-1.5 text-slate-300 hover:text-red-400 transition-colors">
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+
+      <p className="text-sm text-slate-600 leading-relaxed">{post.content}</p>
+
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => toggleLike(nestId, post.id, userUid)}
+          className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors ${isLiked ? 'text-rose-500' : 'text-slate-400 hover:text-rose-400'}`}
+        >
+          <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
+          {post.likeCount}
+        </button>
+        <button onClick={handleShare} className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-rose-400">
+          <Share2 size={14} />
+          {post.shareCount ?? 0}
+        </button>
+        <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+          <MessageCircle size={14} />
+          {comments.length}
+        </span>
+      </div>
+
+      <div className="pt-2 space-y-2">
+        <div className="flex gap-2">
+          <input
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submitComment()}
+            placeholder="Write a comment..."
+            className="flex-1 h-10 px-4 rounded-xl border border-slate-200 bg-white text-sm"
+          />
+          <button onClick={submitComment} className="px-3 rounded-xl bg-rose-900 text-white text-[10px] font-black uppercase">Post</button>
+        </div>
+
+        {topLevelComments.map((comment) => {
+          const replies = getReplies(comment.id);
+          const liked = comment.likedBy.includes(userUid);
+          const canDeleteComment = comment.authorUid === userUid;
+          return (
+            <div key={comment.id} className="bg-white/70 rounded-xl p-3 border border-slate-100">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2">
+                  {comment.authorPhoto ? (
+                    <img src={comment.authorPhoto} alt={comment.authorName} className="w-7 h-7 rounded-full object-cover border border-rose-100 mt-0.5" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-600 text-[10px] font-black flex items-center justify-center mt-0.5">
+                      {comment.authorName.charAt(0)}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs font-bold text-slate-700">{comment.authorName}</p>
+                    <p className="text-sm text-slate-600">{comment.content}</p>
+                    <div className="mt-1 flex items-center gap-3">
+                      <button onClick={() => toggleCommentLike(nestId, post.id, comment.id, userUid)} className={`text-[10px] font-bold flex items-center gap-1 ${liked ? 'text-rose-500' : 'text-slate-400'}`}>
+                        <Heart size={12} fill={liked ? 'currentColor' : 'none'} />
+                        {comment.likeCount}
+                      </button>
+                      <button onClick={() => setReplyToId(replyToId === comment.id ? null : comment.id)} className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                        <Reply size={12} />
+                        Reply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {canDeleteComment && (
+                  <button onClick={() => deleteComment(nestId, post.id, comment.id)} className="text-slate-300 hover:text-red-400">
+                    <Trash2 size={12} />
+                  </button>
+                )}
+              </div>
+
+              {replyToId === comment.id && (
+                <div className="mt-2 flex gap-2 pl-9">
+                  <input
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && submitReply(comment.id)}
+                    placeholder="Write a reply..."
+                    className="flex-1 h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs"
+                  />
+                  <button onClick={() => submitReply(comment.id)} className="px-3 rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase">Reply</button>
+                </div>
+              )}
+
+              {replies.length > 0 && (
+                <div className="mt-2 pl-9 space-y-2">
+                  {replies.map((reply) => {
+                    const replyLiked = reply.likedBy.includes(userUid);
+                    const canDeleteReply = reply.authorUid === userUid;
+                    return (
+                      <div key={reply.id} className="bg-slate-50 rounded-lg p-2 border border-slate-100">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-[11px] font-bold text-slate-700">{reply.authorName}</p>
+                            <p className="text-xs text-slate-600">{reply.content}</p>
+                            <button onClick={() => toggleCommentLike(nestId, post.id, reply.id, userUid)} className={`mt-1 text-[10px] font-bold flex items-center gap-1 ${replyLiked ? 'text-rose-500' : 'text-slate-400'}`}>
+                              <Heart size={11} fill={replyLiked ? 'currentColor' : 'none'} />
+                              {reply.likeCount}
+                            </button>
+                          </div>
+                          {canDeleteReply && (
+                            <button onClick={() => deleteComment(nestId, post.id, reply.id)} className="text-slate-300 hover:text-red-400">
+                              <Trash2 size={11} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
