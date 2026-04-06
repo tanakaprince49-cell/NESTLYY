@@ -66,6 +66,7 @@ function postFromDoc(snap: QueryDocumentSnapshot<DocumentData>, nestId: string):
     nestId,
     authorUid: d.authorUid ?? '',
     authorName: d.authorName ?? '',
+    authorProfilePicture: d.authorProfilePicture || undefined,
     content: d.content ?? '',
     media: Array.isArray(d.media) ? d.media : [],
     likedBy: Array.isArray(d.likedBy) ? d.likedBy : [],
@@ -174,12 +175,13 @@ export function subscribeToNestPosts(
 
 export async function createPost(
   nestId: string,
-  input: { content: string; authorUid: string; authorName: string; media?: NestMedia[] },
+  input: { content: string; authorUid: string; authorName: string; authorProfilePicture?: string; media?: NestMedia[] },
 ): Promise<string> {
   const postRef = doc(collection(db, NESTS, nestId, POSTS));
   await setDoc(postRef, {
     authorUid: input.authorUid,
     authorName: input.authorName,
+    ...(input.authorProfilePicture ? { authorProfilePicture: input.authorProfilePicture } : {}),
     content: input.content,
     media: input.media || [],
     likedBy: [],
@@ -234,6 +236,7 @@ function commentFromDoc(snap: QueryDocumentSnapshot<DocumentData>): NestComment 
     postId: d.postId ?? '',
     authorUid: d.authorUid ?? '',
     authorName: d.authorName ?? '',
+    authorProfilePicture: d.authorProfilePicture || undefined,
     content: d.content ?? '',
     likedBy: Array.isArray(d.likedBy) ? d.likedBy : [],
     likeCount: d.likeCount ?? 0,
@@ -245,7 +248,7 @@ function commentFromDoc(snap: QueryDocumentSnapshot<DocumentData>): NestComment 
 export async function createComment(
   nestId: string,
   postId: string,
-  input: { content: string; authorUid: string; authorName: string; replyTo?: string },
+  input: { content: string; authorUid: string; authorName: string; authorProfilePicture?: string; replyTo?: string },
 ): Promise<string> {
   const commentRef = doc(collection(db, NESTS, nestId, POSTS, postId, 'comments'));
   const batch = writeBatch(db);
@@ -253,6 +256,7 @@ export async function createComment(
     postId,
     authorUid: input.authorUid,
     authorName: input.authorName,
+    ...(input.authorProfilePicture ? { authorProfilePicture: input.authorProfilePicture } : {}),
     content: input.content,
     replyTo: input.replyTo,
     likedBy: [],
@@ -321,6 +325,7 @@ export async function sharePost(
     content: shareContent,
     authorUid: sharerUid,
     authorName: sharerName,
+    authorProfilePicture: originalData.authorProfilePicture,
     media: originalData.media,
   });
 }
