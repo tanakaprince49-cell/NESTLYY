@@ -1,12 +1,12 @@
 import { mockLocalStorage } from '../helpers';
 
-vi.mock('../../services/syncService.ts', () => ({
+vi.mock('../../packages/shared/src/services/syncService.ts', () => ({
   syncToFirestore: vi.fn(),
 }));
 
 // Must import after mock setup
-import { storage } from '../../services/storageService.ts';
-import { syncToFirestore } from '../../services/syncService.ts';
+import { storage } from '../../packages/web/src/services/storageService.ts';
+import { syncToFirestore } from '../../packages/shared/src/services/syncService.ts';
 
 let ls: ReturnType<typeof mockLocalStorage>;
 

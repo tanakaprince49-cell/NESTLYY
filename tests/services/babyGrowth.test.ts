@@ -1,4 +1,4 @@
-import { getBabyGrowth, babyGrowthData, type DevelopmentInfo } from '../../services/babyGrowth.ts';
+import { getBabyGrowth, babyGrowthData, type DevelopmentInfo } from '../../packages/shared/src/services/babyGrowth.ts';
 
 describe('getBabyGrowth', () => {
   it('week 4 returns Poppy Seed', () => {

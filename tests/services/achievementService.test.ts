@@ -1,12 +1,12 @@
 import { mockLocalStorage } from '../helpers';
-import { Trimester } from '../../types.ts';
+import { Trimester } from '../../packages/shared/src/types.ts';
 
-vi.mock('../../services/syncService.ts', () => ({
+vi.mock('../../packages/shared/src/services/syncService.ts', () => ({
   syncToFirestore: vi.fn(),
 }));
 
-import { checkAchievements, ALL_ACHIEVEMENTS } from '../../services/achievementService.ts';
-import { storage } from '../../services/storageService.ts';
+import { checkAchievements, ALL_ACHIEVEMENTS } from '../../packages/web/src/services/achievementService.ts';
+import { storage } from '../../packages/web/src/services/storageService.ts';
 
 let ls: ReturnType<typeof mockLocalStorage>;
 
