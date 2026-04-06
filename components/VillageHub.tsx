@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2 } from 'lucide-react';
-import { PregnancyProfile, NestCategory, Nest, NestPost, NestMembership } from '../types.ts';
+import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2, Edit2 } from 'lucide-react';
+import { PregnancyProfile, NestCategory, Nest, NestPost, NestMembership, NestComment, MediaAttachment } from '../types.ts';
 import {
   subscribeToNests,
   subscribeToUserMemberships,
@@ -13,6 +13,9 @@ import {
   deletePost,
   toggleLike,
 } from '../services/villageService.ts';
+import { MediaUpload } from './MediaUpload';
+import { Comment } from './Comment';
+import { GroupModal } from './GroupModal';
 
 interface VillageHubProps {
   profile: PregnancyProfile;
@@ -48,6 +51,8 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
   const [view, setView] = useState<View>('discover');
   const [selectedNestId, setSelectedNestId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedNestForEdit, setSelectedNestForEdit] = useState<Nest | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<NestCategory | 'all'>('all');
 
   const [nests, setNests] = useState<Nest[]>([]);
@@ -93,6 +98,29 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
   );
 
   const selectedNest = selectedNestId ? nests.find((n) => n.id === selectedNestId) ?? null : null;
+
+  const handleCreateNest = (nestData: Nest) => {
+    createNest(nestData);
+    setShowCreateModal(false);
+  };
+
+  const handleEditNest = (nestData: Nest) => {
+    if (selectedNestForEdit) {
+      // Update the nest in storage
+      const updatedNests = nests.map(n => 
+        n.id === selectedNestForEdit.id ? { ...n, ...nestData } : n
+      );
+      setNests(updatedNests);
+    }
+    setShowEditModal(false);
+    setSelectedNestForEdit(null);
+  };
+
+  
+  const handleEditNestClick = (nest: Nest) => {
+    setSelectedNestForEdit(nest);
+    setShowEditModal(true);
+  };
 
   const openNest = (nestId: string) => {
     setSelectedNestId(nestId);
@@ -415,6 +443,8 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
   onDelete?: () => void;
 }) {
   const [newPost, setNewPost] = useState('');
+  const [selectedMedia, setSelectedMedia] = useState<MediaAttachment[]>([]);
+  const [showMediaUpload, setShowMediaUpload] = useState(false);
   const [posts, setPosts] = useState<NestPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
 
@@ -427,16 +457,34 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
     return unsub;
   }, [nest.id]);
 
+  const handleMediaSelect = (media: MediaAttachment[]) => {
+    setSelectedMedia(media);
+    setShowMediaUpload(false);
+  };
+
   const handlePost = async () => {
-    const text = newPost.trim();
-    if (!text) return;
+    const content = newPost.trim();
+    if (!content && selectedMedia.length === 0) return;
+    
     try {
-      await createPost(nest.id, {
-        content: text,
+      const postData: NestPost = {
+        id: crypto.randomUUID(),
+        nestId: nest.id,
+        content,
         authorUid: userUid,
         authorName: profile.userName || 'Anonymous',
-      });
+        attachments: selectedMedia,
+        likedBy: [],
+        likeCount: 0,
+        createdAt: Date.now(),
+        isTemplate: false,
+        comments: []
+      };
+      
+      await createPost(postData, nest.id);
       setNewPost('');
+      setSelectedMedia([]);
+      setShowMediaUpload(false);
     } catch (err) {
       console.error('createPost failed', err);
       alert('Could not post. Please try again.');
@@ -448,6 +496,32 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
       await toggleLike(nest.id, postId, userUid);
     } catch (err) {
       console.error('toggleLike failed', err);
+    }
+  };
+
+  const handleCommentLike = async (commentId: string) => {
+    try {
+      // This would connect to a comment service
+      console.log('Like comment:', commentId);
+    } catch (err) {
+      console.error('Comment like failed', err);
+    }
+  };
+
+  const handleCommentReply = async (commentId: string, content: string) => {
+    try {
+      // This would connect to a comment service
+      console.log('Reply to comment:', commentId, content);
+    } catch (err) {
+      console.error('Comment reply failed', err);
+    }
+  };
+
+  const handleCommentShare = async (commentId: string) => {
+    try {
+      console.log('Share comment:', commentId);
+    } catch (err) {
+      console.error('Comment share failed', err);
     }
   };
 
@@ -497,23 +571,46 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
       </div>
 
       {/* Compose */}
-      <div className="flex gap-3 px-1">
-        <input
-          type="text"
-          value={newPost}
-          onChange={(e) => setNewPost(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handlePost()}
-          placeholder="Share something with the nest..."
-          maxLength={500}
-          className="flex-1 h-12 px-5 bg-white/60 backdrop-blur-xl rounded-2xl border border-slate-200 text-sm focus:outline-none focus:border-rose-300 transition-colors"
-        />
-        <button
-          onClick={handlePost}
-          disabled={!newPost.trim()}
-          className="w-12 h-12 bg-rose-900 text-white rounded-2xl flex items-center justify-center disabled:opacity-30 hover:bg-rose-800 active:scale-95 transition-all"
-        >
-          <Send size={18} />
-        </button>
+      <div className="bg-white/60 backdrop-blur-xl p-6 rounded-[2.5rem] border border-slate-200">
+        <div className="space-y-4">
+          {/* Media Upload */}
+          {showMediaUpload && (
+            <MediaUpload
+              onMediaSelect={handleMediaSelect}
+              maxFiles={4}
+              className="mb-4"
+            />
+          )}
+
+          {/* Text Input */}
+          <textarea
+            value={newPost}
+            onChange={(e) => setNewPost(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handlePost()}
+            placeholder="Share something with your nest..."
+            className="w-full px-4 py-3 bg-white/60 backdrop-blur-xl rounded-2xl border border-slate-200 text-sm focus:outline-none focus:border-rose-300 transition-colors resize-none"
+            rows={3}
+            maxLength={1000}
+          />
+
+          {/* Media Toggle Button */}
+          <button
+            onClick={() => setShowMediaUpload(!showMediaUpload)}
+            className="w-full py-3 bg-rose-50 text-rose-600 rounded-2xl text-sm font-medium hover:bg-rose-100 transition-colors flex items-center justify-center gap-2"
+          >
+            <Plus size={20} />
+            {showMediaUpload ? 'Hide Media' : 'Add Media'}
+          </button>
+
+          {/* Post Button */}
+          <button
+            onClick={handlePost}
+            disabled={!newPost.trim() && selectedMedia.length === 0}
+            className="w-full h-12 bg-rose-900 text-white rounded-2xl flex items-center justify-center disabled:opacity-30 hover:bg-rose-800 active:scale-95 transition-all"
+          >
+            <Send size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Posts */}
@@ -527,43 +624,123 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
             No posts yet. Be the first to share!
           </div>
         ) : (
-          posts.map(post => {
-            const isLiked = post.likedBy.includes(userUid);
-            const canDelete = post.authorUid === userUid;
-            return (
-              <div key={post.id} className="bg-white/60 backdrop-blur-xl p-5 rounded-[2rem] border border-slate-100 space-y-3 animate-slide-up">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-[10px] font-black text-rose-600">
-                      {post.authorName.charAt(0)}
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-slate-700">{post.authorName}</span>
-                      <span className="text-[10px] text-slate-400 ml-2">{timeAgo(post.createdAt)}</span>
-                    </div>
+          posts.map(post => (
+            <div key={post.id} className="bg-white/60 backdrop-blur-xl p-5 rounded-[2rem] border border-slate-100 space-y-3 animate-slide-up">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-[10px] font-black text-rose-600">
+                    {post.authorName.charAt(0).toUpperCase()}
                   </div>
-                  {canDelete && (
+                  <div>
+                    <div className="font-bold text-slate-700">{post.authorName}</div>
+                    <span className="text-xs text-slate-400 ml-2">{timeAgo(post.createdAt)}</span>
+                  </div>
+                </div>
+
+                {/* Post Actions */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleLike(post.id)}
+                    className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors ${
+                      post.likedBy.includes(userUid) 
+                        ? 'text-rose-500' 
+                        : 'text-slate-400 hover:text-rose-400'
+                    }`}
+                  >
+                    <Heart size={14} fill={post.likedBy.includes(userUid) ? 'currentColor' : 'none'} />
+                    <span>{post.likeCount}</span>
+                  </button>
+                  
+                  <button
+                    className="text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <Share2 size={14} />
+                  </button>
+
+                  {post.authorUid === userUid && (
                     <button
                       onClick={() => handleDeletePost(post.id)}
-                      className="p-1.5 text-slate-300 hover:text-red-400 transition-colors"
+                      className="text-slate-400 hover:text-red-400 transition-colors"
                     >
                       <Trash2 size={14} />
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-slate-600 leading-relaxed">{post.content}</p>
-                <button
-                  onClick={() => handleLike(post.id)}
-                  className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors ${
-                    isLiked ? 'text-rose-500' : 'text-slate-400 hover:text-rose-400'
-                  }`}
-                >
-                  <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
-                  {post.likeCount}
-                </button>
               </div>
-            );
-          })
+
+              {/* Post Content */}
+              <div className="space-y-3">
+                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap break-words">
+                  {post.content}
+                </p>
+
+                {/* Media Attachments */}
+                {post.attachments && post.attachments.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {post.attachments.map((attachment) => (
+                      <div key={attachment.id} className="relative group">
+                        {attachment.type === 'image' ? (
+                          <img
+                            src={attachment.url}
+                            alt="Attachment"
+                            className="max-w-sm rounded-xl border border-slate-200 object-cover cursor-pointer hover:border-rose-300 transition-colors"
+                            style={{ maxHeight: '300px' }}
+                            onClick={() => window.open(attachment.url, '_blank')}
+                          />
+                        ) : (
+                          <div className="relative">
+                            <video
+                              src={attachment.url}
+                              className="max-w-sm rounded-xl border border-slate-200 cursor-pointer"
+                              style={{ maxHeight: '300px' }}
+                              controls
+                              onClick={() => window.open(attachment.url, '_blank')}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                              <Video size={24} className="text-white" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Comments Section */}
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <h4 className="text-lg font-semibold text-slate-800 mb-4">Comments</h4>
+                  
+                  {/* Add Comment Form */}
+                  <div className="mb-4">
+                    <textarea
+                      placeholder="Add a comment..."
+                      className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-rose-300 resize-none"
+                      rows={3}
+                    />
+                    <button className="mt-2 px-4 py-2 bg-rose-500 text-white rounded-xl text-sm font-medium hover:bg-rose-600 transition-colors">
+                      Post Comment
+                    </button>
+                  </div>
+
+                  {/* Comments Display */}
+                  {post.comments && post.comments.length > 0 && (
+                    <div className="space-y-4">
+                      {post.comments.map((comment) => (
+                        <Comment
+                          key={comment.id}
+                          comment={comment}
+                          onLike={handleCommentLike}
+                          onReply={handleCommentReply}
+                          onShare={handleCommentShare}
+                          isAuthor={post.authorUid === userUid}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>
