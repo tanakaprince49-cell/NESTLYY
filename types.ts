@@ -381,8 +381,32 @@ export interface NestPost {
   authorUid: string;
   authorName: string;
   content: string;
+  media?: NestMedia[];
+  likedBy: string[];
+  likeCount: number;
+  commentCount: number;
+  createdAt: number;
+  isTemplate: boolean;
+}
+
+export interface NestMedia {
+  id: string;
+  type: 'image' | 'video';
+  url: string;
+  thumbnail?: string;
+  filename: string;
+  size: number;
+}
+
+export interface NestComment {
+  id: string;
+  postId: string;
+  authorUid: string;
+  authorName: string;
+  content: string;
   likedBy: string[];
   likeCount: number;
   createdAt: number;
-  isTemplate: boolean;
+  replyTo?: string; // ID of the comment this is replying to
+  replies?: NestComment[]; // Nested replies
 }

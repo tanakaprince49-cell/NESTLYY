@@ -16,12 +16,13 @@ import {
   arrayRemove,
   Timestamp,
   getDocs,
-  type Unsubscribe,
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '../firebase.ts';
-import type { Nest, NestMembership, NestPost, NestCategory } from '../types.ts';
+import type { Nest, NestMembership, NestPost, NestCategory, NestMedia, NestComment } from '../types.ts';
+
+export type Unsubscribe = ReturnType<typeof onSnapshot>;
 
 const NESTS = 'nests';
 const MEMBERSHIPS = 'memberships';
@@ -66,8 +67,10 @@ function postFromDoc(snap: QueryDocumentSnapshot<DocumentData>, nestId: string):
     authorUid: d.authorUid ?? '',
     authorName: d.authorName ?? '',
     content: d.content ?? '',
+    media: Array.isArray(d.media) ? d.media : [],
     likedBy: Array.isArray(d.likedBy) ? d.likedBy : [],
     likeCount: d.likeCount ?? 0,
+    commentCount: d.commentCount ?? 0,
     createdAt: tsToMs(d.createdAt),
     isTemplate: d.isTemplate ?? false,
   };
@@ -171,15 +174,17 @@ export function subscribeToNestPosts(
 
 export async function createPost(
   nestId: string,
-  input: { content: string; authorUid: string; authorName: string },
+  input: { content: string; authorUid: string; authorName: string; media?: NestMedia[] },
 ): Promise<string> {
   const postRef = doc(collection(db, NESTS, nestId, POSTS));
   await setDoc(postRef, {
     authorUid: input.authorUid,
     authorName: input.authorName,
     content: input.content,
+    media: input.media || [],
     likedBy: [],
     likeCount: 0,
+    commentCount: 0,
     createdAt: serverTimestamp(),
     isTemplate: false,
   });
@@ -206,5 +211,116 @@ export async function toggleLike(
       likedBy: hasLiked ? arrayRemove(userId) : arrayUnion(userId),
       likeCount: increment(hasLiked ? -1 : 1),
     });
+  });
+}
+
+// --- Comments ---
+
+export function subscribeToPostComments(
+  nestId: string,
+  postId: string,
+  callback: (comments: NestComment[]) => void,
+): Unsubscribe {
+  const q = query(collection(db, NESTS, nestId, POSTS, postId, 'comments'), orderBy('createdAt', 'asc'));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map(commentFromDoc));
+  });
+}
+
+function commentFromDoc(snap: QueryDocumentSnapshot<DocumentData>): NestComment {
+  const d = snap.data();
+  return {
+    id: snap.id,
+    postId: d.postId ?? '',
+    authorUid: d.authorUid ?? '',
+    authorName: d.authorName ?? '',
+    content: d.content ?? '',
+    likedBy: Array.isArray(d.likedBy) ? d.likedBy : [],
+    likeCount: d.likeCount ?? 0,
+    createdAt: tsToMs(d.createdAt),
+    replyTo: d.replyTo,
+  };
+}
+
+export async function createComment(
+  nestId: string,
+  postId: string,
+  input: { content: string; authorUid: string; authorName: string; replyTo?: string },
+): Promise<string> {
+  const commentRef = doc(collection(db, NESTS, nestId, POSTS, postId, 'comments'));
+  const batch = writeBatch(db);
+  batch.set(commentRef, {
+    postId,
+    authorUid: input.authorUid,
+    authorName: input.authorName,
+    content: input.content,
+    replyTo: input.replyTo,
+    likedBy: [],
+    likeCount: 0,
+    createdAt: serverTimestamp(),
+  });
+  batch.update(doc(db, NESTS, nestId, POSTS, postId), {
+    commentCount: increment(1),
+  });
+  await batch.commit();
+  return commentRef.id;
+}
+
+export async function deleteComment(
+  nestId: string,
+  postId: string,
+  commentId: string,
+): Promise<void> {
+  const batch = writeBatch(db);
+  batch.delete(doc(db, NESTS, nestId, POSTS, postId, 'comments', commentId));
+  batch.update(doc(db, NESTS, nestId, POSTS, postId), {
+    commentCount: increment(-1),
+  });
+  await batch.commit();
+}
+
+export async function toggleCommentLike(
+  nestId: string,
+  postId: string,
+  commentId: string,
+  userId: string,
+): Promise<void> {
+  const commentRef = doc(db, NESTS, nestId, POSTS, postId, 'comments', commentId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(commentRef);
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const likedBy: string[] = Array.isArray(data.likedBy) ? data.likedBy : [];
+    const hasLiked = likedBy.includes(userId);
+    tx.update(commentRef, {
+      likedBy: hasLiked ? arrayRemove(userId) : arrayUnion(userId),
+      likeCount: increment(hasLiked ? -1 : 1),
+    });
+  });
+}
+
+// --- Sharing ---
+
+export async function sharePost(
+  nestId: string,
+  postId: string,
+  sharerUid: string,
+  sharerName: string,
+  shareMessage?: string,
+): Promise<string> {
+  const originalPostRef = doc(db, NESTS, nestId, POSTS, postId);
+  const originalSnap = await getDoc(originalPostRef);
+  if (!originalSnap.exists()) throw new Error('Post not found');
+
+  const originalData = originalSnap.data();
+  const shareContent = shareMessage
+    ? `${shareMessage}\n\nShared from ${originalData.authorName}: "${originalData.content}"`
+    : `Shared from ${originalData.authorName}: "${originalData.content}"`;
+
+  return await createPost(nestId, {
+    content: shareContent,
+    authorUid: sharerUid,
+    authorName: sharerName,
+    media: originalData.media,
   });
 }

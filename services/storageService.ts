@@ -465,14 +465,15 @@ class StorageService {
   removeNestPost(id: string): void {
     this.setItem(KEYS.VILLAGE_POSTS, this.getAllNestPosts().filter(p => p.id !== id));
   }
-  toggleNestPostLike(id: string): void {
+  toggleNestPostLike(id: string, userId: string): void {
     const posts = this.getAllNestPosts();
     const index = posts.findIndex(p => p.id === id);
     if (index >= 0) {
+      const isLiked = posts[index].likedBy.includes(userId);
       posts[index] = {
         ...posts[index],
-        likedByUser: !posts[index].likedByUser,
-        likeCount: posts[index].likedByUser ? Math.max(0, posts[index].likeCount - 1) : posts[index].likeCount + 1,
+        likedBy: isLiked ? posts[index].likedBy.filter(uid => uid !== userId) : [...posts[index].likedBy, userId],
+        likeCount: isLiked ? Math.max(0, posts[index].likeCount - 1) : posts[index].likeCount + 1,
       };
       this.setItem(KEYS.VILLAGE_POSTS, posts);
     }

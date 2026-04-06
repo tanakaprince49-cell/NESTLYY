@@ -320,7 +320,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
       case 'bump':
         return <BumpDiary bumpPhotos={bumpPhotos} onUpdateBumpPhotos={() => { setBumpPhotos(storage.getBumpPhotos()); onUpdateBumpPhotos?.(); }} progressWeeks={progressWeeks} />;
       case 'memories':
-        return <MemoriesTracker albums={albums} onUpdateAlbums={() => { setAlbums(storage.getAlbums()); onUpdateProfile?.({ ...profile, albums: storage.getAlbums() }); }} />;
+        return <MemoriesTracker profile={profile} />;
       case 'calm':
         return <CalmTracker onAddJournal={onAddJournal} journalEntries={journalEntries} />;
       case 'birth':
