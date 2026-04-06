@@ -19,7 +19,7 @@ export function getTemplatePosts(): NestPost[] {
   const now = Date.now();
   const base = (id: string, nestId: string, content: string, likeCount: number, daysAgo: number): NestPost => ({
     id, nestId, authorUid: SYSTEM_UID, authorName: SYSTEM_NAME,
-    content, likedBy: [], likeCount, createdAt: now - daysAgo * DAY, isTemplate: true,
+    content, likedBy: [], likeCount, commentCount: 0, createdAt: now - daysAgo * DAY, isTemplate: true,
   });
   return [
     base('seed-1', 'tmpl-1', 'Welcome! Share how you are feeling in your first trimester. Morning sickness, scans, or the flood of emotions -- this space is for you.', 7, 2),

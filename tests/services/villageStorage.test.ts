@@ -24,17 +24,20 @@ const makeNest = (overrides: Partial<Nest> = {}): Nest => ({
   memberCount: 1,
   isTemplate: false,
   createdAt: Date.now(),
+  creatorUid: null,
   ...overrides,
 });
 
 const makePost = (overrides: Partial<NestPost> = {}): NestPost => ({
   id: crypto.randomUUID(),
   nestId: 'nest-1',
+  authorUid: 'user-1',
   authorName: 'Test User',
   content: 'Hello!',
-  likedByUser: false,
+  likedBy: [],
   likeCount: 0,
-  timestamp: Date.now(),
+  commentCount: 0,
+  createdAt: Date.now(),
   isTemplate: false,
   ...overrides,
 });
@@ -68,8 +71,8 @@ describe('memberships', () => {
 
 describe('posts', () => {
   it('addNestPost prepends to list', () => {
-    const p1 = makePost({ id: 'p1', timestamp: 1 });
-    const p2 = makePost({ id: 'p2', timestamp: 2 });
+    const p1 = makePost({ id: 'p1', createdAt: 1 });
+    const p2 = makePost({ id: 'p2', createdAt: 2 });
     storage.addNestPost(p1);
     storage.addNestPost(p2);
     const all = storage.getAllNestPosts();
@@ -99,31 +102,31 @@ describe('posts', () => {
 
 describe('like toggle', () => {
   it('toggles like on: false -> true, count +1', () => {
-    storage.addNestPost(makePost({ id: 'p1', likedByUser: false, likeCount: 5 }));
-    storage.toggleNestPostLike('p1');
+    storage.addNestPost(makePost({ id: 'p1', likeCount: 5 }));
+    storage.toggleNestPostLike('p1', 'user-1');
     const post = storage.getAllNestPosts()[0];
-    expect(post.likedByUser).toBe(true);
+    expect(post.likedBy.includes('user-1')).toBe(true);
     expect(post.likeCount).toBe(6);
   });
 
   it('toggles like off: true -> false, count -1', () => {
-    storage.addNestPost(makePost({ id: 'p1', likedByUser: true, likeCount: 5 }));
-    storage.toggleNestPostLike('p1');
+    storage.addNestPost(makePost({ id: 'p1', likeCount: 5, likedBy: ['user-1'] }));
+    storage.toggleNestPostLike('p1', 'user-1');
     const post = storage.getAllNestPosts()[0];
-    expect(post.likedByUser).toBe(false);
+    expect(post.likedBy.includes('user-1')).toBe(false);
     expect(post.likeCount).toBe(4);
   });
 
   it('likeCount does not go below zero', () => {
-    storage.addNestPost(makePost({ id: 'p1', likedByUser: true, likeCount: 0 }));
-    storage.toggleNestPostLike('p1');
+    storage.addNestPost(makePost({ id: 'p1', likeCount: 0, likedBy: ['user-1'] }));
+    storage.toggleNestPostLike('p1', 'user-1');
     const post = storage.getAllNestPosts()[0];
-    expect(post.likedByUser).toBe(false);
+    expect(post.likedBy.includes('user-1')).toBe(false);
     expect(post.likeCount).toBe(0);
   });
 
   it('toggle on nonexistent does not throw', () => {
-    expect(() => storage.toggleNestPostLike('nonexistent')).not.toThrow();
+    expect(() => storage.toggleNestPostLike('nonexistent', 'user-1')).not.toThrow();
   });
 });
 

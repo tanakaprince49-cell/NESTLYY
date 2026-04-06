@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2, MessageCircle, Share2, Camera, Video, Paperclip, Search } from 'lucide-react';
 import { PregnancyProfile, NestCategory, Nest, NestPost, NestMembership, NestComment, NestMedia } from '../types.ts';
+import { Layout } from './Layout.tsx';
+import { subscribeToPostComments, type Unsubscribe } from '../services/villageService.ts';
 import {
   subscribeToNests,
   subscribeToUserMemberships,
@@ -12,7 +14,6 @@ import {
   createPost,
   deletePost,
   toggleLike,
-  subscribeToPostComments,
   createComment,
   deleteComment,
   toggleCommentLike,

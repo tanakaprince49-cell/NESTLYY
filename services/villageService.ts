@@ -16,12 +16,13 @@ import {
   arrayRemove,
   Timestamp,
   getDocs,
-  type Unsubscribe,
   type DocumentData,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '../firebase.ts';
 import type { Nest, NestMembership, NestPost, NestCategory, NestMedia, NestComment } from '../types.ts';
+
+export type Unsubscribe = ReturnType<typeof onSnapshot>;
 
 const NESTS = 'nests';
 const MEMBERSHIPS = 'memberships';
