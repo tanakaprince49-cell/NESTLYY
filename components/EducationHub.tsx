@@ -19,6 +19,13 @@ interface LocalArticle {
   summary: string;
 }
 
+interface StageGuidance {
+  title: string;
+  feelings: string[];
+  happenings: string[];
+  focus: string[];
+}
+
 const educationalContent: LocalArticle[] = [
   {
     id: '1',
@@ -203,22 +210,110 @@ const educationalContent: LocalArticle[] = [
 ];
 
 export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolean }> = ({ trimester, isPostpartum }) => {
-  const [filter, setFilter] = useState<Trimester | 'General' | 'Newborn' | 'All'>(isPostpartum ? 'Newborn' : 'All');
+  const [filter, setFilter] = useState<Trimester | 'General' | 'Newborn' | 'All'>(isPostpartum ? 'Newborn' : trimester);
   const [activeCategory, setActiveCategory] = useState<string>('All');
+
+  const stageGuidance = useMemo<StageGuidance>(() => {
+    if (isPostpartum) {
+      return {
+        title: 'Newborn stage',
+        feelings: [
+          'You may feel deeply bonded one moment and overwhelmed the next.',
+          'Sleep deprivation can make mood swings, worry, and irritability stronger.',
+          'Recovery and confidence usually improve week by week.'
+        ],
+        happenings: [
+          'Feeding can be frequent and irregular in the first weeks.',
+          'Newborn sleep is fragmented, with short day and night cycles.',
+          'Growth spurts, cluster feeding, and crying peaks are common.'
+        ],
+        focus: [
+          'Safe sleep setup (back to sleep, firm surface, clear crib).',
+          'Track feeds, diapers, weight checks, and hydration.',
+          'Ask for support early and monitor maternal mental health.'
+        ]
+      };
+    }
+
+    if (trimester === Trimester.FIRST) {
+      return {
+        title: 'First trimester',
+        feelings: [
+          'Nausea, fatigue, and emotional shifts are common.',
+          'Appetite can fluctuate with smell and taste changes.',
+          'Anxiety is normal as you adjust to early pregnancy.'
+        ],
+        happenings: [
+          'Major organ development begins early and rapidly.',
+          'Hormonal changes can affect energy and digestion.',
+          'First scans and screening tests are usually scheduled.'
+        ],
+        focus: [
+          'Folate/iron intake and hydration consistency.',
+          'Rest, symptom tracking, and early prenatal care.',
+          'Review medications and supplements with your clinician.'
+        ]
+      };
+    }
+
+    if (trimester === Trimester.SECOND) {
+      return {
+        title: 'Second trimester',
+        feelings: [
+          'Energy often improves compared to early pregnancy.',
+          'You may feel more emotionally stable and connected.',
+          'Body-image and sleep comfort concerns may increase.'
+        ],
+        happenings: [
+          'Bump growth accelerates and movement may become noticeable.',
+          'Anatomy scan and growth checks become central.',
+          'Muscle/back strain and heartburn can become more frequent.'
+        ],
+        focus: [
+          'Balanced nutrition and gradual activity.',
+          'Sleep support, posture care, and hydration.',
+          'Prepare questions for anatomy and follow-up scans.'
+        ]
+      };
+    }
+
+    return {
+      title: 'Third trimester',
+      feelings: [
+        'Excitement and anxiety can rise as birth approaches.',
+        'Sleep may become lighter with frequent wake-ups.',
+        'Physical fatigue and emotional sensitivity may increase.'
+      ],
+      happenings: [
+        'Rapid fetal growth and stronger fetal movement patterns.',
+        'Braxton Hicks, pelvic pressure, and swelling may appear.',
+        'Birth planning and final checks become frequent.'
+      ],
+      focus: [
+        'Monitor warning signs and movement patterns.',
+        'Pack essentials and confirm birth/support plans.',
+        'Plan postpartum support and newborn-safe home setup.'
+      ]
+    };
+  }, [isPostpartum, trimester]);
 
   // Sync filter when isPostpartum changes
   useEffect(() => {
     if (isPostpartum) {
       setFilter('Newborn');
     } else {
-      setFilter('All');
+      setFilter(trimester);
     }
-  }, [isPostpartum]);
+  }, [isPostpartum, trimester]);
 
   const filteredArticles = educationalContent.filter(a => {
     const stageMatch = filter === 'All' ? true : a.trimester === filter || a.trimester === 'General';
     const categoryMatch = activeCategory === 'All' ? true : a.category === activeCategory;
     return stageMatch && categoryMatch;
+  }).sort((a, b) => {
+    const aScore = a.trimester === filter ? 0 : 1;
+    const bScore = b.trimester === filter ? 0 : 1;
+    return aScore - bScore;
   });
 
   const categories = ['All', 'Pregnancy Health', 'Baby Development', 'Nutrition', 'Newborn Care'];
@@ -241,6 +336,41 @@ export const EducationHub: React.FC<{ trimester: Trimester, isPostpartum: boolea
       </div>
 
       <div className="space-y-4 px-4">
+        <div className="bg-white border border-rose-100 rounded-[2rem] p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <h3 className="text-lg font-serif text-rose-800">{stageGuidance.title} update</h3>
+            <span className="text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-500 px-3 py-1 rounded-full">
+              Auto-updated by stage
+            </span>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">What you might feel</p>
+              <ul className="space-y-2">
+                {stageGuidance.feelings.map((item, idx) => (
+                  <li key={idx} className="text-sm text-slate-600 leading-relaxed">{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">What might happen</p>
+              <ul className="space-y-2">
+                {stageGuidance.happenings.map((item, idx) => (
+                  <li key={idx} className="text-sm text-slate-600 leading-relaxed">{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">What to focus on</p>
+              <ul className="space-y-2">
+                {stageGuidance.focus.map((item, idx) => (
+                  <li key={idx} className="text-sm text-slate-600 leading-relaxed">{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {/* Category Filter */}
         <div className="flex flex-wrap gap-2 justify-center">
           {categories.map(cat => (
