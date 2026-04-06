@@ -270,7 +270,7 @@ export async function createComment(
       commentCount: increment(1),
     });
   } catch (countErr) {
-    console.warn('commentCount increment failed (comment was still created)', countErr);
+    console.error('commentCount increment failed (comment was still created)', countErr);
   }
   return commentRef.id;
 }

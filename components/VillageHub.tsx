@@ -653,6 +653,8 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
       await toggleCommentLike(nest.id, postId, commentId, userUid);
     } catch (err) {
       console.error('toggleCommentLike failed', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(`Could not like comment: ${msg}`);
     }
   };
 
