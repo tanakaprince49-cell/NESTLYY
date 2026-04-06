@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { storage } from '../../services/storageService.ts';
 import { MemoryAlbums, MemoryPhoto } from '../../types.ts';
 import { AnimatePresence, motion } from 'motion/react';
-import { Camera as CameraIcon, Baby, Heart, Home, Users, Sparkles, Plus, X, Images } from 'lucide-react';
+import { Camera as CameraIcon, Baby, Heart, Home, Users, Sparkles, Plus, X, Images, Download } from 'lucide-react';
 
 interface MemoriesTrackerProps {
   albums: MemoryAlbums;
@@ -48,6 +48,16 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
       }
     };
     input.click();
+  };
+
+  const handleDownloadPhoto = (photo: MemoryPhoto) => {
+    const extensionMatch = photo.url.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,/);
+    const extension = extensionMatch?.[1]?.replace('jpeg', 'jpg') || 'jpg';
+    const fileName = `nestly-memory-${new Date(photo.timestamp).toISOString().slice(0, 10)}.${extension}`;
+    const link = document.createElement('a');
+    link.href = photo.url;
+    link.download = fileName;
+    link.click();
   };
 
   return (
@@ -219,7 +229,6 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
           </motion.div>
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {pendingAdd && (
           <motion.div
@@ -311,6 +320,14 @@ export const MemoriesTracker: React.FC<MemoriesTrackerProps> = ({ albums, onUpda
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     {new Date(activePhoto.timestamp).toLocaleString()}
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadPhoto(activePhoto)}
+                    className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-rose-100 active:scale-95 transition-all"
+                  >
+                    <Download size={14} />
+                    Download image
+                  </button>
                 </div>
               </div>
             </motion.div>
