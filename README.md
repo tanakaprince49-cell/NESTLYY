@@ -24,7 +24,7 @@ Live at [nestlyhealth.com](https://nestlyhealth.com).
 
    | Variable | Required | Purpose |
    |----------|----------|---------|
-   | `OPENROUTER_API_KEY` | Yes | AI features (Ava chat, Custom Plan, Symptom Decoder) via DeepSeek |
+   | `OPENROUTER_API_KEY` | Yes | AI features (Ava chat, Custom Plan) via DeepSeek |
    | `FIREBASE_SERVICE_ACCOUNT` | Yes | Firebase Admin -- auth verification, push notifications |
    | `VITE_FIREBASE_VAPID_KEY` | Yes | Firebase Cloud Messaging (push notifications) |
    | `RESEND_API_KEY` | No | Email service |

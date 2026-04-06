@@ -60,7 +60,6 @@ Copy `.env.example` to `.env.local`. Key variables:
 
 **Serverless API** (`api/`): Vercel serverless functions for production endpoints:
 - `api/ava.js` — Ava AI chat endpoint (requires Firebase ID token)
-- `api/symptom-decode.js` — Symptom decoder AI endpoint (requires Firebase ID token)
 - `api/custom-plan.js` — Personalized meal plan AI endpoint (requires Firebase ID token)
 - `api/food-research.js` — Food nutrition research (public, no auth)
 - `api/push/token.js` — Push notification token storage
