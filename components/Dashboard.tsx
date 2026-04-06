@@ -128,6 +128,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
   const [activeMetric, setActiveMetric] = useState<'fuel' | 'weight' | 'sleep' | 'feeding' | 'tummy'>(isPostpartum ? 'feeding' : 'fuel');
+  const [chartType, setChartType] = useState<'area' | 'line' | 'bar'>('area');
+  const [trendRange, setTrendRange] = useState<'7d' | '30d' | 'all'>('7d');
 
   useEffect(() => {
     if (isPostpartum && (activeMetric === 'fuel' || activeMetric === 'weight')) {
@@ -305,6 +307,79 @@ export const Dashboard: React.FC<DashboardProps> = ({
       };
     });
   }, [entries, weightLogs, sleepLogs, feedingLogs, tummyTimeLogs, profile.startingWeight, selectedBabyId]);
+
+  const trendChartData = useMemo(() => {
+    const now = new Date();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const toStartOfDay = (ts: number) => {
+      const d = new Date(ts);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime();
+    };
+
+    const allTimestamps = [
+      ...entries.map(e => e.timestamp),
+      ...weightLogs.map(w => w.timestamp),
+      ...sleepLogs.map(s => s.timestamp),
+      ...feedingLogs.map(f => f.timestamp),
+      ...tummyTimeLogs.map(t => t.timestamp),
+    ];
+
+    const defaultStart = toStartOfDay(now.getTime() - 29 * dayMs);
+    const earliest = allTimestamps.length > 0 ? Math.min(...allTimestamps) : defaultStart;
+    const start =
+      trendRange === 'all'
+        ? toStartOfDay(earliest)
+        : toStartOfDay(now.getTime() - (trendRange === '30d' ? 29 : 6) * dayMs);
+    const end = toStartOfDay(now.getTime());
+
+    const filterByBaby = <T extends { babyId?: string }>(logs: T[]) => {
+      if (selectedBabyId === 'combined') return logs;
+      return logs.filter(l => l.babyId === selectedBabyId);
+    };
+
+    const rows: Array<{ date: string; fuel: number; weight: number; sleep: number; feeding: number; tummy: number }> = [];
+    for (let day = start; day <= end; day += dayMs) {
+      const dayEnd = day + dayMs - 1;
+      const dayEntries = entries.filter(e => e.timestamp >= day && e.timestamp <= dayEnd);
+      const dayWeight = [...weightLogs]
+        .filter(w => w.timestamp <= dayEnd)
+        .sort((a, b) => b.timestamp - a.timestamp)[0];
+      const daySleep = filterByBaby(sleepLogs).filter(s => s.timestamp >= day && s.timestamp <= dayEnd);
+      const dayFeeding = filterByBaby(feedingLogs).filter(f => f.timestamp >= day && f.timestamp <= dayEnd);
+      const dayTummy = filterByBaby(tummyTimeLogs).filter(t => t.timestamp >= day && t.timestamp <= dayEnd);
+      const dateLabel = new Date(day).toLocaleDateString([], {
+        month: trendRange === 'all' ? 'short' : undefined,
+        day: 'numeric',
+        weekday: trendRange === '7d' ? 'short' : undefined,
+      });
+
+      rows.push({
+        date: dateLabel,
+        fuel: dayEntries.reduce((acc, curr) => acc + (curr.calories || 0), 0),
+        weight: dayWeight?.weight || profile.startingWeight || 0,
+        sleep: daySleep.reduce((acc, curr) => acc + calculateDurationMinutes(curr.startTime, curr.endTime) / 60, 0),
+        feeding: dayFeeding.length,
+        tummy: dayTummy.reduce((acc, curr) => acc + curr.duration, 0) / 3600,
+      });
+    }
+    return rows;
+  }, [trendRange, entries, weightLogs, sleepLogs, feedingLogs, tummyTimeLogs, selectedBabyId, profile.startingWeight]);
+
+  const handleExportTrendsCsv = () => {
+    const header = ['date', 'nutrition_kcal', 'weight_kg', 'sleep_hours', 'feeding_sessions', 'tummy_time_hours'];
+    const rows = trendChartData.map((row) =>
+      [row.date, row.fuel.toFixed(2), row.weight.toFixed(2), row.sleep.toFixed(2), row.feeding, row.tummy.toFixed(2)].join(',')
+    );
+    const csv = [header.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `nestly-trends-${trendRange}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const targets = profile.customTargets || {
     cals: 2200,
@@ -508,35 +583,66 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           {/* Newborn Analytics */}
           <div className="space-y-4">
-            <div className="card-premium p-6 bg-white border-2 border-slate-50 h-80">
+            <div className="card-premium p-6 bg-white border-2 border-slate-50 h-96">
               <div className="flex justify-between items-center mb-6">
                 <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Baby Activity Trends</h4>
-                <div className="flex gap-2">
-                  {(['feeding', 'sleep', 'tummy'] as const).map(m => (
-                    <button 
-                      key={m} 
-                      onClick={() => setActiveMetric(m as any)}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
-                    >
-                      {m === 'feeding' ? <Milk size={16} /> : m === 'sleep' ? <Moon size={16} /> : <Activity size={16} />}
-                    </button>
-                  ))}
-                </div>
+                <button onClick={handleExportTrendsCsv} className="text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl bg-slate-900 text-white flex items-center gap-1">
+                  <Download size={12} /> CSV
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {(['7d', '30d', 'all'] as const).map(range => (
+                  <button key={range} onClick={() => setTrendRange(range)} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${trendRange === range ? 'bg-rose-500 text-white' : 'bg-slate-50 text-slate-500'}`}>
+                    {range}
+                  </button>
+                ))}
+                {(['area', 'line', 'bar'] as const).map(type => (
+                  <button key={type} onClick={() => setChartType(type)} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${chartType === type ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-500'}`}>
+                    {type}
+                  </button>
+                ))}
+                {(['feeding', 'sleep', 'tummy', 'fuel', 'weight'] as const).map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setActiveMetric(m)}
+                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
+                  >
+                    {m}
+                  </button>
+                ))}
               </div>
               <ResponsiveContainer width="100%" height="80%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorNewborn" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
-                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
-                  <Area type="monotone" dataKey={activeMetric} stroke={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : '#f97316'} fillOpacity={1} fill="url(#colorNewborn)" strokeWidth={3} />
-                </AreaChart>
+                {chartType === 'area' ? (
+                  <AreaChart data={trendChartData}>
+                    <defs>
+                      <linearGradient id="colorNewborn" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : activeMetric === 'fuel' ? '#f59e0b' : activeMetric === 'weight' ? '#8b5cf6' : '#f97316'} stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor={activeMetric === 'feeding' ? '#f43f5e' : activeMetric === 'sleep' ? '#6366f1' : activeMetric === 'fuel' ? '#f59e0b' : activeMetric === 'weight' ? '#8b5cf6' : '#f97316'} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                    <Area type="monotone" dataKey={activeMetric} stroke="#f43f5e" fillOpacity={1} fill="url(#colorNewborn)" strokeWidth={3} />
+                  </AreaChart>
+                ) : chartType === 'line' ? (
+                  <LineChart data={trendChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                    <Line type="monotone" dataKey={activeMetric} stroke="#f43f5e" strokeWidth={3} dot={{ r: 2 }} />
+                  </LineChart>
+                ) : (
+                  <BarChart data={trendChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                    <Bar dataKey={activeMetric} fill="#f43f5e" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                )}
               </ResponsiveContainer>
             </div>
           </div>
@@ -743,35 +849,66 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Analytics Chart */}
-          <div className="card-premium p-6 bg-white border-2 border-slate-50 h-80">
+          <div className="card-premium p-6 bg-white border-2 border-slate-50 h-96">
             <div className="flex justify-between items-center mb-6">
-              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Weekly Analytics</h4>
-              <div className="flex gap-2">
-                {(['fuel', 'weight', 'sleep'] as const).map(m => (
-                  <button 
-                    key={m} 
-                    onClick={() => setActiveMetric(m)}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
-                  >
-                    {m === 'fuel' ? <Apple size={16} /> : m === 'weight' ? <Scale size={16} /> : <Moon size={16} />}
-                  </button>
-                ))}
-              </div>
+              <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Trends Analytics</h4>
+              <button onClick={handleExportTrendsCsv} className="text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl bg-slate-900 text-white flex items-center gap-1">
+                <Download size={12} /> CSV
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {(['7d', '30d', 'all'] as const).map(range => (
+                <button key={range} onClick={() => setTrendRange(range)} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${trendRange === range ? 'bg-rose-500 text-white' : 'bg-slate-50 text-slate-500'}`}>
+                  {range}
+                </button>
+              ))}
+              {(['area', 'line', 'bar'] as const).map(type => (
+                <button key={type} onClick={() => setChartType(type)} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${chartType === type ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-500'}`}>
+                  {type}
+                </button>
+              ))}
+              {(['fuel', 'weight', 'sleep', 'feeding', 'tummy'] as const).map(m => (
+                <button
+                  key={m}
+                  onClick={() => setActiveMetric(m)}
+                  className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeMetric === m ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-50 text-slate-400'}`}
+                >
+                  {m}
+                </button>
+              ))}
             </div>
             <ResponsiveContainer width="100%" height="80%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
-                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
-                <Area type="monotone" dataKey={activeMetric} stroke="#f43f5e" fillOpacity={1} fill="url(#colorMetric)" strokeWidth={3} />
-              </AreaChart>
+              {chartType === 'area' ? (
+                <AreaChart data={trendChartData}>
+                  <defs>
+                    <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                  <Area type="monotone" dataKey={activeMetric} stroke="#f43f5e" fillOpacity={1} fill="url(#colorMetric)" strokeWidth={3} />
+                </AreaChart>
+              ) : chartType === 'line' ? (
+                <LineChart data={trendChartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                  <Line type="monotone" dataKey={activeMetric} stroke="#f43f5e" strokeWidth={3} dot={{ r: 2 }} />
+                </LineChart>
+              ) : (
+                <BarChart data={trendChartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#94a3b8'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 9, fill: '#cbd5e1'}} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontSize: '10px' }} />
+                  <Bar dataKey={activeMetric} fill="#f43f5e" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </div>
         </>
