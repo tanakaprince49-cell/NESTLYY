@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2, MessageCircle, Share2, Camera, Video, Paperclip, Search } from 'lucide-react';
+import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2, MessageCircle, Share2, Camera, Video, Paperclip, Search, ArrowUpDown } from 'lucide-react';
 import { PregnancyProfile, NestCategory, Nest, NestPost, NestMembership, NestComment, NestMedia } from '../types.ts';
 import { subscribeToPostComments, type Unsubscribe } from '../services/villageService.ts';
 import {
@@ -57,6 +57,8 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<NestCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'popular' | 'newest'>('popular');
 
   const [nests, setNests] = useState<Nest[]>([]);
   const [memberships, setMemberships] = useState<NestMembership[]>([]);
@@ -88,27 +90,38 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
     };
   }, [userUid]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const joinedIds = useMemo(() => new Set(memberships.map((m) => m.nestId)), [memberships]);
 
   const filteredDiscover = useMemo(() => {
     let filtered = nests;
 
-    // Apply category filter
     if (categoryFilter !== 'all') {
       filtered = filtered.filter((n) => n.category === categoryFilter);
     }
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase().trim();
       filtered = filtered.filter((n) =>
-        n.name.toLowerCase().includes(query) ||
-        n.description.toLowerCase().includes(query)
+        n.name.toLowerCase().includes(q) ||
+        n.description.toLowerCase().includes(q)
       );
     }
 
-    return filtered;
-  }, [nests, categoryFilter, searchQuery]);
+    // Sort options -- client-side only (data already fully loaded)
+    const sorted = [...filtered];
+    if (sortBy === 'newest') {
+      sorted.sort((a, b) => b.createdAt - a.createdAt);
+    } else {
+      sorted.sort((a, b) => b.memberCount - a.memberCount);
+    }
+
+    return sorted;
+  }, [nests, categoryFilter, debouncedSearch, sortBy]);
 
   const joinedNests = useMemo(
     () => nests.filter((n) => joinedIds.has(n.id)),
@@ -116,13 +129,13 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
   );
 
   const filteredJoinedNests = useMemo(() => {
-    if (!searchQuery.trim()) return joinedNests;
-    const query = searchQuery.toLowerCase().trim();
+    if (!debouncedSearch.trim()) return joinedNests;
+    const q = debouncedSearch.toLowerCase().trim();
     return joinedNests.filter((n) =>
-      n.name.toLowerCase().includes(query) ||
-      n.description.toLowerCase().includes(query)
+      n.name.toLowerCase().includes(q) ||
+      n.description.toLowerCase().includes(q)
     );
-  }, [joinedNests, searchQuery]);
+  }, [joinedNests, debouncedSearch]);
 
   const selectedNest = selectedNestId ? nests.find((n) => n.id === selectedNestId) ?? null : null;
 
@@ -265,7 +278,32 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
           </div>
         </div>
 
-        {/* Category Filter */}
+        {/* Sort + Category Filter */}
+        <div className="flex items-center gap-2 px-1">
+          <button
+            onClick={() => setSortBy('popular')}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
+              sortBy === 'popular'
+                ? 'bg-rose-900 text-white shadow-lg'
+                : 'bg-white/60 text-slate-400 hover:bg-white'
+            }`}
+          >
+            <Users size={12} />
+            Popular
+          </button>
+          <button
+            onClick={() => setSortBy('newest')}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
+              sortBy === 'newest'
+                ? 'bg-rose-900 text-white shadow-lg'
+                : 'bg-white/60 text-slate-400 hover:bg-white'
+            }`}
+          >
+            <ArrowUpDown size={12} />
+            Newest
+          </button>
+        </div>
+
         <div className="flex gap-2 overflow-x-auto pb-1 px-1 no-scrollbar">
           {CATEGORIES.map(cat => (
             <button
@@ -297,7 +335,9 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
         </div>
 
         {filteredDiscover.length === 0 && (
-          <div className="text-center py-12 text-slate-400 text-sm">No nests in this category yet.</div>
+          <div className="text-center py-12 text-slate-400 text-sm">
+            {debouncedSearch.trim() ? 'No nests match your search.' : 'No nests in this category yet.'}
+          </div>
         )}
 
         {/* Info Footer */}
