@@ -1,38 +1,30 @@
-
-import { 
-  PregnancyProfile, 
-  FoodEntry, 
-  SymptomLog, 
-  VitaminLog, 
-  Contraction, 
-  JournalEntry, 
+import {
+  PregnancyProfile,
+  Trimester,
+  LifecycleStage,
+  FoodEntry,
+  SymptomLog,
+  VitaminLog,
+  Contraction,
+  JournalEntry,
   CalendarEvent,
-  UserLog,
   WeightLog,
+  SleepLog,
+  MilestoneLog,
+  HealthLog,
+  ReactionLog,
+  KickLog,
   KegelLog,
   MemoryAlbums,
   MemoryPhoto,
-  SleepLog,
-  KickLog,
-  ChatMessage,
-  PeriodLog,
-  AvaMemoryFact,
-  Article,
-  ArchivedPregnancy,
-  ChecklistItem,
-  ReactionLog,
-  FeedingLog,
-  MilestoneLog,
-  HealthLog,
-  BabyGrowthLog,
-  DiaperLog,
-  Video,
-  MedicationLog,
-  TummyTimeLog,
-  BloodPressureLog,
+  UserLog,
+  WeightLog,
+  KegelLog,
   Nest,
   NestMembership,
-  NestPost
+  NestPost,
+  NestComment,
+  MediaAttachment
 } from '../types.ts';
 
 const KEYS = {
@@ -79,6 +71,7 @@ const KEYS = {
   LAST_WEEK_CELEBRATED: 'last_week_celebrated',
   VILLAGE_MEMBERSHIPS: 'village_memberships',
   VILLAGE_POSTS: 'village_posts',
+  VILLAGE_COMMENTS: 'village_comments',
   VILLAGE_CUSTOM_NESTS: 'village_custom_nests',
 };
 
@@ -479,13 +472,48 @@ class StorageService {
     }
   }
 
+  // Village Hub: Comments
+  getAllComments(): NestComment[] { return this.getItem<NestComment[]>(KEYS.VILLAGE_COMMENTS, []); }
+  getCommentsForPost(postId: string): NestComment[] {
+    return this.getAllComments().filter(c => c.postId === postId);
+  }
+  addComment(comment: NestComment): void {
+    this.setItem(KEYS.VILLAGE_COMMENTS, [comment, ...this.getAllComments()]);
+  }
+  toggleCommentLike(commentId: string): void {
+    const comments = this.getAllComments();
+    const index = comments.findIndex(c => c.id === commentId);
+    if (index >= 0) {
+      const isLiked = comments[index].likedBy.includes(this.getAuthEmail() || '');
+      comments[index] = {
+        ...comments[index],
+        likedBy: isLiked ? comments[index].likedBy.filter(uid => uid !== this.getAuthEmail()) : [...comments[index].likedBy, this.getAuthEmail() || ''],
+        likeCount: isLiked ? Math.max(0, comments[index].likeCount - 1) : comments[index].likeCount + 1,
+      };
+      this.setItem(KEYS.VILLAGE_COMMENTS, comments);
+    }
+  }
+
   // Village Hub: Custom Nests
   getCustomNests(): Nest[] { return this.getItem<Nest[]>(KEYS.VILLAGE_CUSTOM_NESTS, []); }
   addCustomNest(nest: Nest): void {
     console.log('[VillageHub] addCustomNest:', nest.id, nest.name, '| auth:', this.getAuthEmail());
-    this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, [nest, ...this.getCustomNests()]);
+    const nestWithShareLink = {
+      ...nest,
+      shareLink: `${window.location.origin}/village?invite=${nest.id}`,
+      createdAt: Date.now()
+    };
+    this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, [nestWithShareLink, ...this.getCustomNests()]);
     const check = this.getCustomNests();
     console.log('[VillageHub] addCustomNest saved:', check.length, '| includes:', check.some(n => n.id === nest.id));
+  }
+  updateCustomNest(nestId: string, updates: Partial<Nest>): void {
+    const nests = this.getCustomNests();
+    const index = nests.findIndex(n => n.id === nestId);
+    if (index >= 0) {
+      nests[index] = { ...nests[index], ...updates };
+      this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, nests);
+    }
   }
   removeCustomNest(id: string): void {
     this.leaveNest(id);
