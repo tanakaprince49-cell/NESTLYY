@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "buildCommand": "npm run build -w @nestly/web",
+  "outputDirectory": "packages/web/dist",
+  "installCommand": "npm install",
   "rewrites": [
     { "source": "/js/script.js", "destination": "/api/js/script.js" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
