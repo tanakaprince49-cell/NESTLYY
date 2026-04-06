@@ -140,9 +140,10 @@ input:focus {
 
 @keyframes teddy-rise {
   0% { transform: translate3d(0, 10vh, 0) rotate(-6deg); opacity: 0; }
-  10% { opacity: 1; }
-  50% { transform: translate3d(-18px, -45vh, 0) rotate(6deg); }
-  100% { transform: translate3d(14px, -120vh, 0) rotate(-10deg); opacity: 0; }
+  5% { opacity: 1; }
+  50% { transform: translate3d(-18px, -60vh, 0) rotate(6deg); opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translate3d(14px, -150vh, 0) rotate(-10deg); opacity: 0; }
 }
 .teddy-float {
   animation-name: teddy-rise;

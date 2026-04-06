@@ -89,36 +89,33 @@ const CustomPlanView = lazy(() => import('./CustomPlanView.tsx').then(m => ({ de
 const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m => ({ default: m.SymptomDecoder })));
 
 const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, bgColor: string }> = {
-  vitals: { label: 'Vitals', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  medications: { label: 'Medications', icon: Pill, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  names: { label: 'Baby Names', icon: Sparkles, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  bump: { label: 'Bump Photos', icon: CameraIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  nutrition: { label: 'Nutrition', icon: Soup, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  vitamins: { label: 'Vitamins', icon: Pill, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  feeding: { label: 'Feeding', icon: Milk, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  diaper: { label: 'Diaper', icon: Droplets, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  milestones: { label: 'Milestones', icon: Trophy, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  health: { label: 'Health', icon: Stethoscope, color: 'text-red-400', bgColor: 'bg-red-50' },
-  tummy_time: { label: 'Tummy Time', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  bath: { label: 'Bath', icon: Droplet, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  pumping: { label: 'Pumping', icon: Droplets, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  teething: { label: 'Teething', icon: Smile, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  export: { label: 'Export PDF', icon: Download, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  journal: { label: 'Journal', icon: Book, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  labor: { label: 'Labor', icon: Timer, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  kicks: { label: 'Kicks', icon: Footprints, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  reactions: { label: 'Reactions', icon: Smile, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  calm: { label: 'Calm', icon: Wind, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  birth: { label: 'Birth', icon: Gift, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  kegels: { label: 'Kegels', icon: Activity, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  memories: { label: 'Memories', icon: CameraIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  reports: { label: 'Reports', icon: FileText, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  calendar: { label: 'Calendar', icon: CalendarIcon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  checklists: { label: 'Checklists', icon: ListTodo, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  symptoms: { label: 'Symptoms', icon: Thermometer, color: 'text-red-400', bgColor: 'bg-red-50' },
-  symptom_decoder: { label: 'Symptom AI', icon: Stethoscope, color: 'text-rose-500', bgColor: 'bg-rose-100' },
-  sleep: { label: 'Sleep', icon: Moon, color: 'text-rose-400', bgColor: 'bg-rose-50' },
-  custom_plan: { label: 'AI Plan', icon: Sparkles, color: 'text-rose-500', bgColor: 'bg-rose-100' },
+  medications: { label: 'Medications', icon: Pill, color: 'text-purple-500', bgColor: 'bg-purple-100' },
+  names: { label: 'Baby Names', icon: Sparkles, color: 'text-amber-500', bgColor: 'bg-amber-100' },
+  bump: { label: 'Bump Photos', icon: CameraIcon, color: 'text-pink-500', bgColor: 'bg-pink-100' },
+  nutrition: { label: 'Nutrition', icon: Soup, color: 'text-green-500', bgColor: 'bg-green-100' },
+  vitamins: { label: 'Vitamins', icon: Pill, color: 'text-orange-500', bgColor: 'bg-orange-100' },
+  feeding: { label: 'Feeding', icon: Milk, color: 'text-sky-500', bgColor: 'bg-sky-100' },
+  diaper: { label: 'Diaper', icon: Droplets, color: 'text-cyan-500', bgColor: 'bg-cyan-100' },
+  milestones: { label: 'Milestones', icon: Trophy, color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
+  health: { label: 'Health', icon: Stethoscope, color: 'text-red-500', bgColor: 'bg-red-100' },
+  tummy_time: { label: 'Tummy Time', icon: Activity, color: 'text-lime-600', bgColor: 'bg-lime-100' },
+  bath: { label: 'Bath', icon: Droplet, color: 'text-blue-500', bgColor: 'bg-blue-100' },
+  pumping: { label: 'Pumping', icon: Droplets, color: 'text-fuchsia-500', bgColor: 'bg-fuchsia-100' },
+  teething: { label: 'Teething', icon: Smile, color: 'text-teal-500', bgColor: 'bg-teal-100' },
+  export: { label: 'Export PDF', icon: Download, color: 'text-slate-600', bgColor: 'bg-slate-200' },
+  journal: { label: 'Journal', icon: Book, color: 'text-indigo-500', bgColor: 'bg-indigo-100' },
+  labor: { label: 'Contractions', icon: Timer, color: 'text-rose-500', bgColor: 'bg-rose-100' },
+  kicks: { label: 'Kicks', icon: Footprints, color: 'text-violet-500', bgColor: 'bg-violet-100' },
+  reactions: { label: 'Reactions', icon: Smile, color: 'text-amber-400', bgColor: 'bg-amber-100' },
+  calm: { label: 'Calm', icon: Wind, color: 'text-emerald-500', bgColor: 'bg-emerald-100' },
+  kegels: { label: 'Kegels', icon: Activity, color: 'text-cyan-600', bgColor: 'bg-cyan-100' },
+  memories: { label: 'Memories', icon: CameraIcon, color: 'text-rose-400', bgColor: 'bg-rose-100' },
+  reports: { label: 'Reports', icon: FileText, color: 'text-blue-600', bgColor: 'bg-blue-100' },
+  calendar: { label: 'Calendar', icon: CalendarIcon, color: 'text-indigo-600', bgColor: 'bg-indigo-100' },
+  checklists: { label: 'Checklists', icon: ListTodo, color: 'text-emerald-600', bgColor: 'bg-emerald-100' },
+  symptoms: { label: 'Symptoms', icon: Thermometer, color: 'text-red-400', bgColor: 'bg-red-100' },
+  sleep: { label: 'Sleep', icon: Moon, color: 'text-indigo-400', bgColor: 'bg-indigo-100' },
+  custom_plan: { label: 'AI Plan', icon: Sparkles, color: 'text-rose-600', bgColor: 'bg-rose-100' },
 };
 
 interface ToolsHubProps {
@@ -212,9 +209,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['custom_plan', 'symptom_decoder', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'vitals', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
+      return ['custom_plan', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
     }
-    return ['custom_plan', 'symptom_decoder', 'vitals', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'birth', 'reports', 'symptoms', 'nutrition', 'vitamins'];
+    return ['custom_plan', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'reports', 'symptoms', 'nutrition', 'vitamins'];
   }, [isPostpartum]);
 
   const filteredCategories = useMemo(() => {
@@ -338,36 +335,6 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         return <TeethingTracker journalEntries={journalEntries} onAddJournal={onAddJournal} />;
       case 'tummy_time':
         return <TummyTimeTracker tummyTimeLogs={tummyTimeLogs} onAddTummyTime={onAddTummyTime} profile={profile} />;
-      case 'milestones':
-        return (
-          <MilestonesTracker
-            milestones={milestones}
-            onAddMilestone={onAddMilestone}
-            profile={profile}
-            selectedBabyId={selectedBabyId}
-            setSelectedBabyId={setSelectedBabyId}
-          />
-        );
-      case 'health':
-        return (
-          <HealthTracker
-            healthLogs={healthLogs}
-            onAddHealth={onAddHealth}
-            profile={profile}
-            selectedBabyId={selectedBabyId}
-            setSelectedBabyId={setSelectedBabyId}
-          />
-        );
-      case 'reactions':
-        return (
-          <ReactionsTracker
-            reactions={reactions}
-            onAddReaction={onAddReaction}
-            profile={profile}
-            selectedBabyId={selectedBabyId}
-            setSelectedBabyId={setSelectedBabyId}
-          />
-        );
       case 'custom_plan':
         const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
         const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));

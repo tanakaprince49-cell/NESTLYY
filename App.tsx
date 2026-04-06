@@ -197,18 +197,25 @@ const App: React.FC = () => {
     document.body.className = `theme-${theme} ${isPostpartum ? 'stage-newborn' : 'stage-pregnancy'}`;
   }, [profile?.lifecycleStage, profile?.themeColor]);
 
-  // Handle deep linking from Shortcuts / Widgets
+  // Handle deep linking from Shortcuts / Widgets / Invites
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    if (tab === 'ava') setActiveTab('ava');
-    if (tab === 'tools') setActiveTab('tools');
-    if (tab === 'dashboard') setActiveTab('dashboard');
-    if (tab === 'baby') setActiveTab('baby');
-    if (tab === 'village') setActiveTab('village');
+    const invite = params.get('invite');
+
+    if (invite) {
+      setActiveTab('village');
+      sessionStorage.setItem('pendingInvite', invite);
+    } else {
+      if (tab === 'ava') setActiveTab('ava');
+      if (tab === 'tools') setActiveTab('tools');
+      if (tab === 'dashboard') setActiveTab('dashboard');
+      if (tab === 'baby') setActiveTab('baby');
+      if (tab === 'village') setActiveTab('village');
+    }
     
     // Clear the URL params without reloading to keep a clean state
-    if (tab) {
+    if (tab || invite) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -232,6 +239,15 @@ const App: React.FC = () => {
       if (weeks < 13) setTrimester(Trimester.FIRST);
       else if (weeks < 27) setTrimester(Trimester.SECOND);
       else setTrimester(Trimester.THIRD);
+
+      // Automatic newborn transition when baby is born! (EDD reached)
+      const lmpTime = new Date(profile.lmpDate).getTime();
+      const eddTime = lmpTime + 280 * 24 * 60 * 60 * 1000;
+      if (profile.lifecycleStage === LifecycleStage.PREGNANCY && Date.now() > eddTime) {
+        const nextProfile = { ...profile, lifecycleStage: LifecycleStage.NEWBORN };
+        storage.saveProfile(nextProfile);
+        setProfile(nextProfile);
+      }
     }
   }, [profile]);
 
