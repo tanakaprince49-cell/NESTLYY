@@ -24,10 +24,40 @@ interface CustomPlanViewProps {
 }
 
 export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimester }) => {
-  const [plan, setPlan] = useState<CustomPlan | null>(storage.getCustomPlan());
+  const [plan, setPlan] = useState<CustomPlan | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeSegment, setActiveSegment] = useState<'nutrition' | 'fitness' | 'routine' | 'medical'>('nutrition');
+  const currentDiet = profile.dietPreference || 'normal';
+
+  const isPlanValid = (value: any): value is CustomPlan => {
+    return !!(
+      value &&
+      value.nutrition &&
+      Array.isArray(value.nutrition.breakfast) &&
+      Array.isArray(value.nutrition.lunch) &&
+      Array.isArray(value.nutrition.dinner) &&
+      value.fitness &&
+      Array.isArray(value.fitness.exercises) &&
+      value.routine &&
+      Array.isArray(value.routine.morning) &&
+      value.medical &&
+      Array.isArray(value.medical.questions)
+    );
+  };
+
+  useEffect(() => {
+    const savedPlan = storage.getCustomPlan();
+    if (
+      isPlanValid(savedPlan) &&
+      savedPlan.trimester === trimester &&
+      savedPlan.dietPreference === currentDiet
+    ) {
+      setPlan(savedPlan);
+    } else {
+      setPlan(null);
+    }
+  }, [trimester, currentDiet]);
 
   const generatePlan = async () => {
     setLoading(true);
@@ -42,18 +72,25 @@ export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimest
         },
         body: JSON.stringify({
           trimester,
-          dietPreference: profile.dietPreference || 'normal'
+          dietPreference: currentDiet,
+          additionalInfo: `Lifecycle stage: ${profile.lifecycleStage}`
         })
       });
 
-      if (!response.ok) throw new Error('Failed to generate plan');
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(err || 'Failed to generate plan');
+      }
       
       const newPlan = await response.json();
+      if (!isPlanValid(newPlan)) {
+        throw new Error('Plan response is incomplete.');
+      }
       const planWithMeta: CustomPlan = {
         ...newPlan,
         id: crypto.randomUUID(),
         trimester,
-        dietPreference: profile.dietPreference || 'normal',
+        dietPreference: currentDiet,
         timestamp: Date.now()
       };
       
@@ -61,7 +98,7 @@ export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimest
       setPlan(planWithMeta);
     } catch (err) {
       console.error(err);
-      setError('Could not generate your personalized plan. Please try again.');
+      setError('Could not generate your personalized plan right now. Please try again in a moment.');
     } finally {
       setLoading(false);
     }
@@ -83,7 +120,7 @@ export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimest
         <div className="space-y-2">
           <h3 className="text-2xl font-serif text-slate-900">Your Personalized Plan</h3>
           <p className="text-sm text-slate-400 max-w-xs mx-auto">
-            Generate a custom daily routine with nutrition, fitness, and medical guidance tailored to your <b>{trimester}</b> and <b>{profile.dietPreference}</b> diet.
+            Generate a custom daily routine with nutrition, fitness, and medical guidance tailored to your <b>{trimester}</b> and <b>{currentDiet}</b> diet.
           </p>
         </div>
         <button 
@@ -124,7 +161,7 @@ export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimest
             <p className="text-[9px] font-black uppercase text-rose-400 tracking-widest">Updated {new Date(plan!.timestamp).toLocaleDateString()}</p>
           </div>
         </div>
-        <button onClick={generatePlan} className="p-3 text-slate-300 hover:text-rose-500 transition-colors">
+        <button onClick={generatePlan} disabled={loading} className="p-3 text-slate-300 hover:text-rose-500 transition-colors disabled:opacity-40">
           <RefreshCw size={20} />
         </button>
       </div>
