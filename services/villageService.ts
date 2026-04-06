@@ -258,7 +258,7 @@ export async function createComment(
     authorName: input.authorName,
     ...(input.authorProfilePicture ? { authorProfilePicture: input.authorProfilePicture } : {}),
     content: input.content,
-    replyTo: input.replyTo,
+    ...(input.replyTo ? { replyTo: input.replyTo } : {}),
     likedBy: [],
     likeCount: 0,
     createdAt: serverTimestamp(),
