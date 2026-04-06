@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2, MessageCircle, Share2, Camera, Video, Paperclip, Search } from 'lucide-react';
 import { PregnancyProfile, NestCategory, Nest, NestPost, NestMembership, NestComment, NestMedia } from '../types.ts';
 import { subscribeToPostComments, type Unsubscribe } from '../services/villageService.ts';
@@ -19,6 +19,7 @@ import {
   sharePost,
 } from '../services/villageService.ts';
 import { notifyNestMembers } from '../services/groupService.ts';
+import { compressAvatar } from '../utils/compressAvatar.ts';
 
 interface VillageHubProps {
   profile: PregnancyProfile;
@@ -508,6 +509,13 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<NestMedia | null>(null);
   const [replyingTo, setReplyingTo] = useState<Record<string, string | null>>({});
+  const avatarThumbRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (profile.profileImage) {
+      compressAvatar(profile.profileImage).then(thumb => { avatarThumbRef.current = thumb; });
+    }
+  }, [profile.profileImage]);
 
   // Helper function to organize comments into nested structure
   const organizeComments = (flatComments: NestComment[]): NestComment[] => {
@@ -574,6 +582,7 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
         content: text,
         authorUid: userUid,
         authorName: profile.userName || 'Anonymous',
+        authorProfilePicture: avatarThumbRef.current,
         media: postMedia,
       });
 
@@ -617,6 +626,7 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
         content: commentText,
         authorUid: userUid,
         authorName: profile.userName || 'Anonymous',
+        authorProfilePicture: avatarThumbRef.current,
         replyTo: replyingTo[postId] || undefined,
       });
       setCommentInputs(prev => ({ ...prev, [postId]: '' }));
@@ -811,7 +821,7 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
             const isLiked = post.likedBy.includes(userUid);
             const canDelete = post.authorUid === userUid;
             const isOwnPost = post.authorUid === userUid;
-            const profileImage = isOwnPost ? profile.profileImage : null;
+            const profileImage = isOwnPost ? profile.profileImage : post.authorProfilePicture;
 
             return (
               <div key={post.id} className="bg-white/60 backdrop-blur-xl p-4 sm:p-5 rounded-[2rem] border border-slate-100 space-y-3 animate-slide-up">
@@ -953,9 +963,9 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <div className="w-6 h-6 bg-rose-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                                    {comment.authorUid === userUid && profile.profileImage ? (
+                                    {(comment.authorUid === userUid ? profile.profileImage : comment.authorProfilePicture) ? (
                                       <img
-                                        src={profile.profileImage}
+                                        src={(comment.authorUid === userUid ? profile.profileImage : comment.authorProfilePicture)!}
                                         alt={comment.authorName}
                                         className="w-full h-full object-cover"
                                       />
