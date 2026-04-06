@@ -8,6 +8,7 @@ interface GroupModalProps {
   mode: 'create' | 'edit';
   onSave: (nest: Nest) => void;
   onDelete?: (nestId: string) => void;
+  userUid?: string;
 }
 
 export const GroupModal: React.FC<GroupModalProps> = ({
@@ -15,7 +16,8 @@ export const GroupModal: React.FC<GroupModalProps> = ({
   nest,
   mode = 'create',
   onSave,
-  onDelete
+  onDelete,
+  userUid = ''
 }) => {
   const [formData, setFormData] = useState({
     name: nest?.name || '',
@@ -54,7 +56,7 @@ export const GroupModal: React.FC<GroupModalProps> = ({
       memberCount: nest?.memberCount || 0,
       isTemplate: false,
       createdAt: nest?.createdAt || Date.now(),
-      creatorUid: 'current-user', // This would be the actual user UID
+      creatorUid: userUid,
       shareLink: nest?.shareLink || `${window.location.origin}/village?invite=${nest?.id || crypto.randomUUID()}`
     };
 

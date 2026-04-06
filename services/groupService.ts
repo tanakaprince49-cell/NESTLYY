@@ -9,18 +9,11 @@ export interface GroupNotification {
 }
 
 export async function notifyNestMembers(
-  nestId: string,
-  message: string,
-  type: 'invite' | 'update' | 'reminder' = 'update'
+  _nestId: string,
+  _message: string,
+  _type: 'invite' | 'update' | 'reminder' = 'update'
 ): Promise<void> {
-  // Placeholder implementation for notifying nest members
-  console.log(`Notifying nest ${nestId} members: ${message} (${type})`);
-  
-  // In a real implementation, this would:
-  // 1. Get all members of the nest
-  // 2. Send push notifications or emails
-  // 3. Log the notification for tracking
-  
+  // TODO: wire to push notification service
   return Promise.resolve();
 }
 
@@ -30,15 +23,7 @@ export async function createGroupNotification(
   message: string,
   type: 'invite' | 'update' | 'reminder'
 ): Promise<string> {
-  // Placeholder for creating group notifications
-  const notification: GroupNotification = {
-    groupId,
-    userId,
-    message,
-    type,
-    createdAt: Date.now()
-  };
-  
-  console.log('Created group notification:', notification);
+  // TODO: wire to push notification service
+  void ({ groupId, userId, message, type } as GroupNotification);
   return 'notification-' + Date.now();
 }

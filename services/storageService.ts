@@ -18,13 +18,24 @@ import {
   MemoryAlbums,
   MemoryPhoto,
   UserLog,
-  WeightLog,
-  KegelLog,
+  FeedingLog,
+  TummyTimeLog,
+  BloodPressureLog,
+  BabyGrowthLog,
+  DiaperLog,
+  MedicationLog,
+  PeriodLog,
+  ChatMessage,
+  AvaMemoryFact,
+  Article,
+  ArchivedPregnancy,
+  ChecklistItem,
+  Video,
   Nest,
   NestMembership,
   NestPost,
   NestComment,
-  MediaAttachment
+  MediaAttachment,
 } from '../types.ts';
 
 const KEYS = {
@@ -500,7 +511,7 @@ class StorageService {
     console.log('[VillageHub] addCustomNest:', nest.id, nest.name, '| auth:', this.getAuthEmail());
     const nestWithShareLink = {
       ...nest,
-      shareLink: `${window.location.origin}/village?invite=${nest.id}`,
+      shareLink: `${typeof window !== 'undefined' ? window.location.origin : ''}/village?invite=${nest.id}`,
       createdAt: Date.now()
     };
     this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, [nestWithShareLink, ...this.getCustomNests()]);

@@ -387,7 +387,8 @@ export interface NestComment {
   likedBy: string[];
   likeCount: number;
   createdAt: number;
-  replies: NestComment[];
+  replyTo?: string;
+  replies?: NestComment[];
   attachments?: MediaAttachment[];
 }
 
@@ -415,7 +416,7 @@ export interface NestPost {
   createdAt: number;
   isTemplate: boolean;
   attachments?: MediaAttachment[];
-  comments: NestComment[];
+  comments?: NestComment[];
   shareCount?: number;
 }
 
@@ -426,17 +427,4 @@ export interface NestMedia {
   thumbnail?: string;
   filename: string;
   size: number;
-}
-
-export interface NestComment {
-  id: string;
-  postId: string;
-  authorUid: string;
-  authorName: string;
-  content: string;
-  likedBy: string[];
-  likeCount: number;
-  createdAt: number;
-  replyTo?: string; // ID of the comment this is replying to
-  replies?: NestComment[]; // Nested replies
 }

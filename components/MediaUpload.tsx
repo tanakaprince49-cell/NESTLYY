@@ -1,21 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { Image, Video, X, Upload } from 'lucide-react';
+import type { MediaAttachment } from '../types.ts';
 
 interface MediaUploadProps {
   onMediaSelect: (files: MediaAttachment[]) => void;
   maxFiles?: number;
   accept?: string;
   className?: string;
-}
-
-interface MediaAttachment {
-  id: string;
-  type: 'image' | 'video';
-  url: string;
-  thumbnailUrl?: string;
-  size: number;
-  width?: number;
-  height?: number;
 }
 
 export const MediaUpload: React.FC<MediaUploadProps> = ({
@@ -50,7 +41,7 @@ export const MediaUpload: React.FC<MediaUploadProps> = ({
 
         // For images, try to get dimensions
         if (!isVideo) {
-          const img = new Image();
+          const img = new window.Image();
           img.onload = () => {
             attachment.width = img.width;
             attachment.height = img.height;

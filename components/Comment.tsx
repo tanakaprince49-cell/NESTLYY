@@ -9,6 +9,7 @@ interface CommentProps {
   onShare: (commentId: string) => void;
   level?: number;
   isAuthor?: boolean;
+  userUid?: string;
 }
 
 export const Comment: React.FC<CommentProps> = ({
@@ -17,7 +18,8 @@ export const Comment: React.FC<CommentProps> = ({
   onReply,
   onShare,
   level = 0,
-  isAuthor = false
+  isAuthor = false,
+  userUid = ''
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyContent, setReplyContent] = useState('');
@@ -124,12 +126,12 @@ export const Comment: React.FC<CommentProps> = ({
             <button
               onClick={handleLike}
               className={`flex items-center gap-1.5 text-xs transition-colors ${
-                comment.likedBy.includes('current-user') 
+                comment.likedBy.includes(userUid) 
                   ? 'text-rose-500' 
                   : 'text-slate-400 hover:text-rose-400'
               }`}
             >
-              <Heart size={14} fill={comment.likedBy.includes('current-user') ? 'currentColor' : 'none'} />
+              <Heart size={14} fill={comment.likedBy.includes(userUid) ? 'currentColor' : 'none'} />
               <span>{comment.likeCount}</span>
             </button>
             
@@ -212,6 +214,7 @@ export const Comment: React.FC<CommentProps> = ({
               onShare={onShare}
               level={level + 1}
               isAuthor={isAuthor}
+              userUid={userUid}
             />
           ))}
         </div>
