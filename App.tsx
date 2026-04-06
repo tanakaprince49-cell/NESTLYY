@@ -468,7 +468,7 @@ const App: React.FC = () => {
                 storage.saveProfile(p);
                 setProfile(p);
                   }} userUid={userUid} />}
-              {activeTab === 'village' && <VillageHub profile={profile} />}
+              {activeTab === 'village' && <VillageHub profile={profile} userUid={userUid} />}
               {activeTab === 'admin' && isAdmin && <AdminDashboard />}
             </div>
           </Suspense>
