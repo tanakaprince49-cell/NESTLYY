@@ -2,6 +2,8 @@
    AVA – SAFE FRONTEND (NO API KEY)
 ========================================== */
 
+import { auth } from "../firebase.ts";
+
 const API_URL = "/api/ava";
 
 /* ==========================================
@@ -24,10 +26,16 @@ function loadMemory() {
 ========================================== */
 
 async function callAva(messages: any[]) {
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
   const response = await fetch(API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
     },
     body: JSON.stringify({ messages }),
   });
