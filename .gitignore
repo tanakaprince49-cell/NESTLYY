@@ -25,3 +25,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test artifacts
+test-results
+playwright-report
+
+# Agent tool workspaces
+.codex

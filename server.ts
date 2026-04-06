@@ -120,68 +120,6 @@ CRITICAL: You are not a doctor. Never provide medical diagnoses or prescribe tre
     }
   });
 
-  // Symptom Decoder AI Endpoint (Trust/Anxiety Reduction)
-  app.post("/api/symptom-decode", requireAuth, async (req, res) => {
-    try {
-      const { symptoms, trimester } = req.body;
-      if (!symptoms) return res.status(400).json({ error: "Symptoms are required" });
-
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://nestly.app",
-          "X-Title": "Symptom Decoder",
-        },
-        body: JSON.stringify({
-          model: "deepseek/deepseek-chat",
-          messages: [
-            {
-              role: "system",
-              content: `You are an expert pregnancy symptom decoder. Analyze the user's input and return a JSON object.
-JSON Structure:
-{
-  "validation": "string (start with empathy and validation)",
-  "safetyRating": "Green | Amber | Red",
-  "explanation": "string (1-2 sentences of why this may be happening)",
-  "action": "string (1 specific actionable tip)",
-  "medicalNote": "string (when to call a doctor)"
-}
-Rules:
-- Non-alarmist but realistic.
-- Tailor to trimester: ${trimester}.
-- Red safety = Heavy bleeding, severe cramping, no movement.
-- Return ONLY the JSON object.
-- CRITICAL: You are an AI, not a doctor. Always advise professional medical consultation for health concerns.`,
-            },
-            {
-              role: "user",
-              content: `I'm feeling: ${symptoms}`,
-            },
-          ],
-          response_format: { type: "json_object" },
-          temperature: 0.3,
-        }),
-      });
-
-      if (!response.ok) {
-        const err = await response.text();
-        console.error("OpenRouter Error:", err);
-        return res.status(500).json({ error: err });
-      }
-
-      const data = await response.json();
-      const content = data.choices[0].message.content;
-      const analysis = JSON.parse(content);
-
-      return res.status(200).json(analysis);
-    } catch (error) {
-      console.error("Symptom Decoder Error:", error);
-      return res.status(500).json({ error: "Server error" });
-    }
-  });
-
   // Food Research AI Endpoint
   app.post("/api/food-research", async (req, res) => {
     try {

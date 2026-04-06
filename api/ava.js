@@ -7,6 +7,29 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Verify Firebase auth token
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Missing authorization token" });
+    }
+
+    const { initializeApp, cert, getApps } = await import("firebase-admin/app");
+    const { getAuth } = await import("firebase-admin/auth");
+
+    if (!getApps().length) {
+      const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+        ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+        : undefined;
+      initializeApp(serviceAccount ? { credential: cert(serviceAccount) } : {});
+    }
+
+    const token = authHeader.split("Bearer ")[1];
+    try {
+      await getAuth().verifyIdToken(token);
+    } catch {
+      return res.status(401).json({ error: "Invalid authorization token" });
+    }
+
     const { messages } = req.body;
 
     if (!process.env.OPENROUTER_API_KEY) {

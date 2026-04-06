@@ -15,6 +15,8 @@ npm run build        # Production build via Vite
 npm run preview      # Preview production build locally
 npm run lint         # Type-check with tsc --noEmit (no eslint)
 npm start            # Production server (node server.ts)
+npm test             # Run vitest unit tests (tests/)
+npm run test:watch   # Run vitest in watch mode
 ```
 
 ## Environment Variables
@@ -32,10 +34,11 @@ Copy `.env.example` to `.env.local`. Key variables:
 
 - **Frontend**: React 19 + TypeScript, Vite, Tailwind CSS v3 (build-time via PostCSS), Motion (animations), Recharts (charts), Lucide React (icons)
 - **Backend**: Express 5 with `tsx` runtime, node-cron for scheduled tasks
-- **Auth**: Firebase Auth (Google, Email/Password, Anonymous, Phone)
+- **Auth**: Firebase Auth (Google, Email/Password, Anonymous, Phone); `firebase-admin` used in serverless functions to verify ID tokens
 - **AI**: OpenRouter SDK with DeepSeek model for Ava chatbot; Google Gemini API
 - **PDF**: jsPDF + html2pdf.js for report generation
 - **Storage**: Browser LocalStorage only (no backend database)
+- **Testing**: Vitest for unit tests (`tests/`), Playwright for e2e specs (`tests/e2e/`)
 - **Deployment**: Vercel (SPA rewrite in vercel.json)
 
 ## Architecture
@@ -56,7 +59,8 @@ Copy `.env.example` to `.env.local`. Key variables:
 - `syncService.ts` — Data sync utilities
 
 **Serverless API** (`api/`): Vercel serverless functions for production endpoints:
-- `api/ava.js` — Ava AI chat endpoint
+- `api/ava.js` — Ava AI chat endpoint (requires Firebase ID token)
+- `api/custom-plan.js` — Personalized meal plan AI endpoint (requires Firebase ID token)
 - `api/food-research.js` — Food nutrition research (public, no auth)
 - `api/push/token.js` — Push notification token storage
 - `api/admin/broadcast.js` — Admin push broadcasts
@@ -72,7 +76,6 @@ Copy `.env.example` to `.env.local`. Key variables:
 **CI/CD** (`.github/workflows/`):
 - `ci.yml` — Type check + build on PRs
 - `cd.yml` — Deploy pipeline
-- `auto-pr.yml` — Auto-create PRs from pushes
 
 ## Agent System
 
