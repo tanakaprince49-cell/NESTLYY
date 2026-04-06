@@ -41,7 +41,14 @@ import {
 const App: React.FC = () => {
   const [authEmail, setAuthEmail] = useState<string | null>(() => storage.getAuthEmail());
   const [hasAcceptedPrivacy, setHasAcceptedPrivacy] = useState<boolean>(false);
-  const [userUid, setUserUid] = useState<string | null>(null);
+  const [userUid, setUserUid] = useState<string | null>(() => {
+    // Try to get userUid from storage on initial load
+    try {
+      return localStorage.getItem('nestly_userUid');
+    } catch (e) {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -126,6 +133,7 @@ const App: React.FC = () => {
 
             setAuthEmail(identifier);
             setUserUid(user.uid);
+            localStorage.setItem('nestly_userUid', user.uid);
             setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
 
             loadUserData();
@@ -133,6 +141,7 @@ const App: React.FC = () => {
           } else {
             setAuthEmail(null);
             setUserUid(null);
+            localStorage.removeItem('nestly_userUid');
             setLoading(false);
           }
         } catch (err) {
@@ -221,11 +230,16 @@ const App: React.FC = () => {
   }, []);
 
   const handleLogout = async () => {
-    const { auth } = await import('./firebase.ts');
-    auth.signOut();
+    try {
+      const { auth } = await import('./firebase.ts');
+      auth.signOut();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
     storage.logout();
     setAuthEmail(null);
     setUserUid(null);
+    localStorage.removeItem('nestly_userUid');
     setProfile(null);
     setActiveTab('dashboard');
   };
@@ -468,7 +482,7 @@ const App: React.FC = () => {
                 storage.saveProfile(p);
                 setProfile(p);
                   }} userUid={userUid} />}
-              {activeTab === 'village' && <VillageHub profile={profile} />}
+              {activeTab === 'village' && <VillageHub profile={profile} userUid={userUid} />}
               {activeTab === 'admin' && isAdmin && <AdminDashboard />}
             </div>
           </Suspense>
