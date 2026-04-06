@@ -1,11 +1,22 @@
-import React, { useState, useMemo } from 'react';
-import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight } from 'lucide-react';
-import { PregnancyProfile, NestCategory, Nest, NestPost } from '../types.ts';
-import { storage } from '../services/storageService.ts';
-import { TEMPLATE_NESTS, getTemplatePosts } from '../services/villageTemplates.ts';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2 } from 'lucide-react';
+import { PregnancyProfile, NestCategory, Nest, NestPost, NestMembership } from '../types.ts';
+import {
+  subscribeToNests,
+  subscribeToUserMemberships,
+  subscribeToNestPosts,
+  createNest,
+  deleteNest,
+  joinNest,
+  leaveNest,
+  createPost,
+  deletePost,
+  toggleLike,
+} from '../services/villageService.ts';
 
 interface VillageHubProps {
   profile: PregnancyProfile;
+  userUid: string | null;
 }
 
 type View = 'discover' | 'my-nests' | 'nest-detail';
@@ -33,50 +44,137 @@ function timeAgo(timestamp: number): string {
   return `${Math.floor(days / 7)}w ago`;
 }
 
-export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
+export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
   const [view, setView] = useState<View>('discover');
   const [selectedNestId, setSelectedNestId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<NestCategory | 'all'>('all');
-  const [, setTick] = useState(0);
-  const rerender = () => setTick(t => t + 1);
 
-  const memberships = storage.getNestMemberships();
-  const joinedIds = new Set(memberships.map(m => m.nestId));
-  const customNests = storage.getCustomNests();
+  const [nests, setNests] = useState<Nest[]>([]);
+  const [memberships, setMemberships] = useState<NestMembership[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredTemplates = useMemo(() => {
-    if (categoryFilter === 'all') return TEMPLATE_NESTS;
-    return TEMPLATE_NESTS.filter(n => n.category === categoryFilter);
-  }, [categoryFilter]);
+  useEffect(() => {
+    if (!userUid) {
+      setLoading(false);
+      return;
+    }
+    let nestsReady = false;
+    let membershipsReady = false;
+    const checkReady = () => {
+      if (nestsReady && membershipsReady) setLoading(false);
+    };
+    const unsubNests = subscribeToNests((data) => {
+      setNests(data);
+      nestsReady = true;
+      checkReady();
+    });
+    const unsubMemberships = subscribeToUserMemberships(userUid, (data) => {
+      setMemberships(data);
+      membershipsReady = true;
+      checkReady();
+    });
+    return () => {
+      unsubNests();
+      unsubMemberships();
+    };
+  }, [userUid]);
 
-  const joinedNests = useMemo(() => {
-    const ids = new Set(memberships.map(m => m.nestId));
-    const templates = TEMPLATE_NESTS.filter(n => ids.has(n.id));
-    const custom = customNests.filter(n => ids.has(n.id));
-    return [...custom, ...templates];
-  }, [memberships, customNests]);
+  const joinedIds = useMemo(() => new Set(memberships.map((m) => m.nestId)), [memberships]);
+
+  const filteredDiscover = useMemo(() => {
+    if (categoryFilter === 'all') return nests;
+    return nests.filter((n) => n.category === categoryFilter);
+  }, [nests, categoryFilter]);
+
+  const joinedNests = useMemo(
+    () => nests.filter((n) => joinedIds.has(n.id)),
+    [nests, joinedIds],
+  );
+
+  const selectedNest = selectedNestId ? nests.find((n) => n.id === selectedNestId) ?? null : null;
 
   const openNest = (nestId: string) => {
     setSelectedNestId(nestId);
     setView('nest-detail');
   };
 
-  const handleJoin = (nestId: string) => {
-    storage.joinNest(nestId);
-    rerender();
+  const handleJoin = async (nestId: string) => {
+    if (!userUid) return;
+    try {
+      await joinNest(nestId, userUid);
+    } catch (err) {
+      console.error('joinNest failed', err);
+      alert('Could not join nest. Please try again.');
+    }
   };
 
-  const handleLeave = (nestId: string) => {
+  const handleLeave = async (nestId: string) => {
+    if (!userUid) return;
     if (!confirm('Leave this nest? Your posts will remain.')) return;
-    storage.leaveNest(nestId);
-    if (view === 'nest-detail') setView('my-nests');
-    rerender();
+    try {
+      await leaveNest(nestId, userUid);
+      if (view === 'nest-detail') setView('my-nests');
+    } catch (err) {
+      console.error('leaveNest failed', err);
+      alert('Could not leave nest. Please try again.');
+    }
   };
 
-  const selectedNest = selectedNestId
-    ? TEMPLATE_NESTS.find(n => n.id === selectedNestId) || customNests.find(n => n.id === selectedNestId)
-    : null;
+  const handleCreate = async (input: {
+    name: string;
+    description: string;
+    category: NestCategory;
+    emoji: string;
+  }) => {
+    if (!userUid) return;
+    try {
+      const newId = await createNest(input, userUid);
+      setShowCreateModal(false);
+      openNest(newId);
+    } catch (err) {
+      console.error('createNest failed', err);
+      alert('Could not create nest. Please try again.');
+    }
+  };
+
+  const handleDeleteNest = async (nestId: string) => {
+    if (!confirm('Delete this nest? All posts will be removed.')) return;
+    try {
+      await deleteNest(nestId);
+      setView('my-nests');
+    } catch (err) {
+      console.error('deleteNest failed', err);
+      alert('Could not delete nest. Please try again.');
+    }
+  };
+
+  // ── Guard: signed-out users ────────────────────────
+
+  if (!userUid) {
+    return (
+      <div className="text-center py-16 space-y-4 px-6">
+        <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto">
+          <Users size={32} className="text-rose-300" />
+        </div>
+        <h2 className="text-2xl font-serif text-slate-800">Sign in to join the Village</h2>
+        <p className="text-sm text-slate-500 max-w-xs mx-auto">
+          Village Hub is a community space. Create an account or sign in to join nests and connect with other moms.
+        </p>
+      </div>
+    );
+  }
+
+  // ── Loading state ──────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 space-y-4">
+        <Loader2 className="animate-spin text-rose-400" size={32} />
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading your village</p>
+      </div>
+    );
+  }
 
   // ── Discover View ──────────────────────────────────
 
@@ -130,7 +228,7 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
 
         {/* Nest Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-1">
-          {filteredTemplates.map((nest, i) => (
+          {filteredDiscover.map((nest, i) => (
             <NestCard
               key={nest.id}
               nest={nest}
@@ -142,7 +240,7 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
           ))}
         </div>
 
-        {filteredTemplates.length === 0 && (
+        {filteredDiscover.length === 0 && (
           <div className="text-center py-12 text-slate-400 text-sm">No nests in this category yet.</div>
         )}
 
@@ -162,12 +260,7 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
         {showCreateModal && (
           <CreateNestModal
             onClose={() => setShowCreateModal(false)}
-            onCreate={(nest) => {
-              storage.addCustomNest(nest);
-              storage.joinNest(nest.id);
-              setShowCreateModal(false);
-              openNest(nest.id);
-            }}
+            onCreate={handleCreate}
           />
         )}
       </div>
@@ -201,32 +294,24 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
           </div>
         ) : (
           <div className="space-y-3 px-1">
-            {(() => {
-              const templatePosts = getTemplatePosts();
-              const allUserPosts = storage.getAllNestPosts();
-              return joinedNests.map(nest => {
-              const postCount = allUserPosts.filter(p => p.nestId === nest.id).length +
-                templatePosts.filter(p => p.nestId === nest.id).length;
-              return (
-                <button
-                  key={nest.id}
-                  onClick={() => openNest(nest.id)}
-                  className="w-full bg-white/60 backdrop-blur-xl p-5 rounded-[2rem] border border-slate-100 flex items-center gap-4 hover:shadow-lg transition-all text-left"
-                >
-                  <div className="w-14 h-14 bg-rose-50 rounded-[1.5rem] flex items-center justify-center text-2xl shadow-inner">
-                    {nest.emoji}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-base font-serif text-slate-800 truncate">{nest.name}</h4>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      {postCount} posts
-                    </span>
-                  </div>
-                  <ChevronRight size={18} className="text-slate-300" />
-                </button>
-              );
-            });
-            })()}
+            {joinedNests.map((nest) => (
+              <button
+                key={nest.id}
+                onClick={() => openNest(nest.id)}
+                className="w-full bg-white/60 backdrop-blur-xl p-5 rounded-[2rem] border border-slate-100 flex items-center gap-4 hover:shadow-lg transition-all text-left"
+              >
+                <div className="w-14 h-14 bg-rose-50 rounded-[1.5rem] flex items-center justify-center text-2xl shadow-inner">
+                  {nest.emoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-base font-serif text-slate-800 truncate">{nest.name}</h4>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    {nest.memberCount} {nest.memberCount === 1 ? 'member' : 'members'}
+                  </span>
+                </div>
+                <ChevronRight size={18} className="text-slate-300" />
+              </button>
+            ))}
           </div>
         )}
 
@@ -242,12 +327,7 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
         {showCreateModal && (
           <CreateNestModal
             onClose={() => setShowCreateModal(false)}
-            onCreate={(nest) => {
-              storage.addCustomNest(nest);
-              storage.joinNest(nest.id);
-              setShowCreateModal(false);
-              openNest(nest.id);
-            }}
+            onCreate={handleCreate}
           />
         )}
       </div>
@@ -261,15 +341,10 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile }) => {
       <NestDetailView
         nest={selectedNest}
         profile={profile}
+        userUid={userUid}
         onBack={() => setView('my-nests')}
         onLeave={() => handleLeave(selectedNest.id)}
-        onDelete={!selectedNest.isTemplate ? () => {
-          if (!confirm('Delete this nest? All posts will be removed.')) return;
-          storage.removeCustomNest(selectedNest.id);
-          setView('my-nests');
-          rerender();
-        } : undefined}
-        rerender={rerender}
+        onDelete={selectedNest.creatorUid === userUid ? () => handleDeleteNest(selectedNest.id) : undefined}
       />
     );
   }
@@ -331,43 +406,59 @@ function NestCard({ nest, isJoined, onJoin, onOpen, delay }: {
   );
 }
 
-function NestDetailView({ nest, profile, onBack, onLeave, onDelete, rerender }: {
-  nest: Nest; profile: PregnancyProfile; onBack: () => void; onLeave: () => void;
-  onDelete?: () => void; rerender: () => void;
+function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
+  nest: Nest;
+  profile: PregnancyProfile;
+  userUid: string;
+  onBack: () => void;
+  onLeave: () => void;
+  onDelete?: () => void;
 }) {
   const [newPost, setNewPost] = useState('');
+  const [posts, setPosts] = useState<NestPost[]>([]);
+  const [postsLoading, setPostsLoading] = useState(true);
 
-  const seedPosts = useMemo(() => getTemplatePosts().filter(p => p.nestId === nest.id), [nest.id]);
-  const userPosts = storage.getNestPosts(nest.id);
-  const allPosts = [...userPosts, ...seedPosts].sort((a, b) => b.timestamp - a.timestamp);
+  useEffect(() => {
+    setPostsLoading(true);
+    const unsub = subscribeToNestPosts(nest.id, (data) => {
+      setPosts(data);
+      setPostsLoading(false);
+    });
+    return unsub;
+  }, [nest.id]);
 
-  const handlePost = () => {
+  const handlePost = async () => {
     const text = newPost.trim();
     if (!text) return;
-    storage.addNestPost({
-      id: crypto.randomUUID(),
-      nestId: nest.id,
-      authorName: profile.userName || 'You',
-      content: text,
-      likedByUser: false,
-      likeCount: 0,
-      timestamp: Date.now(),
-      isTemplate: false,
-    });
-    setNewPost('');
-    rerender();
+    try {
+      await createPost(nest.id, {
+        content: text,
+        authorUid: userUid,
+        authorName: profile.userName || 'Anonymous',
+      });
+      setNewPost('');
+    } catch (err) {
+      console.error('createPost failed', err);
+      alert('Could not post. Please try again.');
+    }
   };
 
-  const handleLike = (postId: string, isTemplate: boolean) => {
-    if (isTemplate) return;
-    storage.toggleNestPostLike(postId);
-    rerender();
+  const handleLike = async (postId: string) => {
+    try {
+      await toggleLike(nest.id, postId, userUid);
+    } catch (err) {
+      console.error('toggleLike failed', err);
+    }
   };
 
-  const handleDeletePost = (postId: string) => {
+  const handleDeletePost = async (postId: string) => {
     if (!confirm('Delete this post?')) return;
-    storage.removeNestPost(postId);
-    rerender();
+    try {
+      await deletePost(nest.id, postId);
+    } catch (err) {
+      console.error('deletePost failed', err);
+      alert('Could not delete post. Please try again.');
+    }
   };
 
   return (
@@ -385,7 +476,7 @@ function NestDetailView({ nest, profile, onBack, onLeave, onDelete, rerender }: 
           <p className="text-sm text-rose-100 opacity-80 max-w-xs">{nest.description}</p>
           <div className="flex items-center gap-3 pt-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-rose-300">
-              {nest.memberCount} members
+              {nest.memberCount} {nest.memberCount === 1 ? 'member' : 'members'}
             </span>
             <button
               onClick={onLeave}
@@ -427,44 +518,52 @@ function NestDetailView({ nest, profile, onBack, onLeave, onDelete, rerender }: 
 
       {/* Posts */}
       <div className="space-y-3 px-1">
-        {allPosts.length === 0 ? (
+        {postsLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="animate-spin text-rose-300" size={20} />
+          </div>
+        ) : posts.length === 0 ? (
           <div className="text-center py-12 text-slate-400 text-sm">
             No posts yet. Be the first to share!
           </div>
         ) : (
-          allPosts.map(post => (
-            <div key={post.id} className="bg-white/60 backdrop-blur-xl p-5 rounded-[2rem] border border-slate-100 space-y-3 animate-slide-up">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-[10px] font-black text-rose-600">
-                    {post.authorName.charAt(0)}
+          posts.map(post => {
+            const isLiked = post.likedBy.includes(userUid);
+            const canDelete = post.authorUid === userUid;
+            return (
+              <div key={post.id} className="bg-white/60 backdrop-blur-xl p-5 rounded-[2rem] border border-slate-100 space-y-3 animate-slide-up">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-[10px] font-black text-rose-600">
+                      {post.authorName.charAt(0)}
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-slate-700">{post.authorName}</span>
+                      <span className="text-[10px] text-slate-400 ml-2">{timeAgo(post.createdAt)}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-700">{post.authorName}</span>
-                    <span className="text-[10px] text-slate-400 ml-2">{timeAgo(post.timestamp)}</span>
-                  </div>
+                  {canDelete && (
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      className="p-1.5 text-slate-300 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
-                {!post.isTemplate && (
-                  <button
-                    onClick={() => handleDeletePost(post.id)}
-                    className="p-1.5 text-slate-300 hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
+                <p className="text-sm text-slate-600 leading-relaxed">{post.content}</p>
+                <button
+                  onClick={() => handleLike(post.id)}
+                  className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors ${
+                    isLiked ? 'text-rose-500' : 'text-slate-400 hover:text-rose-400'
+                  }`}
+                >
+                  <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
+                  {post.likeCount}
+                </button>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">{post.content}</p>
-              <button
-                onClick={() => handleLike(post.id, post.isTemplate)}
-                className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors ${
-                  post.likedByUser ? 'text-rose-500' : 'text-slate-400 hover:text-rose-400'
-                } ${post.isTemplate ? 'cursor-default' : ''}`}
-              >
-                <Heart size={14} fill={post.likedByUser ? 'currentColor' : 'none'} />
-                {post.likeCount}
-              </button>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
@@ -473,7 +572,7 @@ function NestDetailView({ nest, profile, onBack, onLeave, onDelete, rerender }: 
 
 function CreateNestModal({ onClose, onCreate }: {
   onClose: () => void;
-  onCreate: (nest: Nest) => void;
+  onCreate: (input: { name: string; description: string; category: NestCategory; emoji: string }) => void;
 }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -484,14 +583,10 @@ function CreateNestModal({ onClose, onCreate }: {
     e.preventDefault();
     if (!name.trim()) return;
     onCreate({
-      id: crypto.randomUUID(),
       name: name.trim(),
       description: description.trim(),
       category,
       emoji,
-      memberCount: 1,
-      isTemplate: false,
-      createdAt: Date.now(),
     });
   };
 

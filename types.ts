@@ -365,20 +365,24 @@ export interface Nest {
   memberCount: number;
   isTemplate: boolean;
   createdAt: number;
+  creatorUid: string | null;
 }
 
 export interface NestMembership {
+  id: string;
   nestId: string;
+  userId: string;
   joinedAt: number;
 }
 
 export interface NestPost {
   id: string;
   nestId: string;
+  authorUid: string;
   authorName: string;
   content: string;
-  likedByUser: boolean;
+  likedBy: string[];
   likeCount: number;
-  timestamp: number;
+  createdAt: number;
   isTemplate: boolean;
 }
