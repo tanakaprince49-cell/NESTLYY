@@ -3,6 +3,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   deleteDoc,
   query,
   where,
@@ -251,8 +252,8 @@ export async function createComment(
   input: { content: string; authorUid: string; authorName: string; authorProfilePicture?: string; replyTo?: string },
 ): Promise<string> {
   const commentRef = doc(collection(db, NESTS, nestId, POSTS, postId, 'comments'));
-  const batch = writeBatch(db);
-  batch.set(commentRef, {
+  // Write comment first, then update count separately so we can isolate failures
+  await setDoc(commentRef, {
     postId,
     authorUid: input.authorUid,
     authorName: input.authorName,
@@ -263,10 +264,14 @@ export async function createComment(
     likeCount: 0,
     createdAt: serverTimestamp(),
   });
-  batch.update(doc(db, NESTS, nestId, POSTS, postId), {
-    commentCount: increment(1),
-  });
-  await batch.commit();
+  // Update count after comment is created - if this fails, the comment still exists
+  try {
+    await updateDoc(doc(db, NESTS, nestId, POSTS, postId), {
+      commentCount: increment(1),
+    });
+  } catch (countErr) {
+    console.warn('commentCount increment failed (comment was still created)', countErr);
+  }
   return commentRef.id;
 }
 

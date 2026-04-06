@@ -633,7 +633,8 @@ function NestDetailView({ nest, profile, userUid, onBack, onLeave, onDelete }: {
       setReplyingTo(prev => ({ ...prev, [postId]: null }));
     } catch (err) {
       console.error('createComment failed', err);
-      alert('Could not add comment. Please try again.');
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(`Could not add comment: ${msg}`);
     }
   };
 
