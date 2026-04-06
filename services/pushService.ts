@@ -127,11 +127,19 @@ const activeAudio: HTMLAudioElement[] = [];
 /**
  * Show a LOCAL notification (client only)
  */
+export interface LocalNotificationOptions {
+  tag?: string;
+  data?: Record<string, any>;
+}
+
 export async function showLocalNotification(
   title: string,
   body: string,
-  tag?: string
+  options?: string | LocalNotificationOptions
 ) {
+  const tag = typeof options === 'string' ? options : options?.tag;
+  const data = typeof options === 'string' ? undefined : options?.data;
+
   try {
     if (Notification.permission !== 'granted') {
       return { success: false, error: 'Permission not granted' };
@@ -163,7 +171,7 @@ export async function showLocalNotification(
       vibrate: [200, 100, 200, 100, 400],
       tag: tag || `nestly-${Date.now()}`,
       renotify: true,
-      data: { url: '/' }
+      data: { url: '/', ...data }
     } as any);
 
     return { success: true };
