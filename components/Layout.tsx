@@ -23,13 +23,15 @@ interface LayoutProps {
   activeTab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village';
   setActiveTab: (tab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village') => void;
   onLogout: () => void;
+  isPremium?: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLogout }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLogout, isPremium }) => {
   const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map((e: string) => e.trim()).filter(Boolean);
   const isAdmin = adminEmails.includes(storage.getAuthEmail() || '');
   const [isDesktop, setIsDesktop] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const isVillageMode = activeTab === 'village';
 
   useEffect(() => {
     const check = () => setIsDesktop(window.innerWidth >= 1024);
@@ -70,7 +72,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
             <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center w-full' : ''}`}>
               <Logo className="w-10 h-10 shrink-0" />
               {!sidebarCollapsed && (
-                <h1 className="text-xl font-serif text-rose-900 tracking-tight">Nestly</h1>
+                <div className="flex flex-col -space-y-1">
+                  <h1 className="text-xl font-serif text-rose-900 tracking-tight leading-none">Nestly</h1>
+                  {isPremium && (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <div className="w-1 h-1 bg-amber-400 rounded-full animate-pulse" />
+                      <span className="text-[7px] font-black uppercase tracking-[0.2em] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100 shadow-sm">
+                        Premium
+                      </span>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             <button 
@@ -131,10 +143,20 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
       {/* ===== MAIN CONTENT AREA ===== */}
       <div className="flex-1 flex flex-col min-w-0 h-screen">
         {/* Header (mobile & tablet only) */}
-        <header className="lg:hidden relative z-[110] px-6 pt-6 pb-2 flex items-center justify-between shrink-0 bg-rose-50/60 backdrop-blur-md">
+        <header className={`lg:hidden relative z-[110] px-6 pt-6 pb-2 items-center justify-between shrink-0 bg-rose-50/60 backdrop-blur-md ${isVillageMode ? 'hidden' : 'flex'}`}>
           <div className="flex items-center gap-3">
             <Logo className="w-10 h-10" />
-            <h1 className="text-2xl font-serif text-rose-900 tracking-tight">Nestly</h1>
+            <div className="flex flex-col -space-y-1">
+              <h1 className="text-2xl font-serif text-rose-900 tracking-tight leading-none">Nestly</h1>
+              {isPremium && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <div className="w-1 h-1 bg-amber-400 rounded-full animate-pulse" />
+                  <span className="text-[7px] font-black uppercase tracking-[0.2em] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100 shadow-sm">
+                    Premium
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {storage.getProfile()?.profileImage && (
@@ -157,10 +179,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         {/* Desktop Top Bar */}
         {isDesktop && (
           <header className="hidden lg:flex relative z-[110] px-8 pt-6 pb-4 items-center justify-between shrink-0 bg-rose-50/40 backdrop-blur-sm border-b border-rose-100/30">
-            <div>
+            <div className="flex flex-col">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">
                 {activeTab === 'dashboard' ? 'Home' : activeTab === 'baby' ? 'Baby Growth' : activeTab === 'ava' ? 'AI Assistant' : activeTab === 'education' ? 'Education' : activeTab === 'tools' ? 'Tools Hub' : activeTab === 'village' ? 'Village Hub' : activeTab === 'settings' ? 'Settings' : 'Admin'}
               </p>
+              {isPremium && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-[7px] font-black uppercase tracking-[0.2em] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100 shadow-sm">
+                    Nestly Premium
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-4">
               {storage.getProfile()?.profileImage && (
@@ -182,11 +211,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               exit={{ opacity: 0, y: -6, filter: 'blur(2px)' }}
               transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-              className="pb-32 lg:pb-12"
+              className={isVillageMode ? 'pb-0' : 'pb-32 lg:pb-12'}
             >
               {children}
 
-              <div className="px-6 py-12 mt-8 border-t border-rose-100/50 text-center space-y-4">
+              {!isVillageMode && <div className="px-6 py-12 mt-8 border-t border-rose-100/50 text-center space-y-4">
                 <div className="flex justify-center items-center gap-2 text-rose-900/40">
                   <ShieldCheck size={16} />
                   <span className="text-[10px] font-black uppercase tracking-[0.2em]">Clinically Supported</span>
@@ -197,13 +226,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                 <div className="pt-4 opacity-20">
                   <Logo className="w-6 h-6 mx-auto grayscale" />
                 </div>
-              </div>
+              </div>}
             </motion.div>
           </AnimatePresence>
         </main>
 
         {/* Bottom Navigation (mobile & tablet only) */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-[calc(1rem + var(--safe-area-inset-bottom))]">
+        <div className={`lg:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-[calc(1rem + var(--safe-area-inset-bottom))] ${isVillageMode ? 'hidden' : 'block'}`}>
           <nav className="mx-auto w-full max-w-[600px] bg-white/30 backdrop-blur-3xl px-2 py-2 rounded-[2.5rem] flex justify-between items-center shadow-[0_20px_50px_rgba(126,22,49,0.06)] border border-white/20">
             {navItems.map(item => (
               <NavItem 

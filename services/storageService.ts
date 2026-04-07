@@ -83,6 +83,7 @@ const KEYS = {
   VILLAGE_POSTS: 'village_posts',
   VILLAGE_COMMENTS: 'village_comments',
   VILLAGE_CUSTOM_NESTS: 'village_custom_nests',
+  PREMIUM_STATUS: 'nestly_premium_v2',
 };
 
 import { syncToFirestore } from './syncService.ts';
@@ -512,6 +513,14 @@ class StorageService {
     this.leaveNest(id);
     this.setItem(KEYS.VILLAGE_POSTS, this.getAllNestPosts().filter(p => p.nestId !== id));
     this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, this.getCustomNests().filter(n => n.id !== id));
+  }
+
+  getPremiumStatus(): boolean {
+    return this.getItem<boolean>(KEYS.PREMIUM_STATUS, false);
+  }
+
+  setPremiumStatus(status: boolean): void {
+    this.setItem(KEYS.PREMIUM_STATUS, status);
   }
 }
 

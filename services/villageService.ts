@@ -28,6 +28,7 @@ export type Unsubscribe = ReturnType<typeof onSnapshot>;
 const NESTS = 'nests';
 const MEMBERSHIPS = 'memberships';
 const POSTS = 'posts';
+const COMMENTS = 'comments';
 
 function tsToMs(value: unknown): number {
   if (value instanceof Timestamp) return value.toMillis();
@@ -41,6 +42,7 @@ function nestFromDoc(snap: QueryDocumentSnapshot<DocumentData>): Nest {
     id: snap.id,
     name: d.name ?? '',
     description: d.description ?? '',
+    rules: d.rules ?? '',
     category: (d.category ?? 'general') as NestCategory,
     emoji: d.emoji ?? '🌸',
     memberCount: d.memberCount ?? 0,
@@ -67,14 +69,15 @@ function postFromDoc(snap: QueryDocumentSnapshot<DocumentData>, nestId: string):
     nestId,
     authorUid: d.authorUid ?? '',
     authorName: d.authorName ?? '',
-    authorProfilePicture: d.authorProfilePicture || undefined,
+    authorProfilePicture: d.authorProfilePicture || d.authorPhoto || undefined,
     content: d.content ?? '',
-    media: Array.isArray(d.media) ? d.media : [],
     likedBy: Array.isArray(d.likedBy) ? d.likedBy : [],
     likeCount: d.likeCount ?? 0,
+    shareCount: d.shareCount ?? 0,
     commentCount: d.commentCount ?? 0,
     createdAt: tsToMs(d.createdAt),
     isTemplate: d.isTemplate ?? false,
+    media: Array.isArray(d.media) ? d.media : [],
   };
 }
 
@@ -96,6 +99,7 @@ export async function createNest(
   batch.set(nestRef, {
     name: input.name,
     description: input.description,
+    rules: '',
     category: input.category,
     emoji: input.emoji,
     memberCount: 1,
@@ -122,6 +126,21 @@ export async function deleteNest(nestId: string): Promise<void> {
   membershipsSnap.docs.forEach((m) => batch.delete(m.ref));
   batch.delete(doc(db, NESTS, nestId));
   await batch.commit();
+}
+
+export async function updateNest(
+  nestId: string,
+  input: { name: string; description: string; rules: string },
+): Promise<void> {
+  await setDoc(
+    doc(db, NESTS, nestId),
+    {
+      name: input.name.trim(),
+      description: input.description.trim(),
+      rules: input.rules.trim(),
+    },
+    { merge: true },
+  );
 }
 
 // --- Memberships ---
@@ -182,12 +201,13 @@ export async function createPost(
   await setDoc(postRef, {
     authorUid: input.authorUid,
     authorName: input.authorName,
-    ...(input.authorProfilePicture ? { authorProfilePicture: input.authorProfilePicture } : {}),
+    authorProfilePicture: input.authorProfilePicture ?? '',
     content: input.content,
     media: input.media || [],
     likedBy: [],
     likeCount: 0,
     commentCount: 0,
+    shareCount: 0,
     createdAt: serverTimestamp(),
     isTemplate: false,
   });
@@ -219,12 +239,20 @@ export async function toggleLike(
 
 // --- Comments ---
 
+export async function incrementShareCount(nestId: string, postId: string): Promise<void> {
+  await setDoc(
+    doc(db, NESTS, nestId, POSTS, postId),
+    { shareCount: increment(1) },
+    { merge: true },
+  );
+}
+
 export function subscribeToPostComments(
   nestId: string,
   postId: string,
   callback: (comments: NestComment[]) => void,
 ): Unsubscribe {
-  const q = query(collection(db, NESTS, nestId, POSTS, postId, 'comments'), orderBy('createdAt', 'asc'));
+  const q = query(collection(db, NESTS, nestId, POSTS, postId, COMMENTS), orderBy('createdAt', 'asc'));
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map(commentFromDoc));
   });
@@ -237,29 +265,28 @@ function commentFromDoc(snap: QueryDocumentSnapshot<DocumentData>): NestComment 
     postId: d.postId ?? '',
     authorUid: d.authorUid ?? '',
     authorName: d.authorName ?? '',
-    authorProfilePicture: d.authorProfilePicture || undefined,
+    authorProfilePicture: d.authorProfilePicture || d.authorPhoto || undefined,
     content: d.content ?? '',
     likedBy: Array.isArray(d.likedBy) ? d.likedBy : [],
     likeCount: d.likeCount ?? 0,
     createdAt: tsToMs(d.createdAt),
-    replyTo: d.replyTo,
+    replyTo: d.replyTo || d.parentId || undefined,
   };
 }
 
 export async function createComment(
   nestId: string,
   postId: string,
-  input: { content: string; authorUid: string; authorName: string; authorProfilePicture?: string; replyTo?: string },
+  input: { content: string; authorUid: string; authorName: string; authorProfilePicture?: string; replyTo?: string; parentId?: string | null },
 ): Promise<string> {
-  const commentRef = doc(collection(db, NESTS, nestId, POSTS, postId, 'comments'));
-  // Write comment first, then update count separately so we can isolate failures
+  const commentRef = doc(collection(db, NESTS, nestId, POSTS, postId, COMMENTS));
   await setDoc(commentRef, {
     postId,
     authorUid: input.authorUid,
     authorName: input.authorName,
-    ...(input.authorProfilePicture ? { authorProfilePicture: input.authorProfilePicture } : {}),
-    content: input.content,
-    ...(input.replyTo ? { replyTo: input.replyTo } : {}),
+    authorProfilePicture: input.authorProfilePicture ?? '',
+    content: input.content.trim(),
+    replyTo: input.replyTo || input.parentId || null,
     likedBy: [],
     likeCount: 0,
     createdAt: serverTimestamp(),
@@ -281,7 +308,7 @@ export async function deleteComment(
   commentId: string,
 ): Promise<void> {
   const batch = writeBatch(db);
-  batch.delete(doc(db, NESTS, nestId, POSTS, postId, 'comments', commentId));
+  batch.delete(doc(db, NESTS, nestId, POSTS, postId, COMMENTS, commentId));
   batch.update(doc(db, NESTS, nestId, POSTS, postId), {
     commentCount: increment(-1),
   });
@@ -294,7 +321,7 @@ export async function toggleCommentLike(
   commentId: string,
   userId: string,
 ): Promise<void> {
-  const commentRef = doc(db, NESTS, nestId, POSTS, postId, 'comments', commentId);
+  const commentRef = doc(db, NESTS, nestId, POSTS, postId, COMMENTS, commentId);
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(commentRef);
     if (!snap.exists()) return;

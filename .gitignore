@@ -32,3 +32,8 @@ playwright-report
 
 # Agent tool workspaces
 .codex
+.agents/
+.claude/
+.windsurf/
+repo-clean/
+skills-lock.json

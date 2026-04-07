@@ -360,14 +360,31 @@ export interface Nest {
   id: string;
   name: string;
   description: string;
+  rules?: string;
   category: NestCategory;
   emoji: string;
   memberCount: number;
   isTemplate?: boolean;
   createdAt: number;
   creatorUid: string | null;
-  rules?: string;
   shareLink?: string;
+}
+
+export interface NestPost {
+  id: string;
+  nestId: string;
+  authorUid: string;
+  authorName: string;
+  authorProfilePicture?: string;
+  content: string;
+  likedBy: string[];
+  likeCount: number;
+  commentCount: number;
+  shareCount?: number;
+  createdAt: number;
+  isTemplate: boolean;
+  media?: NestMedia[];
+  comments?: NestComment[];
 }
 
 export interface NestMembership {
@@ -389,35 +406,7 @@ export interface NestComment {
   createdAt: number;
   replyTo?: string;
   replies?: NestComment[];
-  attachments?: MediaAttachment[];
-}
-
-export interface MediaAttachment {
-  id: string;
-  type: 'image' | 'video';
-  url: string;
-  thumbnailUrl?: string;
-  size: number;
-  width?: number;
-  height?: number;
-}
-
-export interface NestPost {
-  id: string;
-  nestId: string;
-  authorUid: string;
-  authorName: string;
-  authorProfilePicture?: string;
-  content: string;
   media?: NestMedia[];
-  likedBy: string[];
-  likeCount: number;
-  commentCount: number;
-  createdAt: number;
-  isTemplate: boolean;
-  attachments?: MediaAttachment[];
-  comments?: NestComment[];
-  shareCount?: number;
 }
 
 export interface NestMedia {
@@ -425,6 +414,8 @@ export interface NestMedia {
   type: 'image' | 'video';
   url: string;
   thumbnail?: string;
-  filename: string;
-  size: number;
+  filename?: string;
+  size?: number;
+  width?: number;
+  height?: number;
 }
