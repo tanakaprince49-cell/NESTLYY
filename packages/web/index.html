@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="google-site-verification" content="oIhcH7YPGgkdAz-VKZDHjd88vmrSJqAx5sB01A3VzRE" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Nestly" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="Nestly is your AI-powered pregnancy companion. Track nutrition, log symptoms, monitor wellness milestones, and chat with Ava." />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json" />
+    
+    <title>Nestly - Pregnancy Companion</title>
+    <link rel="preload" href="/logo.webp" as="image" type="image/webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <style>
+      /* Critical CSS: only what's needed to paint the splash screen */
+      body { margin: 0; background: #fdf8f7; }
+      #root { display: none; }
+      #static-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(180deg, #fff5f6 0%, #fff1f2 50%, #ffe8ea 100%);
+      }
+      #static-splash .splash-logo-wrap {
+        position: relative;
+        width: 128px;
+        height: 128px;
+        margin-bottom: 2rem;
+      }
+      #static-splash .splash-logo-ring {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #ffe4e6, #ffffff);
+        border-radius: 32%;
+        transform: rotate(5deg);
+        box-shadow: 0 10px 15px -3px rgba(251,113,133,0.3);
+        border: 1px solid #fff;
+      }
+      #static-splash .splash-logo-img {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        border-radius: 30%;
+        overflow: hidden;
+        border: 2px solid #fff;
+        background: #fff;
+      }
+      #static-splash .splash-logo-img img { width: 100%; height: 100%; object-fit: cover; }
+      #static-splash .splash-title {
+        font-family: 'Fraunces', Georgia, serif;
+        font-size: 3rem;
+        color: #881337;
+        letter-spacing: -0.025em;
+        margin: 0;
+      }
+      #static-splash .splash-subtitle {
+        font-size: 0.875rem;
+        font-weight: 500;
+        font-style: italic;
+        color: #9f1239;
+        margin-top: 1.5rem;
+      }
+      #static-splash .splash-loader {
+        position: absolute;
+        bottom: 4rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+      }
+      #static-splash .splash-loader-bar {
+        width: 12rem;
+        height: 2px;
+        background: #ffe4e6;
+        border-radius: 9999px;
+        overflow: hidden;
+      }
+      #static-splash .splash-loader-bar::after {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, #f43f5e, transparent);
+        animation: splash-shimmer 1.5s ease-in-out infinite;
+      }
+      #static-splash .splash-loader-text {
+        font-size: 9px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: #fda4af;
+      }
+      @keyframes splash-shimmer {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+    </style>
+    <!-- Privacy-friendly analytics by Plausible -->
+    <script async src="/js/script.js"></script>
+</head>
+  <body>
+    <div id="static-splash">
+      <div style="position:relative;display:flex;flex-direction:column;align-items:center">
+        <div class="splash-logo-wrap">
+          <div class="splash-logo-ring"></div>
+          <div class="splash-logo-img">
+            <img src="/logo.webp" alt="Nestly Logo" width="128" height="128" fetchpriority="high">
+          </div>
+        </div>
+        <div style="text-align:center">
+          <h1 class="splash-title">Nestly</h1>
+          <p class="splash-subtitle">Your AI pregnancy companion</p>
+        </div>
+      </div>
+      <div class="splash-loader">
+        <div class="splash-loader-bar"></div>
+        <span class="splash-loader-text">Preparing your journey</span>
+      </div>
+    </div>
+    <noscript><style>#static-splash .splash-loader { display: none; }</style></noscript>
+    <div id="root" role="main"></div>
+    <script type="module" src="/src/index.tsx"></script>
+</body>
+</html>

@@ -1,11 +1,11 @@
 import { mockLocalStorage } from '../helpers';
-import type { Nest, NestPost } from '../../types.ts';
+import type { Nest, NestPost } from '../../packages/shared/src/types.ts';
 
-vi.mock('../../services/syncService.ts', () => ({
+vi.mock('../../packages/shared/src/services/syncService.ts', () => ({
   syncToFirestore: vi.fn(),
 }));
 
-import { storage } from '../../services/storageService.ts';
+import { storage } from '../../packages/web/src/services/storageService.ts';
 
 let ls: ReturnType<typeof mockLocalStorage>;
 

@@ -2,8 +2,8 @@ import { mockLocalStorage } from '../helpers';
 
 let ls: ReturnType<typeof mockLocalStorage>;
 
-// Mock firebase.ts so we do not need a real Firebase app in tests
-vi.mock('../../firebase.ts', () => ({
+// Mock @nestly/shared so we do not need a real Firebase app in tests
+vi.mock('@nestly/shared', () => ({
   auth: {
     currentUser: {
       getIdToken: vi.fn().mockResolvedValue('fake-id-token'),
@@ -17,7 +17,7 @@ beforeEach(() => {
 });
 
 // Import after mocks are set up
-import { getAvaResponse } from '../../services/geminiService.ts';
+import { getAvaResponse } from '../../packages/web/src/services/geminiService.ts';
 
 describe('getAvaResponse', () => {
   it('sends user message to /api/ava and returns reply', async () => {

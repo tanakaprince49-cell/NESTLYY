@@ -32,3 +32,6 @@ playwright-report
 
 # Agent tool workspaces
 .codex
+
+# Turborepo
+.turbo
