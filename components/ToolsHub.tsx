@@ -85,6 +85,7 @@ const TummyTimeTracker = lazy(() => import('./tools/TummyTimeTracker.tsx').then(
 const MilestonesTracker = lazy(() => import('./tools/MilestonesTracker.tsx').then(m => ({ default: m.MilestonesTracker })));
 const HealthTracker = lazy(() => import('./tools/HealthTracker.tsx').then(m => ({ default: m.HealthTracker })));
 const ReactionsTracker = lazy(() => import('./tools/ReactionsTracker.tsx').then(m => ({ default: m.ReactionsTracker })));
+const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m => ({ default: m.SymptomDecoder })));
 const CustomPlanView = lazy(() => import('./CustomPlanView.tsx').then(m => ({ default: m.CustomPlanView })));
 
 const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, bgColor: string }> = {
@@ -341,6 +342,7 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         return <CustomPlanView profile={profile} trimester={currentTrimester} />;
       case 'reports':
         return <ReportCenter />;
+<<<<<<< Updated upstream
       case 'export':
         return <ExportReport 
           profile={profile} 
@@ -364,6 +366,13 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
           foodEntries={foodEntries} 
           vitamins={vitamins} 
         />;
+=======
+      case 'symptom_decoder':
+        const diffSymptom = new Date().getTime() - new Date(profile.lmpDate).getTime();
+        const weeksSymptom = Math.floor(diffSymptom / (1000 * 60 * 60 * 24 * 7));
+        const currentTrimesterSymptom = weeksSymptom < 13 ? Trimester.FIRST : weeksSymptom < 27 ? Trimester.SECOND : Trimester.THIRD;
+        return <SymptomDecoder trimester={currentTrimesterSymptom} />;
+>>>>>>> Stashed changes
       default:
         return null;
     }

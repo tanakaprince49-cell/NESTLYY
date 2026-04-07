@@ -63,7 +63,7 @@ export const SymptomTracker: React.FC<SymptomTrackerProps> = ({ symptoms, onLogS
         <div className="card-premium p-6 bg-white border-2 border-slate-50">
           <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Symptoms</h4>
           <div className="space-y-3">
-            {symptoms.slice(0, 5).map(log => (
+            {[...symptoms].reverse().slice(0, 5).map(log => (
               <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                 <div className="text-sm font-bold text-slate-800">{log.type}</div>
                 <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
