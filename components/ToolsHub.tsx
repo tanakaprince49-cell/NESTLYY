@@ -55,7 +55,9 @@ import {
   Download,
   FileText,
   Timer,
-  Book
+  Book,
+  ShieldCheck,
+  Crown
 } from 'lucide-react';
 
 // Lazy load tracker components
@@ -86,8 +88,9 @@ const MilestonesTracker = lazy(() => import('./tools/MilestonesTracker.tsx').the
 const HealthTracker = lazy(() => import('./tools/HealthTracker.tsx').then(m => ({ default: m.HealthTracker })));
 const ReactionsTracker = lazy(() => import('./tools/ReactionsTracker.tsx').then(m => ({ default: m.ReactionsTracker })));
 const CustomPlanView = lazy(() => import('./CustomPlanView.tsx').then(m => ({ default: m.CustomPlanView })));
+const SymptomDecoder = lazy(() => import('./tools/SymptomDecoder.tsx').then(m => ({ default: m.SymptomDecoder })));
 
-const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, bgColor: string }> = {
+const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, bgColor: string, isPremium?: boolean }> = {
   medications: { label: 'Medications', icon: Pill, color: 'text-purple-500', bgColor: 'bg-purple-100' },
   names: { label: 'Baby Names', icon: Sparkles, color: 'text-amber-500', bgColor: 'bg-amber-100' },
   bump: { label: 'Bump Photos', icon: CameraIcon, color: 'text-pink-500', bgColor: 'bg-pink-100' },
@@ -101,7 +104,6 @@ const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, b
   bath: { label: 'Bath', icon: Droplet, color: 'text-blue-500', bgColor: 'bg-blue-100' },
   pumping: { label: 'Pumping', icon: Droplets, color: 'text-fuchsia-500', bgColor: 'bg-fuchsia-100' },
   teething: { label: 'Teething', icon: Smile, color: 'text-teal-500', bgColor: 'bg-teal-100' },
-  export: { label: 'Export PDF', icon: Download, color: 'text-slate-600', bgColor: 'bg-slate-200' },
   journal: { label: 'Journal', icon: Book, color: 'text-indigo-500', bgColor: 'bg-indigo-100' },
   labor: { label: 'Contractions', icon: Timer, color: 'text-rose-500', bgColor: 'bg-rose-100' },
   kicks: { label: 'Kicks', icon: Footprints, color: 'text-violet-500', bgColor: 'bg-violet-100' },
@@ -109,12 +111,11 @@ const TOOL_METADATA: Record<string, { label: string, icon: any, color: string, b
   calm: { label: 'Calm', icon: Wind, color: 'text-emerald-500', bgColor: 'bg-emerald-100' },
   kegels: { label: 'Kegels', icon: Activity, color: 'text-cyan-600', bgColor: 'bg-cyan-100' },
   memories: { label: 'Memories', icon: CameraIcon, color: 'text-rose-400', bgColor: 'bg-rose-100' },
-  reports: { label: 'Reports', icon: FileText, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  calendar: { label: 'Calendar', icon: CalendarIcon, color: 'text-indigo-600', bgColor: 'bg-indigo-100' },
-  checklists: { label: 'Checklists', icon: ListTodo, color: 'text-emerald-600', bgColor: 'bg-emerald-100' },
   symptoms: { label: 'Symptoms', icon: Thermometer, color: 'text-red-400', bgColor: 'bg-red-100' },
   sleep: { label: 'Sleep', icon: Moon, color: 'text-indigo-400', bgColor: 'bg-indigo-100' },
-  custom_plan: { label: 'AI Plan', icon: Sparkles, color: 'text-rose-600', bgColor: 'bg-rose-100' },
+  custom_plan: { label: 'AI Plan', icon: Sparkles, color: 'text-rose-600', bgColor: 'bg-rose-100', isPremium: true },
+  symptom_decoder: { label: 'Decoder', icon: ShieldCheck, color: 'text-blue-500', bgColor: 'bg-blue-100', isPremium: true },
+  reports: { label: 'Reports', icon: FileText, color: 'text-blue-600', bgColor: 'bg-blue-100', isPremium: true },
 };
 
 interface ToolsHubProps {
@@ -170,6 +171,9 @@ interface ToolsHubProps {
   onUpdateBumpPhotos?: () => void;
   onUpdateBabyNames?: () => void;
   onUpdateArchive?: () => void;
+  isPremium?: boolean;
+  onRequestPremium?: () => void;
+  userUid: string | null;
 }
 
 export const ToolsHub: React.FC<ToolsHubProps> = ({ 
@@ -184,7 +188,8 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
   foodEntries, onAddFoodEntry, onRemoveFoodEntry,
   vitamins, onAddVitamin,
   profile,
-  activeCategory, setActiveCategory, onUpdateProfile, onUpdateChecklist, onUpdateBumpPhotos, onUpdateBabyNames, onUpdateArchive
+  activeCategory, setActiveCategory, onUpdateProfile, onUpdateChecklist, onUpdateBumpPhotos, onUpdateBabyNames, onUpdateArchive,
+  isPremium, onRequestPremium, userUid
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -208,9 +213,9 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
 
   const categories = useMemo(() => {
     if (isPostpartum) {
-      return ['custom_plan', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'export', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
+      return ['custom_plan', 'feeding', 'sleep', 'diaper', 'milestones', 'health', 'medications', 'tummy_time', 'bath', 'pumping', 'teething', 'journal', 'calendar', 'checklists', 'memories', 'symptoms', 'nutrition', 'vitamins'];
     }
-    return ['custom_plan', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'reports', 'symptoms', 'nutrition', 'vitamins'];
+    return ['custom_plan', 'symptom_decoder', 'medications', 'names', 'bump', 'sleep', 'calendar', 'checklists', 'memories', 'kegels', 'journal', 'labor', 'kicks', 'reactions', 'calm', 'reports', 'symptoms', 'nutrition', 'vitamins'];
   }, [isPostpartum]);
 
   const filteredCategories = useMemo(() => {
@@ -339,31 +344,13 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
         const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
         const currentTrimester = weeks < 13 ? Trimester.FIRST : weeks < 27 ? Trimester.SECOND : Trimester.THIRD;
         return <CustomPlanView profile={profile} trimester={currentTrimester} />;
+      case 'symptom_decoder':
+        const diffSymptom = new Date().getTime() - new Date(profile.lmpDate).getTime();
+        const weeksSymptom = Math.floor(diffSymptom / (1000 * 60 * 60 * 24 * 7));
+        const currentTrimesterSymptom = weeksSymptom < 13 ? Trimester.FIRST : weeksSymptom < 27 ? Trimester.SECOND : Trimester.THIRD;
+        return <SymptomDecoder trimester={currentTrimesterSymptom} />;
       case 'reports':
         return <ReportCenter />;
-      case 'export':
-        return <ExportReport 
-          profile={profile} 
-          symptoms={symptoms} 
-          weightLogs={weightLogs} 
-          contractions={contractions} 
-          journalEntries={journalEntries} 
-          calendarEvents={calendarEvents} 
-          sleepLogs={sleepLogs} 
-          feedingLogs={feedingLogs} 
-          diaperLogs={diaperLogs} 
-          milestones={milestones} 
-          healthLogs={healthLogs} 
-          reactions={reactions} 
-          kickLogs={kickLogs} 
-          kegelLogs={kegelLogs} 
-          babyGrowthLogs={babyGrowthLogs} 
-          tummyTimeLogs={tummyTimeLogs} 
-          bloodPressureLogs={bloodPressureLogs} 
-          medicationLogs={medicationLogs} 
-          foodEntries={foodEntries} 
-          vitamins={vitamins} 
-        />;
       default:
         return null;
     }
@@ -403,9 +390,21 @@ export const ToolsHub: React.FC<ToolsHubProps> = ({
                   key={cat}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setActiveCategory(cat)}
-                  className="p-6 bg-white rounded-[2.5rem] shadow-sm border border-slate-50 flex flex-col items-center text-center gap-4 transition-all hover:shadow-md"
+                  onClick={() => {
+                    const meta = TOOL_METADATA[cat] as any;
+                    if (meta?.isPremium && !isPremium) {
+                      onRequestPremium?.();
+                    } else {
+                      setActiveCategory(cat);
+                    }
+                  }}
+                  className="p-6 bg-white rounded-[2.5rem] shadow-sm border border-slate-50 flex flex-col items-center text-center gap-4 transition-all hover:shadow-md relative group"
                 >
+                  {(TOOL_METADATA[cat] as any)?.isPremium && !isPremium && (
+                    <div className="absolute top-4 right-4 text-amber-500">
+                      <Crown size={14} />
+                    </div>
+                  )}
                   <div className={`w-16 h-16 ${meta.bgColor} rounded-full flex items-center justify-center ${meta.color}`}>
                     <Icon size={32} />
                   </div>
