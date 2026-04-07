@@ -9,7 +9,7 @@
  */
 
 import admin from 'firebase-admin';
-import { TEMPLATE_NESTS, getTemplatePosts } from '../services/villageTemplates.ts';
+import { TEMPLATE_NESTS, getTemplatePosts } from '../packages/shared/src/services/villageTemplates.ts';
 
 function init() {
   if (admin.apps?.length) return;
@@ -48,8 +48,10 @@ async function seed() {
       authorUid: post.authorUid,
       authorName: post.authorName,
       content: post.content,
+      media: [],
       likedBy: [],
       likeCount: post.likeCount,
+      commentCount: 0,
       createdAt: admin.firestore.Timestamp.fromMillis(post.createdAt),
       isTemplate: true,
     });
