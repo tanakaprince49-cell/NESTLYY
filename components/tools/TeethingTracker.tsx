@@ -46,7 +46,7 @@ export const TeethingTracker: React.FC<TeethingTrackerProps> = ({ journalEntries
         <div className="card-premium p-6 bg-white border-2 border-slate-50">
           <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-4">Recent Teething Logs</h4>
           <div className="space-y-3">
-            {[...teethingLogs].reverse().slice(0, 5).map(log => (
+            {teethingLogs.slice(0, 5).map(log => (
               <div key={log.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                 <div className="text-sm font-bold text-slate-800">{log.content.replace('[Teething] ', '')}</div>
                 <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
