@@ -163,8 +163,15 @@ const App: React.FC = () => {
       splash.style.opacity = '0';
       setTimeout(() => splash.remove(), 600);
 
-      // Forced for Demo: Show premium modal on every manual refresh
-      setTimeout(() => setShowPremiumModal(true), 800);
+      // Show premium upsell after a short delay, but ONLY if they are not premium 
+      // AND we haven't shown it to them yet in this session.
+      const hasShownThisSession = sessionStorage.getItem('nestly_premium_prompted');
+      if (storage.getPremiumStatus() === false && !hasShownThisSession) {
+        setTimeout(() => {
+          setShowPremiumModal(true);
+          sessionStorage.setItem('nestly_premium_prompted', 'true');
+        }, 1500);
+      }
     }
   }, [loading]);
 

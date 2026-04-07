@@ -5,7 +5,7 @@ import { updatePassword } from 'firebase/auth';
 import { auth } from '../firebase.ts';
 import { PregnancyProfile, LifecycleStage, BabyAvatar } from '../types.ts';
 import { storage } from '../services/storageService.ts';
-import { Camera, Plus, Trash2, Baby } from 'lucide-react';
+import { Camera, Plus, Trash2, Baby, Crown } from 'lucide-react';
 
 interface SettingsProps {
   profile: PregnancyProfile;
@@ -425,6 +425,38 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
             <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${profile.emailNotifications ? 'right-1' : 'left-1'}`} />
           </button>
         </div>
+      </div>
+
+      <div className="card-premium p-6 space-y-4 bg-gradient-to-br from-rose-900 to-rose-950 border-none shadow-xl shadow-rose-900/20">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-white">Nestly Premium</h3>
+              {storage.getPremiumStatus() && (
+                <div className="px-2 py-0.5 bg-amber-400 rounded-full flex items-center gap-1">
+                  <Crown size={10} className="text-white" />
+                  <span className="text-[8px] font-black text-white uppercase tracking-widest">Active</span>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-rose-200/80 leading-relaxed">
+              {storage.getPremiumStatus() 
+                ? 'Your premium membership is active. You have full access to all features.' 
+                : 'Unlock exclusive features like Ava AI, Trend Reports, and Advanced Analytics.'}
+            </p>
+          </div>
+        </div>
+        {!storage.getPremiumStatus() && (
+          <button 
+             onClick={() => {
+               sessionStorage.removeItem('nestly_premium_prompted');
+               window.location.reload();
+             }}
+             className="w-full py-4 bg-amber-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-900/40 active:scale-95 transition-all"
+          >
+            Upgrade to Premium
+          </button>
+        )}
       </div>
 
       <div className="card-premium p-6 space-y-4">
