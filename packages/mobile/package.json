@@ -2,7 +2,16 @@
   "name": "@nestly/mobile",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
   "dependencies": {
     "@nestly/shared": "*"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.9"
   }
 }

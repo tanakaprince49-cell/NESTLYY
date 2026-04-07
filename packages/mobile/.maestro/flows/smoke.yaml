@@ -1,0 +1,4 @@
+appId: com.nestly.app
+---
+- launchApp
+- assertVisible: ".*"
