@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Sparkles, Crown } from 'lucide-react';
 import { Layout } from './components/Layout.tsx';
 const Dashboard = lazy(() => import('./components/Dashboard.tsx').then(m => ({ default: m.Dashboard })));
 const BabyProgress = lazy(() => import('./components/BabyProgress.tsx').then(m => ({ default: m.BabyProgress })));
@@ -11,6 +13,7 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard.tsx').then
 const AvaChat = lazy(() => import('./components/AvaChat.tsx').then(m => ({ default: m.AvaChat })));
 const Settings = lazy(() => import('./components/Settings.tsx').then(m => ({ default: m.Settings })));
 const VillageHub = lazy(() => import('./components/VillageHub.tsx').then(m => ({ default: m.VillageHub })));
+const PremiumPage = lazy(() => import('./components/PremiumPage.tsx').then(m => ({ default: m.PremiumPage })));
 import { storage } from './services/storageService.ts';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import {
@@ -43,6 +46,8 @@ const App: React.FC = () => {
   const [hasAcceptedPrivacy, setHasAcceptedPrivacy] = useState<boolean>(false);
   const [userUid, setUserUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPremium, setIsPremium] = useState<boolean>(() => storage.getPremiumStatus());
+  const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
 
   useEffect(() => {
     setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
@@ -157,6 +162,9 @@ const App: React.FC = () => {
       splash.style.transition = 'opacity 500ms ease-out';
       splash.style.opacity = '0';
       setTimeout(() => splash.remove(), 600);
+
+      // Forced for Demo: Show premium modal on every manual refresh
+      setTimeout(() => setShowPremiumModal(true), 800);
     }
   }, [loading]);
 
@@ -282,15 +290,28 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
-      <div className="max-w-4xl mx-auto px-4 py-4">
+      <AnimatePresence>
+        {showPremiumModal && (
+          <PremiumPage 
+            onClose={() => setShowPremiumModal(false)} 
+            onSubscribe={() => {
+              setIsPremium(true);
+              storage.setPremiumStatus(true);
+              setShowPremiumModal(false);
+            }} 
+          />
+        )}
+      </AnimatePresence>
+
+      <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} isPremium={isPremium}>
+      <div className={activeTab === 'village' ? 'w-full min-h-full px-3 py-3' : 'max-w-4xl mx-auto px-4 py-4'}>
           <Suspense fallback={
             <div className="flex items-center justify-center h-[60vh]">
               <div className="w-8 h-8 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin"></div>
             </div>
           }>
             <div key={activeTab} className="animate-slide-up">
-              {activeTab === 'dashboard' && (
+              {activeTab === 'dashboard' && profile && (
                 <Dashboard 
                   entries={entries} vitamins={vitamins} weightLogs={weightLogs} sleepLogs={sleepLogs}
                   feedingLogs={feedingLogs} milestones={milestones} healthLogs={healthLogs} reactions={reactions}
@@ -330,11 +351,35 @@ const App: React.FC = () => {
                     setProfile(p); 
                   }}
                   onNavigate={(tab) => setActiveTab(tab)}
+                  isPremium={isPremium}
+                  onRequestPremium={() => setShowPremiumModal(true)}
                 />
               )}
-              {activeTab === 'baby' && <BabyProgress profile={profile} babyGrowthLogs={babyGrowthLogs} />}
-              {activeTab === 'ava' && <AvaChat profile={profile} />}
-              {activeTab === 'education' && (
+              {activeTab === 'baby' && profile && <BabyProgress profile={profile} babyGrowthLogs={babyGrowthLogs} />}
+              {activeTab === 'ava' && (
+                isPremium ? (
+                  <AvaChat profile={profile!} />
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-12 text-center space-y-6 bg-white/50 backdrop-blur-md rounded-[3rem] border border-white max-w-lg mx-auto mt-20">
+                    <div className="w-20 h-20 bg-rose-100 rounded-3xl flex items-center justify-center text-rose-500 shadow-inner">
+                      <Sparkles size={40} />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-serif text-slate-900">Ava is a Premium Feature</h3>
+                      <p className="text-slate-500 text-sm leading-relaxed">
+                        Unlock Ava AI for personalized support, medical insights, and stage-aware guidance throughout your journey.
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => setShowPremiumModal(true)}
+                      className="bg-rose-500 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-rose-600 transition-all shadow-lg shadow-rose-200"
+                    >
+                      Unlock Ava Now
+                    </button>
+                  </div>
+                )
+              )}
+              {activeTab === 'education' && profile && (
                 <EducationHub 
                   trimester={trimester} 
                   isPostpartum={profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY} 
@@ -462,13 +507,16 @@ const App: React.FC = () => {
                   onUpdateArchive={() => {
                     // Local update handled via storage
                   }}
+                  isPremium={isPremium}
+                  onRequestPremium={() => setShowPremiumModal(true)}
+                  userUid={userUid}
                 />
               )}
               {activeTab === 'settings' && <Settings profile={profile} onUpdateProfile={(p) => {
                 storage.saveProfile(p);
                 setProfile(p);
                   }} userUid={userUid} />}
-              {activeTab === 'village' && <VillageHub profile={profile} userUid={userUid} />}
+              {activeTab === 'village' && <VillageHub profile={profile} userUid={userUid} isPremium={isPremium} onRequestPremium={() => setShowPremiumModal(true)} />}
               {activeTab === 'admin' && isAdmin && <AdminDashboard />}
             </div>
           </Suspense>
