@@ -74,6 +74,7 @@ const KEYS = {
   PRIVACY_ACCEPTED: 'privacy_accepted',
   CUSTOM_PLAN: 'custom_plan_v1',
   LAST_WEEK_CELEBRATED: 'last_week_celebrated',
+  PREMIUM_STATUS: 'nestly_premium_v2',
 };
 
 import { syncToFirestore } from './syncService.ts';
@@ -422,6 +423,14 @@ class StorageService {
 
   setLastWeekCelebrated(week: number): void {
     this.setItem(KEYS.LAST_WEEK_CELEBRATED, week);
+  }
+
+  getPremiumStatus(): boolean {
+    return this.getItem<boolean>(KEYS.PREMIUM_STATUS, false);
+  }
+
+  setPremiumStatus(status: boolean): void {
+    this.setItem(KEYS.PREMIUM_STATUS, status);
   }
 
 }

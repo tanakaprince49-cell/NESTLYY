@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2, MessageCircle, Reply, Share2, Edit3 } from 'lucide-react';
+import { Users, Heart, Sparkles, Plus, ArrowLeft, Send, X, Trash2, LogOut, ChevronRight, Loader2, MessageCircle, Reply, Share2, Edit3, Crown } from 'lucide-react';
 import { PregnancyProfile, NestCategory, Nest, NestPost, NestMembership, NestComment } from '../types.ts';
 import {
   subscribeToNests,
@@ -23,6 +23,8 @@ import {
 interface VillageHubProps {
   profile: PregnancyProfile;
   userUid: string | null;
+  isPremium?: boolean;
+  onRequestPremium?: () => void;
 }
 
 type View = 'discover' | 'my-nests' | 'nest-detail';
@@ -50,7 +52,7 @@ function timeAgo(timestamp: number): string {
   return `${Math.floor(days / 7)}w ago`;
 }
 
-export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
+export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid, isPremium, onRequestPremium }) => {
   const [view, setView] = useState<View>('discover');
   const [selectedNestId, setSelectedNestId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -207,10 +209,11 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
               My Nests <ChevronRight size={18} />
             </button>
             <button
-              onClick={() => setShowCreateModal(true)}
-              className="w-14 h-14 bg-rose-800 text-white rounded-2xl flex items-center justify-center border border-rose-700/50 hover:bg-rose-700 transition-colors"
+              onClick={() => isPremium ? setShowCreateModal(true) : onRequestPremium?.()}
+              className="w-14 h-14 bg-rose-800 text-white rounded-2xl flex items-center justify-center border border-rose-700/50 hover:bg-rose-700 transition-colors relative group"
             >
               <Plus size={24} />
+              {!isPremium && <Crown size={12} className="absolute -top-1 -right-1 text-amber-400 drop-shadow-sm" />}
             </button>
           </div>
         </div>
@@ -323,10 +326,11 @@ export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
 
         <div className="px-1">
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="w-full p-4 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-rose-300 hover:text-rose-400 transition-all flex items-center justify-center gap-2"
+            onClick={() => isPremium ? setShowCreateModal(true) : onRequestPremium?.()}
+            className="w-full p-4 border-2 border-dashed border-slate-200 rounded-[2rem] text-slate-400 text-[10px] font-black uppercase tracking-widest hover:border-rose-300 hover:text-rose-400 transition-all flex items-center justify-center gap-2 relative group"
           >
             <Plus size={16} /> Create Your Own Nest
+            {!isPremium && <Crown size={14} className="text-amber-500" />}
           </button>
         </div>
 

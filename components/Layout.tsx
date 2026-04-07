@@ -23,9 +23,10 @@ interface LayoutProps {
   activeTab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village';
   setActiveTab: (tab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village') => void;
   onLogout: () => void;
+  isPremium?: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLogout }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLogout, isPremium }) => {
   const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map((e: string) => e.trim()).filter(Boolean);
   const isAdmin = adminEmails.includes(storage.getAuthEmail() || '');
   const [isDesktop, setIsDesktop] = useState(false);
@@ -71,7 +72,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
             <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center w-full' : ''}`}>
               <Logo className="w-10 h-10 shrink-0" />
               {!sidebarCollapsed && (
-                <h1 className="text-xl font-serif text-rose-900 tracking-tight">Nestly</h1>
+                <div className="flex flex-col -space-y-1">
+                  <h1 className="text-xl font-serif text-rose-900 tracking-tight leading-none">Nestly</h1>
+                  {isPremium && (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <div className="w-1 h-1 bg-amber-400 rounded-full animate-pulse" />
+                      <span className="text-[7px] font-black uppercase tracking-[0.2em] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100 shadow-sm">
+                        Premium
+                      </span>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             <button 
@@ -135,7 +146,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         <header className={`lg:hidden relative z-[110] px-6 pt-6 pb-2 items-center justify-between shrink-0 bg-rose-50/60 backdrop-blur-md ${isVillageMode ? 'hidden' : 'flex'}`}>
           <div className="flex items-center gap-3">
             <Logo className="w-10 h-10" />
-            <h1 className="text-2xl font-serif text-rose-900 tracking-tight">Nestly</h1>
+            <div className="flex flex-col -space-y-1">
+              <h1 className="text-2xl font-serif text-rose-900 tracking-tight leading-none">Nestly</h1>
+              {isPremium && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <div className="w-1 h-1 bg-amber-400 rounded-full animate-pulse" />
+                  <span className="text-[7px] font-black uppercase tracking-[0.2em] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100 shadow-sm">
+                    Premium
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {storage.getProfile()?.profileImage && (
@@ -158,10 +179,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         {/* Desktop Top Bar */}
         {isDesktop && (
           <header className="hidden lg:flex relative z-[110] px-8 pt-6 pb-4 items-center justify-between shrink-0 bg-rose-50/40 backdrop-blur-sm border-b border-rose-100/30">
-            <div>
+            <div className="flex flex-col">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">
                 {activeTab === 'dashboard' ? 'Home' : activeTab === 'baby' ? 'Baby Growth' : activeTab === 'ava' ? 'AI Assistant' : activeTab === 'education' ? 'Education' : activeTab === 'tools' ? 'Tools Hub' : activeTab === 'village' ? 'Village Hub' : activeTab === 'settings' ? 'Settings' : 'Admin'}
               </p>
+              {isPremium && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-[7px] font-black uppercase tracking-[0.2em] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100 shadow-sm">
+                    Nestly Premium
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-4">
               {storage.getProfile()?.profileImage && (

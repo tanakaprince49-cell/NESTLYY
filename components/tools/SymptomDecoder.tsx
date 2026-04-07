@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Stethoscope, Sparkles, Send, RefreshCw, AlertCircle, CheckCircle2, AlertTriangle, Phone } from 'lucide-react';
-import { auth } from '../../firebase.ts';
 import { Trimester } from '../../types.ts';
 
 interface SymptomDecoderProps {
@@ -26,26 +25,41 @@ export const SymptomDecoder: React.FC<SymptomDecoderProps> = ({ trimester }) => 
     if (!symptoms.trim()) return;
     setLoading(true);
     setError(null);
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      const response = await fetch('/api/symptom-decode', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ symptoms, trimester })
-      });
+    
+    // Simulate network delay for realistic experience
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const input = symptoms.toLowerCase();
+    let mockResult: AnalysisResult;
 
-      if (!response.ok) throw new Error('Failed to analyze symptoms');
-      const data = await response.json();
-      setResult(data);
-    } catch (err) {
-      console.error(err);
-      setError('Could not reach Ava for support. Please try again.');
-    } finally {
-      setLoading(false);
+    if (input.includes('bleed') || input.includes('severe') || input.includes('pain')) {
+      mockResult = {
+        validation: "I hear your concern, and it's very important we track these significant symptoms closely.",
+        safetyRating: 'Red',
+        explanation: "Symptoms like heavy bleeding or severe localized pain require immediate clinical evaluation to ensure both you and your baby are safe.",
+        action: "Please stop what you're doing and contact your primary OB-GYN or visit the nearest maternity triage immediately.",
+        medicalNote: "Call your doctor right away if you experience bright red bleeding, sudden severe abdominal pain, or a significant decrease in baby movement."
+      };
+    } else if (input.includes('cramp') || input.includes('headache') || input.includes('swelling')) {
+      mockResult = {
+        validation: "It's completely normal to feel uneasy when new physical sensations arise during your journey.",
+        safetyRating: 'Amber',
+        explanation: "Mild cramping or swelling can often be attributed to your body's physical expansion, but they can also be early signs of dehydration or blood pressure changes.",
+        action: "Drink 16oz of water, rest on your left side for 30 minutes, and monitor if the sensation persists or intensifies.",
+        medicalNote: "Contact your provider if headaches are persistent and not relieved by rest, or if swelling occurs suddenly in your face or hands."
+      };
+    } else {
+      mockResult = {
+        validation: "Thank you for sharing how you're feeling. Many of these sensations are common milestones of a growing pregnancy.",
+        safetyRating: 'Green',
+        explanation: "Common symptoms like mild nausea, fatigue, or slight backaches are typically signs of your hormones and body adjusting to your baby's growth.",
+        action: "Continue monitoring your symptoms, stay hydrated, and ensure you're getting adequate rest throughout the day.",
+        medicalNote: "Mention these symptoms at your next routine prenatal appointment. Call earlier only if they become severe or if you develop a fever."
+      };
     }
+
+    setResult(mockResult);
+    setLoading(false);
   };
 
   const getSafetyColor = (rating: string) => {

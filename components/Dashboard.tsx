@@ -46,7 +46,8 @@ import {
   Download,
   Stethoscope,
   Activity,
-  Droplet
+  Droplet,
+  Crown
 } from 'lucide-react';
 import { calculateDurationMinutes } from '../src/utils/sleepUtils';
 import { FoodResearchAI } from './FoodResearchAI.tsx';
@@ -97,6 +98,8 @@ interface DashboardProps {
   onAddMedication?: (log: Omit<MedicationLog, 'id' | 'timestamp'>) => void;
   onRemoveMedication?: (id: string) => void;
   onNavigate?: (tab: any) => void;
+  isPremium?: boolean;
+  onRequestPremium?: () => void;
 }
 
 type TrendMetric = 'fuel' | 'weight' | 'sleep' | 'feeding' | 'tummy';
@@ -126,6 +129,8 @@ const TrendAnalyticsCard: React.FC<{
   trendRange: TrendRange;
   onRangeChange: (range: TrendRange) => void;
   onExportCsv: () => void;
+  isPremium?: boolean;
+  onRequestPremium?: () => void;
 }> = ({
   title,
   gradientId,
@@ -137,20 +142,32 @@ const TrendAnalyticsCard: React.FC<{
   trendRange,
   onRangeChange,
   onExportCsv,
+  isPremium,
+  onRequestPremium,
 }) => (
-  <div className="card-premium p-6 bg-white border-2 border-slate-50 h-96">
+  <div className="card-premium p-6 bg-white border-2 border-slate-50 h-[420px] relative overflow-hidden">
     <div className="flex justify-between items-center mb-6">
       <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{title}</h4>
-      <button onClick={onExportCsv} className="text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl bg-slate-900 text-white flex items-center gap-1">
-        <Download size={12} /> CSV
+      <button 
+        onClick={() => isPremium ? onExportCsv() : onRequestPremium?.()} 
+        className="text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl bg-slate-900 text-white flex items-center gap-2 group transition-all"
+      >
+        <Download size={12} /> 
+        CSV { !isPremium && <Crown size={10} className="text-amber-400" /> }
       </button>
     </div>
     <div className="flex flex-wrap gap-2 mb-4">
       {TREND_RANGES.map((range) => (
-        <button key={range} onClick={() => onRangeChange(range)} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${trendRange === range ? 'bg-rose-500 text-white' : 'bg-slate-50 text-slate-500'}`}>
+        <button 
+          key={range} 
+          onClick={() => (range === '7d' || isPremium) ? onRangeChange(range) : onRequestPremium?.()} 
+          className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${trendRange === range ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' : 'bg-slate-50 text-slate-500'}`}
+        >
           {range}
+          {(range !== '7d' && !isPremium) && <Crown size={10} className="text-amber-500" />}
         </button>
       ))}
+      <div className="w-px h-4 bg-slate-100 mx-1" />
       {CHART_TYPES.map((type) => (
         <button key={type} onClick={() => onChartTypeChange(type)} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${chartType === type ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-500'}`}>
           {type}
@@ -227,7 +244,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   feedingLogs = [], milestones = [], healthLogs = [], reactions = [], journalEntries = [], babyGrowthLogs = [], diaperLogs = [],
   tummyTimeLogs = [], medicationLogs = [], bloodPressureLogs = [],
   trimester, profile, 
-  onAddEntry, onRemoveEntry, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onAddMedication, onRemoveMedication, onNavigate
+  onAddEntry, onRemoveEntry, onLogVitamin, onQuickTool, onEditProfile, onUpdateProfile, onAddBabyGrowth, onAddMedication, onRemoveMedication, onNavigate,
+  isPremium, onRequestPremium
 }) => {
   const isPostpartum = profile.lifecycleStage !== LifecycleStage.PREGNANCY && profile.lifecycleStage !== LifecycleStage.PRE_PREGNANCY;
   const [activeMetric, setActiveMetric] = useState<TrendMetric>(isPostpartum ? 'feeding' : 'fuel');
@@ -707,6 +725,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
               trendRange={trendRange}
               onRangeChange={setTrendRange}
               onExportCsv={handleExportTrendsCsv}
+              isPremium={isPremium}
+              onRequestPremium={onRequestPremium}
             />
           </div>
         </div>
@@ -923,6 +943,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             trendRange={trendRange}
             onRangeChange={setTrendRange}
             onExportCsv={handleExportTrendsCsv}
+            isPremium={isPremium}
+            onRequestPremium={onRequestPremium}
           />
         </>
       )}
