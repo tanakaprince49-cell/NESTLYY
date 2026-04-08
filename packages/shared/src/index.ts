@@ -1,4 +1,5 @@
 export * from './types.ts';
+export * from './data/educationArticles.ts';
 export { db, auth, messaging, app, googleProvider } from './firebase.ts';
 export * from './utils/sleepUtils.ts';
 export { formatTime, formatDuration as formatDurationMs } from './utils/formatters.ts';
