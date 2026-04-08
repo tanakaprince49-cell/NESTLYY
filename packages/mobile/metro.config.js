@@ -14,4 +14,10 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, 'node_modules'),
 ];
 
+// Pin React/RN to mobile-local versions (root has newer React from web package)
+config.resolver.extraNodeModules = {
+  react: path.resolve(projectRoot, 'node_modules/react'),
+  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
+};
+
 module.exports = withNativeWind(config, { input: './src/global.css' });

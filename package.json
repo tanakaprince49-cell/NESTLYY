@@ -23,5 +23,9 @@
     "@openrouter/sdk": "^0.9.11",
     "@google/genai": "^1.40.0",
     "resend": "^6.9.3"
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
   }
 }
