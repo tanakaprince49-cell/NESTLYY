@@ -5,6 +5,13 @@ import { FeedingTrackerScreen } from '../screens/trackers/FeedingTrackerScreen';
 import { SleepTrackerScreen } from '../screens/trackers/SleepTrackerScreen';
 import { DiaperTrackerScreen } from '../screens/trackers/DiaperTrackerScreen';
 import { VitalsTrackerScreen } from '../screens/trackers/VitalsTrackerScreen';
+import { SymptomTrackerScreen } from '../screens/trackers/SymptomTrackerScreen';
+import { KickCounterScreen } from '../screens/trackers/KickCounterScreen';
+import { ContractionTimerScreen } from '../screens/trackers/ContractionTimerScreen';
+import { MedicationTrackerScreen } from '../screens/trackers/MedicationTrackerScreen';
+import { VitaminTrackerScreen } from '../screens/trackers/VitaminTrackerScreen';
+import { BloodPressureTrackerScreen } from '../screens/trackers/BloodPressureTrackerScreen';
+import { KegelTrackerScreen } from '../screens/trackers/KegelTrackerScreen';
 import type { ToolsStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<ToolsStackParamList>();
@@ -43,6 +50,41 @@ export function ToolsStack() {
         name="VitalsTracker"
         component={VitalsTrackerScreen}
         options={{ title: 'Vitals' }}
+      />
+      <Stack.Screen
+        name="SymptomTracker"
+        component={SymptomTrackerScreen}
+        options={{ title: 'Symptoms' }}
+      />
+      <Stack.Screen
+        name="KickCounter"
+        component={KickCounterScreen}
+        options={{ title: 'Kick Counter' }}
+      />
+      <Stack.Screen
+        name="ContractionTimer"
+        component={ContractionTimerScreen}
+        options={{ title: 'Contractions' }}
+      />
+      <Stack.Screen
+        name="MedicationTracker"
+        component={MedicationTrackerScreen}
+        options={{ title: 'Medications' }}
+      />
+      <Stack.Screen
+        name="VitaminTracker"
+        component={VitaminTrackerScreen}
+        options={{ title: 'Vitamins' }}
+      />
+      <Stack.Screen
+        name="BloodPressureTracker"
+        component={BloodPressureTrackerScreen}
+        options={{ title: 'Blood Pressure' }}
+      />
+      <Stack.Screen
+        name="KegelTracker"
+        component={KegelTrackerScreen}
+        options={{ title: 'Kegels' }}
       />
     </Stack.Navigator>
   );

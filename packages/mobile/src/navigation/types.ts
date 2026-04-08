@@ -6,6 +6,13 @@ export type ToolsStackParamList = {
   SleepTracker: undefined;
   DiaperTracker: undefined;
   VitalsTracker: undefined;
+  SymptomTracker: undefined;
+  KickCounter: undefined;
+  ContractionTimer: undefined;
+  MedicationTracker: undefined;
+  VitaminTracker: undefined;
+  BloodPressureTracker: undefined;
+  KegelTracker: undefined;
 };
 
 export type RootTabParamList = {
