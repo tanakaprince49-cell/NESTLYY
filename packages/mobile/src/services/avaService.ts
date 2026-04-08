@@ -8,6 +8,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL
 export async function getAvaResponse(
   userMessage: string,
   recentMessages: ChatMessage[],
+  signal?: AbortSignal,
 ): Promise<string> {
   const token = await auth.currentUser?.getIdToken();
   if (!token) {
@@ -23,6 +24,8 @@ export async function getAvaResponse(
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
+  const onAbort = () => controller.abort();
+  signal?.addEventListener('abort', onAbort);
 
   try {
     const response = await fetch(API_URL, {
@@ -44,5 +47,6 @@ export async function getAvaResponse(
     return data.reply || 'No response';
   } finally {
     clearTimeout(timeout);
+    signal?.removeEventListener('abort', onAbort);
   }
 }

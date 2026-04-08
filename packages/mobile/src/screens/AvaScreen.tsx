@@ -40,20 +40,33 @@ export function AvaScreen() {
 
   const [input, setInput] = useState('');
   const hydrated = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Cleanup on unmount: cancel in-flight request + stop speech
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      Speech.stop();
+    };
+  }, []);
 
   // Hydrate messages from AsyncStorage on mount
   useEffect(() => {
     hydrated.current = false;
-    AsyncStorage.getItem(storageKey).then((data) => {
-      if (data) {
-        try {
-          setMessages(JSON.parse(data));
-        } catch {
-          // Corrupted data, ignore
+    AsyncStorage.getItem(storageKey)
+      .then((data) => {
+        if (data) {
+          try {
+            setMessages(JSON.parse(data));
+          } catch {
+            // Corrupted data, ignore
+          }
         }
-      }
-      hydrated.current = true;
-    });
+        hydrated.current = true;
+      })
+      .catch(() => {
+        hydrated.current = true;
+      });
   }, [storageKey, setMessages]);
 
   // Persist messages on change (skip the initial hydration write-back)
@@ -61,33 +74,45 @@ export function AvaScreen() {
     if (!hydrated.current) return;
     if (messages.length > 0) {
       const toStore = messages.slice(-100);
-      AsyncStorage.setItem(storageKey, JSON.stringify(toStore));
+      AsyncStorage.setItem(storageKey, JSON.stringify(toStore)).catch(() => {});
     }
   }, [messages, storageKey]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (!text || isLoading) return;
+    if (!text || useAvaChatStore.getState().isLoading) return;
 
     setInput('');
     addMessage({ role: 'user', text });
     setLoading(true);
 
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
-      const reply = await getAvaResponse(text, messages);
+      const recent = useAvaChatStore.getState().messages;
+      const reply = await getAvaResponse(text, recent, controller.signal);
+      if (controller.signal.aborted) return;
+
       addMessage({ role: 'model', text: reply });
 
-      if (isSpeaking) {
+      if (useAvaChatStore.getState().isSpeaking) {
         Speech.speak(reply, { language: 'en-US', rate: 1.0, pitch: 1.1 });
       }
     } catch {
-      addMessage({ role: 'model', text: 'Ava is taking a quiet moment. Try again soon.' });
+      if (!controller.signal.aborted) {
+        addMessage({ role: 'model', text: 'Ava is taking a quiet moment. Try again soon.' });
+      }
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
-  }, [input, isLoading, messages, isSpeaking, addMessage, setLoading]);
+  }, [input, addMessage, setLoading]);
 
   const handleClear = useCallback(() => {
+    if (useAvaChatStore.getState().messages.length === 0) return;
     Alert.alert('Clear Conversation?', 'This will delete your chat history with Ava.', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -95,12 +120,12 @@ export function AvaScreen() {
         style: 'destructive',
         onPress: () => {
           clearMessages();
-          AsyncStorage.removeItem(storageKey);
+          AsyncStorage.removeItem(storageKey).catch(() => {});
           Speech.stop();
         },
       },
     ]);
-  }, [clearMessages]);
+  }, [clearMessages, storageKey]);
 
   const toggleSpeaking = useCallback(() => {
     if (isSpeaking) {
@@ -186,7 +211,11 @@ export function AvaScreen() {
           inverted
           contentContainerStyle={{ padding: 16 }}
           keyboardDismissMode="on-drag"
-          ListEmptyComponent={<EmptyState userName={profile?.userName} />}
+          ListEmptyComponent={
+            <View style={{ transform: [{ scaleY: -1 }] }}>
+              <EmptyState userName={profile?.userName} />
+            </View>
+          }
           ListHeaderComponent={isLoading ? <TypingIndicator /> : null}
         />
 
