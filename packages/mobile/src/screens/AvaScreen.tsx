@@ -14,14 +14,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAvaChatStore, useProfileStore } from '@nestly/shared/stores';
+import { useAvaChatStore, useAuthStore, useProfileStore } from '@nestly/shared/stores';
 import type { ChatMessage } from '@nestly/shared';
 import { getAvaResponse } from '../services/avaService';
 
-const STORAGE_KEY = 'ava_chat_messages';
+function getStorageKey(email: string | null) {
+  const prefix = email || 'anon';
+  return `${prefix}_ava_chat_messages`;
+}
 
 export function AvaScreen() {
+  const { authEmail } = useAuthStore();
   const { profile } = useProfileStore();
+  const storageKey = getStorageKey(authEmail);
   const {
     messages,
     isLoading,
@@ -34,11 +39,12 @@ export function AvaScreen() {
   } = useAvaChatStore();
 
   const [input, setInput] = useState('');
-  const flatListRef = useRef<FlatList>(null);
+  const hydrated = useRef(false);
 
   // Hydrate messages from AsyncStorage on mount
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((data) => {
+    hydrated.current = false;
+    AsyncStorage.getItem(storageKey).then((data) => {
       if (data) {
         try {
           setMessages(JSON.parse(data));
@@ -46,17 +52,18 @@ export function AvaScreen() {
           // Corrupted data, ignore
         }
       }
+      hydrated.current = true;
     });
-  }, [setMessages]);
+  }, [storageKey, setMessages]);
 
-  // Persist messages on change
+  // Persist messages on change (skip the initial hydration write-back)
   useEffect(() => {
+    if (!hydrated.current) return;
     if (messages.length > 0) {
-      // Cap at 100 messages for storage
       const toStore = messages.slice(-100);
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+      AsyncStorage.setItem(storageKey, JSON.stringify(toStore));
     }
-  }, [messages]);
+  }, [messages, storageKey]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -88,7 +95,7 @@ export function AvaScreen() {
         style: 'destructive',
         onPress: () => {
           clearMessages();
-          AsyncStorage.removeItem(STORAGE_KEY);
+          AsyncStorage.removeItem(storageKey);
           Speech.stop();
         },
       },
@@ -170,16 +177,14 @@ export function AvaScreen() {
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         {/* Messages */}
         <FlatList
-          ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
           keyExtractor={(item) => item.id}
           inverted
-          contentContainerStyle={{ flexDirection: 'column-reverse', padding: 16 }}
+          contentContainerStyle={{ padding: 16 }}
           keyboardDismissMode="on-drag"
           ListEmptyComponent={<EmptyState userName={profile?.userName} />}
           ListHeaderComponent={isLoading ? <TypingIndicator /> : null}
