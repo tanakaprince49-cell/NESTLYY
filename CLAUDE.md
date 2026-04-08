@@ -1,94 +1,145 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository.
 
 ## Project Overview
 
-Nestly is a mobile-first Progressive Web App (PWA) for pregnancy tracking, postpartum monitoring, and baby care. It supports multiple lifecycle stages: pre-pregnancy, pregnancy, birth, newborn, infant, and toddler.
+NESTLYY is a pregnancy tracking, postpartum monitoring, and baby care app. Turborepo monorepo with web (PWA), mobile (Expo/React Native), and shared packages. Supports lifecycle stages: pre-pregnancy, pregnancy, birth, newborn, infant, toddler.
+
+## Monorepo Structure
+
+```
+packages/
+  shared/   # Types, Zustand stores, Firebase init, design tokens
+  web/      # React 19 PWA (Vite + Tailwind + Lucide)
+  mobile/   # Expo SDK 54 + React Native 0.81 (NativeWind + Ionicons)
+api/        # Vercel serverless functions (production API)
+```
 
 ## Commands
 
 ```bash
-npm install          # Install dependencies
-npm run dev          # Start dev server (Express + Vite on port 3000)
-npm run build        # Production build via Vite
-npm run preview      # Preview production build locally
-npm run lint         # Type-check with tsc --noEmit (no eslint)
-npm start            # Production server (node server.ts)
-npm test             # Run vitest unit tests (tests/)
-npm run test:watch   # Run vitest in watch mode
+# Root (Turborepo)
+npm install                        # Install all packages
+npm run lint -w @nestly/shared     # Type-check shared
+npm run lint -w @nestly/web        # Type-check web
+npm run lint -w @nestly/mobile     # Type-check mobile
+npm test -w @nestly/mobile         # Run mobile tests (Jest)
+
+# Web only
+npm run dev -w @nestly/web         # Dev server (Express + Vite, port 3000)
+npm run build -w @nestly/web       # Production build
+npm test -w @nestly/web            # Vitest unit tests
+
+# Mobile only
+cd packages/mobile && npx expo start  # Start Expo dev server
+
+# QA
+.claude/scripts/qa-check.sh           # Full QA suite (all checks)
+.claude/scripts/qa-check.sh --quick   # Fast mode (skip build + deps)
 ```
 
 ## Environment Variables
 
-Copy `.env.example` to `.env.local`. Key variables:
-- `GEMINI_API_KEY` - Google Gemini API key (exposed to client via Vite `define`)
-- `OPENROUTER_API_KEY` - AI chat (DeepSeek via OpenRouter)
-- `RESEND_API_KEY` - Email service
-- `FIREBASE_SERVICE_ACCOUNT` - Firebase Admin JSON credentials
-- `VITE_FIREBASE_VAPID_KEY` - Firebase Cloud Messaging
-- `ADMIN_UIDS` - Comma-separated Firebase UIDs for backend admin access
-- `VITE_ADMIN_EMAILS` - Comma-separated emails for frontend admin check
+Root `.env.example` documents all variables:
+- `OPENROUTER_API_KEY` -- AI chat (DeepSeek via OpenRouter)
+- `GEMINI_API_KEY` -- Google Gemini API
+- `RESEND_API_KEY` -- Email service
+- `FIREBASE_SERVICE_ACCOUNT` -- Firebase Admin JSON
+- `VITE_FIREBASE_VAPID_KEY` -- FCM push notifications
+- `ADMIN_UIDS` / `VITE_ADMIN_EMAILS` -- Admin access
+- `EXPO_PUBLIC_API_URL` -- Mobile API base URL (defaults to production)
 
 ## Tech Stack
 
-- **Frontend**: React 19 + TypeScript, Vite, Tailwind CSS v3 (build-time via PostCSS), Motion (animations), Recharts (charts), Lucide React (icons)
-- **Backend**: Express 5 with `tsx` runtime, node-cron for scheduled tasks
-- **Auth**: Firebase Auth (Google, Email/Password, Anonymous, Phone); `firebase-admin` used in serverless functions to verify ID tokens
-- **AI**: OpenRouter SDK with DeepSeek model for Ava chatbot; Google Gemini API
-- **PDF**: jsPDF + html2pdf.js for report generation
-- **Storage**: Browser LocalStorage only (no backend database)
-- **Testing**: Vitest for unit tests (`tests/`), Playwright for e2e specs (`tests/e2e/`)
-- **Deployment**: Vercel (SPA rewrite in vercel.json)
+**Shared**: TypeScript, Zustand v5 (state), Firebase Auth
+**Web**: React 19, Vite, Tailwind v3, Motion, Recharts, Lucide React
+**Mobile**: Expo SDK 54, React Native 0.81, NativeWind v4, React Navigation v7, Ionicons, expo-speech
+**Backend**: Vercel serverless functions (api/). Express server.ts is dev-only, does NOT run on Vercel.
+**Auth**: Firebase Auth (Google, Email/Password, Anonymous)
+**Storage**: Web = localStorage via storageService (user-scoped). Mobile = AsyncStorage.
+**Testing**: Vitest (web), Jest (mobile), Playwright (e2e)
+**CI/CD**: GitHub Actions (ci.yml type check + build, cd.yml deploy), Vercel
 
 ## Architecture
 
-**No router library** — navigation is tab-based via `activeTab` state in `App.tsx`. Tabs: `dashboard`, `baby`, `tools`, `education`, `ava`, `admin`, `settings`. Deep linking uses URL query params (`?tab=ava`).
+### Package boundaries
+- `shared` is platform-agnostic: no react-native/expo/web-specific deps
+- `web` and `mobile` never import from each other
+- All cross-package imports use `@nestly/shared` alias (never relative `../../`)
 
-**State management** is all in `App.tsx` using React hooks. State is passed down via props (no Redux/Zustand). All user data is persisted to LocalStorage via `services/storageService.ts`, scoped by the user's email address (or `anon-{uid}` for guests).
+### State management
+- All Zustand stores in `packages/shared/src/stores/` (authStore, profileStore, trackingStore, avaChatStore, navigationStore)
+- Local React state only for ephemeral UI values (input text, toggles)
+- Web also uses storageService.ts for localStorage persistence (user-scoped by email)
 
-**Data flow**: Firebase Auth provides identity → `storageService` loads/saves data keyed by email → `App.tsx` holds all state → components receive data and callbacks as props.
+### Navigation
+- **Web**: Tab-based via `activeTab` state in App.tsx. No router library.
+- **Mobile**: React Navigation v7 with bottom tabs (MainTabs.tsx) + nested native stack (ToolsStack.tsx). Types in navigation/types.ts.
 
-**Key services** (`services/`):
-- `storageService.ts` — LocalStorage abstraction, user-scoped data access
-- `geminiService.ts` — AI chat via OpenRouter/DeepSeek (not actually Gemini despite the name)
-- `pushService.ts` — Firebase Cloud Messaging setup and local notifications
-- `reportService.ts` — PDF report generation
-- `achievementService.ts` — Badge/achievement system
-- `babyGrowth.ts` — Growth percentile calculations
-- `syncService.ts` — Data sync utilities
+### Types
+All data models in `packages/shared/src/types.ts`. Component prop types stay inline.
 
-**Serverless API** (`api/`): Vercel serverless functions for production endpoints:
-- `api/ava.js` — Ava AI chat endpoint (requires Firebase ID token)
-- `api/custom-plan.js` — Personalized meal plan AI endpoint (requires Firebase ID token)
-- `api/food-research.js` — Food nutrition research (public, no auth)
-- `api/push/token.js` — Push notification token storage
-- `api/admin/broadcast.js` — Admin push broadcasts
+### Serverless API (api/)
+- `api/ava.js` -- Ava AI chat (requires Firebase ID token)
+- `api/custom-plan.js` -- Meal plan AI (requires Firebase ID token)
+- `api/food-research.js` -- Nutrition research (public)
+- `api/push/token.js` -- Push token storage
+- `api/admin/broadcast.js` -- Admin push broadcasts
 
-**Server** (`server.ts`): Express app that serves Vite in dev mode. Does NOT run on Vercel — all production API routes use serverless functions in `api/`.
+### Styling
+- Web: Tailwind v3 + CSS custom properties. 12 themes with glassmorphism.
+- Mobile: NativeWind v4 (Tailwind classes on React Native). Rose-50/rose-400 palette.
 
-**Types** (`types.ts`): All data models are defined here — `PregnancyProfile`, `LifecycleStage` enum, and numerous log types (FeedingLog, SleepLog, DiaperLog, etc.).
+## Development Workflow
 
-**Styling**: Tailwind v3 utilities (built via PostCSS, entry point `app.css`) + CSS custom properties for theming. 12 color themes with glassmorphism effects. Theme switches dynamically based on lifecycle stage.
+Every non-trivial task follows this process:
 
-**Path alias**: `@/*` maps to the project root (configured in both `tsconfig.json` and `vite.config.ts`).
-
-**CI/CD** (`.github/workflows/`):
-- `ci.yml` — Type check + build on PRs
-- `cd.yml` — Deploy pipeline
+1. **Issue**: Describe what is needed. `issue-creator` agent files the GitHub issue with correct labels and template.
+2. **Plan**: `architecture-reviewer`, `implementer`, and `product-qa` (if UX-relevant) agents produce an implementation plan, posted as a comment on the issue.
+3. **Approve**: User reviews the plan.
+4. **Implement**: Code is written per the approved plan.
+5. **PR**: `pr-creator` agent runs `check-pr-ready.sh` (types, tests, secrets, conventions) then creates the PR.
+6. **QA**: While CI runs, `qa-agent`, `architecture-reviewer`, `product-qa`, and `reviewer` agents produce a QA report posted on the PR. Quick fixes applied immediately; out-of-scope findings become follow-up issues.
+7. **Merge**: After QA passes and user approves.
 
 ## Agent System
 
-Deterministic shell scripts in `.claude/scripts/` handle data gathering and checks. Skills in `.claude/skills/` combine script output with LLM reasoning. Subagents in `.claude/agents/` handle focused tasks.
+### Scripts (`.claude/scripts/`) -- deterministic checks
+| Script | Purpose |
+|--------|---------|
+| qa-check.sh | Orchestrator: runs all check scripts (--quick skips build+deps) |
+| check-types.sh | tsc --noEmit across shared/web/mobile |
+| check-build.sh | Web production build |
+| check-secrets.sh | Hardcoded secrets scan |
+| check-imports.sh | Cross-package import violations |
+| check-architecture.sh | Store location, nav consistency, API coverage, shared purity |
+| check-storage.sh | Direct localStorage bypassing storageService |
+| check-env.sh | Env var documentation coverage |
+| check-console.sh | console.log/debug/info in production code |
+| check-deps.sh | npm audit + unused dependency detection |
+| check-pr-ready.sh | 9-point PR readiness check |
+| check-issue-duplicates.sh | Duplicate issue detection via GitHub search |
+| check-empty-states.sh | Screens with data lists but no empty state |
+| check-error-messages.sh | Generic/unhelpful error messages |
+| check-placeholders.sh | Inputs without descriptive placeholders |
+| check-navigation-depth.sh | Features buried >2 taps deep |
 
-**Skills** (invoke via `/skill-name`):
-- `/plan-issue <N>` — Analyze GitHub issue, produce implementation plan
-- `/audit` — Compare CLAUDE.md vs actual codebase
-- `/qa` — Full QA suite (types, build, security, deps)
-- `/update-docs` — Update CLAUDE.md to match codebase
+### Agents (`.claude/agents/`) -- LLM reasoning over script output
+| Agent | Purpose |
+|-------|---------|
+| qa-agent | Full QA: runs all check scripts, produces findings table |
+| architecture-reviewer | Structural review: boundaries, state patterns, tech debt |
+| product-qa | UX review from user personas (first-time pregnant user, experienced parent) |
+| reviewer | PR code review: correctness, security, conventions |
+| implementer | Executes approved plans, writes code |
+| issue-creator | Creates issues with templates, labels, duplicate checking |
+| pr-creator | Creates PRs with readiness checks and structured body |
+| deploy-checker | Verifies Vercel deployment compatibility |
+| storage-auditor | Audits localStorage patterns and user-scoping |
 
-**Agents** (Claude delegates automatically):
-- `implementer` — Executes a plan, writes code
-- `reviewer` — Reviews PRs against project conventions
-- `storage-auditor` — Audits localStorage patterns and scoping
-- `deploy-checker` — Verifies Vercel deployment compatibility
+### Skills (invoke via `/skill-name`)
+- `/plan-issue <N>` -- Analyze GitHub issue, produce implementation plan
+- `/audit` -- Compare CLAUDE.md vs actual codebase
+- `/qa` -- Full QA suite
+- `/update-docs` -- Update CLAUDE.md to match codebase
