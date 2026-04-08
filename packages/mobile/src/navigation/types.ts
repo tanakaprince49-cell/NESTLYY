@@ -13,6 +13,7 @@ export type ToolsStackParamList = {
   VitaminTracker: undefined;
   BloodPressureTracker: undefined;
   KegelTracker: undefined;
+  ReportCenter: undefined;
 };
 
 export type RootTabParamList = {

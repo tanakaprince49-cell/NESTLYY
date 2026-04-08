@@ -29,6 +29,7 @@ const ALL_TOOLS: ToolItem[] = [
   { key: 'VitaminTracker', label: 'Vitamins', icon: 'leaf-outline', color: '#22c55e', bgColor: '#dcfce7' },
   { key: 'BloodPressureTracker', label: 'Blood Pressure', icon: 'heart-circle-outline', color: '#f43f5e', bgColor: '#ffe4e6', pregnancyOnly: true },
   { key: 'KegelTracker', label: 'Kegels', icon: 'fitness-outline', color: '#8b5cf6', bgColor: '#ede9fe', pregnancyOnly: true },
+  { key: 'ReportCenter', label: 'Reports', icon: 'document-text-outline', color: '#be185d', bgColor: '#ffe4e6' },
 ];
 
 interface Props {

@@ -12,6 +12,7 @@ import { MedicationTrackerScreen } from '../screens/trackers/MedicationTrackerSc
 import { VitaminTrackerScreen } from '../screens/trackers/VitaminTrackerScreen';
 import { BloodPressureTrackerScreen } from '../screens/trackers/BloodPressureTrackerScreen';
 import { KegelTrackerScreen } from '../screens/trackers/KegelTrackerScreen';
+import { ReportCenterScreen } from '../screens/ReportCenterScreen';
 import type { ToolsStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<ToolsStackParamList>();
@@ -85,6 +86,11 @@ export function ToolsStack() {
         name="KegelTracker"
         component={KegelTrackerScreen}
         options={{ title: 'Kegels' }}
+      />
+      <Stack.Screen
+        name="ReportCenter"
+        component={ReportCenterScreen}
+        options={{ title: 'Reports' }}
       />
     </Stack.Navigator>
   );

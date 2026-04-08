@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./stores": "./src/stores/index.ts",
+    "./data/educationArticles": "./src/data/educationArticles.ts",
     "./tokens": "./src/tokens/index.ts",
     "./firebase-applet-config.json": "./src/firebase-applet-config.json"
   },
