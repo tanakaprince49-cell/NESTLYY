@@ -52,6 +52,7 @@ run_check "$SCRIPTS/check-imports.sh"  "Import Check"    error
 run_check "$SCRIPTS/check-storage.sh"  "Storage Check"   warning
 run_check "$SCRIPTS/check-env.sh"      "Env Vars"        warning
 run_check "$SCRIPTS/check-console.sh"  "Console Stmts"   warning
+run_check "$SCRIPTS/check-architecture.sh" "Architecture" warning
 
 # --- Slow checks (skipped in quick mode) ---
 if ! $QUICK; then
