@@ -22,6 +22,13 @@ const ALL_TOOLS: ToolItem[] = [
   { key: 'SleepTracker', label: 'Sleep', icon: 'moon-outline', color: '#6366f1', bgColor: '#e0e7ff' },
   { key: 'DiaperTracker', label: 'Diaper', icon: 'water-outline', color: '#06b6d4', bgColor: '#cffafe', postpartumOnly: true },
   { key: 'VitalsTracker', label: 'Vitals', icon: 'pulse-outline', color: '#ef4444', bgColor: '#fee2e2' },
+  { key: 'SymptomTracker', label: 'Symptoms', icon: 'thermometer-outline', color: '#f59e0b', bgColor: '#fef3c7', pregnancyOnly: true },
+  { key: 'KickCounter', label: 'Kicks', icon: 'footsteps-outline', color: '#ec4899', bgColor: '#fce7f3' },
+  { key: 'ContractionTimer', label: 'Contractions', icon: 'timer-outline', color: '#a855f7', bgColor: '#f3e8ff', pregnancyOnly: true },
+  { key: 'MedicationTracker', label: 'Medications', icon: 'medkit-outline', color: '#10b981', bgColor: '#d1fae5' },
+  { key: 'VitaminTracker', label: 'Vitamins', icon: 'leaf-outline', color: '#22c55e', bgColor: '#dcfce7' },
+  { key: 'BloodPressureTracker', label: 'Blood Pressure', icon: 'heart-circle-outline', color: '#f43f5e', bgColor: '#ffe4e6', pregnancyOnly: true },
+  { key: 'KegelTracker', label: 'Kegels', icon: 'fitness-outline', color: '#8b5cf6', bgColor: '#ede9fe', pregnancyOnly: true },
 ];
 
 interface Props {

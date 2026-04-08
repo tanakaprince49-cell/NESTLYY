@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LineChart } from 'react-native-chart-kit';
 import { LifecycleStage } from '@nestly/shared';
 import { useProfileStore, useTrackingStore } from '@nestly/shared/stores';
 import { BabySelector } from '../../components/tracking/BabySelector';
@@ -113,6 +114,36 @@ export function VitalsTrackerScreen() {
                 <Text className="text-white font-semibold">Log Weight</Text>
               </TouchableOpacity>
             </Card>
+
+            {weightLogs.length >= 2 && (
+              <Card>
+                <Text className="text-sm font-semibold text-gray-600 mb-3">Weight Trend</Text>
+                <LineChart
+                  data={{
+                    labels: weightLogs
+                      .slice(-7)
+                      .map((l) => {
+                        const d = new Date(l.timestamp);
+                        return `${d.getDate()}/${d.getMonth() + 1}`;
+                      }),
+                    datasets: [{ data: weightLogs.slice(-7).map((l) => l.weight) }],
+                  }}
+                  width={Dimensions.get('window').width - 64}
+                  height={180}
+                  yAxisSuffix=" kg"
+                  chartConfig={{
+                    backgroundGradientFrom: '#fff',
+                    backgroundGradientTo: '#fff',
+                    color: () => '#f43f5e',
+                    labelColor: () => '#6b7280',
+                    decimalPlaces: 1,
+                    propsForDots: { r: '4', fill: '#f43f5e' },
+                  }}
+                  bezier
+                  style={{ borderRadius: 12 }}
+                />
+              </Card>
+            )}
 
             <Text className="text-sm font-semibold text-gray-500 mb-2 mt-2">Recent</Text>
             <TrackerHistory items={weightHistory} />
