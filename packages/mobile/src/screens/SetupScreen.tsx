@@ -20,7 +20,7 @@ const TOTAL_STEPS = 8;
 
 function makeBabyAvatar(overrides: Partial<BabyAvatar> = {}): BabyAvatar {
   return {
-    id: crypto.randomUUID?.() ?? Date.now().toString(),
+    id: (typeof crypto !== 'undefined' && crypto.randomUUID?.()) || Date.now().toString(),
     name: '',
     skinTone: SKIN_TONES[0],
     gender: 'surprise',

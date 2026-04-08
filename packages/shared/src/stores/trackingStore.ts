@@ -22,7 +22,8 @@ import type {
 } from '../types.ts';
 
 const genId = (): string =>
-  crypto.randomUUID?.() ?? (Date.now().toString(36) + Math.random().toString(36).slice(2));
+  (typeof crypto !== 'undefined' && crypto.randomUUID?.()) ||
+  (Date.now().toString(36) + Math.random().toString(36).slice(2));
 
 interface TrackingState {
   entries: FoodEntry[];

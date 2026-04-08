@@ -24,7 +24,7 @@ const GENDER_EMOJI: Record<string, string> = {
 
 function makeBaby(): BabyAvatar {
   return {
-    id: crypto.randomUUID?.() ?? Date.now().toString(),
+    id: (typeof crypto !== 'undefined' && crypto.randomUUID?.()) || Date.now().toString(),
     name: '',
     skinTone: '#FDDBB4',
     gender: 'surprise',
