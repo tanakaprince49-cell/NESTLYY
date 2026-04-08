@@ -5,12 +5,15 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@nestly/shared';
-import { useAuthStore } from '@nestly/shared/stores';
+import { useAuthStore, useProfileStore } from '@nestly/shared/stores';
 import { AuthScreen } from './screens/AuthScreen';
+import { PrivacyScreen } from './screens/PrivacyScreen';
+import { SetupScreen } from './screens/SetupScreen';
 import { MainTabs } from './navigation/MainTabs';
 
 export default function App() {
-  const { authEmail, loading, setAuth, clearAuth, setLoading } = useAuthStore();
+  const { authEmail, loading, hasAcceptedPrivacy, setAuth, clearAuth, setLoading } = useAuthStore();
+  const { profile, isEditingProfile } = useProfileStore();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -33,10 +36,14 @@ export default function App() {
     );
   }
 
+  if (!authEmail) return <AuthScreen />;
+  if (!hasAcceptedPrivacy) return <PrivacyScreen />;
+  if (!profile || isEditingProfile) return <SetupScreen />;
+
   return (
     <NavigationContainer>
       <StatusBar style="dark" />
-      {authEmail ? <MainTabs /> : <AuthScreen />}
+      <MainTabs />
     </NavigationContainer>
   );
 }
