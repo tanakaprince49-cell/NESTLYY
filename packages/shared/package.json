@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./stores": "./src/stores/index.ts",
-    "./tokens": "./src/tokens/index.ts"
+    "./tokens": "./src/tokens/index.ts",
+    "./firebase-applet-config.json": "./src/firebase-applet-config.json"
   },
   "scripts": {
     "lint": "tsc --noEmit",

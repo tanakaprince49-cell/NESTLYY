@@ -13,14 +13,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInAnonymously,
-  signInWithCredential,
-  GoogleAuthProvider,
 } from 'firebase/auth';
 import { auth } from '@nestly/shared';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-
-WebBrowser.maybeCompleteAuthSession();
 
 export function AuthScreen() {
   const [email, setEmail] = useState('');
@@ -29,21 +23,9 @@ export function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [_request, response, promptAsync] = Google.useAuthRequest({
-    // TODO: Add OAuth client IDs from Google Cloud Console
-    // androidClientId: 'YOUR_ANDROID_CLIENT_ID',
-    // iosClientId: 'YOUR_IOS_CLIENT_ID',
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential).catch((err) => {
-        setError(err.message || 'Google sign-in failed');
-      });
-    }
-  }, [response]);
+  // Google OAuth disabled until client IDs are configured in Google Cloud Console
+  // TODO: Add androidClientId / iosClientId and re-enable
+  const googleEnabled = false;
 
   const handleEmailAuth = async () => {
     if (!email || !password) {
@@ -77,10 +59,6 @@ export function AuthScreen() {
     }
   };
 
-  const handleGoogle = () => {
-    promptAsync();
-  };
-
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-rose-50"
@@ -102,18 +80,22 @@ export function AuthScreen() {
             </View>
           ) : null}
 
-          <TouchableOpacity
-            className="bg-white rounded-xl py-4 px-6 mb-4 border border-gray-200 flex-row items-center justify-center"
-            onPress={handleGoogle}
-          >
-            <Text className="text-base font-semibold text-text-primary">Continue with Google</Text>
-          </TouchableOpacity>
+          {googleEnabled && (
+            <>
+              <TouchableOpacity
+                className="bg-white rounded-xl py-4 px-6 mb-4 border border-gray-200 flex-row items-center justify-center"
+                onPress={() => {}}
+              >
+                <Text className="text-base font-semibold text-text-primary">Continue with Google</Text>
+              </TouchableOpacity>
 
-          <View className="flex-row items-center my-4">
-            <View className="flex-1 h-px bg-gray-200" />
-            <Text className="px-4 text-text-muted text-sm">or</Text>
-            <View className="flex-1 h-px bg-gray-200" />
-          </View>
+              <View className="flex-row items-center my-4">
+                <View className="flex-1 h-px bg-gray-200" />
+                <Text className="px-4 text-text-muted text-sm">or</Text>
+                <View className="flex-1 h-px bg-gray-200" />
+              </View>
+            </>
+          )}
 
           <TextInput
             className="bg-white rounded-xl py-4 px-4 mb-3 border border-gray-200 text-base"
