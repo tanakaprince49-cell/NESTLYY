@@ -1,0 +1,72 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { LifecycleStage } from '@nestly/shared';
+import { useProfileStore } from '@nestly/shared/stores';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { ToolsStackParamList } from '../navigation/types';
+
+interface ToolItem {
+  key: keyof ToolsStackParamList;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  bgColor: string;
+  pregnancyOnly?: boolean;
+  postpartumOnly?: boolean;
+}
+
+const ALL_TOOLS: ToolItem[] = [
+  { key: 'FeedingTracker', label: 'Feeding', icon: 'restaurant-outline', color: '#0ea5e9', bgColor: '#e0f2fe', postpartumOnly: true },
+  { key: 'SleepTracker', label: 'Sleep', icon: 'moon-outline', color: '#6366f1', bgColor: '#e0e7ff' },
+  { key: 'DiaperTracker', label: 'Diaper', icon: 'water-outline', color: '#06b6d4', bgColor: '#cffafe', postpartumOnly: true },
+  { key: 'VitalsTracker', label: 'Vitals', icon: 'pulse-outline', color: '#ef4444', bgColor: '#fee2e2' },
+];
+
+interface Props {
+  navigation: NativeStackNavigationProp<ToolsStackParamList, 'ToolsHub'>;
+}
+
+export function ToolsHubScreen({ navigation }: Props) {
+  const { profile } = useProfileStore();
+
+  const isPregnancy = profile?.lifecycleStage === LifecycleStage.PREGNANCY;
+
+  const visibleTools = ALL_TOOLS.filter((tool) => {
+    if (isPregnancy && tool.postpartumOnly) return false;
+    if (!isPregnancy && tool.pregnancyOnly) return false;
+    return true;
+  });
+
+  return (
+    <SafeAreaView className="flex-1 bg-rose-50">
+      <View className="px-4 pt-2 pb-4">
+        <Text className="text-2xl font-bold text-rose-700">Tools</Text>
+        <Text className="text-sm text-gray-500 mt-1">Track your daily activities</Text>
+      </View>
+      <FlatList
+        data={visibleTools}
+        numColumns={3}
+        contentContainerStyle={{ paddingHorizontal: 12 }}
+        columnWrapperStyle={{ gap: 10, marginBottom: 10 }}
+        keyExtractor={(item) => item.key}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate(item.key)}
+            className="flex-1 bg-white rounded-2xl p-4 items-center"
+            style={{ maxWidth: '33%' }}
+          >
+            <View
+              className="w-14 h-14 rounded-full items-center justify-center mb-2"
+              style={{ backgroundColor: item.bgColor }}
+            >
+              <Ionicons name={item.icon} size={26} color={item.color} />
+            </View>
+            <Text className="text-xs font-semibold text-gray-700">{item.label}</Text>
+          </TouchableOpacity>
+        )}
+      />
+    </SafeAreaView>
+  );
+}

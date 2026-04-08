@@ -1,8 +1,11 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { LifecycleStage } from '@nestly/shared';
 import { useProfileStore, useTrackingStore } from '@nestly/shared/stores';
+import type { RootTabParamList } from '../navigation/types';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
 import { ProgressBar } from '../components/ProgressBar';
@@ -42,6 +45,7 @@ function getDiaperCountToday(diaperLogs: { timestamp: number }[]): number {
 }
 
 export function DashboardScreen() {
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const { profile } = useProfileStore();
   const { sleepLogs, feedingLogs, diaperLogs } = useTrackingStore();
 
@@ -120,10 +124,16 @@ export function DashboardScreen() {
           </Card>
 
           <View className="flex-row gap-3">
-            <TouchableOpacity className="flex-1 bg-rose-400 rounded-2xl py-4 items-center">
+            <TouchableOpacity
+              className="flex-1 bg-rose-400 rounded-2xl py-4 items-center"
+              onPress={() => navigation.navigate('Tools', { screen: 'FeedingTracker' })}
+            >
               <Text className="text-white font-semibold">Log Food</Text>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 bg-white rounded-2xl py-4 items-center border border-rose-200">
+            <TouchableOpacity
+              className="flex-1 bg-white rounded-2xl py-4 items-center border border-rose-200"
+              onPress={() => navigation.navigate('Tools', { screen: 'SleepTracker' })}
+            >
               <Text className="text-rose-700 font-semibold">Track Sleep</Text>
             </TouchableOpacity>
           </View>
@@ -163,10 +173,16 @@ export function DashboardScreen() {
         </Card>
 
         <View className="flex-row gap-3">
-          <TouchableOpacity className="flex-1 bg-rose-400 rounded-2xl py-4 items-center">
+          <TouchableOpacity
+            className="flex-1 bg-rose-400 rounded-2xl py-4 items-center"
+            onPress={() => navigation.navigate('Tools', { screen: 'FeedingTracker' })}
+          >
             <Text className="text-white font-semibold">Log Food</Text>
           </TouchableOpacity>
-          <TouchableOpacity className="flex-1 bg-white rounded-2xl py-4 items-center border border-rose-200">
+          <TouchableOpacity
+            className="flex-1 bg-white rounded-2xl py-4 items-center border border-rose-200"
+            onPress={() => navigation.navigate('Tools', { screen: 'SleepTracker' })}
+          >
             <Text className="text-rose-700 font-semibold">Track Sleep</Text>
           </TouchableOpacity>
         </View>
