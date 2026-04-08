@@ -9,7 +9,8 @@
     "lint": "npm run lint -w @nestly/shared && npm run lint -w @nestly/web",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:mobile": "npm test -w @nestly/mobile"
+    "test:mobile": "npm test -w @nestly/mobile",
+    "dev:mobile": "npm run start -w @nestly/mobile"
   },
   "devDependencies": {
     "turbo": "^2.5.0",
