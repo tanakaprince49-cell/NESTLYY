@@ -104,7 +104,7 @@ export function buildPregnancyDailyHtml(params: {
   );
 
   const sleepHrs = daySleep.length > 0
-    ? ((new Date(daySleep[0].endTime).getTime() - new Date(daySleep[0].startTime).getTime()) / 3600000).toFixed(1)
+    ? daySleep.reduce((a, s) => a + (new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) / 3600000, 0).toFixed(1)
     : null;
 
   const kickTotal = dayKicks.reduce((a, k) => a + k.count, 0);
@@ -116,7 +116,7 @@ export function buildPregnancyDailyHtml(params: {
   <div class="date">${fmtDate(date)}</div>
 </div>
 <div class="profile-card">
-  <div class="name">Mama: ${escHtml(parentName)}</div>
+  <div class="name">${escHtml(parentName)}</div>
   <div class="detail">${escHtml(pregnancyType)} Journey: ${escHtml(babyNames)}</div>
 </div>
 <div class="section-title">Daily Pregnancy Report</div>
@@ -140,7 +140,7 @@ export function buildPregnancyDailyHtml(params: {
 </div>
 ${dayJournal.length > 0 ? `<div class="card"><div class="card-title">Daily Reflections</div>${dayJournal.map((j) => `<div class="card-text">${escHtml(j.content)}</div>`).join('')}</div>` : ''}`;
 
-  return wrap('YOU ARE DOING AMAZING, MAMA.', body);
+  return wrap('YOU ARE DOING AMAZING.', body);
 }
 
 // --- 2. Newborn Daily ---
@@ -206,7 +206,7 @@ export function buildNewbornDailyHtml(params: {
 ${dayGrowth.length > 0 ? `<div class="card"><div class="card-title">Latest Growth</div>${dayGrowth.map((g) => `<div class="card-text">Weight: ${g.weight} kg | Height: ${g.height} cm${g.headCircumference ? ' | Head: ' + g.headCircumference + ' cm' : ''}</div>`).join('')}</div>` : ''}
 ${dayJournal.length > 0 ? `<div class="card"><div class="card-title">Parental Reflections</div>${dayJournal.map((j) => `<div class="card-text">${escHtml(j.content)}</div>`).join('')}</div>` : ''}`;
 
-  return wrap('YOU ARE DOING AMAZING, MAMA.', body);
+  return wrap('YOU ARE DOING AMAZING.', body);
 }
 
 // --- 3. Labor Summary ---
@@ -219,14 +219,19 @@ export function buildLaborSummaryHtml(params: {
   const { profile, date, contractions } = params;
   const parentName = profile.userName || 'Parent';
 
-  const sorted = [...contractions].sort((a, b) => a.startTime - b.startTime);
+  // Filter contractions to selected day by startTime
+  const dayStart = new Date(date).setHours(0, 0, 0, 0);
+  const dayEnd = new Date(date).setHours(23, 59, 59, 999);
+  const dayContractions = contractions.filter((c) => c.startTime >= dayStart && c.startTime <= dayEnd);
+
+  const sorted = [...dayContractions].sort((a, b) => a.startTime - b.startTime);
 
   const rows = sorted
     .map((c) => {
       const start = new Date(c.startTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const end = c.endTime ? new Date(c.endTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '---';
-      const dur = c.duration != null ? (c.duration / 1000).toFixed(0) + 's' : '---';
-      const interval = c.interval != null ? (c.interval / 1000 / 60).toFixed(1) + ' min' : '---';
+      const dur = c.duration != null ? c.duration + 's' : '---';
+      const interval = c.interval != null ? (c.interval / 60).toFixed(1) + ' min' : '---';
       return `<tr><td>${start}</td><td>${end}</td><td>${dur}</td><td>${interval}</td></tr>`;
     })
     .join('');
@@ -238,8 +243,8 @@ export function buildLaborSummaryHtml(params: {
   <div class="date">${fmtDate(date)}</div>
 </div>
 <div class="profile-card">
-  <div class="name">Mama: ${escHtml(parentName)}</div>
-  <div class="detail">Labor Summary - ${contractions.length} contraction(s) recorded</div>
+  <div class="name">${escHtml(parentName)}</div>
+  <div class="detail">Labor Summary - ${dayContractions.length} contraction(s) recorded</div>
 </div>
 <div class="section-title">Contraction History</div>
 <table>
@@ -268,7 +273,7 @@ export function buildFullPregnancyArchiveHtml(params: {
   const totalKegelSec = kegelLogs.reduce((a, k) => a + k.duration, 0);
 
   const babiesHtml = (profile.babies || [])
-    .map((b) => `<div class="card-text">${escHtml(b.name || 'Baby')} - ${b.gender}</div>`)
+    .map((b) => `<div class="card-text">${escHtml(b.name || 'Baby')} - ${escHtml(b.gender)}</div>`)
     .join('');
 
   const body = `
@@ -278,8 +283,8 @@ export function buildFullPregnancyArchiveHtml(params: {
   <div class="date">Pregnancy Archive</div>
 </div>
 <div class="profile-card">
-  <div class="name">Mama: ${escHtml(parentName)}</div>
-  <div class="detail">${escHtml(pregnancyType)} | Due: ${profile.dueDate} | Babies: ${escHtml(babyNames)}</div>
+  <div class="name">${escHtml(parentName)}</div>
+  <div class="detail">${escHtml(pregnancyType)} | Due: ${escHtml(profile.dueDate)} | Babies: ${escHtml(babyNames)}</div>
 </div>
 ${babiesHtml ? `<div class="card"><div class="card-title">The Babies</div>${babiesHtml}</div>` : ''}
 <div class="section-title">Pregnancy Statistics</div>
@@ -313,8 +318,8 @@ export function buildFullNewbornArchiveHtml(params: {
 
   const babiesHtml = (profile.babies || [])
     .map((b) => {
-      const parts = [escHtml(b.name || 'Baby'), b.gender];
-      if (b.birthDate) parts.push('Born: ' + b.birthDate);
+      const parts = [escHtml(b.name || 'Baby'), escHtml(b.gender)];
+      if (b.birthDate) parts.push('Born: ' + escHtml(b.birthDate));
       if (b.birthWeight) parts.push(b.birthWeight + ' kg');
       return `<div class="card-text">${parts.join(' - ')}</div>`;
     })
@@ -325,7 +330,7 @@ export function buildFullNewbornArchiveHtml(params: {
   const milestoneRows = [...milestones]
     .sort((a, b) => a.timestamp - b.timestamp)
     .slice(0, 50)
-    .map((m) => `<tr><td>${m.date}</td><td>${escHtml(m.title)}</td><td>${m.notes ? escHtml(m.notes) : ''}</td></tr>`)
+    .map((m) => `<tr><td>${escHtml(m.date)}</td><td>${escHtml(m.title)}</td><td>${m.notes ? escHtml(m.notes) : ''}</td></tr>`)
     .join('');
 
   const body = `

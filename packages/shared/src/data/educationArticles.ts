@@ -52,7 +52,7 @@ export const educationArticles: EducationArticle[] = [
     category: 'Nutrition',
     trimester: 'General',
     source: 'WHO',
-    link: 'https://www.who.int/publications/i/item/9789241549912',
+    link: 'https://www.who.int/news-room/fact-sheets/detail/healthy-diet',
     summary:
       'WHO guidelines emphasize that a healthy diet during pregnancy is fundamental for both maternal and fetal health. It should include adequate energy, protein, vitamins, and minerals obtained through a variety of foods. Key recommendations include increasing intake of green and orange vegetables, meat, fish, beans, and whole grains. The guidelines also highlight the importance of iron and folic acid supplementation to prevent anemia and birth defects.',
   },

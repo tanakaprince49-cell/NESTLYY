@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -59,7 +60,9 @@ export function EducationScreen() {
   }, [filter, activeCategory]);
 
   const openLink = useCallback((url: string) => {
-    Linking.openURL(url).catch(() => {});
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Error', 'Could not open the link. Please try again.');
+    });
   }, []);
 
   return (
@@ -89,11 +92,46 @@ export function EducationScreen() {
           <GuidanceSection label="What to focus on" items={guidance.focus} />
         </View>
 
+        {/* Stage Filter */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, gap: 8 }}
+        >
+          {(
+            [
+              { key: 'All' as const, label: 'All' },
+              { key: Trimester.FIRST, label: 'Trimester 1' },
+              { key: Trimester.SECOND, label: 'Trimester 2' },
+              { key: Trimester.THIRD, label: 'Trimester 3' },
+              { key: 'Newborn' as const, label: 'Newborn' },
+            ] as const
+          ).map((item) => (
+            <TouchableOpacity
+              key={item.key}
+              onPress={() => setFilter(item.key)}
+              className={`px-4 py-2 rounded-xl border ${
+                filter === item.key
+                  ? 'bg-rose-900 border-rose-900'
+                  : 'bg-white border-rose-200'
+              }`}
+            >
+              <Text
+                className={`text-[10px] font-black uppercase tracking-widest ${
+                  filter === item.key ? 'text-white' : 'text-rose-400'
+                }`}
+              >
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
         {/* Category Filter */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16, gap: 8 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, gap: 8 }}
         >
           {EDUCATION_CATEGORIES.map((cat) => (
             <TouchableOpacity

@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { LifecycleStage } from '@nestly/shared';
@@ -70,7 +71,7 @@ export function ReportCenterScreen() {
   const fmtFileDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
   return (
-    <View className="flex-1 bg-rose-50">
+    <SafeAreaView className="flex-1 bg-rose-50" edges={['bottom']}>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
         <View className="bg-white rounded-2xl p-5 border border-rose-100">
           {/* Title */}
@@ -108,8 +109,8 @@ export function ReportCenterScreen() {
           {/* Quick Range */}
           <View className="flex-row mt-3" style={{ gap: 8 }}>
             {[
-              { label: 'Last 7 Days', days: 7 },
-              { label: 'Last 30 Days', days: 30 },
+              { label: '7 Days Ago', days: 7 },
+              { label: '30 Days Ago', days: 30 },
               { label: 'Today', days: 0 },
             ].map((r) => (
               <TouchableOpacity
@@ -215,7 +216,7 @@ export function ReportCenterScreen() {
               style={{ gap: 8 }}
             >
               <Ionicons name="archive-outline" size={18} color="#881337" />
-              <Text className="text-sm font-bold text-rose-900">Full Archive</Text>
+              <Text className="text-sm font-bold text-rose-900">Full Archive (all time)</Text>
             </TouchableOpacity>
           </View>
 
@@ -236,6 +237,6 @@ export function ReportCenterScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
