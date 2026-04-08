@@ -7,22 +7,123 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  detect-changes:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-
+    outputs:
+      shared: ${{ steps.filter.outputs.shared }}
+      web: ${{ steps.filter.outputs.web }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+      root: ${{ steps.filter.outputs.root }}
     steps:
       - uses: actions/checkout@v4
 
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            shared:
+              - 'packages/shared/**'
+            web:
+              - 'packages/web/**'
+            mobile:
+              - 'packages/mobile/**'
+            root:
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig.json'
+              - 'turbo.json'
+              - 'vitest.config.*'
+
+  lint-shared:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.shared == 'true' || needs.detect-changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - run: npm ci
+      - run: npm run lint -w @nestly/shared
 
-      - run: npm run lint
+  lint-web:
+    needs: detect-changes
+    if: >-
+      needs.detect-changes.outputs.web == 'true'
+      || needs.detect-changes.outputs.shared == 'true'
+      || needs.detect-changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint -w @nestly/web
 
+  lint-mobile:
+    needs: detect-changes
+    if: >-
+      needs.detect-changes.outputs.mobile == 'true'
+      || needs.detect-changes.outputs.shared == 'true'
+      || needs.detect-changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint -w @nestly/mobile
+
+  test:
+    needs: detect-changes
+    if: >-
+      needs.detect-changes.outputs.shared == 'true'
+      || needs.detect-changes.outputs.web == 'true'
+      || needs.detect-changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
       - run: npm test
 
+  test-mobile:
+    needs: detect-changes
+    if: >-
+      needs.detect-changes.outputs.mobile == 'true'
+      || needs.detect-changes.outputs.shared == 'true'
+      || needs.detect-changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test -w @nestly/mobile
+
+  build-web:
+    needs: detect-changes
+    if: >-
+      needs.detect-changes.outputs.web == 'true'
+      || needs.detect-changes.outputs.shared == 'true'
+      || needs.detect-changes.outputs.root == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
       - run: npm run build
