@@ -12,7 +12,9 @@ export const db = getFirestore(app);
 
 let messaging: Messaging | null = null;
 try {
-  messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
+  // getMessaging requires ServiceWorker (browser only, not React Native)
+  const isBrowser = typeof window !== 'undefined' && 'serviceWorker' in navigator;
+  messaging = isBrowser ? getMessaging(app) : null;
 } catch (e) {
   console.warn("Messaging initialization failed", e);
 }
