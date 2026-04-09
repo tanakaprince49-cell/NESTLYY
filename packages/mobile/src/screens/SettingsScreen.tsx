@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,9 @@ import {
   ScrollView,
   Alert,
   FlatList,
+  Switch,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signOut } from 'firebase/auth';
 import { auth } from '@nestly/shared';
@@ -15,6 +17,7 @@ import { LifecycleStage } from '@nestly/shared';
 import type { BabyAvatar } from '@nestly/shared';
 import { useAuthStore, useProfileStore } from '@nestly/shared/stores';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
+import { requestNotificationPermissions, registerPushToken, cancelAllScheduled } from '../services/notificationService';
 
 const GENDER_EMOJI: Record<string, string> = {
   boy: '👦',
@@ -81,6 +84,24 @@ export function SettingsScreen() {
     setNewBabyName('');
     setShowAddBaby(false);
   };
+
+  const handleToggleNotifications = useCallback(async (value: boolean) => {
+    if (value) {
+      const granted = await requestNotificationPermissions();
+      if (!granted) {
+        Alert.alert(
+          'Notifications Blocked',
+          'Enable notifications in your device settings to receive reminders.',
+        );
+        return;
+      }
+      useProfileStore.getState().updateProfile({ notificationsEnabled: true });
+      registerPushToken();
+    } else {
+      useProfileStore.getState().updateProfile({ notificationsEnabled: false });
+      cancelAllScheduled();
+    }
+  }, []);
 
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -259,6 +280,24 @@ export function SettingsScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center" style={{ gap: 8 }}>
+              <Ionicons name="notifications-outline" size={20} color="#f43f5e" />
+              <Text className="text-base font-semibold text-gray-800">Notifications</Text>
+            </View>
+            <Switch
+              value={profile.notificationsEnabled ?? false}
+              onValueChange={handleToggleNotifications}
+              trackColor={{ false: '#e2e8f0', true: '#fda4af' }}
+              thumbColor={profile.notificationsEnabled ? '#f43f5e' : '#94a3b8'}
+            />
+          </View>
+          <Text className="text-xs text-gray-400 mt-2">
+            Daily reminders, vitamin alerts, feeding schedules, and appointment notifications.
+          </Text>
         </View>
 
         <HealthConnectSection />

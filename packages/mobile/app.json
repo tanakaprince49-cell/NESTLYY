@@ -23,7 +23,9 @@
         "backgroundColor": "#fdf8f7"
       },
       "package": "com.nestly.app",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
         "android.permission.health.READ_WEIGHT",
         "android.permission.health.WRITE_WEIGHT",
         "android.permission.health.READ_BLOOD_PRESSURE",
@@ -34,10 +36,24 @@
         "android.permission.health.WRITE_SLEEP"
       ]
     },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#f43f5e",
+      "androidMode": "default",
+      "androidCollapsedTitle": "Nestly"
+    },
     "plugins": [
+      "expo-dev-client",
       "expo-splash-screen",
       "@react-native-community/datetimepicker",
       "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#f43f5e"
+        }
+      ],
       [
         "react-native-health-connect",
         {
