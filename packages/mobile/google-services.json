@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "250549049447",
+    "firebase_url": "https://plasma-ripple-467908-e7-default-rtdb.firebaseio.com",
+    "project_id": "plasma-ripple-467908-e7",
+    "storage_bucket": "plasma-ripple-467908-e7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:250549049447:android:df894a332f3e4d3b061cc2",
+        "android_client_info": {
+          "package_name": "com.nestly.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "250549049447-3nmher2v62mc5qh73jp7u5pbbdg518eh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5sG3TdBw8MpK43YUqLHYk3DWQLe-2YdQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "250549049447-3nmher2v62mc5qh73jp7u5pbbdg518eh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

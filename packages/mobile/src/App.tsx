@@ -1,19 +1,27 @@
 import './global.css';
-import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, ActivityIndicator, AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import type { NavigationContainerRef } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@nestly/shared';
-import { useAuthStore, useProfileStore } from '@nestly/shared/stores';
+import { useAuthStore, useProfileStore, useTrackingStore } from '@nestly/shared/stores';
 import { AuthScreen } from './screens/AuthScreen';
 import { PrivacyScreen } from './screens/PrivacyScreen';
 import { SetupScreen } from './screens/SetupScreen';
 import { MainTabs } from './navigation/MainTabs';
+import {
+  requestNotificationPermissions,
+  registerPushToken,
+  addNotificationResponseListener,
+} from './services/notificationService';
+import { rescheduleAllReminders } from './services/reminderScheduler';
 
 export default function App() {
   const { authEmail, loading, hasAcceptedPrivacy, setAuth, clearAuth, setLoading } = useAuthStore();
   const { profile, isEditingProfile } = useProfileStore();
+  const navigationRef = useRef<NavigationContainerRef<any>>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -28,6 +36,51 @@ export default function App() {
     return unsubscribe;
   }, [setAuth, clearAuth, setLoading]);
 
+  // Initialize notifications after auth
+  useEffect(() => {
+    if (!authEmail || !profile) return;
+    if (!profile.notificationsEnabled) return;
+
+    requestNotificationPermissions().then((granted) => {
+      if (granted) registerPushToken();
+    });
+  }, [authEmail, profile?.notificationsEnabled]);
+
+  // Reschedule reminders when app comes to foreground
+  useEffect(() => {
+    if (!profile?.notificationsEnabled) return;
+
+    const scheduleNow = () => {
+      const tracking = useTrackingStore.getState();
+      rescheduleAllReminders(profile, {
+        vitamins: tracking.vitamins,
+        feedingLogs: tracking.feedingLogs,
+        medicationLogs: tracking.medicationLogs,
+        calendarEvents: tracking.calendarEvents,
+      });
+    };
+
+    // Schedule on mount
+    scheduleNow();
+
+    // Reschedule when app returns to foreground
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') scheduleNow();
+    });
+    return () => sub.remove();
+  }, [profile]);
+
+  // Handle notification taps (navigate to relevant screen)
+  useEffect(() => {
+    const sub = addNotificationResponseListener((response) => {
+      const data = response.notification.request.content.data;
+      if (data?.screen && navigationRef.current) {
+        navigationRef.current.navigate(data.screen as string);
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-rose-50">
@@ -41,7 +94,7 @@ export default function App() {
   if (!profile || isEditingProfile) return <SetupScreen />;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <StatusBar style="dark" />
       <MainTabs />
     </NavigationContainer>

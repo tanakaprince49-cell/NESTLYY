@@ -45,3 +45,4 @@ android/
 *.p12
 *.key
 *.mobileprovision
+play-store-key.json
