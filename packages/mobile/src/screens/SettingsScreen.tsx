@@ -14,6 +14,7 @@ import { auth } from '@nestly/shared';
 import { LifecycleStage } from '@nestly/shared';
 import type { BabyAvatar } from '@nestly/shared';
 import { useAuthStore, useProfileStore } from '@nestly/shared/stores';
+import { HealthConnectSection } from '../components/settings/HealthConnectSection';
 
 const GENDER_EMOJI: Record<string, string> = {
   boy: '👦',
@@ -259,6 +260,8 @@ export function SettingsScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        <HealthConnectSection />
 
         <TouchableOpacity
           className="bg-rose-400 rounded-2xl py-4 items-center mb-3"

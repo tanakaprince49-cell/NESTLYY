@@ -3,4 +3,5 @@ export * from './profileStore.ts';
 export * from './trackingStore.ts';
 export * from './navigationStore.ts';
 export * from './avaChatStore.ts';
+export * from './healthConnectStore.ts';
 export * from './middleware/index.ts';

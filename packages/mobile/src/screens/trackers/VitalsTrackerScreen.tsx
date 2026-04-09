@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-chart-kit';
-import { LifecycleStage } from '@nestly/shared';
-import { useProfileStore, useTrackingStore } from '@nestly/shared/stores';
+import { LifecycleStage, writeWeightRecord } from '@nestly/shared';
+import { useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { BabySelector } from '../../components/tracking/BabySelector';
 import { SegmentedControl } from '../../components/tracking/SegmentedControl';
 import { TrackerHistory, type TrackerHistoryItem } from '../../components/tracking/TrackerHistory';
 import { Card } from '../../components/Card';
+import { HealthConnectSyncBadge } from '../../components/tracking/HealthConnectSyncBadge';
 
 export function VitalsTrackerScreen() {
   const { profile } = useProfileStore();
@@ -31,6 +32,10 @@ export function VitalsTrackerScreen() {
       return;
     }
     addWeightLog({ weight: w });
+    // Write-through to Health Connect (fire-and-forget)
+    if (useHealthConnectStore.getState().permissions.Weight) {
+      writeWeightRecord({ id: '', weight: w, timestamp: Date.now() }).catch(() => {});
+    }
     setWeight('');
     setError('');
   };
@@ -89,6 +94,7 @@ export function VitalsTrackerScreen() {
           <>
             <Card>
               <Text className="text-base font-semibold text-gray-800 mb-3">Log Weight</Text>
+              <HealthConnectSyncBadge dataType="weight" />
               <View className="flex-row items-end mb-4" style={{ gap: 12 }}>
                 <View className="flex-1">
                   <Text className="text-xs font-medium text-gray-400 mb-1 ml-1">Weight (kg)</Text>
