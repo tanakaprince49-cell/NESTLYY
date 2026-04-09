@@ -46,13 +46,19 @@ export default function App() {
     });
   }, [authEmail, profile?.notificationsEnabled]);
 
-  // Reschedule reminders when app comes to foreground
+  // Reschedule reminders when app comes to foreground or relevant profile fields change
+  const notificationsEnabled = profile?.notificationsEnabled;
+  const lifecycleStage = profile?.lifecycleStage;
+  const lmpDate = profile?.lmpDate;
+
   useEffect(() => {
-    if (!profile?.notificationsEnabled) return;
+    if (!profile || !notificationsEnabled) return;
 
     const scheduleNow = () => {
+      const currentProfile = useProfileStore.getState().profile;
+      if (!currentProfile) return;
       const tracking = useTrackingStore.getState();
-      rescheduleAllReminders(profile, {
+      rescheduleAllReminders(currentProfile, {
         vitamins: tracking.vitamins,
         feedingLogs: tracking.feedingLogs,
         medicationLogs: tracking.medicationLogs,
@@ -60,15 +66,13 @@ export default function App() {
       });
     };
 
-    // Schedule on mount
     scheduleNow();
 
-    // Reschedule when app returns to foreground
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') scheduleNow();
     });
     return () => sub.remove();
-  }, [profile]);
+  }, [notificationsEnabled, lifecycleStage, lmpDate]);
 
   // Handle notification taps (navigate to relevant screen)
   useEffect(() => {

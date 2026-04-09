@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { auth } from '@nestly/shared';
 
@@ -34,9 +35,10 @@ export async function registerPushToken(): Promise<string | null> {
     if (status !== 'granted') return null;
 
     // Get Expo push token (not raw FCM)
-    const { data: token } = await Notifications.getExpoPushTokenAsync({
-      projectId: undefined, // Uses slug from app.json
-    });
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    const { data: token } = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined,
+    );
 
     // Store token on server
     const user = auth.currentUser;
@@ -65,12 +67,6 @@ export function addNotificationResponseListener(
   handler: (response: Notifications.NotificationResponse) => void,
 ): Notifications.EventSubscription {
   return Notifications.addNotificationResponseReceivedListener(handler);
-}
-
-export function addNotificationReceivedListener(
-  handler: (notification: Notifications.Notification) => void,
-): Notifications.EventSubscription {
-  return Notifications.addNotificationReceivedListener(handler);
 }
 
 export async function cancelAllScheduled(): Promise<void> {

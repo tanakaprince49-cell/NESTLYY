@@ -5,11 +5,11 @@ import { LifecycleStage } from '@nestly/shared';
 // -- Daily routine messages -------------------------------------------------
 
 const ROUTINE_MESSAGES = [
-  { hour: 8, title: 'Good Morning', body: 'Start your day with a glass of water and some deep breaths.' },
-  { hour: 11, title: 'Hydration Check', body: 'Have you been drinking enough water? Aim for 8 glasses today.' },
-  { hour: 14, title: 'Movement Break', body: 'Time for a gentle stretch or a short walk.' },
-  { hour: 18, title: 'Healthy Dinner', body: 'Nourish yourself with a balanced meal tonight.' },
-  { hour: 21, title: 'Rest & Relax', body: 'Wind down for the evening. You deserve some rest.' },
+  { hour: 8, title: 'Good Morning', body: 'Start your day with a glass of water and some deep breaths.', screen: 'Dashboard' },
+  { hour: 11, title: 'Hydration Check', body: 'Have you been drinking enough water? Aim for 8 glasses today.', screen: 'Dashboard' },
+  { hour: 14, title: 'Movement Break', body: 'Time for a gentle stretch or a short walk.', screen: 'Dashboard' },
+  { hour: 18, title: 'Healthy Dinner', body: 'Nourish yourself with a balanced meal tonight.', screen: 'Dashboard' },
+  { hour: 21, title: 'Rest & Relax', body: 'Wind down for the evening. You deserve some rest.', screen: 'Dashboard' },
 ];
 
 // -- Schedule helpers -------------------------------------------------------
@@ -20,12 +20,34 @@ async function scheduleDailyAt(
   minute: number,
   title: string,
   body: string,
+  screen?: string,
 ): Promise<void> {
   await Notifications.scheduleNotificationAsync({
     identifier: id,
-    content: { title, body, sound: 'default' },
+    content: { title, body, sound: 'default', data: screen ? { screen } : undefined },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour,
+      minute,
+    },
+  });
+}
+
+async function scheduleWeeklyAt(
+  id: string,
+  weekday: number,
+  hour: number,
+  minute: number,
+  title: string,
+  body: string,
+  screen?: string,
+): Promise<void> {
+  await Notifications.scheduleNotificationAsync({
+    identifier: id,
+    content: { title, body, sound: 'default', data: screen ? { screen } : undefined },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+      weekday,
       hour,
       minute,
     },
@@ -37,11 +59,12 @@ async function scheduleOneShot(
   date: Date,
   title: string,
   body: string,
+  screen?: string,
 ): Promise<void> {
   if (date.getTime() <= Date.now()) return;
   await Notifications.scheduleNotificationAsync({
     identifier: id,
-    content: { title, body, sound: 'default' },
+    content: { title, body, sound: 'default', data: screen ? { screen } : undefined },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DATE,
       date,
@@ -60,7 +83,6 @@ export async function rescheduleAllReminders(
     calendarEvents: CalendarEvent[];
   },
 ): Promise<void> {
-  // Cancel all existing scheduled notifications
   await Notifications.cancelAllScheduledNotificationsAsync();
 
   if (!profile.notificationsEnabled) return;
@@ -73,20 +95,27 @@ export async function rescheduleAllReminders(
       0,
       msg.title,
       msg.body,
+      msg.screen,
     );
   }
 
-  // 2. Vitamin reminder at 9 AM (if not taken today)
+  // 2. Vitamin reminder (one-shot for today at 9 AM if not taken)
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const vitaminTakenToday = data.vitamins.some((v) => v.timestamp >= todayStart.getTime());
   if (!vitaminTakenToday) {
-    await scheduleDailyAt(
+    const vitaminTime = new Date();
+    vitaminTime.setHours(9, 0, 0, 0);
+    // If 9 AM already passed, schedule for tomorrow
+    if (vitaminTime.getTime() <= Date.now()) {
+      vitaminTime.setDate(vitaminTime.getDate() + 1);
+    }
+    await scheduleOneShot(
       'vitamin-daily',
-      9,
-      0,
+      vitaminTime,
       'Prenatal Vitamins',
       'Time to take your prenatal vitamins.',
+      'Tools',
     );
   }
 
@@ -105,6 +134,7 @@ export async function rescheduleAllReminders(
         nextFeedTime,
         'Feeding Time',
         "It's been 3 hours since the last feeding.",
+        'Tools',
       );
     }
   }
@@ -120,6 +150,7 @@ export async function rescheduleAllReminders(
           m,
           'Medication Reminder',
           `Time to take your ${med.name} (${med.dosage}).`,
+          'Tools',
         );
       }
     }
@@ -137,6 +168,7 @@ export async function rescheduleAllReminders(
         reminderDate,
         'Appointment Tomorrow',
         `Reminder: ${event.title}${event.time ? ` at ${event.time}` : ''}.`,
+        'Dashboard',
       );
     }
   }
@@ -147,12 +179,14 @@ export async function rescheduleAllReminders(
     const now = new Date();
     const weeksPregnant = Math.floor((now.getTime() - lmp.getTime()) / (7 * 24 * 60 * 60 * 1000));
     if (weeksPregnant >= 4 && weeksPregnant <= 42) {
-      await scheduleDailyAt(
+      await scheduleWeeklyAt(
         'weekly-guidance',
+        2, // Monday (1=Sunday, 2=Monday, ...)
         9,
         0,
         `Week ${weeksPregnant}`,
         `You're ${weeksPregnant} weeks along! Check your dashboard for this week's updates.`,
+        'Dashboard',
       );
     }
   }

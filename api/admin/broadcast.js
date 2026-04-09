@@ -1,13 +1,3 @@
-import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-import { getAuth } from "firebase-admin/auth";
-
-if (!getApps().length && process.env.FIREBASE_SERVICE_ACCOUNT) {
-  initializeApp({
-    credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
-  });
-}
-
 const ADMIN_UIDS = (process.env.ADMIN_UIDS || "").split(",").filter(Boolean);
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 
@@ -16,13 +6,23 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Auth check
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Missing authorization token" });
   }
 
   try {
+    const { initializeApp, cert, getApps } = await import("firebase-admin/app");
+    const { getAuth } = await import("firebase-admin/auth");
+    const { getFirestore } = await import("firebase-admin/firestore");
+
+    if (!getApps().length) {
+      const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+        ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+        : undefined;
+      initializeApp(serviceAccount ? { credential: cert(serviceAccount) } : {});
+    }
+
     const idToken = authHeader.split("Bearer ")[1];
     const decoded = await getAuth().verifyIdToken(idToken);
 
@@ -35,7 +35,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing title or body" });
     }
 
-    // Fetch all push tokens
     const db = getFirestore();
     const snapshot = await db.collection("pushTokens").get();
     const tokens = snapshot.docs
@@ -46,7 +45,6 @@ export default async function handler(req, res) {
       return res.json({ success: true, sent: 0, message: "No tokens registered" });
     }
 
-    // Send in chunks of 100 via Expo Push API
     let sent = 0;
     for (let i = 0; i < tokens.length; i += 100) {
       const chunk = tokens.slice(i, i + 100);
@@ -59,17 +57,22 @@ export default async function handler(req, res) {
 
       const response = await fetch(EXPO_PUSH_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Accept-Encoding": "gzip, deflate",
+        },
         body: JSON.stringify(messages),
       });
 
       if (response.ok) {
-        sent += chunk.length;
+        const result = await response.json();
+        const tickets = result.data || [];
+        sent += tickets.filter((t) => t.status === "ok").length;
       }
     }
 
     res.json({ success: true, sent, total: tokens.length });
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Broadcast failed" });
   }
 }
