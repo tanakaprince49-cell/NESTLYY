@@ -1,7 +1,8 @@
 import React, { useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, AppState, Alert, Linking, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useHealthConnectStore, useAuthStore } from '@nestly/shared/stores';
+import { LifecycleStage } from '@nestly/shared';
+import { useHealthConnectStore, useAuthStore, useProfileStore } from '@nestly/shared/stores';
 
 const HC_PLAY_STORE_URL = 'market://details?id=com.google.android.apps.healthdata';
 
@@ -30,6 +31,8 @@ export function HealthConnectSection() {
     syncAll,
   } = useHealthConnectStore();
   const { authEmail } = useAuthStore();
+  const { profile } = useProfileStore();
+  const sleepMode = profile?.lifecycleStage === LifecycleStage.PREGNANCY ? 'pregnancy' : 'newborn';
 
   useEffect(() => {
     initialize();
@@ -60,8 +63,8 @@ export function HealthConnectSection() {
   }, [disconnect]);
 
   const handleSync = useCallback(() => {
-    syncAll(authEmail || 'guest');
-  }, [syncAll, authEmail]);
+    syncAll(authEmail || 'guest', sleepMode);
+  }, [syncAll, authEmail, sleepMode]);
 
   const handleInstall = useCallback(() => {
     Linking.openURL(HC_PLAY_STORE_URL).catch(() => {

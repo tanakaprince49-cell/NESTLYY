@@ -219,7 +219,7 @@ export async function writeBloodPressureRecord(log: BloodPressureLog): Promise<s
   if (!hc) return undefined;
   try {
     const time = new Date(log.timestamp).toISOString();
-    const records: any[] = [
+    const bpIds: string[] = await hc.insertRecords([
       {
         recordType: 'BloodPressure',
         time,
@@ -228,17 +228,19 @@ export async function writeBloodPressureRecord(log: BloodPressureLog): Promise<s
         measurementLocation: 0,
         bodyPosition: 0,
       },
-    ];
+    ]);
+    // Write heart rate as a separate call (insertRecords requires same type)
     if (log.pulse) {
-      records.push({
-        recordType: 'HeartRate',
-        startTime: time,
-        endTime: time,
-        samples: [{ time, beatsPerMinute: log.pulse }],
-      });
+      await hc.insertRecords([
+        {
+          recordType: 'HeartRate',
+          startTime: time,
+          endTime: time,
+          samples: [{ time, beatsPerMinute: log.pulse }],
+        },
+      ]).catch(() => {});
     }
-    const ids: string[] = await hc.insertRecords(records);
-    return ids[0];
+    return bpIds[0];
   } catch {
     return undefined;
   }
@@ -293,8 +295,13 @@ export function findDuplicateSleep(
   localRecords: SleepLog[],
 ): SleepLog | undefined {
   const hcStart = new Date(hcRecord.startTime).getTime();
+  const hcEnd = new Date(hcRecord.endTime).getTime();
   return localRecords.find((local) => {
     const localStart = new Date(local.startTime).getTime();
-    return Math.abs(localStart - hcStart) < DEDUP_WINDOW_MS;
+    const localEnd = new Date(local.endTime).getTime();
+    return (
+      Math.abs(localStart - hcStart) < DEDUP_WINDOW_MS &&
+      Math.abs(localEnd - hcEnd) < DEDUP_WINDOW_MS
+    );
   });
 }

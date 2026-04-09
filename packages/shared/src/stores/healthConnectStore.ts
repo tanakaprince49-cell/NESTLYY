@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { WeightLog, BloodPressureLog, SleepLog } from '../types.ts';
 import type { HealthConnectPermissionType } from '../services/healthConnectService.ts';
 import {
   initializeHealthConnect,
@@ -17,6 +18,10 @@ import {
   writeSleepSession,
 } from '../services/healthConnectService.ts';
 
+const genId = (): string =>
+  (typeof crypto !== 'undefined' && crypto.randomUUID?.()) ||
+  (Date.now().toString(36) + Math.random().toString(36).slice(2));
+
 interface HealthConnectState {
   isAvailable: boolean;
   isConnected: boolean;
@@ -30,7 +35,7 @@ interface HealthConnectState {
   connect: () => Promise<boolean>;
   disconnect: () => Promise<void>;
   refreshPermissions: () => Promise<void>;
-  syncAll: (userId: string) => Promise<void>;
+  syncAll: (userId: string, sleepMode: 'pregnancy' | 'newborn') => Promise<void>;
   setSyncError: (error: string | null) => void;
 }
 
@@ -98,7 +103,7 @@ export const useHealthConnectStore = create<HealthConnectState>()((set, get) => 
     }
   },
 
-  syncAll: async (userId: string) => {
+  syncAll: async (userId: string, sleepMode: 'pregnancy' | 'newborn') => {
     const state = get();
     if (state.isSyncing || !state.isConnected) return;
 
@@ -108,76 +113,124 @@ export const useHealthConnectStore = create<HealthConnectState>()((set, get) => 
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 30);
 
-      // Import tracking store dynamically to avoid circular deps
       const { useTrackingStore } = await import('./trackingStore.ts');
-      const tracking = useTrackingStore.getState();
 
-      // Sync weight
+      // ── Sync weight ──
       if (state.permissions.Weight) {
+        // Snapshot local logs for iteration
+        const localWeights = [...useTrackingStore.getState().weightLogs];
         const hcWeights = await readWeightRecords(startDate, endDate);
+
+        // Import HC records that don't exist locally
+        const newWeights: WeightLog[] = [];
         for (const hcW of hcWeights) {
-          if (!findDuplicateWeight(hcW, tracking.weightLogs)) {
-            tracking.addWeightLog({ weight: hcW.weight });
+          if (!findDuplicateWeight(hcW, localWeights)) {
+            newWeights.push({
+              ...hcW,
+              id: genId(),
+              source: 'health_connect',
+            });
           }
         }
-        // Write local records without HC counterpart
-        for (const local of tracking.weightLogs) {
+        if (newWeights.length > 0) {
+          useTrackingStore.setState((s) => ({
+            weightLogs: [...s.weightLogs, ...newWeights],
+          }));
+        }
+
+        // Push local records to HC
+        const tagsToApply: Array<{ id: string; hcRecordId: string }> = [];
+        for (const local of localWeights) {
           if (!local.hcRecordId && local.source !== 'health_connect') {
             const hcId = await writeWeightRecord(local);
-            if (hcId) {
-              // Mark as synced by updating the log in-place
-              const idx = tracking.weightLogs.findIndex((l) => l.id === local.id);
-              if (idx >= 0) tracking.weightLogs[idx].hcRecordId = hcId;
-            }
+            if (hcId) tagsToApply.push({ id: local.id, hcRecordId: hcId });
           }
+        }
+        if (tagsToApply.length > 0) {
+          useTrackingStore.setState((s) => ({
+            weightLogs: s.weightLogs.map((l) => {
+              const tag = tagsToApply.find((t) => t.id === l.id);
+              return tag ? { ...l, hcRecordId: tag.hcRecordId } : l;
+            }),
+          }));
         }
       }
 
-      // Sync blood pressure
+      // ── Sync blood pressure ──
       if (state.permissions.BloodPressure) {
+        const localBPs = [...useTrackingStore.getState().bloodPressureLogs];
         const hcBPs = await readBloodPressureRecords(startDate, endDate);
+
+        const newBPs: BloodPressureLog[] = [];
         for (const hcBP of hcBPs) {
-          if (!findDuplicateBP(hcBP, tracking.bloodPressureLogs)) {
-            tracking.addBloodPressureLog({
-              systolic: hcBP.systolic,
-              diastolic: hcBP.diastolic,
-              pulse: hcBP.pulse,
+          if (!findDuplicateBP(hcBP, localBPs)) {
+            newBPs.push({
+              ...hcBP,
+              id: genId(),
+              source: 'health_connect',
             });
           }
         }
-        for (const local of tracking.bloodPressureLogs) {
+        if (newBPs.length > 0) {
+          useTrackingStore.setState((s) => ({
+            bloodPressureLogs: [...s.bloodPressureLogs, ...newBPs],
+          }));
+        }
+
+        const tagsToApply: Array<{ id: string; hcRecordId: string }> = [];
+        for (const local of localBPs) {
           if (!local.hcRecordId && local.source !== 'health_connect') {
             const hcId = await writeBloodPressureRecord(local);
-            if (hcId) {
-              const idx = tracking.bloodPressureLogs.findIndex((l) => l.id === local.id);
-              if (idx >= 0) tracking.bloodPressureLogs[idx].hcRecordId = hcId;
-            }
+            if (hcId) tagsToApply.push({ id: local.id, hcRecordId: hcId });
           }
+        }
+        if (tagsToApply.length > 0) {
+          useTrackingStore.setState((s) => ({
+            bloodPressureLogs: s.bloodPressureLogs.map((l) => {
+              const tag = tagsToApply.find((t) => t.id === l.id);
+              return tag ? { ...l, hcRecordId: tag.hcRecordId } : l;
+            }),
+          }));
         }
       }
 
-      // Sync sleep
+      // ── Sync sleep ──
       if (state.permissions.SleepSession) {
+        const localSleeps = [...useTrackingStore.getState().sleepLogs];
         const hcSleeps = await readSleepSessions(startDate, endDate);
+
+        const newSleeps: SleepLog[] = [];
         for (const hcS of hcSleeps) {
-          if (!findDuplicateSleep(hcS, tracking.sleepLogs)) {
-            tracking.addSleepLog({
+          if (!findDuplicateSleep(hcS, localSleeps)) {
+            newSleeps.push({
+              ...hcS,
+              id: genId(),
               userId,
-              startTime: hcS.startTime,
-              endTime: hcS.endTime,
-              mode: hcS.mode,
-              type: hcS.type,
+              mode: sleepMode,
+              source: 'health_connect',
             });
           }
         }
-        for (const local of tracking.sleepLogs) {
+        if (newSleeps.length > 0) {
+          useTrackingStore.setState((s) => ({
+            sleepLogs: [...s.sleepLogs, ...newSleeps],
+          }));
+        }
+
+        const tagsToApply: Array<{ id: string; hcRecordId: string }> = [];
+        for (const local of localSleeps) {
           if (!local.hcRecordId && local.source !== 'health_connect') {
             const hcId = await writeSleepSession(local);
-            if (hcId) {
-              const idx = tracking.sleepLogs.findIndex((l) => l.id === local.id);
-              if (idx >= 0) tracking.sleepLogs[idx].hcRecordId = hcId;
-            }
+            if (hcId) tagsToApply.push({ id: local.id, hcRecordId: hcId });
           }
+        }
+        if (tagsToApply.length > 0) {
+          useTrackingStore.setState((s) => ({
+            sleepLogs: s.sleepLogs.map((l) => {
+              const tag = tagsToApply.find((t) => t.id === l.id);
+              return tag ? { ...l, hcRecordId: tag.hcRecordId } : l;
+            }),
+          }));
         }
       }
 
