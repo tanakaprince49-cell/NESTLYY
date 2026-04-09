@@ -3,10 +3,14 @@ import type { WeightLog, BloodPressureLog, SleepLog } from '../types.ts';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- optional native module, unavailable in web/Expo Go
 let _hc: any = null;
 
+// Computed string defeats Vite/Rollup static analysis so the web build
+// doesn't try to bundle react-native-health-connect (which imports react-native Flow syntax).
+const HC_MODULE = ['react-native', 'health-connect'].join('-');
+
 async function getHC(): Promise<any> {
   if (!_hc) {
     try {
-      _hc = await import('react-native-health-connect');
+      _hc = await import(/* @vite-ignore */ HC_MODULE);
     } catch {
       return null;
     }
