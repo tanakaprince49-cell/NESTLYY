@@ -4,6 +4,7 @@ export { db, auth, messaging, app, googleProvider } from './firebase.ts';
 export * from './utils/sleepUtils.ts';
 export { formatTime, formatDuration as formatDurationMs } from './utils/formatters.ts';
 export * from './services/storageInterface.ts';
+export * from './services/healthConnectService.ts';
 export * from './services/syncService.ts';
 export * from './services/babyGrowth.ts';
 export * from './services/groupService.ts';

@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { LifecycleStage } from '@nestly/shared';
+import { LifecycleStage, writeSleepSession } from '@nestly/shared';
 import type { SleepMode } from '@nestly/shared';
-import { useProfileStore, useTrackingStore, useAuthStore } from '@nestly/shared/stores';
+import { useProfileStore, useTrackingStore, useAuthStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { BabySelector } from '../../components/tracking/BabySelector';
 import { SegmentedControl } from '../../components/tracking/SegmentedControl';
 import { TypeGrid } from '../../components/tracking/TypeGrid';
 import { TrackerHistory, type TrackerHistoryItem } from '../../components/tracking/TrackerHistory';
 import { Card } from '../../components/Card';
+import { HealthConnectSyncBadge } from '../../components/tracking/HealthConnectSyncBadge';
 
 const SLEEP_TYPES = [
   { value: 'night' as const, label: 'Night', icon: 'moon-outline' as const },
@@ -66,6 +67,14 @@ export function SleepTrackerScreen() {
       type: sleepType,
       notes: notes || undefined,
     });
+    // Write-through to Health Connect (fire-and-forget)
+    if (useHealthConnectStore.getState().permissions.SleepSession) {
+      writeSleepSession({
+        id: '', userId: authEmail || 'guest', mode,
+        startTime: startTime.toISOString(), endTime: endTime.toISOString(),
+        type: sleepType, timestamp: Date.now(),
+      }).catch(() => {});
+    }
     setNotes('');
     setStartTime(new Date(Date.now() - 3600000));
     setEndTime(new Date());
@@ -132,6 +141,7 @@ export function SleepTrackerScreen() {
               </View>
 
               <Text className="text-base font-semibold text-gray-800 mb-3">Log Sleep</Text>
+              <HealthConnectSyncBadge dataType="sleep" />
               <TypeGrid options={SLEEP_TYPES} selected={sleepType} onSelect={setSleepType} columns={2} />
 
               {mode === 'pregnancy' && (

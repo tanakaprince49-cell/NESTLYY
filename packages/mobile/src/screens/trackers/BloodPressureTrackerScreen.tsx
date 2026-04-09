@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTrackingStore } from '@nestly/shared/stores';
+import { writeBloodPressureRecord } from '@nestly/shared';
+import { useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { TrackerHistory, type TrackerHistoryItem } from '../../components/tracking/TrackerHistory';
 import { Card } from '../../components/Card';
+import { HealthConnectSyncBadge } from '../../components/tracking/HealthConnectSyncBadge';
 
 export function BloodPressureTrackerScreen() {
   const { bloodPressureLogs, addBloodPressureLog } = useTrackingStore();
@@ -27,6 +29,13 @@ export function BloodPressureTrackerScreen() {
       pulse: p > 0 ? p : undefined,
       notes: notes.trim() || undefined,
     });
+    // Write-through to Health Connect (fire-and-forget)
+    if (useHealthConnectStore.getState().permissions.BloodPressure) {
+      writeBloodPressureRecord({
+        id: '', systolic: sys, diastolic: dia,
+        pulse: p > 0 ? p : undefined, timestamp: Date.now(),
+      }).catch(() => {});
+    }
     setSystolic('');
     setDiastolic('');
     setPulse('');
@@ -48,6 +57,7 @@ export function BloodPressureTrackerScreen() {
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Card>
           <Text className="text-base font-semibold text-gray-800 mb-3">Log Blood Pressure</Text>
+          <HealthConnectSyncBadge dataType="bloodPressure" />
           <View className="flex-row mb-3" style={{ gap: 12 }}>
             <View className="flex-1">
               <Text className="text-xs font-medium text-gray-400 mb-1 ml-1">Systolic</Text>

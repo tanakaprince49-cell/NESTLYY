@@ -42,6 +42,8 @@ export interface WeightLog {
   id: string;
   weight: number;
   timestamp: number;
+  source?: 'manual' | 'health_connect';
+  hcRecordId?: string;
 }
 
 export type SleepMode = 'pregnancy' | 'newborn';
@@ -58,6 +60,8 @@ export interface SleepLog {
   type: 'night' | 'nap';
   notes?: string;
   timestamp: number;
+  source?: 'manual' | 'health_connect';
+  hcRecordId?: string;
 }
 
 export interface BabyAvatar {
@@ -223,6 +227,8 @@ export interface BloodPressureLog {
   pulse?: number;
   notes?: string;
   timestamp: number;
+  source?: 'manual' | 'health_connect';
+  hcRecordId?: string;
 }
 
 export interface KegelLog {
