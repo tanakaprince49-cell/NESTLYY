@@ -5,7 +5,14 @@ import { NavigationContainer } from '@react-navigation/native';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@nestly/shared';
+import { auth, registerHealthConnectModule } from '@nestly/shared';
+
+// Register native Health Connect module early so write-through in trackers works.
+try {
+  registerHealthConnectModule(require('react-native-health-connect'));
+} catch {
+  // Not available (Expo Go or missing native module)
+}
 import { useAuthStore, useProfileStore, useTrackingStore } from '@nestly/shared/stores';
 import { AuthScreen } from './screens/AuthScreen';
 import { PrivacyScreen } from './screens/PrivacyScreen';

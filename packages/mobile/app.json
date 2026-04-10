@@ -59,7 +59,21 @@
         {
           "requestPermissionsOnFirstLaunch": false
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "e1cb8d11-a0c7-4b07-a05a-40f85782caaf"
+      }
+    },
+    "owner": "ylohnitram"
   }
 }
