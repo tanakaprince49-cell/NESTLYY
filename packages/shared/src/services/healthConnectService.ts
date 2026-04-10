@@ -3,18 +3,14 @@ import type { WeightLog, BloodPressureLog, SleepLog } from '../types.ts';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- optional native module, unavailable in web/Expo Go
 let _hc: any = null;
 
-// Computed string defeats Vite/Rollup static analysis so the web build
-// doesn't try to bundle react-native-health-connect (which imports react-native Flow syntax).
-const HC_MODULE = ['react-native', 'health-connect'].join('-');
+// The HC module must be injected from the mobile package via registerHealthConnectModule().
+// This avoids dynamic import/require in shared, which breaks both Vite (can't resolve RN
+// Flow syntax) and Metro production builds (rejects non-literal require arguments).
+export function registerHealthConnectModule(mod: any): void {
+  _hc = mod;
+}
 
-async function getHC(): Promise<any> {
-  if (!_hc) {
-    try {
-      _hc = await import(/* @vite-ignore */ HC_MODULE);
-    } catch {
-      return null;
-    }
-  }
+function getHC(): any {
   return _hc;
 }
 
