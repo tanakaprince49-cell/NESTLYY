@@ -1,0 +1,36 @@
+How to install Nestly on your Android phone
+============================================
+
+1. Download the APK
+   - Go to https://github.com/tanakaprince49-cell/NESTLYY/releases
+   - Find the latest release and download nestly-preview.apk
+
+2. Allow installation from unknown sources
+   - When you open the APK, Android will ask you to allow installing apps
+     from this source (your browser or file manager)
+   - Tap "Settings" and enable "Allow from this source"
+   - Go back and tap "Install"
+
+3. Open the app
+   - Find "Nestly" in your app drawer and open it
+   - Sign in with Google, email, or continue anonymously
+
+Requirements
+- Android 8.0 or newer
+- About 120 MB of storage
+
+Updating
+- When a new version is available, download the new APK from Releases
+  and install it over the existing one. Your data will be kept.
+
+Health Connect (optional)
+- To sync weight, blood pressure, and sleep with other health apps:
+  1. Install "Health Connect by Google" from Play Store (if not pre-installed)
+  2. Open Nestly -> Settings -> Health Connect -> Connect
+  3. Grant the requested permissions
+
+Troubleshooting
+- "App not installed": Make sure you don't have a different version
+  of Nestly already installed. Uninstall it first, then try again.
+- "Blocked by Play Protect": Tap "More details" -> "Install anyway".
+  This warning appears because the app isn't on Play Store yet.
