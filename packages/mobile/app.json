@@ -67,6 +67,12 @@
             "minSdkVersion": 26
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Nestly needs access to your photos so you can set a profile picture."
+        }
       ]
     ],
     "extra": {

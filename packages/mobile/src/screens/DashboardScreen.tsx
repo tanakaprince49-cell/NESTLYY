@@ -6,6 +6,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { LifecycleStage } from '@nestly/shared';
 import { useProfileStore, useTrackingStore } from '@nestly/shared/stores';
 import type { RootTabParamList } from '../navigation/types';
+import { Avatar } from '../components/Avatar';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
 import { ProgressBar } from '../components/ProgressBar';
@@ -77,15 +78,18 @@ export function DashboardScreen() {
     return (
       <SafeAreaView className="flex-1 bg-rose-50">
         <ScrollView contentContainerStyle={{ padding: 16 }}>
-          <View className="mb-4">
-            <Text className="text-2xl font-bold text-rose-700">
-              Hello, {profile.userName}
-            </Text>
-            <View className="mt-1 self-start bg-rose-100 rounded-full px-3 py-1">
-              <Text className="text-sm font-medium text-rose-700">
-                Week {weeks}, Day {days}
+          <View className="mb-4 flex-row items-start justify-between">
+            <View className="flex-1 pr-3">
+              <Text className="text-2xl font-bold text-rose-700">
+                Hello, {profile.userName}
               </Text>
+              <View className="mt-1 self-start bg-rose-100 rounded-full px-3 py-1">
+                <Text className="text-sm font-medium text-rose-700">
+                  Week {weeks}, Day {days}
+                </Text>
+              </View>
             </View>
+            <Avatar uri={profile.profileImage} name={profile.userName ?? ''} size={48} />
           </View>
 
           <Card>
@@ -150,16 +154,19 @@ export function DashboardScreen() {
   return (
     <SafeAreaView className="flex-1 bg-rose-50">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <View className="mb-4">
-          <Text className="text-2xl font-bold text-rose-700">
-            Hello, {profile.userName}
-          </Text>
-          {firstBaby ? (
-            <Text className="text-base text-gray-500 mt-1">
-              {firstBaby.name || 'Baby'}
-              {babyAgeStr ? ` · ${babyAgeStr}` : ''}
+        <View className="mb-4 flex-row items-start justify-between">
+          <View className="flex-1 pr-3">
+            <Text className="text-2xl font-bold text-rose-700">
+              Hello, {profile.userName}
             </Text>
-          ) : null}
+            {firstBaby ? (
+              <Text className="text-base text-gray-500 mt-1">
+                {firstBaby.name || 'Baby'}
+                {babyAgeStr ? ` · ${babyAgeStr}` : ''}
+              </Text>
+            ) : null}
+          </View>
+          <Avatar uri={profile.profileImage} name={profile.userName ?? ''} size={48} />
         </View>
 
         <Card>

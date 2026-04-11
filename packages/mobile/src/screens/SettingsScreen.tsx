@@ -11,11 +11,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { signOut } from 'firebase/auth';
 import { auth } from '@nestly/shared';
 import { LifecycleStage } from '@nestly/shared';
 import type { BabyAvatar } from '@nestly/shared';
 import { useAuthStore, useAvaChatStore, useProfileStore, useTrackingStore } from '@nestly/shared/stores';
+import { Avatar } from '../components/Avatar';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
 import { requestNotificationPermissions, registerPushToken, cancelAllScheduled } from '../services/notificationService';
 import { clearUserStores } from '../stores/bootstrap';
@@ -54,6 +56,27 @@ export function SettingsScreen() {
     if (editedName.trim()) {
       useProfileStore.getState().updateProfile({ userName: editedName.trim() });
     }
+  };
+
+  const handlePickAvatar = async () => {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert(
+        'Photos Access Needed',
+        'Enable photo library access in your device settings to set a profile picture.',
+      );
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.6,
+      base64: true,
+    });
+    if (result.canceled || !result.assets?.[0]?.base64) return;
+    const dataUrl = `data:image/jpeg;base64,${result.assets[0].base64}`;
+    useProfileStore.getState().updateProfile({ profileImage: dataUrl });
   };
 
   const handleTheme = (color: 'pink' | 'blue' | 'orange') => {
@@ -158,6 +181,16 @@ export function SettingsScreen() {
 
         <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
           <Text className="text-base font-semibold text-gray-800 mb-3">Profile</Text>
+          <View className="items-center mb-4">
+            <Avatar
+              uri={profile.profileImage}
+              name={profile.userName ?? ''}
+              size={96}
+              showEditBadge
+              onPress={handlePickAvatar}
+            />
+            <Text className="text-xs text-gray-400 mt-2">Tap to change photo</Text>
+          </View>
           <TextInput
             className="bg-gray-50 rounded-xl py-3 px-4 text-base border border-gray-200 mb-3"
             placeholder="Your name"
