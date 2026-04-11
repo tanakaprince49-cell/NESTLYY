@@ -37,7 +37,28 @@ cd packages/mobile && npx expo start  # Start Expo dev server
 # QA
 .claude/scripts/qa-check.sh           # Full QA suite (all checks)
 .claude/scripts/qa-check.sh --quick   # Fast mode (skip build + deps)
+
+# Versioning (semver)
+npm run version:patch                 # 0.1.0 -> 0.1.1 (bug fixes only)
+npm run version:minor                 # 0.1.0 -> 0.2.0 (new features)
+npm run version:major                 # 0.1.0 -> 1.0.0 (breaking changes)
 ```
+
+## Versioning policy
+
+NESTLYY follows [Semantic Versioning](https://semver.org). The canonical product version lives in `packages/mobile/app.json` under `expo.version` and is mirrored to `expo.android.versionCode` (monotonically increasing integer for Play Store).
+
+- **MAJOR**: breaking data model / storage schema / API changes requiring user action
+- **MINOR**: new features, new screens, new trackers; backwards-compatible
+- **PATCH**: bug fixes, copy tweaks, refactors with no user-visible change
+
+Every PR that modifies production code under `packages/*/src/**` (excluding tests) **must** add an entry to `CHANGELOG.md` under `## [Unreleased]`. `.github/workflows/version-check.yml` enforces this on CI. Docs, test, and config-only PRs are exempt.
+
+**Release workflow**:
+1. `npm run version:patch|minor|major` — moves `## [Unreleased]` entries under a new versioned section, bumps `app.json`, increments `versionCode`
+2. Commit as `chore: release vX.Y.Z`
+3. Open release PR; after merge, tag `vX.Y.Z` on the merge commit
+4. Trigger the next EAS build
 
 ## Environment Variables
 

@@ -10,7 +10,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:mobile": "npm test -w @nestly/mobile",
-    "dev:mobile": "npm run start -w @nestly/mobile"
+    "dev:mobile": "npm run start -w @nestly/mobile",
+    "version:patch": "node scripts/version-bump.mjs patch",
+    "version:minor": "node scripts/version-bump.mjs minor",
+    "version:major": "node scripts/version-bump.mjs major"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

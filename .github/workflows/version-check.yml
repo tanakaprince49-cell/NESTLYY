@@ -1,0 +1,71 @@
+name: Version Check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  changelog-required:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check CHANGELOG.md was updated when code changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="origin/${{ github.base_ref }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          # Files changed in this PR relative to the base branch.
+          CHANGED=$(git diff --name-only "$BASE"..."$HEAD_SHA")
+
+          echo "Changed files:"
+          echo "$CHANGED" | sed 's/^/  /'
+
+          # Does the PR touch any production source under packages/*/src?
+          # Tests, __tests__, and .test. files are exempt from the changelog
+          # requirement because they do not ship to users.
+          PROD_CODE_CHANGED=$(echo "$CHANGED" | grep -E '^packages/(shared|mobile|web)/src/' | grep -v '__tests__' | grep -v '\.test\.' || true)
+
+          if [ -z "$PROD_CODE_CHANGED" ]; then
+            echo ""
+            echo "PASS: No production source changes. CHANGELOG update not required."
+            exit 0
+          fi
+
+          echo ""
+          echo "Production source changed in:"
+          echo "$PROD_CODE_CHANGED" | sed 's/^/  /'
+
+          # Did CHANGELOG.md get touched?
+          if echo "$CHANGED" | grep -qx 'CHANGELOG.md'; then
+            # Verify the PR actually added content under [Unreleased], not just
+            # reformatted something below it. Check for added lines that fall
+            # inside the Unreleased block.
+            git diff "$BASE"..."$HEAD_SHA" -- CHANGELOG.md > /tmp/cl.diff
+            if grep -q '^+' /tmp/cl.diff; then
+              echo ""
+              echo "PASS: CHANGELOG.md updated alongside code changes."
+              exit 0
+            fi
+          fi
+
+          echo ""
+          echo "FAIL: This PR modifies packages/*/src/** but does not add a"
+          echo "      CHANGELOG.md entry under ## [Unreleased]."
+          echo ""
+          echo "Fix: add a bullet under the appropriate ### Added / ### Fixed /"
+          echo "     ### Changed / ### Removed subsection in CHANGELOG.md."
+          echo ""
+          echo "Docs-only, test-only, and config-only PRs are exempt. If this"
+          echo "check is firing on such a PR, the diff probably still touches"
+          echo "a .ts/.tsx file under packages/*/src/ — double-check the diff."
+          exit 1
