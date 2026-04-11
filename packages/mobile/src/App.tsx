@@ -52,6 +52,14 @@ export default function App() {
         await rehydrateUserStores();
         setStoresHydrated(true);
       } else {
+        // Wipe Health Connect sync metadata on every sign-out path, not only
+        // the explicit Settings → Sign Out flow (which already covers it via
+        // SettingsScreen.resetAllUserStateInMemory). Token revocation and
+        // server-side session expiry land here directly, so without this
+        // call the next user to sign in on the same device without a cold
+        // restart would inherit the previous user's 5-minute throttle
+        // window and any lingering syncError banner. See #251.
+        useHealthConnectStore.getState().resetSyncState();
         clearAuth();
       }
       setLoading(false);
