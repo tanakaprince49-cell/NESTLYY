@@ -6,6 +6,7 @@ import { BabyScreen } from '../screens/BabyScreen';
 import { ToolsStack } from './ToolsStack';
 import { EducationScreen } from '../screens/EducationScreen';
 import { AvaScreen } from '../screens/AvaScreen';
+import { VillageScreen } from '../screens/VillageScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import type { RootTabParamList } from './types';
 
@@ -17,6 +18,7 @@ const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Ava: 'sparkles-outline',
   Education: 'book-outline',
   Tools: 'grid-outline',
+  Village: 'people-outline',
   Settings: 'person-outline',
 };
 
@@ -37,6 +39,7 @@ export function MainTabs() {
       <Tab.Screen name="Ava" component={AvaScreen} options={{ tabBarLabel: 'Ava' }} />
       <Tab.Screen name="Education" component={EducationScreen} options={{ tabBarLabel: 'Articles' }} />
       <Tab.Screen name="Tools" component={ToolsStack} options={{ tabBarLabel: 'Tools', headerShown: false }} />
+      <Tab.Screen name="Village" component={VillageScreen} options={{ tabBarLabel: 'Village' }} />
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: 'Settings' }} />
     </Tab.Navigator>
   );
