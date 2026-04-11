@@ -139,7 +139,7 @@ export function SetupScreen() {
     if (lmpMode === 'date') return lmpDateStr;
     const w = parseInt(weekStr, 10);
     const lmp = new Date(Date.now() - w * 7 * 24 * 60 * 60 * 1000);
-    return lmp.toISOString().slice(0, 10);
+    return toIsoDate(lmp);
   };
 
   const getCalculatedDueDate = (): string => {
@@ -154,8 +154,8 @@ export function SetupScreen() {
   };
 
   const handleFinish = () => {
-    const lmp = isPregnancy ? getLmpDate() : new Date().toISOString().slice(0, 10);
-    const due = isPregnancy ? getDueDate(lmp).toISOString().slice(0, 10) : '';
+    const lmp = isPregnancy ? getLmpDate() : toIsoDate(new Date());
+    const due = isPregnancy ? toIsoDate(getDueDate(lmp)) : '';
 
     const profile: PregnancyProfile = {
       userName: userName || 'Friend',
@@ -433,6 +433,7 @@ export function SetupScreen() {
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 maximumDate={new Date()}
+                minimumDate={new Date(Date.now() - 4 * 365 * 24 * 60 * 60 * 1000)}
                 onChange={(_, date) => {
                   const currentIndex = babyBirthPickerIndex;
                   if (Platform.OS !== 'ios') setBabyBirthPickerIndex(null);
