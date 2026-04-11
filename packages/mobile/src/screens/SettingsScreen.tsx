@@ -75,7 +75,14 @@ export function SettingsScreen() {
       base64: true,
     });
     if (result.canceled || !result.assets?.[0]?.base64) return;
-    const dataUrl = `data:image/jpeg;base64,${result.assets[0].base64}`;
+    const asset = result.assets[0];
+    // Fall back to image/jpeg when expo-image-picker does not report a
+    // mimeType (mostly on older Android), but prefer the reported one so a
+    // picked PNG is not mislabeled as JPEG in the stored dataURL. Web surfaces
+    // that validate the prefix (e.g. canvas.toDataURL consumers) reject the
+    // image otherwise. See #238.
+    const mimeType = asset.mimeType ?? 'image/jpeg';
+    const dataUrl = `data:${mimeType};base64,${asset.base64}`;
     useProfileStore.getState().updateProfile({ profileImage: dataUrl });
   };
 
