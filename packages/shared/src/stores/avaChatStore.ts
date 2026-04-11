@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage, type StateStorage } from './middleware/persistMiddleware.ts';
 import type { ChatMessage } from '../types.ts';
 
 const genId = (): string =>
@@ -17,17 +18,40 @@ interface AvaChatState {
   setMessages: (messages: ChatMessage[]) => void;
 }
 
-export const useAvaChatStore = create<AvaChatState>()((set) => ({
-  messages: [],
-  isLoading: false,
-  isSpeaking: false,
+let avaChatStorage: StateStorage | null = null;
+export const setAvaChatStorage = (storage: StateStorage): void => {
+  avaChatStorage = storage;
+};
 
-  addMessage: (msg) =>
-    set((s) => ({
-      messages: [...s.messages, { ...msg, id: genId(), timestamp: Date.now() }],
-    })),
-  setLoading: (isLoading) => set({ isLoading }),
-  setSpeaking: (isSpeaking) => set({ isSpeaking }),
-  clearMessages: () => set({ messages: [] }),
-  setMessages: (messages) => set({ messages }),
-}));
+export const useAvaChatStore = create<AvaChatState>()(
+  persist(
+    (set) => ({
+      messages: [],
+      isLoading: false,
+      isSpeaking: false,
+
+      addMessage: (msg) =>
+        set((s) => ({
+          messages: [...s.messages, { ...msg, id: genId(), timestamp: Date.now() }],
+        })),
+      setLoading: (isLoading) => set({ isLoading }),
+      setSpeaking: (isSpeaking) => set({ isSpeaking }),
+      clearMessages: () => set({ messages: [] }),
+      setMessages: (messages) => set({ messages }),
+    }),
+    {
+      name: 'ava-chat',
+      version: 1,
+      skipHydration: true,
+      storage: createJSONStorage(() => {
+        if (!avaChatStorage) {
+          throw new Error(
+            'avaChatStorage not initialized. Call setAvaChatStorage() at bootstrap.',
+          );
+        }
+        return avaChatStorage;
+      }),
+      partialize: (state) => ({ messages: state.messages }),
+    },
+  ),
+);

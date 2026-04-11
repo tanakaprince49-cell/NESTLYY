@@ -1,11 +1,12 @@
 import './global.css';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, ActivityIndicator, AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, registerHealthConnectModule } from '@nestly/shared';
+import { rehydrateUserStores } from './stores/bootstrap';
 
 // Register native Health Connect module early so write-through in trackers works.
 try {
@@ -29,14 +30,21 @@ export default function App() {
   const { authEmail, loading, hasAcceptedPrivacy, setAuth, clearAuth, setLoading } = useAuthStore();
   const { profile, isEditingProfile } = useProfileStore();
   const navigationRef = useRef<NavigationContainerRef<any>>(null);
+  const [storesHydrated, setStoresHydrated] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const identifier = user.email || `anon-${user.uid}`;
         setAuth(identifier, user.uid);
+        // Now that authEmail is set, rehydrate user-scoped stores so the
+        // persist middleware reads from the correct bucket (not the guest
+        // fallback). This is why every persisted store uses skipHydration.
+        await rehydrateUserStores();
+        setStoresHydrated(true);
       } else {
         clearAuth();
+        setStoresHydrated(false);
       }
       setLoading(false);
     });
@@ -92,7 +100,11 @@ export default function App() {
     return () => sub.remove();
   }, []);
 
-  if (loading) {
+  // Show a spinner while (a) Firebase auth is resolving, or (b) a signed-in
+  // user has been detected but their persisted stores have not been
+  // rehydrated yet. Without the second condition, SetupScreen would briefly
+  // flash on every cold launch because `profile` starts as null.
+  if (loading || (authEmail && !storesHydrated)) {
     return (
       <View className="flex-1 items-center justify-center bg-rose-50">
         <ActivityIndicator size="large" color="#f43f5e" />

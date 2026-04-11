@@ -18,6 +18,7 @@ import type { BabyAvatar } from '@nestly/shared';
 import { useAuthStore, useProfileStore } from '@nestly/shared/stores';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
 import { requestNotificationPermissions, registerPushToken, cancelAllScheduled } from '../services/notificationService';
+import { clearUserStores } from '../stores/bootstrap';
 
 const GENDER_EMOJI: Record<string, string> = {
   boy: '👦',
@@ -108,8 +109,11 @@ export function SettingsScreen() {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign Out',
-        onPress: () => {
-          signOut(auth);
+        onPress: async () => {
+          // Clear persisted user-scoped stores before signing out so the next
+          // account signing in on this device cannot inherit stale data.
+          await clearUserStores();
+          await signOut(auth);
           useAuthStore.getState().logout();
           useProfileStore.getState().setProfile(null);
         },
@@ -126,8 +130,9 @@ export function SettingsScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            signOut(auth);
+          onPress: async () => {
+            await clearUserStores();
+            await signOut(auth);
             useAuthStore.getState().logout();
             useProfileStore.getState().setProfile(null);
           },

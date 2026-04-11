@@ -1,9 +1,17 @@
-import { persist, type StateStorage } from 'zustand/middleware';
-import type { IStorageBackend } from '../../services/storageInterface.ts';
-import type { IAsyncStorageBackend } from '../../services/storageInterface.ts';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
+import type { IStorageBackend, IAsyncStorageBackend } from '../../services/storageInterface.ts';
 
 export type { StateStorage };
+export { persist, createJSONStorage };
 
+/**
+ * Wraps a storage backend (sync localStorage-style or async AsyncStorage-style)
+ * as a zustand-compatible StateStorage, prefixing every key with the current
+ * user's scope so multiple accounts on one device never see each other's data.
+ *
+ * Works with both sync and async backends: any return value that is a Promise
+ * is awaited before returning, so zustand always receives a consistent shape.
+ */
 export function createUserScopedStorage(
   backend: IStorageBackend | IAsyncStorageBackend,
   getEmail: () => string | null,
@@ -14,34 +22,17 @@ export function createUserScopedStorage(
   };
 
   return {
-    getItem: (key: string): string | null | Promise<string | null> => {
-      return (backend as IStorageBackend).getItem(prefix() + key) ??
-        (backend as IAsyncStorageBackend).getItem?.(prefix() + key) ??
-        null;
+    getItem: async (key: string): Promise<string | null> => {
+      const res = (backend as IAsyncStorageBackend).getItem(prefix() + key);
+      return res instanceof Promise ? await res : (res as string | null);
     },
-    setItem: (key: string, value: string): void | Promise<void> => {
-      const sync = backend as IStorageBackend;
-      if (typeof sync.setItem === 'function' && sync.setItem.length === 2) {
-        const result = sync.setItem(prefix() + key, value);
-        if (result !== undefined) {
-          return result as Promise<void>;
-        }
-        return;
-      }
-      return (backend as IAsyncStorageBackend).setItem(prefix() + key, value);
+    setItem: async (key: string, value: string): Promise<void> => {
+      const res = (backend as IAsyncStorageBackend).setItem(prefix() + key, value);
+      if (res instanceof Promise) await res;
     },
-    removeItem: (key: string): void | Promise<void> => {
-      const sync = backend as IStorageBackend;
-      if (typeof sync.removeItem === 'function') {
-        const result = sync.removeItem(prefix() + key);
-        if (result !== undefined) {
-          return result as Promise<void>;
-        }
-        return;
-      }
-      return (backend as IAsyncStorageBackend).removeItem(prefix() + key);
+    removeItem: async (key: string): Promise<void> => {
+      const res = (backend as IAsyncStorageBackend).removeItem(prefix() + key);
+      if (res instanceof Promise) await res;
     },
   };
 }
-
-export { persist };
