@@ -1,7 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ToolsHubScreen } from '../screens/ToolsHubScreen';
-import { FeedingTrackerScreen } from '../screens/trackers/FeedingTrackerScreen';
+import { FeedingRouter } from '../screens/trackers/FeedingRouter';
+import { NutritionTrackerScreen } from '../screens/trackers/NutritionTrackerScreen';
 import { SleepTrackerScreen } from '../screens/trackers/SleepTrackerScreen';
 import { DiaperTrackerScreen } from '../screens/trackers/DiaperTrackerScreen';
 import { VitalsTrackerScreen } from '../screens/trackers/VitalsTrackerScreen';
@@ -34,8 +35,13 @@ export function ToolsStack() {
       />
       <Stack.Screen
         name="FeedingTracker"
-        component={FeedingTrackerScreen}
+        component={FeedingRouter}
         options={{ title: 'Feeding' }}
+      />
+      <Stack.Screen
+        name="NutritionTracker"
+        component={NutritionTrackerScreen}
+        options={{ title: 'Nutrition' }}
       />
       <Stack.Screen
         name="SleepTracker"

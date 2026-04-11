@@ -18,6 +18,7 @@ interface ToolItem {
 }
 
 const ALL_TOOLS: ToolItem[] = [
+  { key: 'NutritionTracker', label: 'Nutrition', icon: 'nutrition-outline', color: '#f43f5e', bgColor: '#ffe4e6', pregnancyOnly: true },
   { key: 'FeedingTracker', label: 'Feeding', icon: 'restaurant-outline', color: '#0ea5e9', bgColor: '#e0f2fe', postpartumOnly: true },
   { key: 'SleepTracker', label: 'Sleep', icon: 'moon-outline', color: '#6366f1', bgColor: '#e0e7ff' },
   { key: 'DiaperTracker', label: 'Diaper', icon: 'water-outline', color: '#06b6d4', bgColor: '#cffafe', postpartumOnly: true },

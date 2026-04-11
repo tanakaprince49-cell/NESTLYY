@@ -3,6 +3,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 export type ToolsStackParamList = {
   ToolsHub: undefined;
   FeedingTracker: undefined;
+  NutritionTracker: undefined;
   SleepTracker: undefined;
   DiaperTracker: undefined;
   VitalsTracker: undefined;

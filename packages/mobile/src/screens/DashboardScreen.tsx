@@ -126,7 +126,7 @@ export function DashboardScreen() {
           <View className="flex-row gap-3">
             <TouchableOpacity
               className="flex-1 bg-rose-400 rounded-2xl py-4 items-center"
-              onPress={() => navigation.navigate('Tools', { screen: 'FeedingTracker' })}
+              onPress={() => navigation.navigate('Tools', { screen: 'NutritionTracker' })}
             >
               <Text className="text-white font-semibold">Log Food</Text>
             </TouchableOpacity>
