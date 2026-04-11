@@ -23,7 +23,7 @@ const ALL_TOOLS: ToolItem[] = [
   { key: 'DiaperTracker', label: 'Diaper', icon: 'water-outline', color: '#06b6d4', bgColor: '#cffafe', postpartumOnly: true },
   { key: 'VitalsTracker', label: 'Vitals', icon: 'pulse-outline', color: '#ef4444', bgColor: '#fee2e2' },
   { key: 'SymptomTracker', label: 'Symptoms', icon: 'thermometer-outline', color: '#f59e0b', bgColor: '#fef3c7', pregnancyOnly: true },
-  { key: 'KickCounter', label: 'Kicks', icon: 'footsteps-outline', color: '#ec4899', bgColor: '#fce7f3' },
+  { key: 'KickCounter', label: 'Kicks', icon: 'footsteps-outline', color: '#ec4899', bgColor: '#fce7f3', pregnancyOnly: true },
   { key: 'ContractionTimer', label: 'Contractions', icon: 'timer-outline', color: '#a855f7', bgColor: '#f3e8ff', pregnancyOnly: true },
   { key: 'MedicationTracker', label: 'Medications', icon: 'medkit-outline', color: '#10b981', bgColor: '#d1fae5' },
   { key: 'VitaminTracker', label: 'Vitamins', icon: 'leaf-outline', color: '#22c55e', bgColor: '#dcfce7' },
@@ -39,7 +39,10 @@ interface Props {
 export function ToolsHubScreen({ navigation }: Props) {
   const { profile } = useProfileStore();
 
-  const isPregnancy = profile?.lifecycleStage === LifecycleStage.PREGNANCY;
+  // Default to the pregnancy view when profile is null so a future code path
+  // that mounts MainTabs before profile hydration does not silently show a
+  // postpartum tools grid to a pregnant user.
+  const isPregnancy = !profile || profile.lifecycleStage === LifecycleStage.PREGNANCY;
 
   const visibleTools = ALL_TOOLS.filter((tool) => {
     if (isPregnancy && tool.postpartumOnly) return false;
