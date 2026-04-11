@@ -14,7 +14,12 @@ import {
   createUserWithEmailAndPassword,
   signInAnonymously,
 } from 'firebase/auth';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
 import { auth } from '@nestly/shared';
+import { useAuthStore } from '@nestly/shared/stores';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export function AuthScreen() {
   const [email, setEmail] = useState('');
@@ -23,9 +28,40 @@ export function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Google OAuth disabled until client IDs are configured in Google Cloud Console
-  // TODO: Add androidClientId / iosClientId and re-enable
-  const googleEnabled = false;
+  const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (!response) return;
+    if (response.type === 'success') {
+      const idToken = response.authentication?.idToken;
+      const accessToken = response.authentication?.accessToken;
+      if (!idToken) {
+        setError('Google did not return an ID token');
+        return;
+      }
+      setLoading(true);
+      setError('');
+      signInWithGoogle(idToken, accessToken)
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Google sign-in failed';
+          setError(msg);
+        })
+        .finally(() => setLoading(false));
+    } else if (response.type === 'error') {
+      setError(response.error?.message || 'Google sign-in failed');
+    }
+    // 'cancel' and 'dismiss' are intentionally silent.
+  }, [response, signInWithGoogle]);
+
+  const handleGoogle = () => {
+    setError('');
+    promptAsync();
+  };
 
   const handleEmailAuth = async () => {
     if (!email || !password) {
@@ -80,22 +116,19 @@ export function AuthScreen() {
             </View>
           ) : null}
 
-          {googleEnabled && (
-            <>
-              <TouchableOpacity
-                className="bg-white rounded-xl py-4 px-6 mb-4 border border-gray-200 flex-row items-center justify-center"
-                onPress={() => {}}
-              >
-                <Text className="text-base font-semibold text-text-primary">Continue with Google</Text>
-              </TouchableOpacity>
+          <TouchableOpacity
+            className="bg-white rounded-xl py-4 px-6 mb-4 border border-gray-200 flex-row items-center justify-center"
+            onPress={handleGoogle}
+            disabled={!request || loading}
+          >
+            <Text className="text-base font-semibold text-text-primary">Continue with Google</Text>
+          </TouchableOpacity>
 
-              <View className="flex-row items-center my-4">
-                <View className="flex-1 h-px bg-gray-200" />
-                <Text className="px-4 text-text-muted text-sm">or</Text>
-                <View className="flex-1 h-px bg-gray-200" />
-              </View>
-            </>
-          )}
+          <View className="flex-row items-center my-4">
+            <View className="flex-1 h-px bg-gray-200" />
+            <Text className="px-4 text-text-muted text-sm">or</Text>
+            <View className="flex-1 h-px bg-gray-200" />
+          </View>
 
           <TextInput
             className="bg-white rounded-xl py-4 px-4 mb-3 border border-gray-200 text-base"
