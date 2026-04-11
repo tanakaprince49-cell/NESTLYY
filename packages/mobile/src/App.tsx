@@ -5,7 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, registerHealthConnectModule } from '@nestly/shared';
+import { auth, registerHealthConnectModule, LifecycleStage } from '@nestly/shared';
 import { rehydrateUserStores } from './stores/bootstrap';
 
 // Register native Health Connect module early so write-through in trackers works.
@@ -14,7 +14,12 @@ try {
 } catch {
   // Not available (Expo Go or missing native module)
 }
-import { useAuthStore, useProfileStore, useTrackingStore } from '@nestly/shared/stores';
+import {
+  useAuthStore,
+  useProfileStore,
+  useTrackingStore,
+  useHealthConnectStore,
+} from '@nestly/shared/stores';
 import { AuthScreen } from './screens/AuthScreen';
 import { PrivacyScreen } from './screens/PrivacyScreen';
 import { SetupScreen } from './screens/SetupScreen';
@@ -102,6 +107,55 @@ export default function App() {
     });
     return () => sub.remove();
   }, []);
+
+  // Health Connect auto-sync lifecycle.
+  //
+  // Problem we are fixing (issue #219): before this effect, syncAll was only
+  // invoked by the "Sync Now" button in Settings. A user who granted
+  // permissions via the system dialog and then opened the Dashboard would
+  // see no Health Connect data until they hunted down the sync button. On
+  // foreground resume nothing ran either, so data written to HC by other
+  // apps (scales, BP cuffs) never flowed in.
+  //
+  // What this effect does:
+  //   1. Initialises the Health Connect store once on app mount so that
+  //      `isConnected` reflects previously-granted permissions even when the
+  //      user never opens Settings. Previously, init was owned by
+  //      HealthConnectSection which only mounts on the Settings tab.
+  //   2. Runs a sync immediately on mount if already connected (cold start
+  //      with permissions persisted from a prior session).
+  //   3. Triggers a sync on every foreground resume, throttled to one sync
+  //      per 5 minutes to avoid thrashing on quick background / foreground
+  //      toggles (e.g. the user briefly checks another app).
+  useEffect(() => {
+    if (!authEmail) return;
+
+    const FIVE_MIN = 5 * 60 * 1000;
+    const maybeSync = (): void => {
+      const hc = useHealthConnectStore.getState();
+      if (!hc.isConnected || hc.isSyncing) return;
+      if (hc.lastSyncTimestamp && Date.now() - hc.lastSyncTimestamp < FIVE_MIN) return;
+      const currentProfile = useProfileStore.getState().profile;
+      const mode: 'pregnancy' | 'newborn' =
+        currentProfile?.lifecycleStage === LifecycleStage.PREGNANCY ? 'pregnancy' : 'newborn';
+      hc.syncAll(authEmail, mode);
+    };
+
+    // Kick off initialization then an initial sync. Both are idempotent.
+    useHealthConnectStore
+      .getState()
+      .initialize()
+      .then(maybeSync)
+      .catch(() => {
+        // Swallow: HC not available on this device or init failed. The
+        // section in Settings will surface any real errors to the user.
+      });
+
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') maybeSync();
+    });
+    return () => sub.remove();
+  }, [authEmail]);
 
   // Show a spinner while (a) Firebase auth is resolving, or (b) a signed-in
   // user has been detected but their persisted stores have not been

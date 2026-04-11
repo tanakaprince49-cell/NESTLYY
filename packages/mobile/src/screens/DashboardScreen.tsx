@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { LifecycleStage } from '@nestly/shared';
+import type { WeightLog, BloodPressureLog } from '@nestly/shared';
 import { useProfileStore, useTrackingStore } from '@nestly/shared/stores';
 import type { RootTabParamList } from '../navigation/types';
 import { Avatar } from '../components/Avatar';
@@ -45,10 +46,25 @@ function getDiaperCountToday(diaperLogs: { timestamp: number }[]): number {
   return diaperLogs.filter((l) => l.timestamp >= start && l.timestamp < end).length;
 }
 
+// Pick the most recent entry by timestamp. Used to surface Health Connect-
+// synced weight and blood pressure on the Dashboard so the user sees live
+// values after HC sync instead of the stale onboarding snapshot. See #219.
+function getLatestWeight(weightLogs: WeightLog[]): number | null {
+  if (weightLogs.length === 0) return null;
+  const latest = weightLogs.reduce((acc, l) => (l.timestamp > acc.timestamp ? l : acc));
+  return latest.weight;
+}
+
+function getLatestBP(bpLogs: BloodPressureLog[]): { systolic: number; diastolic: number } | null {
+  if (bpLogs.length === 0) return null;
+  const latest = bpLogs.reduce((acc, l) => (l.timestamp > acc.timestamp ? l : acc));
+  return { systolic: latest.systolic, diastolic: latest.diastolic };
+}
+
 export function DashboardScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const { profile } = useProfileStore();
-  const { sleepLogs, feedingLogs, diaperLogs } = useTrackingStore();
+  const { sleepLogs, feedingLogs, diaperLogs, weightLogs, bloodPressureLogs } = useTrackingStore();
 
   if (!profile) {
     return (
@@ -66,6 +82,13 @@ export function DashboardScreen() {
     const weeksRemaining = getWeeksRemaining(profile.lmpDate);
     const babySize = getBabySizeForWeek(weeks);
     const sleepHours = getSleepHoursToday(sleepLogs);
+    // Prefer the most recent weightLogs entry (which Health Connect sync
+    // writes into) and fall back to the onboarding startingWeight only
+    // when nothing has been logged yet. Before #219 the card always read
+    // startingWeight, so HC-synced values never showed up on the
+    // Dashboard even after a successful sync.
+    const latestWeight = getLatestWeight(weightLogs) ?? profile.startingWeight ?? null;
+    const latestBP = getLatestBP(bloodPressureLogs);
 
     const formattedDue = profile.dueDate
       ? new Date(profile.dueDate).toLocaleDateString('en-US', {
@@ -117,13 +140,21 @@ export function DashboardScreen() {
 
           <Card>
             <Text className="text-base font-semibold text-gray-800 mb-3">Daily Glance</Text>
-            <View className="flex-row gap-3">
+            <View className="flex-row" style={{ gap: 8 }}>
               <StatCard
                 label="Weight"
-                value={profile.startingWeight ?? '--'}
-                unit={profile.startingWeight ? 'kg' : undefined}
+                value={latestWeight ?? '--'}
+                unit={latestWeight != null ? 'kg' : undefined}
               />
-              <StatCard label="Sleep" value={sleepHours} unit={sleepHours !== '--' ? 'h' : undefined} />
+              <StatCard
+                label="Sleep"
+                value={sleepHours}
+                unit={sleepHours !== '--' ? 'h' : undefined}
+              />
+              <StatCard
+                label="BP"
+                value={latestBP ? `${latestBP.systolic}/${latestBP.diastolic}` : '--'}
+              />
             </View>
           </Card>
 
