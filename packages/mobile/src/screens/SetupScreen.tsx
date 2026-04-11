@@ -9,11 +9,40 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { LifecycleStage } from '@nestly/shared';
 import type { BabyAvatar, PregnancyProfile } from '@nestly/shared';
 import { useProfileStore } from '@nestly/shared/stores';
 import { Stepper } from '../components/Stepper';
 import { getDueDate, validateLmpDate } from '../utils/pregnancyCalc';
+
+// Format a Date into a YYYY-MM-DD string using local timezone (avoids the
+// UTC shift that toISOString().slice(0, 10) would introduce for users in
+// positive offsets such as Zimbabwe UTC+2).
+function toIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// Parse a YYYY-MM-DD string back to a local Date, or null if the string is
+// not a complete, real calendar date. Rejects partials such as "2024" (which
+// `new Date()` would silently accept as 2024-01-01) and invalid days such
+// as Feb 30 (which `new Date()` would roll over to March).
+function parseLocalIsoDate(value: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [y, m, d] = value.split('-').map(Number);
+  const parsed = new Date(y, m - 1, d);
+  if (
+    parsed.getFullYear() !== y ||
+    parsed.getMonth() !== m - 1 ||
+    parsed.getDate() !== d
+  ) {
+    return null;
+  }
+  return parsed;
+}
 
 const SKIN_TONES = ['#FDDBB4', '#F1C27D', '#C68642', '#8D5524', '#4A2912'];
 const TOTAL_STEPS = 8;
@@ -42,6 +71,8 @@ export function SetupScreen() {
   const [lmpDateStr, setLmpDateStr] = useState('');
   const [weekStr, setWeekStr] = useState('');
   const [lmpError, setLmpError] = useState('');
+  const [showLmpPicker, setShowLmpPicker] = useState(false);
+  const [babyBirthPickerIndex, setBabyBirthPickerIndex] = useState<number | null>(null);
   const [pregnancyType, setPregnancyType] = useState<'singleton' | 'twins' | 'triplets'>('singleton');
   const [babies, setBabies] = useState<BabyAvatar[]>([makeBabyAvatar()]);
   const [themeColor, setThemeColor] = useState<'pink' | 'blue' | 'orange'>('pink');
@@ -68,9 +99,9 @@ export function SetupScreen() {
   const handleLmpContinue = () => {
     setLmpError('');
     if (lmpMode === 'date') {
-      const parsed = new Date(lmpDateStr);
-      if (isNaN(parsed.getTime())) {
-        setLmpError('Please enter a valid date (YYYY-MM-DD)');
+      const parsed = parseLocalIsoDate(lmpDateStr);
+      if (!parsed) {
+        setLmpError('Please pick a valid date');
         return;
       }
       const err = validateLmpDate(parsed);
@@ -247,14 +278,34 @@ export function SetupScreen() {
             </View>
 
             {lmpMode === 'date' ? (
-              <TextInput
-                className="bg-white rounded-2xl py-4 px-4 text-base border border-gray-200 mb-3"
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#94a3b8"
-                value={lmpDateStr}
-                onChangeText={setLmpDateStr}
-                keyboardType="numeric"
-              />
+              <>
+                <TouchableOpacity
+                  className="bg-white rounded-2xl py-4 px-4 border border-gray-200 mb-3"
+                  onPress={() => setShowLmpPicker(true)}
+                >
+                  <Text
+                    className={`text-base ${lmpDateStr ? 'text-gray-800' : 'text-slate-400'}`}
+                  >
+                    {lmpDateStr || 'Tap to pick the first day of your last period'}
+                  </Text>
+                </TouchableOpacity>
+                {showLmpPicker && (
+                  <DateTimePicker
+                    value={parseLocalIsoDate(lmpDateStr) ?? new Date()}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    maximumDate={new Date()}
+                    minimumDate={new Date(Date.now() - 300 * 24 * 60 * 60 * 1000)}
+                    onChange={(_, date) => {
+                      setShowLmpPicker(Platform.OS === 'ios');
+                      if (date) {
+                        setLmpDateStr(toIsoDate(date));
+                        setLmpError('');
+                      }
+                    }}
+                  />
+                )}
+              </>
             ) : (
               <TextInput
                 className="bg-white rounded-2xl py-4 px-4 text-base border border-gray-200 mb-3"
@@ -358,19 +409,39 @@ export function SetupScreen() {
                 </View>
                 {!isPregnancy && (
                   <View className="mt-3">
-                    <Text className="text-sm text-gray-500 mb-2">Birth date (YYYY-MM-DD)</Text>
-                    <TextInput
-                      className="bg-gray-50 rounded-xl py-3 px-4 text-base border border-gray-200"
-                      placeholder="YYYY-MM-DD"
-                      placeholderTextColor="#94a3b8"
-                      value={baby.birthDate ?? ''}
-                      onChangeText={(v) => updateBaby(index, { birthDate: v })}
-                      keyboardType="numeric"
-                    />
+                    <Text className="text-sm text-gray-500 mb-2">Birth date</Text>
+                    <TouchableOpacity
+                      className="bg-gray-50 rounded-xl py-3 px-4 border border-gray-200"
+                      onPress={() => setBabyBirthPickerIndex(index)}
+                    >
+                      <Text
+                        className={`text-base ${baby.birthDate ? 'text-gray-800' : 'text-slate-400'}`}
+                      >
+                        {baby.birthDate || 'Tap to pick birth date'}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </View>
             ))}
+            {babyBirthPickerIndex !== null && (
+              <DateTimePicker
+                value={
+                  parseLocalIsoDate(babies[babyBirthPickerIndex]?.birthDate ?? '') ??
+                  new Date()
+                }
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                maximumDate={new Date()}
+                onChange={(_, date) => {
+                  const currentIndex = babyBirthPickerIndex;
+                  if (Platform.OS !== 'ios') setBabyBirthPickerIndex(null);
+                  if (date && currentIndex !== null) {
+                    updateBaby(currentIndex, { birthDate: toIsoDate(date) });
+                  }
+                }}
+              />
+            )}
           </ScrollView>
         );
 
@@ -449,6 +520,18 @@ export function SetupScreen() {
 
   const isStepValid = () => {
     if (step === 2 && !userName.trim()) return false;
+    if (step === 3 && isPregnancy) {
+      if (lmpMode === 'date') {
+        const parsed = parseLocalIsoDate(lmpDateStr);
+        if (!parsed || validateLmpDate(parsed)) return false;
+      } else {
+        const w = parseInt(weekStr, 10);
+        if (isNaN(w) || w < 1 || w > 42) return false;
+      }
+    }
+    if (step === 4 && !isPregnancy) {
+      if (babies.some((b) => !parseLocalIsoDate(b.birthDate ?? ''))) return false;
+    }
     return true;
   };
 
