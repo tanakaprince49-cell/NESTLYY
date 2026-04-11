@@ -15,7 +15,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@nestly/shared';
 import { LifecycleStage } from '@nestly/shared';
 import type { BabyAvatar } from '@nestly/shared';
-import { useAuthStore, useProfileStore } from '@nestly/shared/stores';
+import { useAuthStore, useAvaChatStore, useProfileStore, useTrackingStore } from '@nestly/shared/stores';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
 import { requestNotificationPermissions, registerPushToken, cancelAllScheduled } from '../services/notificationService';
 import { clearUserStores } from '../stores/bootstrap';
@@ -104,6 +104,18 @@ export function SettingsScreen() {
     }
   }, []);
 
+  // Reset every in-memory Zustand slice that clearUserStores does not touch.
+  // clearUserStores wipes AsyncStorage buckets, but the living stores still
+  // hold the previous session's data until a fresh rehydrate runs. Without
+  // these calls, a new account signing in on the same device would briefly
+  // see the prior user's tracking logs and Ava chat history.
+  const resetAllUserStateInMemory = () => {
+    useAuthStore.getState().logout();
+    useProfileStore.getState().setProfile(null);
+    useTrackingStore.getState().resetAllLogs();
+    useAvaChatStore.getState().clearMessages();
+  };
+
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -114,8 +126,7 @@ export function SettingsScreen() {
           // account signing in on this device cannot inherit stale data.
           await clearUserStores();
           await signOut(auth);
-          useAuthStore.getState().logout();
-          useProfileStore.getState().setProfile(null);
+          resetAllUserStateInMemory();
         },
       },
     ]);
@@ -133,8 +144,7 @@ export function SettingsScreen() {
           onPress: async () => {
             await clearUserStores();
             await signOut(auth);
-            useAuthStore.getState().logout();
-            useProfileStore.getState().setProfile(null);
+            resetAllUserStateInMemory();
           },
         },
       ],

@@ -35,6 +35,10 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Reset the hydration gate before setAuth so a sign-in-after-sign-out
+        // cannot briefly expose the previous user's in-memory state while the
+        // new account rehydrates from its own persisted bucket.
+        setStoresHydrated(false);
         const identifier = user.email || `anon-${user.uid}`;
         setAuth(identifier, user.uid);
         // Now that authEmail is set, rehydrate user-scoped stores so the
@@ -44,7 +48,6 @@ export default function App() {
         setStoresHydrated(true);
       } else {
         clearAuth();
-        setStoresHydrated(false);
       }
       setLoading(false);
     });
