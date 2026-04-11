@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { LifecycleStage } from '@nestly/shared';
+import { LifecycleStage, getBabySizeForWeek } from '@nestly/shared';
 import type { WeightLog, BloodPressureLog } from '@nestly/shared';
 import { useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import type { RootTabParamList } from '../navigation/types';
@@ -13,7 +13,6 @@ import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
 import { ProgressBar } from '../components/ProgressBar';
 import { getWeeksAndDays, getWeeksRemaining, formatBabyAge } from '../utils/pregnancyCalc';
-import { getBabySizeForWeek } from '../../../shared/src/data/babySizes';
 
 function getTodayMs(): { start: number; end: number } {
   const now = new Date();
