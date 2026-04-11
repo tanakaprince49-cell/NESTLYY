@@ -24,6 +24,8 @@ The committer then opens a release PR and, after merge, tags the merge commit `v
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-04-11
+
 ### Added
 - #237 Twin and triplet pregnancies now label each emoji in the Fetal Development view with the corresponding baby's name from `profile.babies` (falls back to "Baby N" when a slot is unnamed). Singleton pregnancies are unchanged.
 
@@ -68,5 +70,6 @@ Initial tracked baseline. Covers everything shipped before the semver process wa
 - #236 dynamic header title in FeedingRouter
 - #238 mimeType-aware avatar dataURL prefix
 
-[Unreleased]: https://github.com/tanakaprince49-cell/NESTLYY/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/tanakaprince49-cell/NESTLYY/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/tanakaprince49-cell/NESTLYY/releases/tag/v0.1.0
 [0.0.1]: https://github.com/tanakaprince49-cell/NESTLYY/releases/tag/v0.0.1
