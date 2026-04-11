@@ -86,6 +86,11 @@ export function ToolsHubScreen({ navigation }: Props) {
             <Text className="text-xs font-semibold text-gray-700">{item.label}</Text>
           </TouchableOpacity>
         )}
+        ListEmptyComponent={
+          <View className="py-12 items-center">
+            <Text className="text-gray-400 text-sm">No tools available for this stage yet.</Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );

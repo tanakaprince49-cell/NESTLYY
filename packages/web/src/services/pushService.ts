@@ -65,8 +65,6 @@ export async function subscribeUserToPush() {
     });
 
     if (currentToken) {
-      console.log('FCM Token:', currentToken);
-      
       // Send token to server
       if (auth.currentUser) {
         const idToken = await auth.currentUser.getIdToken();
@@ -105,7 +103,6 @@ export function setupForegroundMessaging() {
   
   isForegroundMessagingSetup = true;
   onMessage(messaging, (payload) => {
-    console.log('Message received in foreground:', payload);
     // Only show manual notification if the browser doesn't handle it automatically
     // and if it's not a duplicate.
     if (payload.notification) {

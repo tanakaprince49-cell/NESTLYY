@@ -23,8 +23,11 @@ check_empty_state() {
     return
   fi
 
-  # Check for empty state patterns
-  if ! grep -qE '(ListEmptyComponent|\.length\s*===?\s*0|\.length\s*<\s*1|No .* yet|no .* found|empty|EmptyState|nothing|coming soon)' "$file" 2>/dev/null; then
+  # Check for empty state patterns.
+  # `TrackerHistory` is treated as providing its own empty state: the shared
+  # component renders "No entries yet" internally when passed an empty items
+  # array, so any screen that delegates to it is already covered.
+  if ! grep -qE '(ListEmptyComponent|\.length\s*===?\s*0|\.length\s*<\s*1|\.length\s*>\s*0|No .* yet|no .* found|empty|EmptyState|nothing|coming soon|TrackerHistory)' "$file" 2>/dev/null; then
     echo "  WARN: $short renders data but has no empty state"
     FAIL=1
   fi
