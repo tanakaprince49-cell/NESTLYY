@@ -24,6 +24,16 @@ The committer then opens a release PR and, after merge, tags the merge commit `v
 
 ## [Unreleased]
 
+### Changed
+- #233 Narrow `createUserScopedStorage` backend type to `IAsyncStorageBackend` (removes unsafe sync/async runtime cast)
+- #244 Shared store registry (`USER_SCOPED_PERSISTED_STORES`) is now the single source of truth; mobile bootstrap iterates it so adding a new persisted store no longer requires editing two files
+- #234 Expanded comment on `authStore` `partialize` to document why only `hasAcceptedPrivacy` is persisted (Firebase Auth owns email/uid)
+
+### Fixed
+- #239 Replace `catch (err: any)` with typed `catch (err: unknown)` + `instanceof Error` in AuthScreen email and anonymous handlers
+- #240 Remove inline `toIsoDate`/`parseLocalIsoDate` duplicates from SetupScreen and inline `hasValidLmpDate` from BabyScreen; all three now import from `utils/dates`
+- #245 FeedingRouter now carries an explicit comment documenting why `BIRTH` falls through to the infant-feeding branch rather than the maternal-nutrition branch
+
 ## [0.0.1] - 2026-04-11
 
 Initial tracked baseline. Covers everything shipped before the semver process was introduced, including:

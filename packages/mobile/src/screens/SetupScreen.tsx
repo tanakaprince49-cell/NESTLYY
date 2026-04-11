@@ -15,34 +15,7 @@ import type { BabyAvatar, PregnancyProfile } from '@nestly/shared';
 import { useProfileStore } from '@nestly/shared/stores';
 import { Stepper } from '../components/Stepper';
 import { getDueDate, validateLmpDate } from '../utils/pregnancyCalc';
-
-// Format a Date into a YYYY-MM-DD string using local timezone (avoids the
-// UTC shift that toISOString().slice(0, 10) would introduce for users in
-// positive offsets such as Zimbabwe UTC+2).
-function toIsoDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-// Parse a YYYY-MM-DD string back to a local Date, or null if the string is
-// not a complete, real calendar date. Rejects partials such as "2024" (which
-// `new Date()` would silently accept as 2024-01-01) and invalid days such
-// as Feb 30 (which `new Date()` would roll over to March).
-function parseLocalIsoDate(value: string): Date | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const [y, m, d] = value.split('-').map(Number);
-  const parsed = new Date(y, m - 1, d);
-  if (
-    parsed.getFullYear() !== y ||
-    parsed.getMonth() !== m - 1 ||
-    parsed.getDate() !== d
-  ) {
-    return null;
-  }
-  return parsed;
-}
+import { toIsoDate, parseLocalIsoDate } from '../utils/dates';
 
 const SKIN_TONES = ['#FDDBB4', '#F1C27D', '#C68642', '#8D5524', '#4A2912'];
 const TOTAL_STEPS = 8;
