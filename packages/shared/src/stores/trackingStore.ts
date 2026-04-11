@@ -1,4 +1,10 @@
 import { create } from 'zustand';
+import {
+  persist,
+  createJSONStorage,
+  createLazyStorage,
+  type StateStorage,
+} from './middleware/persistMiddleware.ts';
 import type {
   FoodEntry,
   SymptomLog,
@@ -125,7 +131,14 @@ interface TrackingState {
   resetAllLogs: () => void;
 }
 
-export const useTrackingStore = create<TrackingState>()((set) => ({
+const { storage: trackingLazyStorage, setBackend: trackingSetBackend } = createLazyStorage();
+export const setTrackingStorage = (storage: StateStorage): void => {
+  trackingSetBackend(storage);
+};
+
+export const useTrackingStore = create<TrackingState>()(
+  persist(
+    (set) => ({
   entries: [],
   symptoms: [],
   vitamins: [],
@@ -291,4 +304,33 @@ export const useTrackingStore = create<TrackingState>()((set) => ({
       diaperLogs: [],
       medicationLogs: [],
     }),
-}));
+    }),
+    {
+      name: 'tracking',
+      version: 1,
+      skipHydration: true,
+      storage: createJSONStorage(() => trackingLazyStorage),
+      partialize: (state) => ({
+        entries: state.entries,
+        symptoms: state.symptoms,
+        vitamins: state.vitamins,
+        contractions: state.contractions,
+        journalEntries: state.journalEntries,
+        calendarEvents: state.calendarEvents,
+        weightLogs: state.weightLogs,
+        sleepLogs: state.sleepLogs,
+        feedingLogs: state.feedingLogs,
+        milestones: state.milestones,
+        healthLogs: state.healthLogs,
+        reactions: state.reactions,
+        babyGrowthLogs: state.babyGrowthLogs,
+        tummyTimeLogs: state.tummyTimeLogs,
+        bloodPressureLogs: state.bloodPressureLogs,
+        kickLogs: state.kickLogs,
+        kegelLogs: state.kegelLogs,
+        diaperLogs: state.diaperLogs,
+        medicationLogs: state.medicationLogs,
+      }),
+    },
+  ),
+);
