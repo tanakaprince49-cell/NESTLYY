@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -41,6 +41,12 @@ export function AvaScreen() {
   const [input, setInput] = useState('');
   const hydrated = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  // FlatList is `inverted` so the item at index 0 renders at the bottom.
+  // The store keeps messages chronological (oldest first) because the LLM
+  // context and persist slice(-100) depend on that order. Reverse a shallow
+  // copy here so the newest message lands at index 0 and appears at the bottom.
+  const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
 
   // Cleanup on unmount: cancel in-flight request + stop speech
   useEffect(() => {
@@ -205,7 +211,7 @@ export function AvaScreen() {
       >
         {/* Messages */}
         <FlatList
-          data={messages}
+          data={reversedMessages}
           renderItem={renderMessage}
           keyExtractor={(item) => item.id}
           inverted
