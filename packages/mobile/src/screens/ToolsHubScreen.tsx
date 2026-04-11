@@ -40,14 +40,22 @@ interface Props {
 export function ToolsHubScreen({ navigation }: Props) {
   const { profile } = useProfileStore();
 
-  // Default to the pregnancy view when profile is null so a future code path
-  // that mounts MainTabs before profile hydration does not silently show a
-  // postpartum tools grid to a pregnant user.
-  const isPregnancy = !profile || profile.lifecycleStage === LifecycleStage.PREGNANCY;
+  // PRE_PREGNANCY shares the pregnancy tool set with PREGNANCY because both
+  // stages are trying to conceive or are pregnant, and the maternal nutrition
+  // and symptom tiles are relevant to both. Matches the FeedingRouter stage
+  // check so the hub tile and the resolved tracker stay in sync.
+  //
+  // Null profile also defaults to the pregnancy tool set so a future code
+  // path that mounts MainTabs before profile hydration cannot silently show
+  // a postpartum grid to a pregnant user.
+  const isPregnancyLike =
+    !profile ||
+    profile.lifecycleStage === LifecycleStage.PREGNANCY ||
+    profile.lifecycleStage === LifecycleStage.PRE_PREGNANCY;
 
   const visibleTools = ALL_TOOLS.filter((tool) => {
-    if (isPregnancy && tool.postpartumOnly) return false;
-    if (!isPregnancy && tool.pregnancyOnly) return false;
+    if (isPregnancyLike && tool.postpartumOnly) return false;
+    if (!isPregnancyLike && tool.pregnancyOnly) return false;
     return true;
   });
 

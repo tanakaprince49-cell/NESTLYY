@@ -50,7 +50,9 @@ export function NutritionTrackerScreen() {
     setError('');
   };
 
-  const historyItems: TrackerHistoryItem[] = entries.map((e) => ({
+  // Cap recent history at 10 entries to match web (web uses slice(0, 5)).
+  // Without a cap this list grows unbounded as users log more meals.
+  const historyItems: TrackerHistoryItem[] = entries.slice(0, 10).map((e) => ({
     id: e.id,
     title: e.name,
     subtitle: `${e.calories} kcal · ${e.protein}g protein · ${e.folate}mcg folate · ${e.iron}mg iron · ${e.calcium}mg calcium`,
