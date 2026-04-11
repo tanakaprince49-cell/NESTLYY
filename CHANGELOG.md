@@ -24,6 +24,9 @@ The committer then opens a release PR and, after merge, tags the merge commit `v
 
 ## [Unreleased]
 
+### Changed
+- #190 `packages/shared/src/firebase.ts` now exports `auth` and `db` through a lazy Proxy instead of eagerly calling `getAuth(app)` / `getFirestore(app)` at module load. `getAuth` / `getFirestore` now run on first property access, which makes the RN init order (mobile's `firebaseInit.ts` → `initializeAuth` with AsyncStorage persistence) robust against future import reordering, and eliminates the zombie `getFirestore(app)` call on mobile (where `db` is never consumed). The Proxy exposes `get`, `set`, and `getPrototypeOf` traps so the Firestore SDK's `instanceof Firestore` cast guards in `collection` / `doc` / `writeBatch` / `runTransaction` still pass. `messaging` stays eager because consumers rely on its `if (messaging)` truthiness guard that a Proxy would break.
+
 ### Added
 - #252 Newborn / postpartum Dashboard now surfaces the mother's latest weight and blood pressure from Health Connect in a dedicated "Your Health" card. The card only renders when HC is connected and at least one reading has been logged, so users without HC do not see a dead card.
 
