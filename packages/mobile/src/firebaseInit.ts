@@ -1,8 +1,9 @@
 /**
  * Mobile-specific Firebase initialization.
- * MUST be imported before any module that touches `@nestly/shared` (which calls getAuth).
- * initializeAuth registers the auth instance on the app -- subsequent getAuth() calls
- * return the same instance, so shared/firebase.ts picks it up automatically.
+ * Imported first from mobile/index.ts so initializeAuth runs before any consumer
+ * reads from the lazy `auth` proxy exported by @nestly/shared/firebase. That proxy
+ * defers getAuth(app) until the first property access, so subsequent getAuth()
+ * calls return the RN-persisted Auth instance registered here.
  */
 import { initializeApp, getApps } from 'firebase/app';
 // @ts-expect-error -- Metro resolves the RN bundle which exports this; TS sees the browser types

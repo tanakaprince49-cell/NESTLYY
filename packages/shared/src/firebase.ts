@@ -23,29 +23,45 @@ export { app };
 // Firestore instance is never constructed at all, eliminating the zombie
 // getFirestore(app) call on RN.
 //
-// Reflect.get receives the real resolved instance as the receiver so getters
-// and methods see `this === real instance`, which matters for the Firestore
-// SDK where internal state lives on the instance.
-let _auth: Auth | undefined;
-let _db: Firestore | undefined;
+// The Proxy needs three traps to behave like the real instance:
+//   - `get` forwards property reads and methods. Reflect.get receives the
+//     resolved instance as the receiver so getters/methods see
+//     `this === real instance` -- important for SDKs that hold internal
+//     state on the instance.
+//   - `set` forwards writes so SDK internals that mutate the instance
+//     post-construction land on the real object, not the {} target.
+//   - `getPrototypeOf` is load-bearing for Firestore: the modular SDK's
+//     __PRIVATE_cast helper does `instanceof Firestore` on every top-level
+//     function (collection, doc, writeBatch, runTransaction, ...), which
+//     would throw INVALID_ARGUMENT against a Proxy wrapping `{}` unless the
+//     prototype chain resolves to the real Firestore prototype.
+function lazyProxy<T extends object>(resolve: () => T): T {
+  let cached: T | undefined;
+  const get = (): T => {
+    if (!cached) cached = resolve();
+    return cached;
+  };
+  return new Proxy({} as T, {
+    get(_target, prop) {
+      const instance = get();
+      return Reflect.get(instance, prop, instance);
+    },
+    set(_target, prop, value) {
+      const instance = get();
+      return Reflect.set(instance, prop, value, instance);
+    },
+    getPrototypeOf(_target) {
+      return Object.getPrototypeOf(get());
+    },
+  });
+}
 
-export const auth: Auth = new Proxy({} as Auth, {
-  get(_target, prop) {
-    if (!_auth) _auth = getAuth(app);
-    return Reflect.get(_auth, prop, _auth);
-  },
-});
-
-export const db: Firestore = new Proxy({} as Firestore, {
-  get(_target, prop) {
-    if (!_db) _db = getFirestore(app);
-    return Reflect.get(_db, prop, _db);
-  },
-});
+export const auth: Auth = lazyProxy<Auth>(() => getAuth(app));
+export const db: Firestore = lazyProxy<Firestore>(() => getFirestore(app));
 
 // Messaging stays eager. It is browser-only (requires ServiceWorker) and
 // consumers like pushService.ts rely on `if (messaging)` truthiness to skip
-// on RN — a Proxy is always truthy and would break that guard.
+// on RN -- a Proxy is always truthy and would break that guard.
 let messaging: Messaging | null = null;
 try {
   // getMessaging requires ServiceWorker (browser only, not React Native)
