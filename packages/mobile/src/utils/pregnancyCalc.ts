@@ -41,9 +41,16 @@ export function formatBabyAge(birthDate: string): string {
 }
 
 export function validateLmpDate(date: Date): string | null {
+  // Reject anything on or after tomorrow (local time). Using start-of-tomorrow
+  // as the boundary avoids rejecting "today" in positive UTC offsets.
   const now = new Date();
-  if (date > now) return 'Date cannot be in the future';
+  const startOfTomorrow = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+  );
+  if (date >= startOfTomorrow) return 'Date cannot be in the future';
   const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-  if (diffDays > 300) return 'Date is too far in the past';
+  if (diffDays > 300) return 'More than 42 weeks ago, please check';
   return null;
 }
