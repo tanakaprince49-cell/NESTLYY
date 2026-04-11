@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   LifecycleStage,
@@ -18,10 +18,37 @@ const GENDER_EMOJI: Record<string, string> = {
   neutral: '👶',
 };
 
-// Tile width (w-16 = 64) + mr-2 (8) = 72px stride. Used to center the current
-// week in the carousel on mount.
+// Tile dims: w-16 = 64px, mr-2 = 8px → 72px stride. Used to center the
+// current week in the carousel on mount.
+const TILE_WIDTH = 64;
 const TILE_STRIDE = 72;
 
+function hasValidLmpDate(lmpDate: string | undefined): lmpDate is string {
+  if (!lmpDate) return false;
+  const parsed = new Date(lmpDate).getTime();
+  return Number.isFinite(parsed);
+}
+
+function FetalDevelopmentEmptyState() {
+  return (
+    <SafeAreaView className="flex-1 bg-rose-50">
+      <View className="flex-1 items-center justify-center px-8">
+        <Text className="text-5xl mb-4">🌱</Text>
+        <Text className="text-xl font-bold text-rose-700 text-center">
+          Set your LMP date
+        </Text>
+        <Text className="text-sm text-gray-500 text-center mt-2 leading-relaxed">
+          Open Settings and add the first day of your last period to unlock
+          weekly fetal development previews.
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+// Caller must guarantee profile.lmpDate is a valid date string — the outer
+// BabyScreen switches to FetalDevelopmentEmptyState when it is not. This is
+// enforced outside the component so we can run hooks unconditionally.
 function FetalDevelopmentView({ profile }: { profile: PregnancyProfile }) {
   const { weeks } = getWeeksAndDays(profile.lmpDate);
   const currentWeek = Math.max(4, Math.min(40, weeks));
@@ -33,16 +60,21 @@ function FetalDevelopmentView({ profile }: { profile: PregnancyProfile }) {
     [],
   );
 
+  const screenWidth = Dimensions.get('window').width;
   const scrollRef = useRef<ScrollView>(null);
   useEffect(() => {
     const idx = weekKeys.findIndex((w) => w >= currentWeek);
     if (idx >= 0 && scrollRef.current) {
+      // Center the current-week tile in the viewport. Left edge of tile is
+      // at idx * TILE_STRIDE; adding TILE_WIDTH/2 gives the tile center,
+      // subtracting screenWidth/2 shifts that center to the middle of the
+      // visible area.
       scrollRef.current.scrollTo({
-        x: Math.max(0, idx * TILE_STRIDE - TILE_STRIDE),
+        x: Math.max(0, idx * TILE_STRIDE + TILE_WIDTH / 2 - screenWidth / 2),
         animated: false,
       });
     }
-  }, [currentWeek, weekKeys]);
+  }, [currentWeek, weekKeys, screenWidth]);
 
   const trimesterFocus = useMemo(() => {
     if (selectedWeek <= 13) {
@@ -230,6 +262,9 @@ export function BabyScreen() {
     profile.lifecycleStage === LifecycleStage.PRE_PREGNANCY;
 
   if (isPregnancy) {
+    if (!hasValidLmpDate(profile.lmpDate)) {
+      return <FetalDevelopmentEmptyState />;
+    }
     return <FetalDevelopmentView profile={profile} />;
   }
 
