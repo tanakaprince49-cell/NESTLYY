@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage, type StateStorage } from './middleware/persistMiddleware.ts';
+import {
+  persist,
+  createJSONStorage,
+  createLazyStorage,
+  type StateStorage,
+} from './middleware/persistMiddleware.ts';
 import { Trimester } from '../types.ts';
 import type { PregnancyProfile } from '../types.ts';
 
@@ -13,12 +18,12 @@ interface ProfileState {
   setIsEditingProfile: (editing: boolean) => void;
 }
 
-// Injected by the platform at bootstrap time. Shared cannot depend on
-// AsyncStorage or localStorage directly, so the host (mobile or web) calls
-// setProfileStorage once at startup with a user-scoped StateStorage.
-let profileStorage: StateStorage | null = null;
+// A stable lazy proxy so zustand's createJSONStorage call succeeds
+// synchronously at store-creation time. The platform host (mobile bootstrap)
+// calls setProfileStorage() later with the real user-scoped backend.
+const { storage: profileLazyStorage, setBackend: profileSetBackend } = createLazyStorage();
 export const setProfileStorage = (storage: StateStorage): void => {
-  profileStorage = storage;
+  profileSetBackend(storage);
 };
 
 export const useProfileStore = create<ProfileState>()(
@@ -39,14 +44,7 @@ export const useProfileStore = create<ProfileState>()(
       name: 'profile',
       version: 1,
       skipHydration: true,
-      storage: createJSONStorage(() => {
-        if (!profileStorage) {
-          throw new Error(
-            'profileStorage not initialized. Call setProfileStorage() at bootstrap.',
-          );
-        }
-        return profileStorage;
-      }),
+      storage: createJSONStorage(() => profileLazyStorage),
       partialize: (state) => ({
         profile: state.profile,
         trimester: state.trimester,

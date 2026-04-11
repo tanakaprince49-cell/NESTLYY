@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage, type StateStorage } from './middleware/persistMiddleware.ts';
+import {
+  persist,
+  createJSONStorage,
+  createLazyStorage,
+  type StateStorage,
+} from './middleware/persistMiddleware.ts';
 import type {
   FoodEntry,
   SymptomLog,
@@ -126,9 +131,9 @@ interface TrackingState {
   resetAllLogs: () => void;
 }
 
-let trackingStorage: StateStorage | null = null;
+const { storage: trackingLazyStorage, setBackend: trackingSetBackend } = createLazyStorage();
 export const setTrackingStorage = (storage: StateStorage): void => {
-  trackingStorage = storage;
+  trackingSetBackend(storage);
 };
 
 export const useTrackingStore = create<TrackingState>()(
@@ -304,14 +309,7 @@ export const useTrackingStore = create<TrackingState>()(
       name: 'tracking',
       version: 1,
       skipHydration: true,
-      storage: createJSONStorage(() => {
-        if (!trackingStorage) {
-          throw new Error(
-            'trackingStorage not initialized. Call setTrackingStorage() at bootstrap.',
-          );
-        }
-        return trackingStorage;
-      }),
+      storage: createJSONStorage(() => trackingLazyStorage),
       partialize: (state) => ({
         entries: state.entries,
         symptoms: state.symptoms,

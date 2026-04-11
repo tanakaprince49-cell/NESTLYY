@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage, type StateStorage } from './middleware/persistMiddleware.ts';
+import {
+  persist,
+  createJSONStorage,
+  createLazyStorage,
+  type StateStorage,
+} from './middleware/persistMiddleware.ts';
 
 interface AuthState {
   authEmail: string | null;
@@ -13,9 +18,9 @@ interface AuthState {
   logout: () => void;
 }
 
-let authStorage: StateStorage | null = null;
+const { storage: authLazyStorage, setBackend: authSetBackend } = createLazyStorage();
 export const setAuthStorage = (storage: StateStorage): void => {
-  authStorage = storage;
+  authSetBackend(storage);
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -36,14 +41,7 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth',
       version: 1,
       skipHydration: true,
-      storage: createJSONStorage(() => {
-        if (!authStorage) {
-          throw new Error(
-            'authStorage not initialized. Call setAuthStorage() at bootstrap.',
-          );
-        }
-        return authStorage;
-      }),
+      storage: createJSONStorage(() => authLazyStorage),
       // Only persist the privacy flag. authEmail and userUid come from
       // Firebase Auth (which has its own AsyncStorage persistence via
       // getReactNativePersistence), and loading is transient.

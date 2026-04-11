@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage, type StateStorage } from './middleware/persistMiddleware.ts';
+import {
+  persist,
+  createJSONStorage,
+  createLazyStorage,
+  type StateStorage,
+} from './middleware/persistMiddleware.ts';
 import type { ChatMessage } from '../types.ts';
 
 const genId = (): string =>
@@ -18,9 +23,9 @@ interface AvaChatState {
   setMessages: (messages: ChatMessage[]) => void;
 }
 
-let avaChatStorage: StateStorage | null = null;
+const { storage: avaChatLazyStorage, setBackend: avaChatSetBackend } = createLazyStorage();
 export const setAvaChatStorage = (storage: StateStorage): void => {
-  avaChatStorage = storage;
+  avaChatSetBackend(storage);
 };
 
 export const useAvaChatStore = create<AvaChatState>()(
@@ -43,14 +48,7 @@ export const useAvaChatStore = create<AvaChatState>()(
       name: 'ava-chat',
       version: 1,
       skipHydration: true,
-      storage: createJSONStorage(() => {
-        if (!avaChatStorage) {
-          throw new Error(
-            'avaChatStorage not initialized. Call setAvaChatStorage() at bootstrap.',
-          );
-        }
-        return avaChatStorage;
-      }),
+      storage: createJSONStorage(() => avaChatLazyStorage),
       partialize: (state) => ({ messages: state.messages }),
     },
   ),
