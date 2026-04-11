@@ -52,9 +52,15 @@ export const useAuthStore = create<AuthState>()(
       version: 1,
       skipHydration: true,
       storage: createJSONStorage(() => authLazyStorage),
-      // Only persist the privacy flag. authEmail and userUid come from
-      // Firebase Auth (which has its own AsyncStorage persistence via
-      // getReactNativePersistence), and loading is transient.
+      // Only persist the privacy flag. authEmail and userUid are owned by
+      // Firebase Auth — it keeps its own persistent session via
+      // getReactNativePersistence(AsyncStorage) on mobile and IndexedDB on
+      // web — and rehydrating them from the Zustand bucket would race the
+      // Firebase listener and occasionally reinstate a stale identity.
+      // `loading` is transient UI state and should start true on every cold
+      // start so App.tsx waits for onAuthStateChanged to resolve before
+      // rendering. See issue #234 for the review context that pinned this
+      // decision in writing.
       partialize: (state) => ({ hasAcceptedPrivacy: state.hasAcceptedPrivacy }),
     },
   ),

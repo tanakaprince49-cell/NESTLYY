@@ -1,13 +1,8 @@
 import {
   useAuthStore,
-  useProfileStore,
-  useTrackingStore,
-  useAvaChatStore,
   createUserScopedStorage,
-  setAuthStorage,
-  setProfileStorage,
-  setTrackingStorage,
-  setAvaChatStorage,
+  setAllUserScopedStorage,
+  USER_SCOPED_PERSISTED_STORES,
 } from '@nestly/shared/stores';
 import { asyncStorageBackend } from './storageBackend';
 
@@ -24,20 +19,10 @@ const getEmail = (): string | null => useAuthStore.getState().authEmail;
  */
 export function bootstrapStores(): void {
   const storage = createUserScopedStorage(asyncStorageBackend, getEmail);
-  setAuthStorage(storage);
-  setProfileStorage(storage);
-  setTrackingStorage(storage);
-  setAvaChatStorage(storage);
+  setAllUserScopedStorage(storage);
 }
 
 type PersistedStore = { persist: { rehydrate: () => Promise<void>; clearStorage: () => void | Promise<void> } };
-
-const USER_SCOPED_STORES: ReadonlyArray<readonly [string, PersistedStore]> = [
-  ['auth', useAuthStore as unknown as PersistedStore],
-  ['profile', useProfileStore as unknown as PersistedStore],
-  ['tracking', useTrackingStore as unknown as PersistedStore],
-  ['avaChat', useAvaChatStore as unknown as PersistedStore],
-];
 
 /**
  * Rehydrate all user-scoped stores from AsyncStorage. Must be called after
@@ -50,12 +35,16 @@ const USER_SCOPED_STORES: ReadonlyArray<readonly [string, PersistedStore]> = [
  * so the remaining stores still load. Without this, a single corrupted bucket
  * (e.g. from a killed write during a previous session) would knock out the
  * entire app state. See issue #235.
+ *
+ * Iterates the shared USER_SCOPED_PERSISTED_STORES registry so adding a new
+ * persisted store in shared automatically flows through rehydrate and clear
+ * without touching mobile bootstrap. See issue #244.
  */
 export async function rehydrateUserStores(): Promise<void> {
   await Promise.all(
-    USER_SCOPED_STORES.map(async ([name, store]) => {
+    Object.entries(USER_SCOPED_PERSISTED_STORES).map(async ([name, { store }]) => {
       try {
-        await store.persist.rehydrate();
+        await (store as unknown as PersistedStore).persist.rehydrate();
       } catch (err) {
         console.warn(`[rehydrateUserStores] "${name}" failed to rehydrate:`, err);
       }
@@ -73,9 +62,9 @@ export async function rehydrateUserStores(): Promise<void> {
  */
 export async function clearUserStores(): Promise<void> {
   await Promise.all(
-    USER_SCOPED_STORES.map(async ([name, store]) => {
+    Object.entries(USER_SCOPED_PERSISTED_STORES).map(async ([name, { store }]) => {
       try {
-        await store.persist.clearStorage();
+        await (store as unknown as PersistedStore).persist.clearStorage();
       } catch (err) {
         console.warn(`[clearUserStores] "${name}" failed to clear:`, err);
       }

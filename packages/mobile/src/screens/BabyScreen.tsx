@@ -9,6 +9,7 @@ import {
 } from '@nestly/shared';
 import { useProfileStore } from '@nestly/shared/stores';
 import { formatBabyAge, getWeeksAndDays } from '../utils/pregnancyCalc';
+import { hasValidLmpDate } from '../utils/dates';
 import { Card } from '../components/Card';
 
 const GENDER_EMOJI: Record<string, string> = {
@@ -22,12 +23,6 @@ const GENDER_EMOJI: Record<string, string> = {
 // current week in the carousel on mount.
 const TILE_WIDTH = 64;
 const TILE_STRIDE = 72;
-
-function hasValidLmpDate(lmpDate: string | undefined): lmpDate is string {
-  if (!lmpDate) return false;
-  const parsed = new Date(lmpDate).getTime();
-  return Number.isFinite(parsed);
-}
 
 function FetalDevelopmentEmptyState() {
   return (

@@ -85,8 +85,8 @@ export function AuthScreen() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -97,8 +97,8 @@ export function AuthScreen() {
     setError('');
     try {
       await signInAnonymously(auth);
-    } catch (err: any) {
-      setError(err.message || 'Anonymous sign-in failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Anonymous sign-in failed');
     } finally {
       setLoading(false);
     }

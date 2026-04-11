@@ -17,6 +17,11 @@ import { NutritionTrackerScreen } from './NutritionTrackerScreen';
 export function FeedingRouter() {
   const { profile } = useProfileStore();
   const navigation = useNavigation();
+  // BIRTH is intentionally treated as "postpartum" here: once labor starts,
+  // the user is switching their focus from maternal nutrition planning to
+  // infant feeding logs, so we route BIRTH down the FeedingTrackerScreen
+  // branch along with NEWBORN / INFANT / TODDLER. Only PREGNANCY and
+  // PRE_PREGNANCY keep the maternal NutritionTrackerScreen. See #245.
   const isPregnancyLike =
     profile?.lifecycleStage === LifecycleStage.PREGNANCY ||
     profile?.lifecycleStage === LifecycleStage.PRE_PREGNANCY;
