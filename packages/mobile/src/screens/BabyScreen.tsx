@@ -108,6 +108,18 @@ function FetalDevelopmentView({ profile }: { profile: PregnancyProfile }) {
       : profile.pregnancyType === 'triplets'
         ? 3
         : 1;
+  // Build a label list the same length as babyCount. Prefer the name from
+  // the matching BabyAvatar entry, but tolerate gaps (empty name, missing
+  // entry entirely) rather than crashing — SetupScreen does not force the
+  // user to fill every slot. Singleton pregnancies keep their unlabelled
+  // single-emoji rendering below and don't consume this list.
+  const babyLabels = useMemo(() => {
+    return Array.from({ length: babyCount }, (_, i) => {
+      const avatar = profile.babies?.[i];
+      const trimmed = avatar?.name?.trim();
+      return trimmed && trimmed.length > 0 ? trimmed : `Baby ${i + 1}`;
+    });
+  }, [babyCount, profile.babies]);
   const subtitle = selectedWeek === currentWeek ? "Today's Progress" : `Week ${selectedWeek}`;
 
   return (
@@ -154,11 +166,28 @@ function FetalDevelopmentView({ profile }: { profile: PregnancyProfile }) {
             {babyCount === 1 ? (
               <Text style={{ fontSize: 96 }}>{baby.image}</Text>
             ) : (
-              <View className="flex-row flex-wrap justify-center" style={{ gap: 12 }}>
-                {Array.from({ length: babyCount }).map((_, i) => (
-                  <Text key={i} style={{ fontSize: 64 }}>
-                    {baby.image}
-                  </Text>
+              // Multi-baby layout: one emoji+name block per baby. flex-wrap
+              // keeps all three blocks on one line on typical Android widths
+              // (~360px and up) but allows the third to wrap to a second row
+              // on narrow devices instead of overflowing the card. See #237.
+              <View
+                className="flex-row flex-wrap justify-center items-start"
+                style={{ gap: 16 }}
+              >
+                {babyLabels.map((label, i) => (
+                  <View
+                    key={profile.babies?.[i]?.id ?? `baby-${i}`}
+                    className="items-center"
+                  >
+                    <Text style={{ fontSize: 64 }}>{baby.image}</Text>
+                    <Text
+                      className="text-xs font-semibold text-rose-700 mt-1 text-center"
+                      numberOfLines={1}
+                      style={{ maxWidth: 96 }}
+                    >
+                      {label}
+                    </Text>
+                  </View>
                 ))}
               </View>
             )}

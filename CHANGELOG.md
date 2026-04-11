@@ -24,6 +24,9 @@ The committer then opens a release PR and, after merge, tags the merge commit `v
 
 ## [Unreleased]
 
+### Added
+- #237 Twin and triplet pregnancies now label each emoji in the Fetal Development view with the corresponding baby's name from `profile.babies` (falls back to "Baby N" when a slot is unnamed). Singleton pregnancies are unchanged.
+
 ### Changed
 - #233 Narrow `createUserScopedStorage` backend type to `IAsyncStorageBackend` (removes unsafe sync/async runtime cast)
 - #244 Shared store registry (`USER_SCOPED_PERSISTED_STORES`) is now the single source of truth; mobile bootstrap iterates it so adding a new persisted store no longer requires editing two files
