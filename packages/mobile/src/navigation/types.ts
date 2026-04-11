@@ -23,5 +23,6 @@ export type RootTabParamList = {
   Ava: undefined;
   Education: undefined;
   Tools: NavigatorScreenParams<ToolsStackParamList>;
+  Village: undefined;
   Settings: undefined;
 };
