@@ -1,7 +1,18 @@
 import { Trimester } from '@nestly/shared';
+import { parseLocalIsoDate } from './dates';
+
+// Parse a YYYY-MM-DD string as local midnight. Falls back to the built-in
+// Date constructor for any non-YYYY-MM-DD input (e.g. full ISO timestamps),
+// so this stays a drop-in replacement. Using parseLocalIsoDate for calendar
+// strings matters because `new Date("2025-03-15")` is parsed as UTC, which
+// shifts the week/day computation by the device offset in positive zones
+// like Zimbabwe (UTC+2). See #232.
+function toLocalDate(dateString: string): Date {
+  return parseLocalIsoDate(dateString) ?? new Date(dateString);
+}
 
 export function getWeeksAndDays(lmpDate: string): { weeks: number; days: number } {
-  const diff = Date.now() - new Date(lmpDate).getTime();
+  const diff = Date.now() - toLocalDate(lmpDate).getTime();
   const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
   return { weeks: Math.floor(totalDays / 7), days: totalDays % 7 };
 }
@@ -13,7 +24,7 @@ export function getTrimester(weeks: number): Trimester {
 }
 
 export function getDueDate(lmpDate: string): Date {
-  const lmp = new Date(lmpDate);
+  const lmp = toLocalDate(lmpDate);
   return new Date(lmp.getTime() + 280 * 24 * 60 * 60 * 1000);
 }
 
@@ -24,7 +35,7 @@ export function getWeeksRemaining(lmpDate: string): number {
 }
 
 export function getBabyAge(birthDate: string): { months: number; weeks: number; days: number } {
-  const diff = Date.now() - new Date(birthDate).getTime();
+  const diff = Date.now() - toLocalDate(birthDate).getTime();
   const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
   const months = Math.floor(totalDays / 30.44);
   const remainingDays = totalDays - Math.floor(months * 30.44);
