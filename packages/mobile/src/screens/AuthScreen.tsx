@@ -42,9 +42,9 @@ export function AuthScreen() {
       const accessToken = response.authentication?.accessToken;
       if (!idToken) {
         setError('Google did not return an ID token');
+        setLoading(false);
         return;
       }
-      setLoading(true);
       setError('');
       signInWithGoogle(idToken, accessToken)
         .catch((err: unknown) => {
@@ -54,12 +54,21 @@ export function AuthScreen() {
         .finally(() => setLoading(false));
     } else if (response.type === 'error') {
       setError(response.error?.message || 'Google sign-in failed');
+      setLoading(false);
+    } else {
+      // 'cancel', 'dismiss', 'locked' — release the loading lock that
+      // handleGoogle set so the user can try again without a stuck button.
+      setLoading(false);
     }
-    // 'cancel' and 'dismiss' are intentionally silent.
   }, [response, signInWithGoogle]);
 
   const handleGoogle = () => {
     setError('');
+    // Lock the button immediately so a double-tap before the native browser
+    // opens cannot fire two concurrent promptAsync() calls. The useEffect
+    // above clears loading on every response branch (success, error, cancel,
+    // dismiss, locked), so the button always unlocks once the flow settles.
+    setLoading(true);
     promptAsync();
   };
 
