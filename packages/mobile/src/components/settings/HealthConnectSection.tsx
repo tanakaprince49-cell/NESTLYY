@@ -52,8 +52,15 @@ export function HealthConnectSection() {
     const success = await connect();
     if (!success) {
       Alert.alert('Permissions Required', 'Please grant Health Connect permissions to sync your health data.');
+      return;
     }
-  }, [connect]);
+    // Fire an immediate sync so the Dashboard reflects the user's existing
+    // Health Connect data without them having to hunt down the "Sync Now"
+    // button. The global foreground-resume sync in App.tsx covers every
+    // subsequent resume, but the very first connect happens in-session and
+    // needs its own explicit call. See issue #219.
+    syncAll(authEmail || 'guest', sleepMode);
+  }, [connect, syncAll, authEmail, sleepMode]);
 
   const handleDisconnect = useCallback(() => {
     Alert.alert('Disconnect Health Connect', 'Your data will remain but will no longer sync.', [

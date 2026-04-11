@@ -24,6 +24,9 @@ The committer then opens a release PR and, after merge, tags the merge commit `v
 
 ## [Unreleased]
 
+### Fixed
+- #219 Health Connect data now actually reaches the Dashboard. Sync fires automatically on app cold start, on foreground resume (throttled to once every 5 minutes), and immediately after the user grants permissions. Dashboard weight card now reads the latest entry from `weightLogs` (which HC sync writes into) with a fall-back to `profile.startingWeight`, and a new blood pressure stat card surfaces the most recent BP reading.
+
 ## [0.1.0] - 2026-04-11
 
 ### Added
