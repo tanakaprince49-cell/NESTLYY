@@ -52,6 +52,14 @@ export default function App() {
         await rehydrateUserStores();
         setStoresHydrated(true);
       } else {
+        // Wipe Health Connect sync metadata on every sign-out path, not only
+        // the explicit Settings → Sign Out flow (which already covers it via
+        // SettingsScreen.resetAllUserStateInMemory). Token revocation and
+        // server-side session expiry land here directly, so without this
+        // call the next user to sign in on the same device without a cold
+        // restart would inherit the previous user's 5-minute throttle
+        // window and any lingering syncError banner. See #251.
+        useHealthConnectStore.getState().resetSyncState();
         clearAuth();
       }
       setLoading(false);
@@ -142,13 +150,19 @@ export default function App() {
     };
 
     // Kick off initialization then an initial sync. Both are idempotent.
+    // Sync failures are not actually swallowed: syncAll's internal try/catch
+    // writes into useHealthConnectStore.syncError, and DashboardScreen
+    // surfaces that via a tap-to-fix banner (see #253). The .catch below
+    // only guards against an unexpected rejection from initialize() itself,
+    // which has its own internal try/catch and should never reject in
+    // practice. On devices without Health Connect, initialize() quietly sets
+    // isAvailable=false and the banner stays hidden (gated on isConnected).
     useHealthConnectStore
       .getState()
       .initialize()
       .then(maybeSync)
       .catch(() => {
-        // Swallow: HC not available on this device or init failed. The
-        // section in Settings will surface any real errors to the user.
+        // Defensive only, see comment above.
       });
 
     const sub = AppState.addEventListener('change', (state) => {

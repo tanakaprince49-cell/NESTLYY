@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { LifecycleStage } from '@nestly/shared';
 import type { WeightLog, BloodPressureLog } from '@nestly/shared';
-import { useProfileStore, useTrackingStore } from '@nestly/shared/stores';
+import { useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import type { RootTabParamList } from '../navigation/types';
 import { Avatar } from '../components/Avatar';
 import { Card } from '../components/Card';
@@ -65,6 +66,11 @@ export function DashboardScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const { profile } = useProfileStore();
   const { sleepLogs, feedingLogs, diaperLogs, weightLogs, bloodPressureLogs } = useTrackingStore();
+  // Subscribe to HC connection + error state so the sync-issue banner reacts
+  // to auto-sync failures without the user having to navigate to Settings.
+  // See #253.
+  const hcConnected = useHealthConnectStore((s) => s.isConnected);
+  const hcSyncError = useHealthConnectStore((s) => s.syncError);
 
   if (!profile) {
     return (
@@ -77,6 +83,35 @@ export function DashboardScreen() {
   const isPregnancy = profile.lifecycleStage === LifecycleStage.PREGNANCY;
   const firstBaby = profile.babies?.[0];
 
+  // HC-sourced maternal values. Computed before the branch split because both
+  // pregnancy (#219) and newborn/postpartum (#252) dashboards surface them.
+  // Pregnancy falls back to the onboarding startingWeight when weightLogs is
+  // empty; newborn shows only actually-logged values so a stale pre-pregnancy
+  // snapshot never appears in the postpartum view.
+  const hcLatestWeight = getLatestWeight(weightLogs);
+  const hcLatestBP = getLatestBP(bloodPressureLogs);
+
+  // Tap-to-fix banner shown in both branches when an auto-sync fails while
+  // Health Connect is otherwise connected. Without this, failures set
+  // syncError in the store but nothing in the Dashboard surfaces it, so the
+  // user sees stale values with no indication anything is wrong. See #253.
+  const syncIssueBanner =
+    hcConnected && hcSyncError ? (
+      <TouchableOpacity
+        className="mb-3 flex-row items-center rounded-xl border border-orange-200 bg-orange-50 px-3 py-2"
+        style={{ gap: 8 }}
+        onPress={() => navigation.navigate('Settings')}
+        accessibilityRole="button"
+        accessibilityLabel="Health Connect sync issue, tap to open Settings"
+      >
+        <Ionicons name="alert-circle-outline" size={16} color="#f97316" />
+        <Text className="flex-1 text-xs text-orange-700">
+          Health Connect sync issue. Tap to review.
+        </Text>
+        <Ionicons name="chevron-forward" size={14} color="#f97316" />
+      </TouchableOpacity>
+    ) : null;
+
   if (isPregnancy) {
     const { weeks, days } = getWeeksAndDays(profile.lmpDate);
     const weeksRemaining = getWeeksRemaining(profile.lmpDate);
@@ -87,8 +122,8 @@ export function DashboardScreen() {
     // when nothing has been logged yet. Before #219 the card always read
     // startingWeight, so HC-synced values never showed up on the
     // Dashboard even after a successful sync.
-    const latestWeight = getLatestWeight(weightLogs) ?? profile.startingWeight ?? null;
-    const latestBP = getLatestBP(bloodPressureLogs);
+    const latestWeight = hcLatestWeight ?? profile.startingWeight ?? null;
+    const latestBP = hcLatestBP;
 
     const formattedDue = profile.dueDate
       ? new Date(profile.dueDate).toLocaleDateString('en-US', {
@@ -101,6 +136,7 @@ export function DashboardScreen() {
     return (
       <SafeAreaView className="flex-1 bg-rose-50">
         <ScrollView contentContainerStyle={{ padding: 16 }}>
+          {syncIssueBanner}
           <View className="mb-4 flex-row items-start justify-between">
             <View className="flex-1 pr-3">
               <Text className="text-2xl font-bold text-rose-700">
@@ -182,9 +218,17 @@ export function DashboardScreen() {
   const diaperCount = getDiaperCountToday(diaperLogs);
   const babyAgeStr = firstBaby?.birthDate ? formatBabyAge(firstBaby.birthDate) : '';
 
+  // Maternal Health card only renders when HC is connected and has delivered
+  // at least one weight or BP reading. Postpartum moms who sync a scale or BP
+  // cuff through Health Connect would otherwise see their data flow in
+  // silently with no surface in the newborn Dashboard. Gated on isConnected
+  // so users without HC do not see a dead card. See #252.
+  const showMaternalCard = hcConnected && (hcLatestWeight !== null || hcLatestBP !== null);
+
   return (
     <SafeAreaView className="flex-1 bg-rose-50">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
+        {syncIssueBanner}
         <View className="mb-4 flex-row items-start justify-between">
           <View className="flex-1 pr-3">
             <Text className="text-2xl font-bold text-rose-700">
@@ -209,6 +253,23 @@ export function DashboardScreen() {
             <StatCard label="Mood" value="--" />
           </View>
         </Card>
+
+        {showMaternalCard ? (
+          <Card>
+            <Text className="text-base font-semibold text-gray-800 mb-3">Your Health</Text>
+            <View className="flex-row" style={{ gap: 8 }}>
+              <StatCard
+                label="Weight"
+                value={hcLatestWeight ?? '--'}
+                unit={hcLatestWeight != null ? 'kg' : undefined}
+              />
+              <StatCard
+                label="BP"
+                value={hcLatestBP ? `${hcLatestBP.systolic}/${hcLatestBP.diastolic}` : '--'}
+              />
+            </View>
+          </Card>
+        ) : null}
 
         <View className="flex-row gap-3">
           <TouchableOpacity

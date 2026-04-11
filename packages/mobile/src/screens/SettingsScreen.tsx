@@ -16,7 +16,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@nestly/shared';
 import { LifecycleStage } from '@nestly/shared';
 import type { BabyAvatar } from '@nestly/shared';
-import { useAuthStore, useAvaChatStore, useProfileStore, useTrackingStore } from '@nestly/shared/stores';
+import { useAuthStore, useAvaChatStore, useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { Avatar } from '../components/Avatar';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
 import { requestNotificationPermissions, registerPushToken, cancelAllScheduled } from '../services/notificationService';
@@ -139,11 +139,19 @@ export function SettingsScreen() {
   // hold the previous session's data until a fresh rehydrate runs. Without
   // these calls, a new account signing in on the same device would briefly
   // see the prior user's tracking logs and Ava chat history.
+  //
+  // Health Connect is deliberately NOT in USER_SCOPED_PERSISTED_STORES because
+  // its device-level fields (isAvailable, isConnected, permissions) reflect
+  // system permissions shared across accounts. But its sync metadata
+  // (lastSyncTimestamp, syncError, isSyncing) IS per-user — without the
+  // resetSyncState() call, user B would inherit user A's 5-minute throttle
+  // window and see a stale syncError from user A's last sync. See #251.
   const resetAllUserStateInMemory = () => {
     useAuthStore.getState().logout();
     useProfileStore.getState().setProfile(null);
     useTrackingStore.getState().resetAllLogs();
     useAvaChatStore.getState().clearMessages();
+    useHealthConnectStore.getState().resetSyncState();
   };
 
   const handleSignOut = () => {

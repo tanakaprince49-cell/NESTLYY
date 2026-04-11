@@ -37,6 +37,12 @@ interface HealthConnectState {
   refreshPermissions: () => Promise<void>;
   syncAll: (userId: string, sleepMode: 'pregnancy' | 'newborn') => Promise<void>;
   setSyncError: (error: string | null) => void;
+  // Reset the user-scoped slice of this store (lastSyncTimestamp, syncError,
+  // isSyncing) without touching device-level state (isAvailable, isConnected,
+  // permissions). Called on account switch so user B does not inherit user A's
+  // throttle window or stale error banner. The device-level fields reflect
+  // system permissions shared across all accounts, so they stay. See #251.
+  resetSyncState: () => void;
 }
 
 export const useHealthConnectStore = create<HealthConnectState>()((set, get) => ({
@@ -244,4 +250,7 @@ export const useHealthConnectStore = create<HealthConnectState>()((set, get) => 
   },
 
   setSyncError: (syncError) => set({ syncError }),
+
+  resetSyncState: () =>
+    set({ lastSyncTimestamp: null, syncError: null, isSyncing: false }),
 }));
