@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "250549049447-250cc0ultk8qdso4ji2phhobkmfqqdke.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nestly.app",
+            "certificate_hash": "fa72e86d9f8a81PbWWqgKDBDorh525uecKaGZD21FGSoCeR"
+          }
+        },
+        {
           "client_id": "250549049447-3nmher2v62mc5qh73jp7u5pbbdg518eh.apps.googleusercontent.com",
           "client_type": 3
         }
