@@ -22,7 +22,7 @@ import {
 } from '@nestly/shared';
 import { useAuthStore } from '@nestly/shared/stores';
 import { useProfileStore } from '@nestly/shared/stores';
-import type { Nest, NestPost } from '@nestly/shared';
+import type { Nest, NestPost, NestMedia } from '@nestly/shared';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { VillageStackParamList } from '../../navigation/types';
 
@@ -30,6 +30,7 @@ import { ErrorBanner } from '../../components/village/ErrorBanner';
 import { PostComposer } from '../../components/village/PostComposer';
 import { PostCard } from '../../components/village/PostCard';
 import { CommentsSheet } from '../../components/village/CommentsSheet';
+import { MediaViewerModal } from '../../components/village/MediaViewerModal';
 
 type Props = NativeStackScreenProps<VillageStackParamList, 'NestDetail'>;
 
@@ -46,6 +47,7 @@ export function NestDetailScreen({ route, navigation }: Props) {
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [posts, setPosts] = useState<NestPost[]>([]);
   const [openCommentsPostId, setOpenCommentsPostId] = useState<string | null>(null);
+  const [viewerState, setViewerState] = useState<{ media: NestMedia[]; index: number } | null>(null);
   const pendingRef = useRef(false);
 
   useEffect(() => {
@@ -244,6 +246,7 @@ export function NestDetailScreen({ route, navigation }: Props) {
             nestId={nestId}
             authorUid={userUid}
             authorName={authorName}
+            authorProfilePicture={profile?.profileImage ?? undefined}
             onError={(msg) => setMutationError(msg)}
           />
         ) : (
@@ -288,6 +291,7 @@ export function NestDetailScreen({ route, navigation }: Props) {
                 onLike={handleLike}
                 onToggleComments={(postId) => setOpenCommentsPostId(postId)}
                 onDelete={handleDeletePost}
+                onOpenMedia={(media, index) => setViewerState({ media, index })}
               />
             ))}
           </View>
@@ -319,6 +323,14 @@ export function NestDetailScreen({ route, navigation }: Props) {
           authorUid={userUid}
           authorName={authorName}
           onClose={() => setOpenCommentsPostId(null)}
+        />
+      )}
+
+      {viewerState && (
+        <MediaViewerModal
+          media={viewerState.media}
+          index={viewerState.index}
+          onClose={() => setViewerState(null)}
         />
       )}
     </SafeAreaView>
