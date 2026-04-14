@@ -1,6 +1,7 @@
 import './global.css';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, ActivityIndicator, AppState } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
@@ -188,9 +189,11 @@ export default function App() {
   if (!profile || isEditingProfile) return <SetupScreen />;
 
   return (
-    <NavigationContainer ref={navigationRef}>
-      <StatusBar style="dark" />
-      <MainTabs />
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer ref={navigationRef}>
+        <StatusBar style="dark" />
+        <MainTabs />
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
