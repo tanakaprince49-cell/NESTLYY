@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { timeAgo, toggleCommentLike } from '@nestly/shared';
 import type { NestComment } from '@nestly/shared';
@@ -13,6 +13,34 @@ interface CommentItemProps {
   onDelete: (commentId: string) => void;
   depth?: number;
   isReply?: boolean;
+}
+
+function CommentAvatar({ name, profilePicture, size = 28 }: { name: string; profilePicture?: string; size?: number }) {
+  const [fallback, setFallback] = useState(false);
+  const initial = name.charAt(0).toUpperCase();
+  if (profilePicture && !fallback) {
+    return (
+      <Image
+        source={{ uri: profilePicture }}
+        style={{ width: size, height: size, borderRadius: size / 2 }}
+        onError={() => setFallback(true)}
+      />
+    );
+  }
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: '#fb7185',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Text style={{ color: '#fff', fontSize: size * 0.4, fontWeight: '700' }}>{initial}</Text>
+    </View>
+  );
 }
 
 export function CommentItem({
@@ -51,7 +79,6 @@ export function CommentItem({
     }
   };
 
-  const initial = comment.authorName.charAt(0).toUpperCase();
   const isOwner = comment.authorUid === currentUserUid;
 
   return (
@@ -59,8 +86,12 @@ export function CommentItem({
       <View className="bg-rose-50 rounded-xl p-3 mb-2">
         <View className="flex-row items-center justify-between mb-1.5">
           <View className="flex-row items-center flex-1">
-            <View className="w-7 h-7 rounded-full bg-rose-400 items-center justify-center mr-2">
-              <Text className="text-white text-xs font-bold">{initial}</Text>
+            <View style={{ marginRight: 8 }}>
+              <CommentAvatar
+                name={comment.authorName}
+                profilePicture={comment.authorProfilePicture}
+                size={28}
+              />
             </View>
             <Text className="text-xs font-semibold text-gray-800 mr-2">{comment.authorName}</Text>
             <Text className="text-xs text-gray-400">{timeAgo(comment.createdAt)}</Text>

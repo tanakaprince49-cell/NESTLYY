@@ -322,6 +322,7 @@ export function NestDetailScreen({ route, navigation }: Props) {
           postId={openCommentsPostId}
           authorUid={userUid}
           authorName={authorName}
+          authorProfilePicture={profile?.profileImage ?? undefined}
           onClose={() => setOpenCommentsPostId(null)}
         />
       )}

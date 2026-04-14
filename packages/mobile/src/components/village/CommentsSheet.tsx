@@ -19,10 +19,11 @@ interface CommentsSheetProps {
   postId: string | null;
   authorUid: string;
   authorName: string;
+  authorProfilePicture?: string;
   onClose: () => void;
 }
 
-export function CommentsSheet({ nestId, postId, authorUid, authorName, onClose }: CommentsSheetProps) {
+export function CommentsSheet({ nestId, postId, authorUid, authorName, authorProfilePicture, onClose }: CommentsSheetProps) {
   const sheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['75%'], []);
 
@@ -85,6 +86,7 @@ export function CommentsSheet({ nestId, postId, authorUid, authorName, onClose }
         content: trimmed,
         authorUid,
         authorName,
+        ...(authorProfilePicture ? { authorProfilePicture } : {}),
         replyTo: replyTo?.id,
       });
       setText('');
