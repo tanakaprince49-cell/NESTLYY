@@ -7,6 +7,7 @@ import {
   uploadBytesResumable,
   getDownloadURL,
   deleteObject,
+  type UploadTask,
 } from 'firebase/storage';
 import { app } from '@nestly/shared';
 import type { NestMedia } from '@nestly/shared';
@@ -90,12 +91,14 @@ export async function uploadMediaToStorage({
   tempKey,
   asset,
   onProgress,
+  onTask,
 }: {
   nestId: string;
   authorUid: string;
   tempKey: string;
   asset: PickedMedia;
   onProgress?: (progress: number) => void;
+  onTask?: (task: UploadTask) => void;
 }): Promise<NestMedia> {
   const storage = getStorage(app);
   const mediaId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -120,6 +123,7 @@ export async function uploadMediaToStorage({
   const mainBlob = await uriToBlob(uploadUri);
   await new Promise<void>((resolve, reject) => {
     const task = uploadBytesResumable(mediaRef, mainBlob, { contentType: mainContentType });
+    onTask?.(task);
     task.on(
       'state_changed',
       (snapshot) => {
