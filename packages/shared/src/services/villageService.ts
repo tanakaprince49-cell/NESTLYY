@@ -36,9 +36,12 @@ function tsToMs(value: unknown): number {
 }
 
 function nestFromDoc(snap: QueryDocumentSnapshot<DocumentData>): Nest {
-  const d = snap.data();
+  return nestFromData(snap.id, snap.data());
+}
+
+function nestFromData(id: string, d: DocumentData): Nest {
   return {
-    id: snap.id,
+    id,
     name: d.name ?? '',
     description: d.description ?? '',
     category: (d.category ?? 'general') as NestCategory,
@@ -85,6 +88,17 @@ export function subscribeToNests(callback: (nests: Nest[]) => void): Unsubscribe
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map(nestFromDoc));
   });
+}
+
+export async function getNest(nestId: string): Promise<Nest | null> {
+  const snap = await getDoc(doc(db, NESTS, nestId));
+  if (!snap.exists()) return null;
+  return nestFromData(snap.id, snap.data());
+}
+
+export async function getUserMembership(userId: string, nestId: string): Promise<boolean> {
+  const snap = await getDoc(doc(db, MEMBERSHIPS, `${userId}_${nestId}`));
+  return snap.exists();
 }
 
 export async function createNest(

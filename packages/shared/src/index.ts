@@ -10,7 +10,7 @@ export * from './services/syncService.ts';
 export * from './services/babyGrowth.ts';
 export * from './services/groupService.ts';
 export * from './services/villageTemplates.ts';
-export { subscribeToNests, subscribeToNestPosts, subscribeToPostComments, createPost, deletePost, toggleLike, createComment, deleteComment, toggleCommentLike, sharePost, subscribeToUserMemberships, joinNest, leaveNest, createNest, deleteNest } from './services/villageService.ts';
+export { subscribeToNests, getNest, getUserMembership, subscribeToNestPosts, subscribeToPostComments, createPost, deletePost, toggleLike, createComment, deleteComment, toggleCommentLike, sharePost, subscribeToUserMemberships, joinNest, leaveNest, createNest, deleteNest } from './services/villageService.ts';
 export type { Unsubscribe } from './services/villageService.ts';
 export * from './tokens/index.ts';
 export * from './stores/index.ts';
