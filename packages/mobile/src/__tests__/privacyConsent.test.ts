@@ -36,6 +36,10 @@ describe('#281 privacy consent is device-level, not session-scoped', () => {
       },
       removeItem: async () => {},
     };
+    // No afterEach teardown: this is the last test that exercises privacy
+    // persistence in this file, and Jest runs each test file in its own
+    // worker with a fresh module registry, so the in-memory backend cannot
+    // leak into other suites.
     setPrivacyStorage(inMemory);
 
     usePrivacyStore.getState().setHasAcceptedPrivacy(true);
