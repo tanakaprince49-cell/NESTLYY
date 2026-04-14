@@ -49,6 +49,10 @@ export function NestDetailScreen({ route, navigation }: Props) {
   const pendingRef = useRef(false);
 
   useEffect(() => {
+    setNest(null);
+    setNotFound(false);
+    setLoading(true);
+    setIsJoined(false);
     let firstEmission = true;
     const unsub: Unsubscribe = subscribeToNest(nestId, (loaded) => {
       if (firstEmission) {
@@ -72,11 +76,12 @@ export function NestDetailScreen({ route, navigation }: Props) {
   }, [userUid, nestId]);
 
   useEffect(() => {
+    if (notFound) return;
     const unsub: Unsubscribe = subscribeToNestPosts(nestId, (data) => {
       setPosts(data);
     });
     return () => unsub();
-  }, [nestId]);
+  }, [nestId, notFound]);
 
   const setPendingBoth = (value: boolean) => {
     pendingRef.current = value;
@@ -244,10 +249,10 @@ export function NestDetailScreen({ route, navigation }: Props) {
         ) : (
           <View className="bg-rose-50 mx-4 mt-3 rounded-2xl p-4 items-center">
             <Text className="text-sm font-semibold text-rose-700 mb-1">
-              Join to join the conversation.
+              Join to post and comment.
             </Text>
             <Text className="text-sm text-rose-600 text-center leading-5 mb-3">
-              Only members can post and comment in this nest.
+              Posts and comments are for members only.
             </Text>
             {userUid ? (
               <TouchableOpacity

@@ -289,8 +289,8 @@ export async function createComment(
     await updateDoc(doc(db, NESTS, nestId, POSTS, postId), {
       commentCount: increment(1),
     });
-  } catch (countErr) {
-    console.error('commentCount increment failed (comment was still created)', countErr);
+  } catch {
+    // silent: comment was written successfully, only count update failed
   }
   return commentRef.id;
 }

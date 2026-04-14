@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { timeAgo, toggleCommentLike } from '@nestly/shared';
@@ -12,6 +12,7 @@ interface CommentItemProps {
   onReply: (commentId: string, authorName: string) => void;
   onDelete: (commentId: string) => void;
   depth?: number;
+  isReply?: boolean;
 }
 
 export function CommentItem({
@@ -22,10 +23,12 @@ export function CommentItem({
   onReply,
   onDelete,
   depth = 0,
+  isReply = false,
 }: CommentItemProps) {
   const isLikedFromProp = comment.likedBy.includes(currentUserUid);
   const [optimisticLiked, setOptimisticLiked] = useState(isLikedFromProp);
   const [optimisticCount, setOptimisticCount] = useState(comment.likeCount);
+  const pendingRef = useRef(false);
 
   useEffect(() => {
     setOptimisticLiked(isLikedFromProp);
@@ -33,6 +36,8 @@ export function CommentItem({
   }, [isLikedFromProp, comment.likeCount]);
 
   const handleLike = async () => {
+    if (pendingRef.current) return;
+    pendingRef.current = true;
     const wasLiked = optimisticLiked;
     setOptimisticLiked(!wasLiked);
     setOptimisticCount((c) => c + (wasLiked ? -1 : 1));
@@ -41,6 +46,8 @@ export function CommentItem({
     } catch {
       setOptimisticLiked(wasLiked);
       setOptimisticCount((c) => c + (wasLiked ? 1 : -1));
+    } finally {
+      pendingRef.current = false;
     }
   };
 
@@ -61,7 +68,7 @@ export function CommentItem({
           {isOwner && (
             <TouchableOpacity
               onPress={() => onDelete(comment.id)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
               accessibilityLabel="Delete comment"
             >
               <Ionicons name="trash-outline" size={14} color="#fda4af" />
@@ -76,6 +83,8 @@ export function CommentItem({
             className="flex-row items-center mr-4"
             onPress={handleLike}
             accessibilityLabel={optimisticLiked ? 'Unlike comment' : 'Like comment'}
+            accessibilityState={{ selected: optimisticLiked }}
+            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
             activeOpacity={0.7}
           >
             <Ionicons
@@ -87,13 +96,16 @@ export function CommentItem({
               {optimisticCount}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => onReply(comment.id, comment.authorName)}
-            accessibilityLabel={`Reply to ${comment.authorName}`}
-            activeOpacity={0.7}
-          >
-            <Text className="text-xs font-semibold text-gray-400">Reply</Text>
-          </TouchableOpacity>
+          {!isReply && (
+            <TouchableOpacity
+              onPress={() => onReply(comment.id, comment.authorName)}
+              accessibilityLabel={`Reply to ${comment.authorName}`}
+              hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+              activeOpacity={0.7}
+            >
+              <Text className="text-xs font-semibold text-gray-400">Reply</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -107,6 +119,7 @@ export function CommentItem({
           onReply={onReply}
           onDelete={onDelete}
           depth={depth + 1}
+          isReply={true}
         />
       ))}
     </View>

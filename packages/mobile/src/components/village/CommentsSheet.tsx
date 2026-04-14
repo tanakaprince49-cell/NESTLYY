@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import BottomSheet, { BottomSheetView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { View, Text, TouchableOpacity, Alert, ScrollView, BackHandler } from 'react-native';
+import BottomSheet, { BottomSheetView, BottomSheetTextInput, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import type { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { Ionicons } from '@expo/vector-icons';
 import {
   subscribeToPostComments,
@@ -30,6 +31,27 @@ export function CommentsSheet({ nestId, postId, authorUid, authorName, onClose }
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const pendingRef = useRef(false);
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetDefaultBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
+
+  useEffect(() => {
+    if (!postId) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      onClose();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [postId, onClose]);
 
   useEffect(() => {
     if (postId) {
@@ -112,6 +134,7 @@ export function CommentsSheet({ nestId, postId, authorUid, authorName, onClose }
       onClose={onClose}
       enablePanDownToClose
       index={0}
+      backdropComponent={renderBackdrop}
     >
       <BottomSheetView style={{ flex: 1 }}>
         <View className="flex-row items-center justify-between px-4 pb-3 border-b border-rose-50">

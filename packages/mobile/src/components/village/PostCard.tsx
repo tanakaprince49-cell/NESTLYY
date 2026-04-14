@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { timeAgo } from '@nestly/shared';
@@ -16,6 +16,7 @@ export function PostCard({ post, currentUserUid, onLike, onToggleComments, onDel
   const isLikedFromProp = post.likedBy.includes(currentUserUid);
   const [optimisticLiked, setOptimisticLiked] = useState(isLikedFromProp);
   const [optimisticCount, setOptimisticCount] = useState(post.likeCount);
+  const pendingRef = useRef(false);
 
   useEffect(() => {
     setOptimisticLiked(isLikedFromProp);
@@ -23,6 +24,8 @@ export function PostCard({ post, currentUserUid, onLike, onToggleComments, onDel
   }, [isLikedFromProp, post.likeCount]);
 
   const handleLike = async () => {
+    if (pendingRef.current) return;
+    pendingRef.current = true;
     const wasLiked = optimisticLiked;
     setOptimisticLiked(!wasLiked);
     setOptimisticCount((c) => c + (wasLiked ? -1 : 1));
@@ -31,6 +34,8 @@ export function PostCard({ post, currentUserUid, onLike, onToggleComments, onDel
     } catch {
       setOptimisticLiked(wasLiked);
       setOptimisticCount((c) => c + (wasLiked ? 1 : -1));
+    } finally {
+      pendingRef.current = false;
     }
   };
 
@@ -69,6 +74,7 @@ export function PostCard({ post, currentUserUid, onLike, onToggleComments, onDel
           className="flex-row items-center mr-5"
           onPress={handleLike}
           accessibilityLabel={optimisticLiked ? 'Unlike post' : 'Like post'}
+          accessibilityState={{ selected: optimisticLiked }}
           activeOpacity={0.7}
         >
           <Ionicons

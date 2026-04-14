@@ -4,8 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { createPost } from '@nestly/shared';
 import { validatePost } from '../../utils/postValidation';
 
-export { validatePost } from '../../utils/postValidation';
-
 interface PostComposerProps {
   nestId: string;
   authorUid: string;
