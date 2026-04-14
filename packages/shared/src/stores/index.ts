@@ -4,9 +4,9 @@ export * from './trackingStore.ts';
 export * from './navigationStore.ts';
 export * from './avaChatStore.ts';
 export * from './healthConnectStore.ts';
+export * from './privacyStore.ts';
 export * from './middleware/index.ts';
 
-import { useAuthStore, setAuthStorage } from './authStore.ts';
 import { useProfileStore, setProfileStorage } from './profileStore.ts';
 import { useTrackingStore, setTrackingStorage } from './trackingStore.ts';
 import { useAvaChatStore, setAvaChatStorage } from './avaChatStore.ts';
@@ -29,7 +29,6 @@ import type { StateStorage } from './middleware/persistMiddleware.ts';
  * See issue #244 for context.
  */
 export const USER_SCOPED_PERSISTED_STORES = {
-  auth: { store: useAuthStore, setStorage: setAuthStorage },
   profile: { store: useProfileStore, setStorage: setProfileStorage },
   tracking: { store: useTrackingStore, setStorage: setTrackingStorage },
   avaChat: { store: useAvaChatStore, setStorage: setAvaChatStorage },

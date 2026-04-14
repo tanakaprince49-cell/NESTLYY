@@ -1,7 +1,9 @@
 import {
   useAuthStore,
+  usePrivacyStore,
   createUserScopedStorage,
   setAllUserScopedStorage,
+  setPrivacyStorage,
   USER_SCOPED_PERSISTED_STORES,
 } from '@nestly/shared/stores';
 import { asyncStorageBackend } from './storageBackend';
@@ -14,12 +16,33 @@ const getEmail = (): string | null => useAuthStore.getState().authEmail;
  * Install the AsyncStorage-backed, user-scoped StateStorage on every
  * persisted store. Does NOT trigger hydration; each store is configured with
  * `skipHydration: true` and is rehydrated explicitly by rehydrateUserStores()
- * after Firebase auth resolves. Call this once at app startup, before
- * registerRootComponent.
+ * (user-scoped stores, after auth resolves) or rehydratePrivacyStore()
+ * (device-level privacy store, at cold start before auth). Call this once
+ * at app startup, before registerRootComponent.
  */
 export function bootstrapStores(): void {
   const storage = createUserScopedStorage(asyncStorageBackend, getEmail);
   setAllUserScopedStorage(storage);
+  // Privacy consent is device-level, not per-account. Wire the raw
+  // asyncStorageBackend (no email prefix) so the flag sits under a single
+  // stable AsyncStorage key across all accounts on the device. See #281.
+  setPrivacyStorage(asyncStorageBackend);
+}
+
+type PrivacyPersistedStore = { persist: { rehydrate: () => Promise<void> } };
+
+/**
+ * Rehydrate the device-level privacy store. Safe to call at cold start
+ * before Firebase auth resolves, because this store is not user-scoped.
+ * Swallows failures so a corrupted privacy bucket can never block app boot —
+ * the consent prompt reappearing is a far better failure mode than a hang.
+ */
+export async function rehydratePrivacyStore(): Promise<void> {
+  try {
+    await (usePrivacyStore as unknown as PrivacyPersistedStore).persist.rehydrate();
+  } catch (err) {
+    console.warn('[rehydratePrivacyStore] failed to rehydrate:', err);
+  }
 }
 
 type PersistedStore = { persist: { rehydrate: () => Promise<void>; clearStorage: () => void | Promise<void> } };
