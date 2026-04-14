@@ -31,6 +31,7 @@ import { PostComposer } from '../../components/village/PostComposer';
 import { PostCard } from '../../components/village/PostCard';
 import { CommentsSheet } from '../../components/village/CommentsSheet';
 import { MediaViewerModal } from '../../components/village/MediaViewerModal';
+import { ShareModal } from '../../components/village/ShareModal';
 
 type Props = NativeStackScreenProps<VillageStackParamList, 'NestDetail'>;
 
@@ -48,6 +49,7 @@ export function NestDetailScreen({ route, navigation }: Props) {
   const [posts, setPosts] = useState<NestPost[]>([]);
   const [openCommentsPostId, setOpenCommentsPostId] = useState<string | null>(null);
   const [viewerState, setViewerState] = useState<{ media: NestMedia[]; index: number } | null>(null);
+  const [shareTarget, setShareTarget] = useState<NestPost | null>(null);
   const pendingRef = useRef(false);
 
   useEffect(() => {
@@ -291,6 +293,7 @@ export function NestDetailScreen({ route, navigation }: Props) {
                 onLike={handleLike}
                 onToggleComments={(postId) => setOpenCommentsPostId(postId)}
                 onDelete={handleDeletePost}
+                onShare={isJoined && userUid ? (p) => setShareTarget(p) : undefined}
                 onOpenMedia={(media, index) => setViewerState({ media, index })}
               />
             ))}
@@ -332,6 +335,16 @@ export function NestDetailScreen({ route, navigation }: Props) {
           media={viewerState.media}
           index={viewerState.index}
           onClose={() => setViewerState(null)}
+        />
+      )}
+
+      {shareTarget && userUid && (
+        <ShareModal
+          nestId={nestId}
+          post={shareTarget}
+          sharerUid={userUid}
+          sharerName={authorName}
+          onClose={() => setShareTarget(null)}
         />
       )}
     </SafeAreaView>
