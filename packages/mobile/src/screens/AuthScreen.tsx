@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,17 @@ import {
   createUserWithEmailAndPassword,
   signInAnonymously,
 } from 'firebase/auth';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import { auth } from '@nestly/shared';
 import { useAuthStore } from '@nestly/shared/stores';
+import { runGoogleSignIn } from '../utils/googleSignInHandler';
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+});
 
 export function AuthScreen() {
   const [email, setEmail] = useState('');
@@ -30,46 +35,16 @@ export function AuthScreen() {
 
   const signInWithGoogle = useAuthStore((s) => s.signInWithGoogle);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  });
-
-  useEffect(() => {
-    if (!response) return;
-    if (response.type === 'success') {
-      const idToken = response.authentication?.idToken;
-      const accessToken = response.authentication?.accessToken;
-      if (!idToken) {
-        setError('Google did not return an ID token');
-        setLoading(false);
-        return;
-      }
-      setError('');
-      signInWithGoogle(idToken, accessToken)
-        .catch((err: unknown) => {
-          const msg = err instanceof Error ? err.message : 'Google sign-in failed';
-          setError(msg);
-        })
-        .finally(() => setLoading(false));
-    } else if (response.type === 'error') {
-      setError(response.error?.message || 'Google sign-in failed');
-      setLoading(false);
-    } else {
-      // 'cancel', 'dismiss', 'locked' — release the loading lock that
-      // handleGoogle set so the user can try again without a stuck button.
-      setLoading(false);
-    }
-  }, [response, signInWithGoogle]);
-
-  const handleGoogle = () => {
+  const handleGoogle = async () => {
     setError('');
-    // Lock the button immediately so a double-tap before the native browser
-    // opens cannot fire two concurrent promptAsync() calls. The useEffect
-    // above clears loading on every response branch (success, error, cancel,
-    // dismiss, locked), so the button always unlocks once the flow settles.
     setLoading(true);
-    promptAsync();
+    const outcome = await runGoogleSignIn(GoogleSignin, statusCodes, (idToken) =>
+      signInWithGoogle(idToken),
+    );
+    if (outcome.kind === 'error') {
+      setError(outcome.message);
+    }
+    setLoading(false);
   };
 
   const handleEmailAuth = async () => {
@@ -128,7 +103,7 @@ export function AuthScreen() {
           <TouchableOpacity
             className="bg-white rounded-xl py-4 px-6 mb-4 border border-gray-200 flex-row items-center justify-center"
             onPress={handleGoogle}
-            disabled={!request || loading}
+            disabled={loading}
           >
             <Text className="text-base font-semibold text-text-primary">Continue with Google</Text>
           </TouchableOpacity>
