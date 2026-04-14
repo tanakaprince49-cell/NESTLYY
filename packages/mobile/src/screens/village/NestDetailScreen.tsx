@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { getDoc, doc } from 'firebase/firestore';
-import { db, joinNest, leaveNest, deleteNest } from '@nestly/shared';
+import { getNest, getUserMembership, joinNest, leaveNest, deleteNest } from '@nestly/shared';
 import { useAuthStore } from '@nestly/shared/stores';
 import type { Nest } from '@nestly/shared';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { VillageStackParamList } from '../../navigation/types';
+
+import { ErrorBanner } from '../../components/village/ErrorBanner';
 
 type Props = NativeStackScreenProps<VillageStackParamList, 'NestDetail'>;
 
@@ -28,30 +29,18 @@ export function NestDetailScreen({ route, navigation }: Props) {
   const [isJoined, setIsJoined] = useState(false);
   const [pending, setPending] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const pendingRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const snap = await getDoc(doc(db, 'nests', nestId));
+        const loaded = await getNest(nestId);
         if (cancelled) return;
-        if (!snap.exists()) {
+        if (!loaded) {
           setNotFound(true);
-          setLoading(false);
           return;
         }
-        const d = snap.data();
-        const loaded: Nest = {
-          id: snap.id,
-          name: d.name ?? '',
-          description: d.description ?? '',
-          category: d.category ?? 'general',
-          emoji: d.emoji ?? '🌸',
-          memberCount: d.memberCount ?? 0,
-          isTemplate: d.isTemplate ?? false,
-          createdAt: typeof d.createdAt?.toMillis === 'function' ? d.createdAt.toMillis() : (d.createdAt ?? 0),
-          creatorUid: d.creatorUid ?? null,
-        };
         setNest(loaded);
       } catch {
         if (!cancelled) setNotFound(true);
@@ -61,9 +50,8 @@ export function NestDetailScreen({ route, navigation }: Props) {
     };
 
     if (userUid) {
-      const membershipId = `${userUid}_${nestId}`;
-      getDoc(doc(db, 'memberships', membershipId))
-        .then((snap) => { if (!cancelled) setIsJoined(snap.exists()); })
+      getUserMembership(userUid, nestId)
+        .then((joined) => { if (!cancelled) setIsJoined(joined); })
         .catch(() => {});
     }
 
@@ -71,9 +59,14 @@ export function NestDetailScreen({ route, navigation }: Props) {
     return () => { cancelled = true; };
   }, [nestId, userUid]);
 
+  const setPendingBoth = (value: boolean) => {
+    pendingRef.current = value;
+    setPending(value);
+  };
+
   const handleJoin = useCallback(async () => {
-    if (!userUid || pending) return;
-    setPending(true);
+    if (!userUid || pendingRef.current) return;
+    setPendingBoth(true);
     setMutationError(null);
     try {
       await joinNest(nestId, userUid);
@@ -82,13 +75,13 @@ export function NestDetailScreen({ route, navigation }: Props) {
     } catch {
       setMutationError("Couldn't join nest. Check your connection and try again.");
     } finally {
-      setPending(false);
+      setPendingBoth(false);
     }
-  }, [nestId, userUid, pending]);
+  }, [nestId, userUid]);
 
   const handleLeave = useCallback(async () => {
-    if (!userUid || pending) return;
-    setPending(true);
+    if (!userUid || pendingRef.current) return;
+    setPendingBoth(true);
     setMutationError(null);
     try {
       await leaveNest(nestId, userUid);
@@ -97,9 +90,9 @@ export function NestDetailScreen({ route, navigation }: Props) {
     } catch {
       setMutationError("Couldn't leave nest. Check your connection and try again.");
     } finally {
-      setPending(false);
+      setPendingBoth(false);
     }
-  }, [nestId, userUid, pending]);
+  }, [nestId, userUid]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
@@ -111,14 +104,14 @@ export function NestDetailScreen({ route, navigation }: Props) {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            setPending(true);
+            setPendingBoth(true);
             setMutationError(null);
             try {
               await deleteNest(nestId);
               navigation.goBack();
             } catch {
               setMutationError("Couldn't delete nest. Check your connection and try again.");
-              setPending(false);
+              setPendingBoth(false);
             }
           },
         },
@@ -218,8 +211,8 @@ export function NestDetailScreen({ route, navigation }: Props) {
         )}
 
         {mutationError && (
-          <View className="mx-4 mt-4 bg-rose-500 rounded-xl px-4 py-3">
-            <Text className="text-white text-sm text-center">{mutationError}</Text>
+          <View className="mx-4 mt-4">
+            <ErrorBanner message={mutationError} onDismiss={() => setMutationError(null)} inline />
           </View>
         )}
       </ScrollView>

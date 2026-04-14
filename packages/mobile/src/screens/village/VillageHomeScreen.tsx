@@ -8,7 +8,6 @@ import {
   TextInput,
   Modal,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +24,7 @@ import { useAuthStore } from '@nestly/shared/stores';
 import type { Nest, NestMembership, NestCategory } from '@nestly/shared';
 import { NestCard } from '../../components/village/NestCard';
 import { CreateNestModal } from '../../components/village/CreateNestModal';
+import { ErrorBanner } from '../../components/village/ErrorBanner';
 import type { VillageStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<VillageStackParamList, 'VillageHome'>;
@@ -56,6 +56,7 @@ export function VillageHomeScreen({ navigation }: Props) {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const readyRef = useRef({ nests: false, memberships: false });
+  const pendingIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!userUid) {
@@ -128,44 +129,44 @@ export function VillageHomeScreen({ navigation }: Props) {
     );
   }, [joinedNests, debouncedSearch]);
 
+  const markPending = (nestId: string, value: boolean) => {
+    const next = new Set(pendingIdsRef.current);
+    if (value) next.add(nestId);
+    else next.delete(nestId);
+    pendingIdsRef.current = next;
+    setPendingIds(next);
+  };
+
   const handleJoin = useCallback(
     async (nestId: string) => {
-      if (!userUid || pendingIds.has(nestId)) return;
-      setPendingIds((prev) => new Set(prev).add(nestId));
+      if (!userUid || pendingIdsRef.current.has(nestId)) return;
+      markPending(nestId, true);
       setMutationError(null);
       try {
         await joinNest(nestId, userUid);
       } catch {
         setMutationError("Couldn't join nest. Check your connection and try again.");
       } finally {
-        setPendingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(nestId);
-          return next;
-        });
+        markPending(nestId, false);
       }
     },
-    [userUid, pendingIds],
+    [userUid],
   );
 
   const handleLeave = useCallback(
     async (nestId: string) => {
-      if (!userUid || pendingIds.has(nestId)) return;
-      setPendingIds((prev) => new Set(prev).add(nestId));
+      if (!userUid || pendingIdsRef.current.has(nestId)) return;
+      markPending(nestId, true);
       setMutationError(null);
       try {
         await leaveNest(nestId, userUid);
       } catch {
         setMutationError("Couldn't leave nest. Check your connection and try again.");
       } finally {
-        setPendingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(nestId);
-          return next;
-        });
+        markPending(nestId, false);
       }
     },
-    [userUid, pendingIds],
+    [userUid],
   );
 
   const handleCreate = useCallback(
@@ -266,15 +267,26 @@ export function VillageHomeScreen({ navigation }: Props) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <TouchableOpacity
-              className="ml-2 flex-row items-center bg-white px-3 py-1.5 rounded-full"
-              onPress={() => setSortBy((s) => (s === 'popular' ? 'newest' : 'popular'))}
-            >
-              <Ionicons name="swap-vertical-outline" size={13} color="#6b7280" />
-              <Text className="text-xs text-gray-600 ml-1 font-medium">
-                {sortBy === 'popular' ? 'Popular' : 'Newest'}
-              </Text>
-            </TouchableOpacity>
+            <View className="ml-2 flex-row bg-white rounded-full p-0.5">
+              <TouchableOpacity
+                className={`px-3 py-1 rounded-full ${sortBy === 'popular' ? 'bg-rose-400' : ''}`}
+                onPress={() => setSortBy('popular')}
+                accessibilityLabel="Sort by popular"
+              >
+                <Text className={`text-xs font-semibold ${sortBy === 'popular' ? 'text-white' : 'text-gray-500'}`}>
+                  Popular
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`px-3 py-1 rounded-full ${sortBy === 'newest' ? 'bg-rose-400' : ''}`}
+                onPress={() => setSortBy('newest')}
+                accessibilityLabel="Sort by newest"
+              >
+                <Text className={`text-xs font-semibold ${sortBy === 'newest' ? 'text-white' : 'text-gray-500'}`}>
+                  Newest
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </View>
@@ -359,9 +371,7 @@ export function VillageHomeScreen({ navigation }: Props) {
       )}
 
       {mutationError && (
-        <View className="absolute bottom-24 left-4 right-4 bg-rose-500 rounded-xl px-4 py-3">
-          <Text className="text-white text-sm text-center">{mutationError}</Text>
-        </View>
+        <ErrorBanner message={mutationError} onDismiss={() => setMutationError(null)} />
       )}
 
       <TouchableOpacity
