@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#fdf8f7"
       },
-      "versionCode": 2,
+      "versionCode": 3,
       "package": "com.nestly.app",
       "googleServicesFile": "./google-services.json",
       "permissions": [
