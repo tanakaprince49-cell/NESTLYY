@@ -9,19 +9,34 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { getNest, getUserMembership, joinNest, leaveNest, deleteNest } from '@nestly/shared';
+import {
+  subscribeToNest,
+  subscribeToNestPosts,
+  getUserMembership,
+  joinNest,
+  leaveNest,
+  deleteNest,
+  deletePost,
+  toggleLike,
+  type Unsubscribe,
+} from '@nestly/shared';
 import { useAuthStore } from '@nestly/shared/stores';
-import type { Nest } from '@nestly/shared';
+import { useProfileStore } from '@nestly/shared/stores';
+import type { Nest, NestPost } from '@nestly/shared';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { VillageStackParamList } from '../../navigation/types';
 
 import { ErrorBanner } from '../../components/village/ErrorBanner';
+import { PostComposer } from '../../components/village/PostComposer';
+import { PostCard } from '../../components/village/PostCard';
+import { CommentsSheet } from '../../components/village/CommentsSheet';
 
 type Props = NativeStackScreenProps<VillageStackParamList, 'NestDetail'>;
 
 export function NestDetailScreen({ route, navigation }: Props) {
   const { nestId } = route.params;
   const { userUid } = useAuthStore();
+  const { profile } = useProfileStore();
 
   const [nest, setNest] = useState<Nest | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,35 +44,44 @@ export function NestDetailScreen({ route, navigation }: Props) {
   const [isJoined, setIsJoined] = useState(false);
   const [pending, setPending] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [posts, setPosts] = useState<NestPost[]>([]);
+  const [openCommentsPostId, setOpenCommentsPostId] = useState<string | null>(null);
   const pendingRef = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const loaded = await getNest(nestId);
-        if (cancelled) return;
-        if (!loaded) {
-          setNotFound(true);
-          return;
-        }
-        setNest(loaded);
-      } catch {
-        if (!cancelled) setNotFound(true);
-      } finally {
-        if (!cancelled) setLoading(false);
+    setNest(null);
+    setNotFound(false);
+    setLoading(true);
+    setIsJoined(false);
+    let firstEmission = true;
+    const unsub: Unsubscribe = subscribeToNest(nestId, (loaded) => {
+      if (firstEmission) {
+        firstEmission = false;
+        setLoading(false);
       }
-    };
+      if (!loaded) {
+        setNotFound(true);
+        return;
+      }
+      setNest(loaded);
+    });
+    return () => unsub();
+  }, [nestId]);
 
-    if (userUid) {
-      getUserMembership(userUid, nestId)
-        .then((joined) => { if (!cancelled) setIsJoined(joined); })
-        .catch(() => {});
-    }
+  useEffect(() => {
+    if (!userUid) return;
+    getUserMembership(userUid, nestId)
+      .then((joined) => setIsJoined(joined))
+      .catch(() => {});
+  }, [userUid, nestId]);
 
-    load();
-    return () => { cancelled = true; };
-  }, [nestId, userUid]);
+  useEffect(() => {
+    if (notFound) return;
+    const unsub: Unsubscribe = subscribeToNestPosts(nestId, (data) => {
+      setPosts(data);
+    });
+    return () => unsub();
+  }, [nestId, notFound]);
 
   const setPendingBoth = (value: boolean) => {
     pendingRef.current = value;
@@ -119,6 +143,32 @@ export function NestDetailScreen({ route, navigation }: Props) {
     );
   }, [nestId, navigation]);
 
+  const handleLike = useCallback(async (postId: string) => {
+    if (!userUid) return;
+    await toggleLike(nestId, postId, userUid);
+  }, [nestId, userUid]);
+
+  const handleDeletePost = useCallback((postId: string) => {
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deletePost(nestId, postId);
+            } catch {
+              setMutationError("Couldn't delete post. Check your connection and try again.");
+            }
+          },
+        },
+      ],
+    );
+  }, [nestId]);
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-rose-50 items-center justify-center">
@@ -148,6 +198,7 @@ export function NestDetailScreen({ route, navigation }: Props) {
   }
 
   const isCreator = userUid !== null && nest.creatorUid === userUid;
+  const authorName = profile?.userName || 'Anonymous';
 
   return (
     <SafeAreaView className="flex-1 bg-rose-50">
@@ -188,15 +239,59 @@ export function NestDetailScreen({ route, navigation }: Props) {
           ) : null}
         </View>
 
-        <View className="bg-rose-100 mx-4 mt-4 rounded-2xl p-4 flex-row items-start">
-          <Ionicons name="information-circle-outline" size={20} color="#f43f5e" />
-          <View className="ml-3 flex-1">
-            <Text className="text-sm font-semibold text-rose-700 mb-1">Posts coming soon</Text>
-            <Text className="text-sm text-rose-600 leading-5">
-              The posts feed for this nest is on its way in a future update. For now you can join, explore the community, and check back soon.
+        {isJoined && userUid ? (
+          <PostComposer
+            nestId={nestId}
+            authorUid={userUid}
+            authorName={authorName}
+            onError={(msg) => setMutationError(msg)}
+          />
+        ) : (
+          <View className="bg-rose-50 mx-4 mt-3 rounded-2xl p-4 items-center">
+            <Text className="text-sm font-semibold text-rose-700 mb-1">
+              Join to post and comment.
+            </Text>
+            <Text className="text-sm text-rose-600 text-center leading-5 mb-3">
+              Posts and comments are for members only.
+            </Text>
+            {userUid ? (
+              <TouchableOpacity
+                className="px-6 py-2.5 bg-rose-400 rounded-full"
+                onPress={handleJoin}
+                disabled={pending}
+                activeOpacity={0.8}
+              >
+                {pending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text className="text-white text-sm font-semibold">Join Nest</Text>
+                )}
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        )}
+
+        {posts.length === 0 ? (
+          <View className="items-center py-12 px-8">
+            <Ionicons name="chatbubble-outline" size={40} color="#fda4af" />
+            <Text className="text-sm text-gray-400 mt-3 text-center">
+              No posts yet. Be the first to share!
             </Text>
           </View>
-        </View>
+        ) : (
+          <View className="mt-3">
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                currentUserUid={userUid ?? ''}
+                onLike={handleLike}
+                onToggleComments={(postId) => setOpenCommentsPostId(postId)}
+                onDelete={handleDeletePost}
+              />
+            ))}
+          </View>
+        )}
 
         {isCreator && (
           <TouchableOpacity
@@ -216,6 +311,16 @@ export function NestDetailScreen({ route, navigation }: Props) {
           </View>
         )}
       </ScrollView>
+
+      {openCommentsPostId && userUid && (
+        <CommentsSheet
+          nestId={nestId}
+          postId={openCommentsPostId}
+          authorUid={userUid}
+          authorName={authorName}
+          onClose={() => setOpenCommentsPostId(null)}
+        />
+      )}
     </SafeAreaView>
   );
 }

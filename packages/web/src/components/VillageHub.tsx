@@ -8,6 +8,7 @@ import {
   createPost, deletePost, toggleLike,
   createComment, deleteComment, toggleCommentLike, sharePost,
   notifyNestMembers,
+  timeAgo,
 } from '@nestly/shared';
 import { compressAvatar } from '../utils/compressAvatar.ts';
 
@@ -29,17 +30,6 @@ const CATEGORIES: { label: string; value: NestCategory | 'all' }[] = [
 
 const EMOJI_OPTIONS = ['🌸', '🌿', '🦋', '🌙', '🔥', '💪', '🧘', '🎯', '🫶', '☀️', '🍼', '🎀'];
 
-function timeAgo(timestamp: number): string {
-  const diff = Date.now() - timestamp;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return `${Math.floor(days / 7)}w ago`;
-}
 
 export const VillageHub: React.FC<VillageHubProps> = ({ profile, userUid }) => {
   const [view, setView] = useState<View>('discover');

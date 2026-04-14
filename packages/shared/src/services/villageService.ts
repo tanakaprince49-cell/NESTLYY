@@ -96,6 +96,12 @@ export async function getNest(nestId: string): Promise<Nest | null> {
   return nestFromData(snap.id, snap.data());
 }
 
+export function subscribeToNest(nestId: string, callback: (nest: Nest | null) => void): Unsubscribe {
+  return onSnapshot(doc(db, NESTS, nestId), (snap) => {
+    callback(snap.exists() ? nestFromData(snap.id, snap.data()) : null);
+  });
+}
+
 export async function getUserMembership(userId: string, nestId: string): Promise<boolean> {
   const snap = await getDoc(doc(db, MEMBERSHIPS, `${userId}_${nestId}`));
   return snap.exists();
@@ -283,8 +289,8 @@ export async function createComment(
     await updateDoc(doc(db, NESTS, nestId, POSTS, postId), {
       commentCount: increment(1),
     });
-  } catch (countErr) {
-    console.error('commentCount increment failed (comment was still created)', countErr);
+  } catch {
+    // silent: comment was written successfully, only count update failed
   }
   return commentRef.id;
 }

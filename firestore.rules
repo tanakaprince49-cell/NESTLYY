@@ -44,7 +44,11 @@ service cloud.firestore {
                         (request.resource.data.diff(resource.data)
                            .affectedKeys().hasOnly(['likedBy', 'likeCount'])
                          && (request.resource.data.likeCount == resource.data.likeCount + 1
-                          || request.resource.data.likeCount == resource.data.likeCount - 1))
+                          || request.resource.data.likeCount == resource.data.likeCount - 1)
+                         && (
+                           (request.resource.data.likedBy.toSet().difference(resource.data.likedBy.toSet())) == [request.auth.uid].toSet()
+                           || (resource.data.likedBy.toSet().difference(request.resource.data.likedBy.toSet())) == [request.auth.uid].toSet()
+                         ))
                         ||
                         (request.resource.data.diff(resource.data)
                            .affectedKeys().hasOnly(['commentCount'])
@@ -62,7 +66,11 @@ service cloud.firestore {
                         && request.resource.data.diff(resource.data)
                            .affectedKeys().hasOnly(['likedBy', 'likeCount'])
                         && (request.resource.data.likeCount == resource.data.likeCount + 1
-                         || request.resource.data.likeCount == resource.data.likeCount - 1);
+                         || request.resource.data.likeCount == resource.data.likeCount - 1)
+                        && (
+                          (request.resource.data.likedBy.toSet().difference(resource.data.likedBy.toSet())) == [request.auth.uid].toSet()
+                          || (resource.data.likedBy.toSet().difference(request.resource.data.likedBy.toSet())) == [request.auth.uid].toSet()
+                        );
           allow delete: if isAuthenticated()
                         && resource.data.authorUid == request.auth.uid;
         }
