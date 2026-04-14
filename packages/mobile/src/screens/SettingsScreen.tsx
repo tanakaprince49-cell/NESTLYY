@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { signOut } from 'firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { auth } from '@nestly/shared';
 import { LifecycleStage } from '@nestly/shared';
 import type { BabyAvatar } from '@nestly/shared';
@@ -163,6 +164,7 @@ export function SettingsScreen() {
           // Clear persisted user-scoped stores before signing out so the next
           // account signing in on this device cannot inherit stale data.
           await clearUserStores();
+          await GoogleSignin.signOut().catch(() => {});
           await signOut(auth);
           resetAllUserStateInMemory();
         },
@@ -181,6 +183,7 @@ export function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             await clearUserStores();
+            await GoogleSignin.signOut().catch(() => {});
             await signOut(auth);
             resetAllUserStateInMemory();
           },
