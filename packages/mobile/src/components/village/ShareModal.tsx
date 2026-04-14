@@ -72,8 +72,11 @@ export function ShareModal({ nestId, post, sharerUid, sharerName, onClose }: Sha
             paddingTop: 20,
           }}
         >
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-base font-semibold text-gray-800">Repost</Text>
+          <View className="flex-row items-start justify-between mb-4">
+            <View className="flex-1">
+              <Text className="text-base font-semibold text-gray-800">Repost</Text>
+              <Text className="text-xs text-gray-500 mt-0.5">Reposting to this nest</Text>
+            </View>
             <TouchableOpacity
               onPress={onClose}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

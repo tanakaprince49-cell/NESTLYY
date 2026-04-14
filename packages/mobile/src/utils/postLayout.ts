@@ -4,6 +4,7 @@ export interface MediaLayoutItem {
   uri: string;
   aspect: number;
   isVideo: boolean;
+  duration?: number;
   gridArea: 'single' | 'left' | 'right-top' | 'right-bottom' | 'grid-tl' | 'grid-tr' | 'grid-bl' | 'grid-br' | 'pair-left' | 'pair-right';
 }
 
@@ -13,6 +14,7 @@ export function buildMediaLayout(media: NestMedia[]): MediaLayoutItem[] {
     uri: m.thumbnail ?? m.url,
     aspect: 1,
     isVideo: m.type === 'video',
+    duration: m.duration,
     gridArea,
   });
 

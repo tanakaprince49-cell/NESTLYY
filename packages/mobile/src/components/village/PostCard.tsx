@@ -4,6 +4,34 @@ import { Ionicons } from '@expo/vector-icons';
 import { timeAgo } from '@nestly/shared';
 import type { NestPost, NestMedia } from '@nestly/shared';
 import { buildMediaLayout } from '../../utils/postLayout';
+import { formatDuration } from '../../utils/formatDuration';
+
+// PostCard sits inside the FlatList row (`mx-4` -> 16 px each side) and the
+// card body has `p-4` (16 px each side). Subtract both pairs to get the
+// usable width for the media grid.
+const CARD_HORIZONTAL_PADDING = 16 * 2 + 16 * 2;
+
+function VideoBadge({ duration, size = 'sm' }: { duration?: number; size?: 'sm' | 'md' }) {
+  const label = formatDuration(duration);
+  if (!label) return null;
+  const isMd = size === 'md';
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        bottom: isMd ? 8 : 6,
+        right: isMd ? 8 : 6,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        borderRadius: 6,
+        paddingHorizontal: isMd ? 6 : 5,
+        paddingVertical: isMd ? 3 : 2,
+      }}
+      accessibilityLabel={`Video length ${label}`}
+    >
+      <Text style={{ color: '#fff', fontSize: isMd ? 12 : 11, fontWeight: '600' }}>{label}</Text>
+    </View>
+  );
+}
 
 interface PostCardProps {
   post: NestPost;
@@ -57,8 +85,7 @@ function MediaGrid({
   onOpenMedia?: (media: NestMedia[], index: number) => void;
 }) {
   const { width } = useWindowDimensions();
-  const cardPadding = 16 + 16 + 16 * 2;
-  const availableWidth = width - cardPadding;
+  const availableWidth = width - CARD_HORIZONTAL_PADDING;
   const items = buildMediaLayout(media);
 
   if (items.length === 0) return null;
@@ -81,19 +108,22 @@ function MediaGrid({
           resizeMode="cover"
         />
         {item.isVideo && (
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Ionicons name="play-circle" size={48} color="rgba(255,255,255,0.9)" />
-          </View>
+          <>
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="play-circle" size={48} color="rgba(255,255,255,0.9)" />
+            </View>
+            <VideoBadge duration={item.duration} size="md" />
+          </>
         )}
       </TouchableOpacity>
     );
@@ -116,19 +146,22 @@ function MediaGrid({
               resizeMode="cover"
             />
             {item.isVideo && (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="play-circle" size={36} color="rgba(255,255,255,0.9)" />
-              </View>
+              <>
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="play-circle" size={36} color="rgba(255,255,255,0.9)" />
+                </View>
+                <VideoBadge duration={item.duration} />
+              </>
             )}
           </TouchableOpacity>
         ))}
@@ -154,19 +187,22 @@ function MediaGrid({
             resizeMode="cover"
           />
           {items[0].isVideo && (
-            <View
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="play-circle" size={36} color="rgba(255,255,255,0.9)" />
-            </View>
+            <>
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="play-circle" size={36} color="rgba(255,255,255,0.9)" />
+              </View>
+              <VideoBadge duration={items[0].duration} />
+            </>
           )}
         </TouchableOpacity>
         <View style={{ flexDirection: 'column', gap }}>
@@ -183,19 +219,22 @@ function MediaGrid({
                 resizeMode="cover"
               />
               {items[idx].isVideo && (
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Ionicons name="play-circle" size={28} color="rgba(255,255,255,0.9)" />
-                </View>
+                <>
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons name="play-circle" size={28} color="rgba(255,255,255,0.9)" />
+                  </View>
+                  <VideoBadge duration={items[idx].duration} />
+                </>
               )}
             </TouchableOpacity>
           ))}
@@ -221,19 +260,22 @@ function MediaGrid({
               resizeMode="cover"
             />
             {items[idx].isVideo && (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="play-circle" size={36} color="rgba(255,255,255,0.9)" />
-              </View>
+              <>
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="play-circle" size={36} color="rgba(255,255,255,0.9)" />
+                </View>
+                <VideoBadge duration={items[idx].duration} />
+              </>
             )}
           </TouchableOpacity>
         ))}
@@ -252,19 +294,22 @@ function MediaGrid({
               resizeMode="cover"
             />
             {items[idx].isVideo && (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="play-circle" size={36} color="rgba(255,255,255,0.9)" />
-              </View>
+              <>
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="play-circle" size={36} color="rgba(255,255,255,0.9)" />
+                </View>
+                <VideoBadge duration={items[idx].duration} />
+              </>
             )}
           </TouchableOpacity>
         ))}
@@ -379,7 +424,8 @@ export function PostCard({
             accessibilityLabel="Repost"
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-redo-outline" size={20} color="#9ca3af" />
+            <Ionicons name="repeat-outline" size={20} color="#9ca3af" />
+            <Text className="text-sm ml-1.5 font-semibold text-gray-400">Repost</Text>
           </TouchableOpacity>
         )}
       </View>

@@ -156,7 +156,7 @@ export async function uploadMediaToStorage({
     }
   }
 
-  return {
+  const result: NestMedia = {
     id: mediaId,
     type: asset.type,
     url,
@@ -164,4 +164,8 @@ export async function uploadMediaToStorage({
     filename: asset.filename,
     size: mainBlob.size,
   };
+  if (asset.type === 'video' && asset.duration != null && asset.duration > 0) {
+    result.duration = Math.round(asset.duration / 1000);
+  }
+  return result;
 }

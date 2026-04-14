@@ -433,4 +433,6 @@ export interface NestMedia {
   thumbnail?: string;
   filename: string;
   size: number;
+  /** Video length in whole seconds. Optional so legacy posts (no duration recorded) read cleanly. */
+  duration?: number;
 }
