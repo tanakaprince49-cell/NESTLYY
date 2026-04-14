@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@nestly/shared/stores';
+import { usePrivacyStore } from '@nestly/shared/stores';
 
 interface InfoSectionProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -28,7 +28,7 @@ export function PrivacyScreen() {
   const [agreed, setAgreed] = useState(false);
 
   const handleContinue = () => {
-    useAuthStore.getState().setHasAcceptedPrivacy(true);
+    usePrivacyStore.getState().setHasAcceptedPrivacy(true);
   };
 
   return (
