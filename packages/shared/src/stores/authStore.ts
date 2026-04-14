@@ -44,8 +44,11 @@ export const useAuthStore = create<AuthState>()(
         const credential = GoogleAuthProvider.credential(idToken, accessToken);
         await signInWithCredential(auth, credential);
       },
-      logout: () =>
-        set({ authEmail: null, userUid: null, hasAcceptedPrivacy: false, loading: false }),
+      // Privacy consent is a device-level acceptance, not per-session state,
+      // so logout must not reset it — doing so re-triggered PrivacyScreen on
+      // every sign-in. See #281. The field itself is removed from authStore
+      // in a follow-up commit once the dedicated privacyStore is wired up.
+      logout: () => set({ authEmail: null, userUid: null, loading: false }),
     }),
     {
       name: 'auth',
