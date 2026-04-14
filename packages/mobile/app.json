@@ -61,6 +61,7 @@
           "requestPermissionsOnFirstLaunch": false
         }
       ],
+      "./plugins/withHealthConnectPermissionDelegate",
       [
         "expo-build-properties",
         {
