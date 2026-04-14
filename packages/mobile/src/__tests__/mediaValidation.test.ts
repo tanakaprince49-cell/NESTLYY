@@ -45,45 +45,45 @@ describe('#270 validateMedia -- images', () => {
 
 describe('#270 validateMedia -- videos', () => {
   test('MP4 video under 30 MB and 30 seconds passes', () => {
-    const result = validateMedia({ type: 'video', fileSize: 20 * MB, duration: 25000, mimeType: 'video/mp4' });
+    const result = validateMedia({ type: 'video', fileSize: 20 * MB, durationMs: 25000, mimeType: 'video/mp4' });
     expect(result.ok).toBe(true);
   });
 
   test('MOV video passes', () => {
-    const result = validateMedia({ type: 'video', fileSize: 10 * MB, duration: 10000, mimeType: 'video/quicktime' });
+    const result = validateMedia({ type: 'video', fileSize: 10 * MB, durationMs: 10000, mimeType: 'video/quicktime' });
     expect(result.ok).toBe(true);
   });
 
   test('video exactly at 30 MB passes', () => {
-    const result = validateMedia({ type: 'video', fileSize: 30 * MB, duration: 10000, mimeType: 'video/mp4' });
+    const result = validateMedia({ type: 'video', fileSize: 30 * MB, durationMs: 10000, mimeType: 'video/mp4' });
     expect(result.ok).toBe(true);
   });
 
   test('video over 30 MB fails', () => {
-    const result = validateMedia({ type: 'video', fileSize: 30 * MB + 1, duration: 10000, mimeType: 'video/mp4' });
+    const result = validateMedia({ type: 'video', fileSize: 30 * MB + 1, durationMs: 10000, mimeType: 'video/mp4' });
     expect(result.ok).toBe(false);
     expect(result.reason).toMatch(/30 MB/);
   });
 
   test('video exactly 30 seconds passes', () => {
-    const result = validateMedia({ type: 'video', fileSize: 10 * MB, duration: 30000, mimeType: 'video/mp4' });
+    const result = validateMedia({ type: 'video', fileSize: 10 * MB, durationMs: 30000, mimeType: 'video/mp4' });
     expect(result.ok).toBe(true);
   });
 
   test('video over 30 seconds fails', () => {
-    const result = validateMedia({ type: 'video', fileSize: 10 * MB, duration: 30001, mimeType: 'video/mp4' });
+    const result = validateMedia({ type: 'video', fileSize: 10 * MB, durationMs: 30001, mimeType: 'video/mp4' });
     expect(result.ok).toBe(false);
     expect(result.reason).toMatch(/30 seconds/);
   });
 
   test('unsupported video type fails', () => {
-    const result = validateMedia({ type: 'video', fileSize: 10 * MB, duration: 10000, mimeType: 'video/avi' });
+    const result = validateMedia({ type: 'video', fileSize: 10 * MB, durationMs: 10000, mimeType: 'video/avi' });
     expect(result.ok).toBe(false);
     expect(result.reason).toMatch(/MP4|MOV/);
   });
 
   test('no mimeType skips type check', () => {
-    const result = validateMedia({ type: 'video', fileSize: 10 * MB, duration: 10000 });
+    const result = validateMedia({ type: 'video', fileSize: 10 * MB, durationMs: 10000 });
     expect(result.ok).toBe(true);
   });
 

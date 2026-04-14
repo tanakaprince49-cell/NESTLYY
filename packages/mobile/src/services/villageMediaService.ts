@@ -1,12 +1,17 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as VideoThumbnails from 'expo-video-thumbnails';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
 import { app } from '@nestly/shared';
 import type { NestMedia } from '@nestly/shared';
+import { MAX_VIDEO_DURATION_S } from '../utils/mediaValidation';
 export { validateMedia } from '../utils/mediaValidation';
-
-const MAX_VIDEO_DURATION_S = 30;
 
 export interface PickedMedia {
   uri: string;
@@ -71,6 +76,10 @@ async function uriToBlob(uri: string): Promise<Blob> {
   return response.blob();
 }
 
+function contentTypeForAsset(type: 'image' | 'video'): string {
+  return type === 'video' ? 'video/mp4' : 'image/jpeg';
+}
+
 function extForType(type: 'image' | 'video'): string {
   return type === 'video' ? 'mp4' : 'jpg';
 }
@@ -91,6 +100,7 @@ export async function uploadMediaToStorage({
   const storage = getStorage(app);
   const mediaId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const ext = extForType(asset.type);
+  const mainContentType = contentTypeForAsset(asset.type);
   const mediaPath = `village/${nestId}/${authorUid}/${tempKey}/${mediaId}.${ext}`;
   const mediaRef = ref(storage, mediaPath);
 
@@ -109,7 +119,7 @@ export async function uploadMediaToStorage({
 
   const mainBlob = await uriToBlob(uploadUri);
   await new Promise<void>((resolve, reject) => {
-    const task = uploadBytesResumable(mediaRef, mainBlob);
+    const task = uploadBytesResumable(mediaRef, mainBlob, { contentType: mainContentType });
     task.on(
       'state_changed',
       (snapshot) => {
@@ -125,14 +135,21 @@ export async function uploadMediaToStorage({
 
   let thumbnail: string | undefined;
   if (thumbnailUri) {
-    const thumbBlob = await uriToBlob(thumbnailUri);
     const thumbPath = `village/${nestId}/${authorUid}/${tempKey}/thumb_${mediaId}.jpg`;
     const thumbRef = ref(storage, thumbPath);
-    await new Promise<void>((resolve, reject) => {
-      const task = uploadBytesResumable(thumbRef, thumbBlob);
-      task.on('state_changed', null, reject, () => resolve());
-    });
-    thumbnail = await getDownloadURL(thumbRef);
+    try {
+      const thumbBlob = await uriToBlob(thumbnailUri);
+      await new Promise<void>((resolve, reject) => {
+        const task = uploadBytesResumable(thumbRef, thumbBlob, { contentType: 'image/jpeg' });
+        task.on('state_changed', null, reject, () => resolve());
+      });
+      thumbnail = await getDownloadURL(thumbRef);
+    } catch (err) {
+      // Thumbnail failed after main upload succeeded — orphan cleanup so we
+      // don't leak a bare main file the post will never reference.
+      await deleteObject(mediaRef).catch(() => {});
+      throw err;
+    }
   }
 
   return {

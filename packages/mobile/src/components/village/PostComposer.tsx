@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { createPost } from '@nestly/shared';
 import { validatePost } from '../../utils/postValidation';
+import { validateMedia } from '../../utils/mediaValidation';
 import {
   pickMedia,
   uploadMediaToStorage,
@@ -48,7 +49,21 @@ export function PostComposer({
     if (disabled || media.length >= MAX_MEDIA) return;
     const picked = await pickMedia({ maxCount: MAX_MEDIA - media.length });
     if (picked.length === 0) return;
-    setMedia((prev) => [...prev, ...picked].slice(0, MAX_MEDIA));
+    const accepted: PickedMedia[] = [];
+    let firstReason: string | null = null;
+    for (const asset of picked) {
+      const check = validateMedia({
+        type: asset.type,
+        fileSize: asset.size,
+        durationMs: asset.duration,
+      });
+      if (check.ok) accepted.push(asset);
+      else if (!firstReason && check.reason) firstReason = check.reason;
+    }
+    if (firstReason) onError(firstReason);
+    if (accepted.length > 0) {
+      setMedia((prev) => [...prev, ...accepted].slice(0, MAX_MEDIA));
+    }
   };
 
   const handleRemoveMedia = (index: number) => {

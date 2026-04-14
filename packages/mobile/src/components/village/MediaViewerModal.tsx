@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,6 +43,10 @@ function VideoModal({ uri, onClose }: { uri: string; onClose: () => void }) {
 export function MediaViewerModal({ media, index, onClose }: MediaViewerModalProps) {
   const [currentIndex, setCurrentIndex] = useState(index);
 
+  useEffect(() => {
+    setCurrentIndex(index);
+  }, [index]);
+
   if (!media || media.length === 0) return null;
 
   const currentItem = media[currentIndex];
@@ -57,7 +61,7 @@ export function MediaViewerModal({ media, index, onClose }: MediaViewerModalProp
   return (
     <ImageViewing
       images={imageUris}
-      imageIndex={index}
+      imageIndex={currentIndex}
       visible
       onRequestClose={onClose}
       onImageIndexChange={setCurrentIndex}
