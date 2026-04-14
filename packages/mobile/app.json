@@ -34,7 +34,9 @@
         "android.permission.health.READ_HEART_RATE",
         "android.permission.health.WRITE_HEART_RATE",
         "android.permission.health.READ_SLEEP",
-        "android.permission.health.WRITE_SLEEP"
+        "android.permission.health.WRITE_SLEEP",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO"
       ]
     },
     "notification": {
@@ -73,9 +75,11 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Nestly needs access to your photos so you can set a profile picture."
+          "photosPermission": "NESTLY needs access to your photos to attach them to posts.",
+          "cameraPermission": null
         }
-      ]
+      ],
+      "expo-video"
     ],
     "extra": {
       "eas": {
