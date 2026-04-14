@@ -22,9 +22,16 @@ import { auth } from '@nestly/shared';
 import { useAuthStore } from '@nestly/shared/stores';
 import { runGoogleSignIn } from '../utils/googleSignInHandler';
 
-GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-});
+const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+if (!GOOGLE_WEB_CLIENT_ID) {
+  // Fail loud at boot rather than silently configuring with webClientId=undefined.
+  // Without this guard, sign-in fails at tap time with a native DEVELOPER_ERROR
+  // that's indistinguishable from a real misconfiguration and hides the root cause.
+  throw new Error(
+    'EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID is not set. Set it in EAS secrets so Google Sign-In can configure.',
+  );
+}
+GoogleSignin.configure({ webClientId: GOOGLE_WEB_CLIENT_ID });
 
 export function AuthScreen() {
   const [email, setEmail] = useState('');
@@ -38,13 +45,16 @@ export function AuthScreen() {
   const handleGoogle = async () => {
     setError('');
     setLoading(true);
-    const outcome = await runGoogleSignIn(GoogleSignin, statusCodes, (idToken) =>
-      signInWithGoogle(idToken),
-    );
-    if (outcome.kind === 'error') {
-      setError(outcome.message);
+    try {
+      const outcome = await runGoogleSignIn(GoogleSignin, statusCodes, (idToken) =>
+        signInWithGoogle(idToken),
+      );
+      if (outcome.kind === 'error') {
+        setError(outcome.message);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleEmailAuth = async () => {

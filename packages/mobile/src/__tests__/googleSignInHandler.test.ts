@@ -85,7 +85,7 @@ describe('#276 runGoogleSignIn', () => {
     const outcome = await runGoogleSignIn(gs, statusCodes, forward);
     expect(outcome).toEqual({
       kind: 'error',
-      message: 'Google did not return an ID token',
+      message: "Google sign-in didn't complete. Please try again.",
     });
     expect(forward).not.toHaveBeenCalled();
   });

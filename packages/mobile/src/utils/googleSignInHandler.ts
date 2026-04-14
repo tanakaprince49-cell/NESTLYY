@@ -24,7 +24,7 @@ export async function runGoogleSignIn(
     const result = await gs.signIn();
     const idToken = result?.data?.idToken;
     if (!idToken) {
-      return { kind: 'error', message: 'Google did not return an ID token' };
+      return { kind: 'error', message: "Google sign-in didn't complete. Please try again." };
     }
     await forward(idToken);
     return { kind: 'success' };
