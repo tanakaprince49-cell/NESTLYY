@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   TextInput,
@@ -9,9 +9,11 @@ import {
   Text,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import type { UploadTask } from 'firebase/storage';
 import { createPost } from '@nestly/shared';
 import { validatePost } from '../../utils/postValidation';
 import { validateMedia } from '../../utils/mediaValidation';
+import { mergeUploadResults } from '../../utils/uploadRetry';
 import {
   pickMedia,
   uploadMediaToStorage,
@@ -20,6 +22,7 @@ import {
 import type { NestMedia } from '@nestly/shared';
 
 const MAX_MEDIA = 4;
+const SLOW_UPLOAD_THRESHOLD_MS = 20_000;
 
 interface PostComposerProps {
   nestId: string;
@@ -42,8 +45,54 @@ export function PostComposer({
   const [media, setMedia] = useState<PickedMedia[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number[]>([]);
+  const [slowUpload, setSlowUpload] = useState(false);
   const pendingRef = useRef(false);
   const [sending, setSending] = useState(false);
+  const tasksRef = useRef<UploadTask[]>([]);
+  const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelledRef = useRef(false);
+
+  const clearSlowTimer = () => {
+    if (slowTimerRef.current) {
+      clearTimeout(slowTimerRef.current);
+      slowTimerRef.current = null;
+    }
+  };
+
+  const cancelUpload = () => {
+    cancelledRef.current = true;
+    for (const task of tasksRef.current) {
+      try {
+        task.cancel();
+      } catch {
+        // Task may already be in a terminal state; ignore.
+      }
+    }
+    tasksRef.current = [];
+    clearSlowTimer();
+    setSlowUpload(false);
+    setUploadProgress([]);
+    setUploading(false);
+    setSending(false);
+    pendingRef.current = false;
+  };
+
+  // Unmount cleanup: if the composer unmounts while an upload is in flight
+  // (e.g. user navigates away), cancel pending storage tasks and kill the
+  // slow-upload timer so no setState fires on an unmounted component.
+  useEffect(() => {
+    return () => {
+      clearSlowTimer();
+      for (const task of tasksRef.current) {
+        try {
+          task.cancel();
+        } catch {
+          // Task may already be in a terminal state; ignore.
+        }
+      }
+      tasksRef.current = [];
+    };
+  }, []);
 
   const handleAttach = async () => {
     if (disabled || media.length >= MAX_MEDIA) return;
@@ -75,51 +124,86 @@ export function PostComposer({
     const { ok, trimmed } = validatePost(text, media.length);
     if (!ok || pendingRef.current || disabled) return;
     pendingRef.current = true;
+    cancelledRef.current = false;
+    tasksRef.current = [];
     setSending(true);
     setUploading(media.length > 0);
+    setSlowUpload(false);
 
     const tempKey = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const initialProgress = media.map(() => 0);
     setUploadProgress(initialProgress);
 
-    let uploadedMedia: NestMedia[] = [];
-    try {
-      uploadedMedia = await Promise.all(
-        media.map((asset, idx) => {
-          if (asset.uploadedUrl) {
-            return Promise.resolve<NestMedia>({
-              id: `${idx}`,
-              type: asset.type,
-              url: asset.uploadedUrl,
-              thumbnail: asset.thumbnailUrl,
-              filename: asset.filename,
-              size: asset.size,
+    if (media.length > 0) {
+      slowTimerRef.current = setTimeout(() => {
+        setSlowUpload(true);
+      }, SLOW_UPLOAD_THRESHOLD_MS);
+    }
+
+    const settled = await Promise.allSettled(
+      media.map((asset, idx) => {
+        if (asset.uploaded) {
+          return Promise.resolve<NestMedia>(asset.uploaded);
+        }
+        return uploadMediaToStorage({
+          nestId,
+          authorUid,
+          tempKey,
+          asset,
+          onTask: (task) => {
+            // Cancel was pressed between this task's creation and its
+            // registration: terminate immediately so we don't leave orphan
+            // Storage objects in the multi-asset case.
+            if (cancelledRef.current) {
+              try {
+                task.cancel();
+              } catch {
+                // Already terminal; ignore.
+              }
+              return;
+            }
+            tasksRef.current.push(task);
+          },
+          onProgress: (p) => {
+            setUploadProgress((prev) => {
+              const next = [...prev];
+              next[idx] = p;
+              return next;
             });
-          }
-          return uploadMediaToStorage({
-            nestId,
-            authorUid,
-            tempKey,
-            asset,
-            onProgress: (p) => {
-              setUploadProgress((prev) => {
-                const next = [...prev];
-                next[idx] = p;
-                return next;
-              });
-            },
-          });
-        }),
-      );
-    } catch {
-      onError("Couldn't upload. Check your connection.");
+          },
+        });
+      }),
+    );
+
+    clearSlowTimer();
+
+    if (cancelledRef.current) {
+      // cancelUpload already reset state; the resolved/rejected promises
+      // here are stale.
+      return;
+    }
+
+    setSlowUpload(false);
+
+    const anyFailed = settled.some((res) => res.status === 'rejected');
+    if (anyFailed) {
+      // Persist successful uploads back to picked-media state so a Send
+      // retry only re-uploads what failed.
+      setMedia((prev) => mergeUploadResults(prev, settled));
+      onError("Couldn't upload all media. Tap Send again to retry.");
       pendingRef.current = false;
       setSending(false);
       setUploading(false);
+      tasksRef.current = [];
       return;
     }
 
     setUploading(false);
+
+    const uploadedMedia = settled.map((res) => {
+      if (res.status === 'fulfilled') return res.value;
+      throw new Error('unreachable');
+    });
 
     try {
       await createPost(nestId, {
@@ -137,6 +221,7 @@ export function PostComposer({
     } finally {
       pendingRef.current = false;
       setSending(false);
+      tasksRef.current = [];
     }
   };
 
@@ -180,6 +265,24 @@ export function PostComposer({
           )}
         </TouchableOpacity>
       </View>
+
+      {slowUpload && uploading && (
+        <View
+          className="flex-row items-center bg-rose-50 rounded-xl px-3 py-2 mt-3"
+          accessibilityLiveRegion="polite"
+        >
+          <Text className="flex-1 text-xs text-rose-700">
+            Still uploading, this can take a while on slow networks.
+          </Text>
+          <TouchableOpacity
+            onPress={cancelUpload}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel="Cancel upload"
+          >
+            <Text className="text-xs font-semibold text-gray-500">Cancel upload</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {media.length > 0 && (
         <ScrollView

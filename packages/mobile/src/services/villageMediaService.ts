@@ -7,6 +7,7 @@ import {
   uploadBytesResumable,
   getDownloadURL,
   deleteObject,
+  type UploadTask,
 } from 'firebase/storage';
 import { app } from '@nestly/shared';
 import type { NestMedia } from '@nestly/shared';
@@ -19,8 +20,7 @@ export interface PickedMedia {
   filename: string;
   size: number;
   duration?: number;
-  uploadedUrl?: string;
-  thumbnailUrl?: string;
+  uploaded?: NestMedia;
 }
 
 
@@ -90,12 +90,14 @@ export async function uploadMediaToStorage({
   tempKey,
   asset,
   onProgress,
+  onTask,
 }: {
   nestId: string;
   authorUid: string;
   tempKey: string;
   asset: PickedMedia;
   onProgress?: (progress: number) => void;
+  onTask?: (task: UploadTask) => void;
 }): Promise<NestMedia> {
   const storage = getStorage(app);
   const mediaId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -120,6 +122,7 @@ export async function uploadMediaToStorage({
   const mainBlob = await uriToBlob(uploadUri);
   await new Promise<void>((resolve, reject) => {
     const task = uploadBytesResumable(mediaRef, mainBlob, { contentType: mainContentType });
+    onTask?.(task);
     task.on(
       'state_changed',
       (snapshot) => {
@@ -141,6 +144,7 @@ export async function uploadMediaToStorage({
       const thumbBlob = await uriToBlob(thumbnailUri);
       await new Promise<void>((resolve, reject) => {
         const task = uploadBytesResumable(thumbRef, thumbBlob, { contentType: 'image/jpeg' });
+        onTask?.(task);
         task.on('state_changed', null, reject, () => resolve());
       });
       thumbnail = await getDownloadURL(thumbRef);
@@ -152,7 +156,7 @@ export async function uploadMediaToStorage({
     }
   }
 
-  return {
+  const result: NestMedia = {
     id: mediaId,
     type: asset.type,
     url,
@@ -160,4 +164,8 @@ export async function uploadMediaToStorage({
     filename: asset.filename,
     size: mainBlob.size,
   };
+  if (asset.type === 'video' && asset.duration != null && asset.duration > 0) {
+    result.duration = Math.round(asset.duration / 1000);
+  }
+  return result;
 }
