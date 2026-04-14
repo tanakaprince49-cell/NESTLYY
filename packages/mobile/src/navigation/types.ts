@@ -17,12 +17,17 @@ export type ToolsStackParamList = {
   ReportCenter: undefined;
 };
 
+export type VillageStackParamList = {
+  VillageHome: undefined;
+  NestDetail: { nestId: string };
+};
+
 export type RootTabParamList = {
   Dashboard: undefined;
   Baby: undefined;
   Ava: undefined;
   Education: undefined;
   Tools: NavigatorScreenParams<ToolsStackParamList>;
-  Village: undefined;
+  Village: NavigatorScreenParams<VillageStackParamList>;
   Settings: undefined;
 };
