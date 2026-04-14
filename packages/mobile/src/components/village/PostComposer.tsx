@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   TextInput,
@@ -77,6 +77,23 @@ export function PostComposer({
     pendingRef.current = false;
   };
 
+  // Unmount cleanup: if the composer unmounts while an upload is in flight
+  // (e.g. user navigates away), cancel pending storage tasks and kill the
+  // slow-upload timer so no setState fires on an unmounted component.
+  useEffect(() => {
+    return () => {
+      clearSlowTimer();
+      for (const task of tasksRef.current) {
+        try {
+          task.cancel();
+        } catch {
+          // Task may already be in a terminal state; ignore.
+        }
+      }
+      tasksRef.current = [];
+    };
+  }, []);
+
   const handleAttach = async () => {
     if (disabled || media.length >= MAX_MEDIA) return;
     const picked = await pickMedia({ maxCount: MAX_MEDIA - media.length });
@@ -125,15 +142,8 @@ export function PostComposer({
 
     const settled = await Promise.allSettled(
       media.map((asset, idx) => {
-        if (asset.uploadedUrl) {
-          return Promise.resolve<NestMedia>({
-            id: `${idx}`,
-            type: asset.type,
-            url: asset.uploadedUrl,
-            thumbnail: asset.thumbnailUrl,
-            filename: asset.filename,
-            size: asset.size,
-          });
+        if (asset.uploaded) {
+          return Promise.resolve<NestMedia>(asset.uploaded);
         }
         return uploadMediaToStorage({
           nestId,
@@ -141,6 +151,17 @@ export function PostComposer({
           tempKey,
           asset,
           onTask: (task) => {
+            // Cancel was pressed between this task's creation and its
+            // registration: terminate immediately so we don't leave orphan
+            // Storage objects in the multi-asset case.
+            if (cancelledRef.current) {
+              try {
+                task.cancel();
+              } catch {
+                // Already terminal; ignore.
+              }
+              return;
+            }
             tasksRef.current.push(task);
           },
           onProgress: (p) => {

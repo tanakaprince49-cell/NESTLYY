@@ -6,8 +6,7 @@ type Picked = {
   type: 'image' | 'video';
   filename: string;
   size: number;
-  uploadedUrl?: string;
-  thumbnailUrl?: string;
+  uploaded?: NestMedia;
 };
 
 const media = (extra?: Partial<Picked>): Picked => ({
@@ -18,9 +17,18 @@ const media = (extra?: Partial<Picked>): Picked => ({
   ...extra,
 });
 
-const success = (url: string, thumbnail?: string): PromiseFulfilledResult<NestMedia> => ({
+const nestMedia = (overrides?: Partial<NestMedia>): NestMedia => ({
+  id: 'srv_abc',
+  type: 'image',
+  url: 'https://cdn/a.jpg',
+  filename: 'a.jpg',
+  size: 1024,
+  ...overrides,
+});
+
+const success = (value: NestMedia): PromiseFulfilledResult<NestMedia> => ({
   status: 'fulfilled',
-  value: { id: '1', type: 'image', url, thumbnail, filename: 'a.jpg', size: 1024 },
+  value,
 });
 
 const failure = (): PromiseRejectedResult => ({
@@ -29,35 +37,37 @@ const failure = (): PromiseRejectedResult => ({
 });
 
 describe('#272 mergeUploadResults', () => {
-  test('all-success leaves uploadedUrl stamped on every item', () => {
+  test('all-success stamps the NestMedia on every item', () => {
     const items = [media(), media({ uri: 'file:///b.jpg', filename: 'b.jpg' })];
     const out = mergeUploadResults(items, [
-      success('https://cdn/a.jpg', 'https://cdn/a-thumb.jpg'),
-      success('https://cdn/b.jpg'),
+      success(nestMedia({ id: 'srv_a', url: 'https://cdn/a.jpg', thumbnail: 'https://cdn/a-thumb.jpg' })),
+      success(nestMedia({ id: 'srv_b', url: 'https://cdn/b.jpg' })),
     ]);
-    expect(out[0].uploadedUrl).toBe('https://cdn/a.jpg');
-    expect(out[0].thumbnailUrl).toBe('https://cdn/a-thumb.jpg');
-    expect(out[1].uploadedUrl).toBe('https://cdn/b.jpg');
-    expect(out[1].thumbnailUrl).toBeUndefined();
+    expect(out[0].uploaded?.id).toBe('srv_a');
+    expect(out[0].uploaded?.url).toBe('https://cdn/a.jpg');
+    expect(out[0].uploaded?.thumbnail).toBe('https://cdn/a-thumb.jpg');
+    expect(out[1].uploaded?.id).toBe('srv_b');
+    expect(out[1].uploaded?.url).toBe('https://cdn/b.jpg');
+    expect(out[1].uploaded?.thumbnail).toBeUndefined();
   });
 
-  test('partial failure stamps URL on success and leaves failure untouched', () => {
+  test('partial failure stamps NestMedia on success and leaves failure untouched', () => {
     const items = [media(), media({ uri: 'file:///b.jpg', filename: 'b.jpg' })];
-    const out = mergeUploadResults(items, [success('https://cdn/a.jpg'), failure()]);
-    expect(out[0].uploadedUrl).toBe('https://cdn/a.jpg');
-    expect(out[1].uploadedUrl).toBeUndefined();
+    const out = mergeUploadResults(items, [success(nestMedia({ id: 'srv_a' })), failure()]);
+    expect(out[0].uploaded?.id).toBe('srv_a');
+    expect(out[1].uploaded).toBeUndefined();
   });
 
   test('all-failure leaves all items untouched', () => {
     const items = [media(), media({ uri: 'file:///b.jpg' })];
     const out = mergeUploadResults(items, [failure(), failure()]);
-    expect(out[0].uploadedUrl).toBeUndefined();
-    expect(out[1].uploadedUrl).toBeUndefined();
+    expect(out[0].uploaded).toBeUndefined();
+    expect(out[1].uploaded).toBeUndefined();
   });
 
   test('preserves other fields on each item', () => {
     const items = [media({ size: 9999, type: 'video' as const })];
-    const out = mergeUploadResults(items, [success('https://cdn/x.mp4')]);
+    const out = mergeUploadResults(items, [success(nestMedia({ id: 'srv_v', type: 'video', url: 'https://cdn/x.mp4' }))]);
     expect(out[0].size).toBe(9999);
     expect(out[0].type).toBe('video');
     expect(out[0].uri).toBe('file:///a.jpg');
@@ -65,9 +75,9 @@ describe('#272 mergeUploadResults', () => {
 
   test('shorter results array does not throw and skips missing indices', () => {
     const items = [media(), media({ uri: 'file:///b.jpg' })];
-    const out = mergeUploadResults(items, [success('https://cdn/a.jpg')]);
-    expect(out[0].uploadedUrl).toBe('https://cdn/a.jpg');
-    expect(out[1].uploadedUrl).toBeUndefined();
+    const out = mergeUploadResults(items, [success(nestMedia({ id: 'srv_a' }))]);
+    expect(out[0].uploaded?.id).toBe('srv_a');
+    expect(out[1].uploaded).toBeUndefined();
   });
 
   test('empty input returns empty array', () => {
@@ -77,13 +87,16 @@ describe('#272 mergeUploadResults', () => {
   test('does not mutate the input array', () => {
     const items = [media()];
     const before = JSON.parse(JSON.stringify(items));
-    mergeUploadResults(items, [success('https://cdn/a.jpg')]);
+    mergeUploadResults(items, [success(nestMedia())]);
     expect(items).toEqual(before);
   });
 
-  test('retry skip path: re-merging already-stamped item keeps the URL', () => {
-    const items = [media({ uploadedUrl: 'https://cdn/a.jpg' })];
-    const out = mergeUploadResults(items, [success('https://cdn/a.jpg')]);
-    expect(out[0].uploadedUrl).toBe('https://cdn/a.jpg');
+  test('retry skip path: preserves original server-assigned id through re-merge', () => {
+    const items = [media({ uploaded: nestMedia({ id: 'srv_original', url: 'https://cdn/a.jpg' }) })];
+    const out = mergeUploadResults(items, [
+      success(nestMedia({ id: 'srv_original', url: 'https://cdn/a.jpg' })),
+    ]);
+    expect(out[0].uploaded?.id).toBe('srv_original');
+    expect(out[0].uploaded?.url).toBe('https://cdn/a.jpg');
   });
 });

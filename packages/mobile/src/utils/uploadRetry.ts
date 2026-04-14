@@ -6,15 +6,15 @@ export interface RetryableMedia {
   filename: string;
   size: number;
   duration?: number;
-  uploadedUrl?: string;
-  thumbnailUrl?: string;
+  uploaded?: NestMedia;
 }
 
 /**
  * Merge per-asset upload outcomes back into the picked-media list. Successful
- * uploads stamp `uploadedUrl` (and `thumbnailUrl` when present) onto the
- * matching item so a retry skips the asset entirely instead of re-uploading
- * the bytes. Failed indices stay untouched.
+ * uploads stamp the returned `NestMedia` onto the matching item under
+ * `uploaded` so a Send retry skips the asset entirely (preserving its original
+ * storage-assigned id, url, thumbnail, size, and duration) instead of
+ * re-uploading the bytes. Failed indices stay untouched.
  */
 export function mergeUploadResults<T extends RetryableMedia>(
   media: T[],
@@ -23,7 +23,7 @@ export function mergeUploadResults<T extends RetryableMedia>(
   return media.map((item, idx) => {
     const res = results[idx];
     if (!res || res.status !== 'fulfilled') return item;
-    return { ...item, uploadedUrl: res.value.url, thumbnailUrl: res.value.thumbnail };
+    return { ...item, uploaded: res.value };
   });
 }
 

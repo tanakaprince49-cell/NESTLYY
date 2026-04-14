@@ -20,8 +20,7 @@ export interface PickedMedia {
   filename: string;
   size: number;
   duration?: number;
-  uploadedUrl?: string;
-  thumbnailUrl?: string;
+  uploaded?: NestMedia;
 }
 
 
@@ -145,6 +144,7 @@ export async function uploadMediaToStorage({
       const thumbBlob = await uriToBlob(thumbnailUri);
       await new Promise<void>((resolve, reject) => {
         const task = uploadBytesResumable(thumbRef, thumbBlob, { contentType: 'image/jpeg' });
+        onTask?.(task);
         task.on('state_changed', null, reject, () => resolve());
       });
       thumbnail = await getDownloadURL(thumbRef);
