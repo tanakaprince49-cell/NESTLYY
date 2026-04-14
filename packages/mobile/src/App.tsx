@@ -7,7 +7,7 @@ import type { NavigationContainerRef } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, registerHealthConnectModule, LifecycleStage } from '@nestly/shared';
-import { rehydrateUserStores } from './stores/bootstrap';
+import { rehydrateUserStores, rehydratePrivacyStore } from './stores/bootstrap';
 
 // Register native Health Connect module early so write-through in trackers works.
 try {
@@ -20,6 +20,7 @@ import {
   useProfileStore,
   useTrackingStore,
   useHealthConnectStore,
+  usePrivacyStore,
 } from '@nestly/shared/stores';
 import { AuthScreen } from './screens/AuthScreen';
 import { PrivacyScreen } from './screens/PrivacyScreen';
@@ -33,10 +34,20 @@ import {
 import { rescheduleAllReminders } from './services/reminderScheduler';
 
 export default function App() {
-  const { authEmail, loading, hasAcceptedPrivacy, setAuth, clearAuth, setLoading } = useAuthStore();
+  const { authEmail, loading, setAuth, clearAuth, setLoading } = useAuthStore();
+  const hasAcceptedPrivacy = usePrivacyStore((s) => s.hasAcceptedPrivacy);
   const { profile, isEditingProfile } = useProfileStore();
   const navigationRef = useRef<NavigationContainerRef<any>>(null);
   const [storesHydrated, setStoresHydrated] = useState(false);
+  const [privacyHydrated, setPrivacyHydrated] = useState(false);
+
+  useEffect(() => {
+    // Rehydrate the device-level privacy flag once at boot, before auth
+    // resolves. Without this, the App.tsx gate below would see the default
+    // `false` and flash PrivacyScreen to a returning user during the first
+    // frames of cold start. See #281.
+    rehydratePrivacyStore().finally(() => setPrivacyHydrated(true));
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -172,11 +183,13 @@ export default function App() {
     return () => sub.remove();
   }, [authEmail]);
 
-  // Show a spinner while (a) Firebase auth is resolving, or (b) a signed-in
+  // Show a spinner while (a) Firebase auth is resolving, (b) a signed-in
   // user has been detected but their persisted stores have not been
-  // rehydrated yet. Without the second condition, SetupScreen would briefly
-  // flash on every cold launch because `profile` starts as null.
-  if (loading || (authEmail && !storesHydrated)) {
+  // rehydrated yet, or (c) the device-level privacy flag has not rehydrated.
+  // Without (b), SetupScreen would briefly flash on every cold launch because
+  // `profile` starts as null. Without (c), returning users would see a
+  // one-frame flash of PrivacyScreen on cold start. See #281.
+  if (!privacyHydrated || loading || (authEmail && !storesHydrated)) {
     return (
       <View className="flex-1 items-center justify-center bg-rose-50">
         <ActivityIndicator size="large" color="#f43f5e" />
