@@ -1,8 +1,8 @@
 # Terms of Service
 
-**Effective Date:** [DATE]
+**Effective Date:** 15 April 2026
 **App:** Nestly Pregnancy Companion
-**Operator:** [FULL NAME / BUSINESS NAME], [ADDRESS], Zimbabwe
+**Operator:** Tanaka Gaadzikwa, 490 Westwood, Harare, Zimbabwe
 **Contact:** supportnestly@gmail.com
 
 ---
@@ -10,8 +10,6 @@
 ## 1. Acceptance of Terms
 
 By creating an account or using Nestly ("the App"), you agree to these Terms of Service. If you do not agree, do not use the App.
-
-We are registered as a data controller with POTRAZ (Postal and Telecommunications Regulatory Authority of Zimbabwe) in accordance with Statutory Instrument 155 of 2024.
 
 ---
 
@@ -64,14 +62,16 @@ By using the App, you acknowledge and agree that:
 ## 5. User-Generated Content (Village Hub)
 
 ### 5.1 Your Content
-When you post content in Village Hub (posts, comments, media), you:
+
+By submitting content to Nestly, you grant us a worldwide, non-exclusive, royalty-free license to **reproduce, modify, host, store, display, and distribute** such content solely for the purpose of operating and improving the Service.
+
+You also:
 
 - Retain ownership of your content
-- Grant Nestly a non-exclusive, royalty-free licence to display your content within the App to other community members
 - Are solely responsible for the content you post
-- Acknowledge that your posts are visible to other members of the nests you join
 
 ### 5.2 Prohibited Content
+
 You may not post content that:
 
 - Contains medical advice or claims to diagnose conditions
@@ -83,6 +83,7 @@ You may not post content that:
 - Promotes dangerous health practices or misinformation
 
 ### 5.3 Moderation
+
 We reserve the right to remove content that violates these terms and to suspend or terminate accounts that repeatedly violate community guidelines.
 
 ---
@@ -90,16 +91,19 @@ We reserve the right to remove content that violates these terms and to suspend 
 ## 6. AI-Generated Content
 
 ### 6.1 Nature of AI Content
+
 - Ava and other AI features use third-party language models (DeepSeek, Google Gemini)
 - AI responses are generated automatically and are not reviewed by humans before delivery
 - AI content may be inaccurate, incomplete, or inappropriate
 
 ### 6.2 Your Responsibility
+
 - You are responsible for evaluating AI-generated content before acting on it
 - Do not follow AI suggestions that conflict with advice from your healthcare provider
 - Report problematic AI responses to supportnestly@gmail.com
 
 ### 6.3 Limitations
+
 - Ava is not a chatbot for emergency situations
 - Ava does not have access to your complete medical history
 - Ava cannot prescribe medication or treatments
@@ -109,23 +113,51 @@ We reserve the right to remove content that violates these terms and to suspend 
 
 ## 7. Data and Storage
 
-- Most personal health data is stored locally on your device (browser localStorage)
-- You are responsible for backing up your local data
-- If you clear your browser data, your locally stored health records will be lost
-- We are not responsible for data loss due to device failure, browser clearing, or other local causes
-- Village Hub data is stored on our servers (see Privacy Policy for details)
+- Most personal health data is stored locally on your device
+- Users are responsible for maintaining backups of any content they submit. Nestly is not responsible for data loss.
 
 ---
 
 ## 8. Intellectual Property
 
-- Nestly, its design, code, and branding are the property of the Nestly team
-- Educational articles and content provided in the App are for personal use only
-- WHO growth standards and other referenced datasets are attributed to their respective sources
+All intellectual property rights in Nestly, including the platform, design, features, and content, are owned by **Tanaka Gaadzikwa**, unless otherwise stated.
 
 ---
 
-## 9. Limitation of Liability
+## 9. Severability
+
+If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions will remain in full force and effect.
+
+---
+
+## 10. Entire Agreement
+
+These Terms constitute the entire agreement between you and Nestly regarding the use of the Service and supersede any prior agreements.
+
+---
+
+## 11. Account Termination
+
+- You may delete your account at any time through the App settings
+- We may suspend or terminate your account for violation of these Terms
+- Upon termination, your Firestore data (Village Hub) will be deleted within 30 days
+- Your local data remains on your device until you clear it
+
+---
+
+## 12. Force Majeure
+
+Nestly shall not be liable for any failure or delay in performance resulting from events beyond our reasonable control, including but not limited to natural disasters, internet outages, or government actions.
+
+---
+
+## 13. Dispute Resolution
+
+In the event of a dispute, users agree to first contact Nestly to seek an informal resolution. If the dispute is not resolved within 30 days, it shall be subject to the laws and courts of Zimbabwe.
+
+---
+
+## 14. Limitation of Liability
 
 To the maximum extent permitted by Zimbabwean law:
 
@@ -137,7 +169,7 @@ To the maximum extent permitted by Zimbabwean law:
 
 ---
 
-## 10. Indemnification
+## 15. Indemnification
 
 You agree to indemnify and hold harmless Nestly and its team from any claims, damages, or expenses arising from:
 
@@ -148,16 +180,7 @@ You agree to indemnify and hold harmless Nestly and its team from any claims, da
 
 ---
 
-## 11. Account Termination
-
-- You may delete your account at any time through the App settings
-- We may suspend or terminate your account for violation of these Terms
-- Upon termination, your Firestore data (Village Hub) will be deleted within 30 days
-- Your localStorage data remains on your device until you clear it
-
----
-
-## 12. Changes to These Terms
+## 16. Changes to These Terms
 
 - We may update these Terms from time to time
 - Updated Terms will be posted in the App with a new effective date
@@ -166,13 +189,13 @@ You agree to indemnify and hold harmless Nestly and its team from any claims, da
 
 ---
 
-## 13. Governing Law
+## 17. Governing Law
 
 These Terms are governed by the laws of the Republic of Zimbabwe. Any disputes arising from these Terms shall be subject to the jurisdiction of the courts of Zimbabwe.
 
 ---
 
-## 14. Contact
+## 18. Contact
 
 For questions about these Terms:
 
