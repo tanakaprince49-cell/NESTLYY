@@ -125,7 +125,7 @@ export function AuthScreen() {
           </View>
 
           <TextInput
-            className="bg-white rounded-xl py-4 px-4 mb-3 border border-gray-200 text-base"
+            className="bg-white rounded-xl py-4 px-4 mb-3 border border-gray-200 text-base text-slate-900"
             placeholder="Email"
             placeholderTextColor="#94a3b8"
             value={email}
@@ -135,7 +135,7 @@ export function AuthScreen() {
           />
 
           <TextInput
-            className="bg-white rounded-xl py-4 px-4 mb-4 border border-gray-200 text-base"
+            className="bg-white rounded-xl py-4 px-4 mb-4 border border-gray-200 text-base text-slate-900"
             placeholder="Password"
             placeholderTextColor="#94a3b8"
             value={password}
