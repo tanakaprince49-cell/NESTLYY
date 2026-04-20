@@ -12,12 +12,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { signOut } from 'firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { auth } from '@nestly/shared';
 import { LifecycleStage } from '@nestly/shared';
 import type { BabyAvatar } from '@nestly/shared';
-import { useAuthStore, useAvaChatStore, useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
+import { useAvaChatStore, useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { Avatar } from '../components/Avatar';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
 import { requestNotificationPermissions, registerPushToken, cancelAllScheduled } from '../services/notificationService';
@@ -77,11 +74,6 @@ export function SettingsScreen() {
     });
     if (result.canceled || !result.assets?.[0]?.base64) return;
     const asset = result.assets[0];
-    // Fall back to image/jpeg when expo-image-picker does not report a
-    // mimeType (mostly on older Android), but prefer the reported one so a
-    // picked PNG is not mislabeled as JPEG in the stored dataURL. Web surfaces
-    // that validate the prefix (e.g. canvas.toDataURL consumers) reject the
-    // image otherwise. See #238.
     const mimeType = asset.mimeType ?? 'image/jpeg';
     const dataUrl = `data:${mimeType};base64,${asset.base64}`;
     useProfileStore.getState().updateProfile({ profileImage: dataUrl });
@@ -135,47 +127,10 @@ export function SettingsScreen() {
     }
   }, []);
 
-  // Reset every in-memory Zustand slice that clearUserStores does not touch.
-  // clearUserStores wipes AsyncStorage buckets, but the living stores still
-  // hold the previous session's data until a fresh rehydrate runs. Without
-  // these calls, a new account signing in on the same device would briefly
-  // see the prior user's tracking logs and Ava chat history.
-  //
-  // Health Connect is deliberately NOT in USER_SCOPED_PERSISTED_STORES because
-  // its device-level fields (isAvailable, isConnected, permissions) reflect
-  // system permissions shared across accounts. But its sync metadata
-  // (lastSyncTimestamp, syncError, isSyncing) IS per-user — without the
-  // resetSyncState() call, user B would inherit user A's 5-minute throttle
-  // window and see a stale syncError from user A's last sync. See #251.
-  const resetAllUserStateInMemory = () => {
-    useAuthStore.getState().logout();
-    useProfileStore.getState().setProfile(null);
-    useTrackingStore.getState().resetAllLogs();
-    useAvaChatStore.getState().clearMessages();
-    useHealthConnectStore.getState().resetSyncState();
-  };
-
-  const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        onPress: async () => {
-          // Clear persisted user-scoped stores before signing out so the next
-          // account signing in on this device cannot inherit stale data.
-          await clearUserStores();
-          await GoogleSignin.signOut().catch(() => {});
-          await signOut(auth);
-          resetAllUserStateInMemory();
-        },
-      },
-    ]);
-  };
-
-  const handleDeleteAccount = () => {
+  const handleDeleteAllData = () => {
     Alert.alert(
-      'Delete Account',
-      'This will permanently delete your account and all data. This cannot be undone.',
+      'Delete All Data',
+      'This will permanently erase all your tracking data from this device. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -183,9 +138,10 @@ export function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             await clearUserStores();
-            await GoogleSignin.signOut().catch(() => {});
-            await signOut(auth);
-            resetAllUserStateInMemory();
+            useProfileStore.getState().setProfile(null);
+            useTrackingStore.getState().resetAllLogs();
+            useAvaChatStore.getState().clearMessages();
+            useHealthConnectStore.getState().resetSyncState();
           },
         },
       ],
@@ -368,19 +324,18 @@ export function SettingsScreen() {
 
         <HealthConnectSection />
 
-        <TouchableOpacity
-          className="bg-rose-400 rounded-2xl py-4 items-center mb-3"
-          onPress={handleSignOut}
-        >
-          <Text className="text-white font-semibold text-base">Sign Out</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="py-4 items-center"
-          onPress={handleDeleteAccount}
-        >
-          <Text className="text-red-500 text-sm">Delete Account</Text>
-        </TouchableOpacity>
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-base font-semibold text-gray-800 mb-2">Your Data</Text>
+          <Text className="text-xs text-gray-400 mb-4">
+            All data is stored privately on this device. No account required.
+          </Text>
+          <TouchableOpacity
+            className="py-3 items-center"
+            onPress={handleDeleteAllData}
+          >
+            <Text className="text-red-500 text-sm">Delete All Data</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

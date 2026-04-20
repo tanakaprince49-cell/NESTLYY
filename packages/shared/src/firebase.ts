@@ -1,5 +1,4 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getMessaging, type Messaging } from 'firebase/messaging';
 import firebaseConfig from './firebase-applet-config.json';
@@ -56,7 +55,6 @@ function lazyProxy<T extends object>(resolve: () => T): T {
   });
 }
 
-export const auth: Auth = lazyProxy<Auth>(() => getAuth(app));
 export const db: Firestore = lazyProxy<Firestore>(() => getFirestore(app));
 
 // Messaging stays eager. It is browser-only (requires ServiceWorker) and
@@ -71,4 +69,3 @@ try {
   console.warn("Messaging initialization failed", e);
 }
 export { messaging };
-export const googleProvider = new GoogleAuthProvider();

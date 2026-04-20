@@ -1,29 +1,24 @@
-// #281 regression tests. Two guarantees we need to lock in:
-//   1. authStore.logout() never touches hasAcceptedPrivacy (the flag lives
-//      in a separate store now, so even a regression that re-adds the field
-//      to authStore would still fail this test because logout's state shape
-//      doesn't include it).
+// #281 regression tests updated for #293 (Zero-Data MVP / no Firebase Auth).
+//
+// Two guarantees we need to lock in:
+//   1. useLocalIdentityStore never touches hasAcceptedPrivacy (different store).
 //   2. Privacy consent persists under a device-level key (`privacy`) with
-//      no email prefix — i.e. it does not ride the createUserScopedStorage
-//      `{email}_` prefix that profile/tracking/avaChat use.
+//      no uuid prefix — i.e. it does not ride the createUserScopedStorage
+//      `{uuid}_` prefix that profile/tracking/avaChat use.
 
 import {
-  useAuthStore,
+  useLocalIdentityStore,
+  setLocalUuid,
   usePrivacyStore,
   setPrivacyStorage,
   type StateStorage,
 } from '@nestly/shared/stores';
 
 describe('#281 privacy consent is device-level, not session-scoped', () => {
-  test('authStore.logout() does not clear or mention privacy consent', () => {
-    useAuthStore.setState({ authEmail: 'user@example.com', userUid: 'abc123', loading: false });
-    useAuthStore.getState().logout();
-    const state = useAuthStore.getState() as unknown as Record<string, unknown>;
-    expect(state.authEmail).toBeNull();
-    expect(state.userUid).toBeNull();
-    // The field no longer exists on AuthState. If a future change reintroduces
-    // it, this test still passes as long as logout() does not set it — but
-    // the second assertion below will flag any regression that writes it.
+  test('setting localUuid does not clear or mention privacy consent', () => {
+    setLocalUuid('test-uuid-123');
+    const state = useLocalIdentityStore.getState() as unknown as Record<string, unknown>;
+    expect(state.localUuid).toBe('test-uuid-123');
     expect('hasAcceptedPrivacy' in state).toBe(false);
   });
 
@@ -50,8 +45,8 @@ describe('#281 privacy consent is device-level, not session-scoped', () => {
     expect(writes.length).toBeGreaterThan(0);
     const keys = writes.map((w) => w.key);
     expect(keys).toContain('privacy');
-    // Not email-prefixed (would be `guest_privacy` or `user@example.com_privacy`
-    // if privacyStore accidentally ended up on createUserScopedStorage).
+    // Not uuid-prefixed (would be `{uuid}_privacy` if privacyStore accidentally
+    // ended up on createUserScopedStorage).
     for (const key of keys) {
       expect(key).not.toMatch(/^[^_]+_privacy$/);
     }

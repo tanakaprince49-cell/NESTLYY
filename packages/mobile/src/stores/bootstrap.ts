@@ -1,5 +1,5 @@
 import {
-  useAuthStore,
+  useLocalIdentityStore,
   usePrivacyStore,
   createUserScopedStorage,
   setAllUserScopedStorage,
@@ -8,9 +8,12 @@ import {
 } from '@nestly/shared/stores';
 import { asyncStorageBackend } from './storageBackend';
 
-// Read the current user scope lazily so that each storage call reflects the
-// current auth state rather than a stale snapshot at bootstrap time.
-const getEmail = (): string | null => useAuthStore.getState().authEmail;
+// Read the current local UUID scope lazily so each storage call reflects the
+// current identity rather than a stale snapshot at bootstrap time.
+const getLocalUuid = (): string | null => {
+  const uuid = useLocalIdentityStore.getState().localUuid;
+  return uuid || null;
+};
 
 /**
  * Install the AsyncStorage-backed, user-scoped StateStorage on every
@@ -21,7 +24,7 @@ const getEmail = (): string | null => useAuthStore.getState().authEmail;
  * at app startup, before registerRootComponent.
  */
 export function bootstrapStores(): void {
-  const storage = createUserScopedStorage(asyncStorageBackend, getEmail);
+  const storage = createUserScopedStorage(asyncStorageBackend, getLocalUuid);
   setAllUserScopedStorage(storage);
   // Privacy consent is device-level, not per-account. Wire the raw
   // asyncStorageBackend (no email prefix) so the flag sits under a single

@@ -49,7 +49,7 @@ export const SleepTracker: React.FC<SleepTrackerProps> = ({
   }, [sleepLogs, mode, currentBabyId]);
 
   const handleSaveSession = (sessionData: Partial<SleepLog>) => {
-    const userId = storage.getAuthEmail() || 'guest';
+    const userId = storage.getLocalUuidPublic();
     if (editingSession) {
       // The existing app doesn't have an onUpdateSleep, so we remove and add
       onRemoveSleep(editingSession.id);

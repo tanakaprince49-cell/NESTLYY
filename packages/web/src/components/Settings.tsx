@@ -1,20 +1,18 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { updatePassword } from 'firebase/auth';
-import { auth, PregnancyProfile, LifecycleStage, BabyAvatar } from '@nestly/shared';
+import { PregnancyProfile, LifecycleStage, BabyAvatar } from '@nestly/shared';
 import { storage } from '../services/storageService.ts';
 import { Camera, Plus, Trash2, Baby } from 'lucide-react';
 
 interface SettingsProps {
   profile: PregnancyProfile;
   onUpdateProfile: (profile: PregnancyProfile) => void;
-  userUid: string | null;
+  localUuid: string;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, userUid }) => {
+export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, localUuid: _localUuid }) => {
   const [name, setName] = useState(profile.userName || '');
-  const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [showAddBaby, setShowAddBaby] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ message: string, onConfirm: () => void } | null>(null);
@@ -60,29 +58,12 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
     });
   };
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = () => {
     setSaving(true);
     const updatedProfile = { ...profile, userName: name };
     storage.saveProfile(updatedProfile);
     onUpdateProfile(updatedProfile);
-
-    if (password && auth.currentUser) {
-      try {
-        await updatePassword(auth.currentUser, password);
-      } catch (err: any) {
-        if (err.code === 'auth/requires-recent-login') {
-          alert('For security reasons, please sign out and sign back in before changing your password.');
-        } else {
-          alert('Failed to update password. Please try again.');
-        }
-      }
-    }
-
-    // Clean up any legacy plaintext password data
-    localStorage.removeItem('nestly_local_users');
-
     setSaving(false);
-    setPassword('');
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,17 +159,6 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
               />
             </div>
 
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-1">New Password (Optional)</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full p-3 bg-slate-50 border-2 border-transparent rounded-xl focus:border-rose-100 focus:bg-white outline-none text-sm font-semibold transition-all"
-                placeholder="••••••••"
-              />
-              <p className="text-[10px] text-slate-400 ml-2 mt-1">Only applies if you signed up with Email & Password.</p>
-            </div>
           </div>
 
           <button 
@@ -427,9 +397,17 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
       </div>
 
       <div className="card-premium p-6 space-y-4">
+        <h3 className="font-bold text-slate-800">Your Data</h3>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          All your data is stored privately on this device. No account required.
+          Export, import, and delete data options are coming soon.
+        </p>
+      </div>
+
+      <div className="card-premium p-6 space-y-4">
         <h3 className="font-bold text-slate-800">About Nestly</h3>
         <p className="text-xs text-slate-400 leading-relaxed">
-          Nestly is your private, secure companion for the most important journey of your life. 
+          Nestly is your private, secure companion for the most important journey of your life.
           All your data stays on your device.
         </p>
         <div className="flex gap-4 pt-2">
@@ -443,7 +421,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
         <p className="text-xs text-slate-400 leading-relaxed">
           For collaborations, customer support, or just to say hello, we'd love to hear from you.
         </p>
-        <a 
+        <a
           href="mailto:supportnestly@gmail.com"
           className="block w-full py-4 bg-slate-50 border-2 border-rose-100/50 text-rose-900 rounded-2xl text-center active:scale-95 transition-all group"
         >
@@ -451,10 +429,10 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
         </a>
       </div>
 
-      <button 
+      <button
         onClick={() => {
           setConfirmDialog({
-            message: 'Are you sure you want to delete your account? This will permanently erase all your data from this device.',
+            message: 'Are you sure you want to delete all your data? This will permanently erase everything from this device.',
             onConfirm: () => {
               storage.deleteAccount();
               window.location.reload();
@@ -463,7 +441,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, us
         }}
         className="w-full py-4 text-rose-300 text-[10px] font-black uppercase tracking-[0.2em] hover:text-rose-600 transition-colors"
       >
-        Delete My Nest
+        Delete All Data
       </button>
 
       {confirmDialog && (

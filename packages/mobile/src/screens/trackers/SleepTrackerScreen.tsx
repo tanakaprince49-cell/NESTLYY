@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LifecycleStage, writeSleepSession } from '@nestly/shared';
 import type { SleepMode } from '@nestly/shared';
-import { useProfileStore, useTrackingStore, useAuthStore, useHealthConnectStore } from '@nestly/shared/stores';
+import { useProfileStore, useTrackingStore, useLocalIdentityStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { BabySelector } from '../../components/tracking/BabySelector';
 import { SegmentedControl } from '../../components/tracking/SegmentedControl';
 import { TypeGrid } from '../../components/tracking/TypeGrid';
@@ -37,7 +37,7 @@ function formatDuration(mins: number): string {
 export function SleepTrackerScreen() {
   const { profile } = useProfileStore();
   const { sleepLogs, addSleepLog } = useTrackingStore();
-  const { authEmail } = useAuthStore();
+  const localUuid = useLocalIdentityStore((s) => s.localUuid);
   const babies = profile?.babies ?? [];
 
   const isPostpartum =
@@ -58,7 +58,7 @@ export function SleepTrackerScreen() {
 
   const handleLog = () => {
     addSleepLog({
-      userId: authEmail || 'guest',
+      userId: localUuid,
       babyId: mode === 'newborn' ? currentBabyId : undefined,
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
@@ -70,7 +70,7 @@ export function SleepTrackerScreen() {
     // Write-through to Health Connect (fire-and-forget)
     if (useHealthConnectStore.getState().permissions.SleepSession) {
       writeSleepSession({
-        id: '', userId: authEmail || 'guest', mode,
+        id: '', userId: localUuid, mode,
         startTime: startTime.toISOString(), endTime: endTime.toISOString(),
         type: sleepType, timestamp: Date.now(),
       }).catch(() => {});

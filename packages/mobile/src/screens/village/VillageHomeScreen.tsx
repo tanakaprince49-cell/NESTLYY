@@ -20,7 +20,7 @@ import {
   createNest,
   type Unsubscribe,
 } from '@nestly/shared';
-import { useAuthStore } from '@nestly/shared/stores';
+import { useLocalIdentityStore } from '@nestly/shared/stores';
 import type { Nest, NestMembership, NestCategory } from '@nestly/shared';
 import { NestCard } from '../../components/village/NestCard';
 import { CreateNestModal } from '../../components/village/CreateNestModal';
@@ -41,7 +41,8 @@ const CATEGORIES: { label: string; value: NestCategory | 'all' }[] = [
 type SortBy = 'popular' | 'newest';
 
 export function VillageHomeScreen({ navigation }: Props) {
-  const { userUid } = useAuthStore();
+  const localUuid = useLocalIdentityStore((s) => s.localUuid);
+  const userUid = localUuid || null;
 
   const [view, setView] = useState<'discover' | 'my-nests'>('discover');
   const [nests, setNests] = useState<Nest[]>([]);

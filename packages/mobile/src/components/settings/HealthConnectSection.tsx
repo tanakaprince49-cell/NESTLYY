@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, AppState, Alert, Linking, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LifecycleStage } from '@nestly/shared';
-import { useHealthConnectStore, useAuthStore, useProfileStore } from '@nestly/shared/stores';
+import { useHealthConnectStore, useLocalIdentityStore, useProfileStore } from '@nestly/shared/stores';
 
 const HC_PLAY_STORE_URL = 'market://details?id=com.google.android.apps.healthdata';
 
@@ -30,7 +30,7 @@ export function HealthConnectSection() {
     refreshPermissions,
     syncAll,
   } = useHealthConnectStore();
-  const { authEmail } = useAuthStore();
+  const localUuid = useLocalIdentityStore((s) => s.localUuid);
   const { profile } = useProfileStore();
   const sleepMode = profile?.lifecycleStage === LifecycleStage.PREGNANCY ? 'pregnancy' : 'newborn';
 
@@ -59,8 +59,8 @@ export function HealthConnectSection() {
     // button. The global foreground-resume sync in App.tsx covers every
     // subsequent resume, but the very first connect happens in-session and
     // needs its own explicit call. See issue #219.
-    syncAll(authEmail || 'guest', sleepMode);
-  }, [connect, syncAll, authEmail, sleepMode]);
+    syncAll(localUuid, sleepMode);
+  }, [connect, syncAll, localUuid, sleepMode]);
 
   const handleDisconnect = useCallback(() => {
     Alert.alert('Disconnect Health Connect', 'Your data will remain but will no longer sync.', [
@@ -70,8 +70,8 @@ export function HealthConnectSection() {
   }, [disconnect]);
 
   const handleSync = useCallback(() => {
-    syncAll(authEmail || 'guest', sleepMode);
-  }, [syncAll, authEmail, sleepMode]);
+    syncAll(localUuid, sleepMode);
+  }, [syncAll, localUuid, sleepMode]);
 
   const handleInstall = useCallback(() => {
     Linking.openURL(HC_PLAY_STORE_URL).catch(() => {

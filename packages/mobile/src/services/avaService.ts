@@ -1,4 +1,3 @@
-import { auth } from '@nestly/shared';
 import type { ChatMessage } from '@nestly/shared';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL
@@ -10,11 +9,6 @@ export async function getAvaResponse(
   recentMessages: ChatMessage[],
   signal?: AbortSignal,
 ): Promise<string> {
-  const token = await auth.currentUser?.getIdToken();
-  if (!token) {
-    throw new Error('Not authenticated');
-  }
-
   // Map local ChatMessage format to API format (last 6 messages for context)
   const history = recentMessages.slice(-6).map((m) => ({
     role: m.role === 'model' ? ('assistant' as const) : ('user' as const),
@@ -32,7 +26,6 @@ export async function getAvaResponse(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ messages: history }),
       signal: controller.signal,

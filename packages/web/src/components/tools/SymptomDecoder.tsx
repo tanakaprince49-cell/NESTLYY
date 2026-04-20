@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Stethoscope, Sparkles, Send, RefreshCw, AlertCircle, CheckCircle2, AlertTriangle, Phone } from 'lucide-react';
-import { auth, Trimester } from '@nestly/shared';
+import { Trimester } from '@nestly/shared';
 
 interface SymptomDecoderProps {
   trimester: Trimester;
@@ -26,12 +26,10 @@ export const SymptomDecoder: React.FC<SymptomDecoderProps> = ({ trimester }) => 
     setLoading(true);
     setError(null);
     try {
-      const token = await auth.currentUser?.getIdToken();
       const response = await fetch('/api/symptom-decode', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ symptoms, trimester })
       });

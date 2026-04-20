@@ -14,19 +14,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAvaChatStore, useAuthStore, useProfileStore } from '@nestly/shared/stores';
+import { useAvaChatStore, useLocalIdentityStore, useProfileStore } from '@nestly/shared/stores';
 import type { ChatMessage } from '@nestly/shared';
 import { getAvaResponse } from '../services/avaService';
 
-function getStorageKey(email: string | null) {
-  const prefix = email || 'anon';
-  return `${prefix}_ava_chat_messages`;
+function getStorageKey(uuid: string) {
+  return `${uuid}_ava_chat_messages`;
 }
 
 export function AvaScreen() {
-  const { authEmail } = useAuthStore();
+  const localUuid = useLocalIdentityStore((s) => s.localUuid);
   const { profile } = useProfileStore();
-  const storageKey = getStorageKey(authEmail);
+  const storageKey = getStorageKey(localUuid);
   const {
     messages,
     isLoading,

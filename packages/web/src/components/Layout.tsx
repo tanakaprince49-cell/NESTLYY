@@ -9,7 +9,6 @@ import {
   LayoutGrid,
   User,
   ShieldCheck,
-  LogOut,
   Menu,
   X,
   Users
@@ -27,7 +26,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLogout }) => {
   const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map((e: string) => e.trim()).filter(Boolean);
-  const isAdmin = adminEmails.includes(storage.getAuthEmail() || '');
+  const isAdmin = adminEmails.includes(storage.getLocalUuidPublic());
   const [isDesktop, setIsDesktop] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -84,14 +83,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           {/* Profile Card */}
           {!sidebarCollapsed && storage.getProfile()?.profileImage && (
             <div className="mx-4 mb-4 p-3 bg-rose-50/60 rounded-2xl flex items-center gap-3">
-              <img 
-                src={storage.getProfile()?.profileImage!} 
-                alt="Profile" 
-                className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover" 
+              <img
+                src={storage.getProfile()?.profileImage!}
+                alt="Profile"
+                className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover"
               />
               <div className="truncate">
                 <p className="text-sm font-bold text-slate-800 truncate">{storage.getProfile()?.userName || 'User'}</p>
-                <p className="text-[10px] text-slate-400 font-medium truncate">{storage.getAuthEmail()}</p>
+                <p className="text-[10px] text-slate-400 font-medium truncate">Private</p>
               </div>
             </div>
           )}
@@ -113,17 +112,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
           {/* Sidebar Footer */}
           <div className="p-3 border-t border-rose-100/50">
-            <button 
-              onClick={onLogout}
-              className={`flex items-center gap-3 w-full p-3 rounded-2xl text-slate-400 hover:text-rose-900 hover:bg-rose-50 transition-all ${
-                sidebarCollapsed ? 'justify-center' : ''
-              }`}
-            >
-              <LogOut size={20} strokeWidth={2} />
-              {!sidebarCollapsed && (
-                <span className="text-[11px] font-black uppercase tracking-widest">Logout</span>
-              )}
-            </button>
+            <p className="text-[9px] text-slate-300 uppercase tracking-widest text-center font-bold px-3">No account required</p>
           </div>
         </aside>
       )}
@@ -138,19 +127,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           </div>
           <div className="flex items-center gap-4">
             {storage.getProfile()?.profileImage && (
-              <img 
-                src={storage.getProfile()?.profileImage!} 
-                alt="Profile" 
-                className="w-8 h-8 rounded-full border-2 border-white shadow-sm object-cover" 
+              <img
+                src={storage.getProfile()?.profileImage!}
+                alt="Profile"
+                className="w-8 h-8 rounded-full border-2 border-white shadow-sm object-cover"
               />
             )}
-            <button 
-              onClick={onLogout}
-              className="p-2 text-slate-400 hover:text-rose-900 transition-colors"
-              title="Logout"
-            >
-              <LogOut size={20} strokeWidth={2.5} />
-            </button>
           </div>
         </header>
 

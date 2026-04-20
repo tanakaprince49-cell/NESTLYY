@@ -14,7 +14,7 @@ import {
   AlertCircle,
   CheckCircle2
 } from 'lucide-react';
-import { PregnancyProfile, CustomPlan, Trimester, auth } from '@nestly/shared';
+import { PregnancyProfile, CustomPlan, Trimester } from '@nestly/shared';
 import { storage } from '../services/storageService.ts';
 
 interface CustomPlanViewProps {
@@ -62,12 +62,10 @@ export const CustomPlanView: React.FC<CustomPlanViewProps> = ({ profile, trimest
     setLoading(true);
     setError(null);
     try {
-      const token = await auth.currentUser?.getIdToken();
       const response = await fetch('/api/custom-plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           trimester,
