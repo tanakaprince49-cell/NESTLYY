@@ -125,6 +125,7 @@ Every non-trivial task follows this process:
 | check-types.sh | tsc --noEmit across shared/web/mobile |
 | check-build.sh | Web production build |
 | check-secrets.sh | Hardcoded secrets scan |
+| check-telemetry.sh | Reject telemetry / analytics SDKs (Zero-Data MVP guardrail) |
 | check-imports.sh | Cross-package import violations |
 | check-architecture.sh | Store location, nav consistency, API coverage, shared purity |
 | check-storage.sh | Direct localStorage bypassing storageService |
