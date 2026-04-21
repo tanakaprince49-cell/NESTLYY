@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#fdf8f7"
       },
-      "versionCode": 4,
+      "versionCode": 5,
       "package": "com.nestly.app",
       "googleServicesFile": "./google-services.json",
       "permissions": [
@@ -35,8 +35,6 @@
         "android.permission.health.WRITE_HEART_RATE",
         "android.permission.health.READ_SLEEP",
         "android.permission.health.WRITE_SLEEP",
-        "android.permission.READ_MEDIA_IMAGES",
-        "android.permission.READ_MEDIA_VIDEO"
       ]
     },
     "notification": {
@@ -70,13 +68,6 @@
           "android": {
             "minSdkVersion": 26
           }
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "NESTLY needs access to your photos to attach them to posts.",
-          "cameraPermission": null
         }
       ],
       "expo-video"

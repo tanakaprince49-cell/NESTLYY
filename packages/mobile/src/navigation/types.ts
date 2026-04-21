@@ -1,5 +1,3 @@
-import type { NavigatorScreenParams } from '@react-navigation/native';
-
 export type ToolsStackParamList = {
   ToolsHub: undefined;
   FeedingTracker: undefined;
@@ -17,16 +15,10 @@ export type ToolsStackParamList = {
   ReportCenter: undefined;
 };
 
-export type VillageStackParamList = {
-  VillageHome: undefined;
-  NestDetail: { nestId: string };
-};
-
 export type RootTabParamList = {
   Dashboard: undefined;
   Baby: undefined;
   Education: undefined;
-  Tools: NavigatorScreenParams<ToolsStackParamList>;
-  Village: NavigatorScreenParams<VillageStackParamList>;
+  Tools: import('@react-navigation/native').NavigatorScreenParams<ToolsStackParamList>;
   Settings: undefined;
 };

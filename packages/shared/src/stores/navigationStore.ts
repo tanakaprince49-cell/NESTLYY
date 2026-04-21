@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-type TabName = 'dashboard' | 'baby' | 'education' | 'tools' | 'admin' | 'settings' | 'village';
+type TabName = 'dashboard' | 'baby' | 'education' | 'tools' | 'admin' | 'settings';
 
 interface NavigationState {
   activeTab: TabName;
