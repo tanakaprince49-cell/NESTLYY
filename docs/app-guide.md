@@ -24,7 +24,7 @@ flowchart TD
 
 ## Navigation
 
-7 tabs controlled by `activeTab` state in `App.tsx`. No router library.
+5 tabs controlled by `activeTab` state in `App.tsx`. No router library.
 
 ```mermaid
 flowchart LR
@@ -33,14 +33,11 @@ flowchart LR
         baby[Growth]
         education[Articles]
         tools[Tools]
-        village[Village]
         settings[Settings]
-        admin[Admin]
     end
 ```
 
 Desktop: collapsible sidebar on the left. Mobile: fixed bottom nav bar with horizontal scroll.
-Admin tab only visible to users whose UID is in `ADMIN_UIDS` env var.
 
 ## Lifecycle stages
 

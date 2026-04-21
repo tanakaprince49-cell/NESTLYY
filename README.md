@@ -28,8 +28,6 @@ Live at [nestlyhealth.com](https://nestlyhealth.com).
    | `FIREBASE_SERVICE_ACCOUNT` | Yes | Firebase Admin -- auth verification, push notifications |
    | `VITE_FIREBASE_VAPID_KEY` | Yes | Firebase Cloud Messaging (push notifications) |
    | `RESEND_API_KEY` | No | Email service |
-   | `ADMIN_UIDS` | No | Comma-separated Firebase UIDs for backend admin access |
-   | `VITE_ADMIN_EMAILS` | No | Comma-separated emails for frontend admin check |
    | `APP_URL` | No | Base URL for links in emails |
 
 3. Start the dev server:

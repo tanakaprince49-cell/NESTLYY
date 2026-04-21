@@ -11,7 +11,7 @@ echo "=== ENVIRONMENT VARIABLE COVERAGE ==="
 # Collect env vars used in code (only project-specific patterns)
 # Match: VITE_*, EXPO_PUBLIC_*, and specific project vars from process.env
 USED=$(grep -roh --include='*.ts' --include='*.tsx' --include='*.js' \
-  -E 'import\.meta\.env\.VITE_[A-Z_]+|process\.env\.(OPENROUTER_API_KEY|GEMINI_API_KEY|RESEND_API_KEY|FIREBASE_SERVICE_ACCOUNT|ADMIN_UIDS|APP_URL|EXPO_PUBLIC_[A-Z_]+|VITE_[A-Z_]+)' \
+  -E 'import\.meta\.env\.VITE_[A-Z_]+|process\.env\.(OPENROUTER_API_KEY|GEMINI_API_KEY|RESEND_API_KEY|FIREBASE_SERVICE_ACCOUNT|APP_URL|EXPO_PUBLIC_[A-Z_]+|VITE_[A-Z_]+)' \
   packages/ api/ 2>/dev/null \
   | grep -v node_modules \
   | sed 's/import\.meta\.env\.//' \

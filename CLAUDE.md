@@ -67,7 +67,6 @@ Root `.env.example` documents all variables:
 - `RESEND_API_KEY` -- Email service
 - `FIREBASE_SERVICE_ACCOUNT` -- Firebase Admin JSON
 - `VITE_FIREBASE_VAPID_KEY` -- FCM push notifications
-- `ADMIN_UIDS` / `VITE_ADMIN_EMAILS` -- Admin access
 - `EXPO_PUBLIC_API_URL` -- Mobile API base URL (defaults to production)
 
 ## Tech Stack
@@ -103,7 +102,6 @@ All data models in `packages/shared/src/types.ts`. Component prop types stay inl
 ### Serverless API (api/)
 - `api/food-research.js` -- Nutrition research (public)
 - `api/push/token.js` -- Push token storage
-- `api/admin/broadcast.js` -- Admin push broadcasts
 
 ### Styling
 - Web: Tailwind v3 + CSS custom properties. 12 themes with glassmorphism.
