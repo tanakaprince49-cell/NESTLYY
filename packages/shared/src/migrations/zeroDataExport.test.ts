@@ -569,4 +569,176 @@ describe('isZeroDataExportV1', () => {
     };
     expect(isZeroDataExportV1(raw)).toBe(false);
   });
+
+  it('returns false when meta.schemaVersion is 2', () => {
+    const built = makeValidExport();
+    const withWrongVersion = { ...built, meta: { ...built.meta, schemaVersion: 2 } };
+    expect(isZeroDataExportV1(withWrongVersion)).toBe(false);
+  });
+});
+
+describe('checkShapeV1 - schemaVersion must equal 1', () => {
+  it('migrateExport throws FUTURE_VERSION for schemaVersion 2 (caught before shape check)', () => {
+    const raw = {
+      meta: { schemaVersion: 2 },
+      trimester: Trimester.FIRST,
+      profile: null,
+      tracking: emptyTracking,
+      avaChat: emptyAvaChat,
+      settings: defaultSettings,
+    };
+    expect(() => migrateExport(raw)).toThrow(ExportValidationError);
+    try {
+      migrateExport(raw);
+    } catch (e) {
+      expect((e as ExportValidationError).code).toBe('FUTURE_VERSION');
+    }
+  });
+});
+
+describe('migrateExport - trimester validation', () => {
+  it('throws INVALID_SHAPE for trimester: "banana"', () => {
+    const built = makeValidExport();
+    const raw = { ...built, trimester: 'banana' };
+    expect(() => migrateExport(raw)).toThrow(ExportValidationError);
+    try {
+      migrateExport(raw);
+    } catch (e) {
+      expect((e as ExportValidationError).code).toBe('INVALID_SHAPE');
+    }
+  });
+
+  it('throws INVALID_SHAPE for trimester: undefined', () => {
+    const built = makeValidExport();
+    const { trimester: _t, ...withoutTrimester } = built;
+    expect(() => migrateExport(withoutTrimester)).toThrow(ExportValidationError);
+    try {
+      migrateExport(withoutTrimester);
+    } catch (e) {
+      expect((e as ExportValidationError).code).toBe('INVALID_SHAPE');
+    }
+  });
+
+  it('accepts all valid Trimester enum values', () => {
+    const validValues = Object.values(Trimester);
+    for (const trimester of validValues) {
+      const built = buildExport({
+        profile: null,
+        trimester,
+        tracking: emptyTracking,
+        avaChat: emptyAvaChat,
+        settings: defaultSettings,
+        identityType: 'local-uuid',
+        platform: 'web',
+        appVersion: '0.1.0',
+      });
+      expect(() => migrateExport(JSON.parse(JSON.stringify(built)))).not.toThrow();
+    }
+  });
+});
+
+describe('migrateExport - profile validation', () => {
+  it('throws INVALID_SHAPE for profile: [] (array)', () => {
+    const built = makeValidExport();
+    const raw = { ...built, profile: [] };
+    expect(() => migrateExport(raw)).toThrow(ExportValidationError);
+    try {
+      migrateExport(raw);
+    } catch (e) {
+      expect((e as ExportValidationError).code).toBe('INVALID_SHAPE');
+    }
+  });
+
+  it('throws INVALID_SHAPE for profile: "string"', () => {
+    const built = makeValidExport();
+    const raw = { ...built, profile: 'not-an-object' };
+    expect(() => migrateExport(raw)).toThrow(ExportValidationError);
+    try {
+      migrateExport(raw);
+    } catch (e) {
+      expect((e as ExportValidationError).code).toBe('INVALID_SHAPE');
+    }
+  });
+
+  it('succeeds when profile is null', () => {
+    const built = buildExport({
+      profile: null,
+      trimester: Trimester.FIRST,
+      tracking: emptyTracking,
+      avaChat: emptyAvaChat,
+      settings: defaultSettings,
+      identityType: 'local-uuid',
+      platform: 'web',
+      appVersion: '0.1.0',
+    });
+    const migrated = migrateExport(JSON.parse(JSON.stringify(built)));
+    expect(migrated.profile).toBeNull();
+  });
+});
+
+describe('migrateExport - prototype pollution guard', () => {
+  it('throws INVALID_SHAPE for Object.create(null)', () => {
+    const nullProto = Object.assign(Object.create(null) as Record<string, unknown>, {
+      meta: { schemaVersion: 1 },
+      trimester: Trimester.FIRST,
+      profile: null,
+      tracking: emptyTracking,
+      avaChat: emptyAvaChat,
+      settings: defaultSettings,
+    });
+    expect(() => migrateExport(nullProto)).toThrow(ExportValidationError);
+    try {
+      migrateExport(nullProto);
+    } catch (e) {
+      expect((e as ExportValidationError).code).toBe('INVALID_SHAPE');
+    }
+  });
+
+  it('throws for an array input', () => {
+    expect(() => migrateExport([])).toThrow(ExportValidationError);
+    try {
+      migrateExport([]);
+    } catch (e) {
+      expect(e).toBeInstanceOf(ExportValidationError);
+    }
+  });
+
+  it('does not throw for plain JSON.parse output (Object.prototype chain)', () => {
+    const built = makeValidExport();
+    const parsed = JSON.parse(JSON.stringify(built));
+    expect(Object.getPrototypeOf(parsed)).toBe(Object.prototype);
+    expect(() => migrateExport(parsed)).not.toThrow();
+  });
+});
+
+describe('migrateExport - output key set pinned', () => {
+  it('unknown top-level fields are dropped and output key set is exact (no extras)', () => {
+    const built = makeValidExport();
+    const withExtra = { ...built, foo: 'bar', anotherUnknown: 42 };
+    const migrated = migrateExport(withExtra);
+    expect((migrated as unknown as Record<string, unknown>).foo).toBeUndefined();
+    expect((migrated as unknown as Record<string, unknown>).anotherUnknown).toBeUndefined();
+    expect(migrated.meta.schemaVersion).toBe(1);
+    expect(Object.keys(migrated).sort()).toEqual(
+      ['avaChat', 'meta', 'profile', 'settings', 'tracking', 'trimester'].sort(),
+    );
+  });
+
+  it('output key set includes extras when extras is provided', () => {
+    const built = buildExport({
+      profile: null,
+      trimester: Trimester.FIRST,
+      tracking: emptyTracking,
+      avaChat: emptyAvaChat,
+      settings: defaultSettings,
+      extras: { periodLogs: [], lastWeekCelebrated: 5 },
+      identityType: 'local-uuid',
+      platform: 'web',
+      appVersion: '0.1.0',
+    });
+    const migrated = migrateExport(JSON.parse(JSON.stringify(built)));
+    expect(Object.keys(migrated).sort()).toEqual(
+      ['avaChat', 'extras', 'meta', 'profile', 'settings', 'tracking', 'trimester'].sort(),
+    );
+  });
 });

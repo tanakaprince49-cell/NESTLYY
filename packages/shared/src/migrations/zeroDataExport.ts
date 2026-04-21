@@ -1,14 +1,13 @@
 import type {
   IdentityType,
   PregnancyProfile,
-  Trimester,
   ZeroDataAvaSlice,
   ZeroDataExportV1,
   ZeroDataExtrasSlice,
   ZeroDataSettingsSlice,
   ZeroDataTrackingSlice,
 } from '../types.ts';
-import { CURRENT_SCHEMA_VERSION } from '../types.ts';
+import { CURRENT_SCHEMA_VERSION, Trimester } from '../types.ts';
 
 export class ExportValidationError extends Error {
   readonly code: string;
@@ -99,6 +98,21 @@ function checkShapeV1(raw: unknown): asserts raw is ZeroDataExportV1 {
   if (!isObject(raw['meta'])) {
     throw new ExportValidationError('Missing meta', 'MISSING_VERSION');
   }
+  if (raw['meta']['schemaVersion'] !== 1) {
+    throw new ExportValidationError('meta.schemaVersion must be 1', 'INVALID_SHAPE');
+  }
+  const validTrimesterValues: string[] = Object.values(Trimester);
+  const trimester = raw['trimester'];
+  if (typeof trimester !== 'string' || !validTrimesterValues.includes(trimester)) {
+    throw new ExportValidationError(
+      `trimester must be one of: ${validTrimesterValues.join(', ')}`,
+      'INVALID_SHAPE',
+    );
+  }
+  const profile = raw['profile'];
+  if (profile !== null && !isObject(profile)) {
+    throw new ExportValidationError('profile must be null or a plain object', 'INVALID_SHAPE');
+  }
   if (!('tracking' in raw)) {
     throw new ExportValidationError('Missing tracking slice', 'INVALID_SHAPE');
   }
@@ -116,6 +130,9 @@ function checkShapeV1(raw: unknown): asserts raw is ZeroDataExportV1 {
 export function migrateExport(raw: unknown): ZeroDataExportV1 {
   if (!isObject(raw)) {
     throw new ExportValidationError('Export must be a non-null object', 'MISSING_VERSION');
+  }
+  if (Object.getPrototypeOf(raw) !== Object.prototype) {
+    throw new ExportValidationError('Export must be a plain object', 'INVALID_SHAPE');
   }
 
   const meta = raw['meta'];
@@ -140,20 +157,21 @@ export function migrateExport(raw: unknown): ZeroDataExportV1 {
     checkShapeV1(raw);
     const { meta: rawMeta, profile, trimester, tracking, avaChat, settings, extras } = raw;
     const result: ZeroDataExportV1 = {
-      meta: rawMeta as ZeroDataExportV1['meta'],
-      profile: profile as PregnancyProfile | null,
-      trimester: trimester as Trimester,
-      tracking: tracking as ZeroDataTrackingSlice,
-      avaChat: avaChat as ZeroDataAvaSlice,
-      settings: settings as ZeroDataSettingsSlice,
+      meta: rawMeta,
+      profile,
+      trimester,
+      tracking,
+      avaChat,
+      settings,
     };
     if (extras !== undefined) {
-      result.extras = extras as ZeroDataExtrasSlice;
+      result.extras = extras;
     }
     return result;
   }
 
-  throw new ExportValidationError('Unknown legacy schema', 'LEGACY_VERSION');
+  const _exhaustive: never = schemaVersion as never;
+  throw new ExportValidationError(`Unsupported schemaVersion ${_exhaustive}`, 'LEGACY_VERSION');
 }
 
 export function buildExport(input: {
