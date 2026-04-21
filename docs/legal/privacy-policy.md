@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective Date:** 15 April 2026
+**Effective Date:** 22 April 2026
 **App:** Nestly Pregnancy Companion
 **Operator:** Tanaka Gaadzikwa, 490 Westwood, Harare, Zimbabwe
 **Contact:** supportnestly@gmail.com
