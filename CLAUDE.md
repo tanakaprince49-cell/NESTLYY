@@ -63,7 +63,6 @@ Every PR that modifies production code under `packages/*/src/**` (excluding test
 ## Environment Variables
 
 Root `.env.example` documents all variables:
-- `OPENROUTER_API_KEY` -- Food research AI (DeepSeek via OpenRouter)
 - `RESEND_API_KEY` -- Email service
 - `FIREBASE_SERVICE_ACCOUNT` -- Firebase Admin JSON
 - `EXPO_PUBLIC_API_URL` -- Mobile API base URL (defaults to production)
@@ -99,7 +98,7 @@ Root `.env.example` documents all variables:
 All data models in `packages/shared/src/types.ts`. Component prop types stay inline.
 
 ### Serverless API (api/)
-- `api/food-research.js` -- Nutrition research (public)
+- No public endpoints. Zero-Data MVP keeps all compute on-device.
 
 ### Styling
 - Web: Tailwind v3 + CSS custom properties. 12 themes with glassmorphism.

@@ -22,7 +22,6 @@ CRITICAL_FILES=(
   ".github/workflows/ci.yml"
   ".github/workflows/cd.yml"
   ".github/workflows/auto-pr.yml"
-  "api/food-research.js"
   "vercel.json"
   "tailwind.config.js"
   "postcss.config.js"
