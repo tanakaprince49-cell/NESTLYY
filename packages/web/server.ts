@@ -1,52 +1,14 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import { createServer as createViteServer } from "vite";
 import { Resend } from "resend";
 import cron from "node-cron";
-import * as admin from "firebase-admin";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Firebase Admin (graceful fallback for local dev)
-let firebaseInitialized = false;
-try {
-  if (!admin.apps?.length) {
-    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
-      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
-      : undefined;
-
-    if (serviceAccount) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-      });
-      firebaseInitialized = true;
-    } else {
-      console.warn("[WARN] No FIREBASE_SERVICE_ACCOUNT set. Firebase Admin features disabled.");
-    }
-  }
-} catch (e) {
-  console.warn("[WARN] Firebase Admin init failed:", e);
-}
-
-const messaging = firebaseInitialized ? admin.messaging() : null;
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
-// Auth middleware — verifies Firebase ID token from Authorization header
-async function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!firebaseInitialized) {
-    return res.status(503).json({ error: "Auth service unavailable" });
-  }
-  const token = req.headers.authorization?.split("Bearer ")[1];
-  if (!token) return res.status(401).json({ error: "Unauthorized" });
-  try {
-    (req as any).user = await admin.auth().verifyIdToken(token);
-    next();
-  } catch {
-    res.status(401).json({ error: "Invalid token" });
-  }
-}
 
 async function startServer() {
   const app = express();
@@ -117,12 +79,6 @@ Return ONLY the JSON.`,
     }
   });
   
-  // Store FCM Token
-  app.post("/api/push/token", requireAuth, async (req, res) => {
-    // Disabled as per request to keep Firebase for Auth only
-    res.json({ success: true, message: "FCM token storage disabled (Local only mode)" });
-  });
-
   // Unsubscribe endpoint
   app.get("/api/unsubscribe", async (req, res) => {
     res.send(`

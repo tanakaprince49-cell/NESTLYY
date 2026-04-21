@@ -101,7 +101,6 @@ All data models in `packages/shared/src/types.ts`. Component prop types stay inl
 
 ### Serverless API (api/)
 - `api/food-research.js` -- Nutrition research (public)
-- `api/push/token.js` -- Push token storage
 
 ### Styling
 - Web: Tailwind v3 + CSS custom properties. 12 themes with glassmorphism.
