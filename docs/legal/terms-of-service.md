@@ -60,9 +60,9 @@ By using the App, you acknowledge and agree that:
 ## 5. Data and Storage
 
 - All personal health data (pregnancy profile, tracking logs, journal entries, baby data) is stored locally on your device.
-- You are responsible for maintaining backups of your data using the **Export all data** action in Settings. Nestly is not responsible for data loss on uninstall, device change, device failure, or data corruption.
-- You can delete all your data at any time using the **Delete all data** action in Settings, by clearing app data in Android Settings, or by uninstalling the App.
-- You can restore previously exported data using the **Import all data** action in Settings.
+- You are responsible for maintaining backups of your data. In the web app, use the **Export data** action in Settings. In the Android app, use the **Back up my data** action in Settings. Nestly is not responsible for data loss on uninstall, device change, device failure, or data corruption.
+- You can delete all your data at any time using the **Delete all data** action in Settings (both platforms), by clearing app data in Android Settings, or by uninstalling the App.
+- You can restore a previously exported file using **Import data** in the web app or **Restore from a backup** in the Android app.
 
 ---
 

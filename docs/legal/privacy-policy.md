@@ -103,7 +103,7 @@ Under the Cyber and Data Protection Act, you have the right to:
 
 - Access your personal data and receive a copy
 - Rectify inaccurate data
-- Delete your account and all associated data
+- Delete all your locally stored data
 - Restrict processing of your data
 - Object to processing of your data
 - Data portability: receive your data in a structured format
