@@ -9,8 +9,7 @@
     ".": "./src/index.ts",
     "./stores": "./src/stores/index.ts",
     "./data/educationArticles": "./src/data/educationArticles.ts",
-    "./tokens": "./src/tokens/index.ts",
-    "./firebase-applet-config.json": "./src/firebase-applet-config.json"
+    "./tokens": "./src/tokens/index.ts"
   },
   "scripts": {
     "lint": "tsc --noEmit",
@@ -18,7 +17,6 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
-    "firebase": "^12.10.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
