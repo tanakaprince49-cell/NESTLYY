@@ -80,7 +80,6 @@ const GLOBAL_KEYS: readonly string[] = [
   KEYS.ACTIVITY_LOGS,
   KEYS.VISITS,
   KEYS.ARTICLES,
-  KEYS.BROADCASTS,
   KEYS.VIDEOS,
 ];
 
@@ -555,7 +554,7 @@ class StorageService {
     // Mirror deleteAccount() minus LOCAL_UUID_KEY removal. The device scope
     // is preserved so a post-wipe reload routes to Setup under the same UUID,
     // without generating a fresh identity. Global keys (ACTIVITY_LOGS,
-    // VISITS, ARTICLES, BROADCASTS, VIDEOS) intentionally survive — they are
+    // VISITS, ARTICLES, VIDEOS) intentionally survive — they are
     // device-scoped telemetry or seeded content, not user data.
     const uuid = this.getScope();
     try {
