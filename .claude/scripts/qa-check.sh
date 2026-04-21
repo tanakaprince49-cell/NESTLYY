@@ -46,13 +46,14 @@ run_check() {
 }
 
 # --- Core checks (always run) ---
-run_check "$SCRIPTS/check-types.sh"    "Type Check"      error
-run_check "$SCRIPTS/check-secrets.sh"  "Secrets Scan"    error
-run_check "$SCRIPTS/check-imports.sh"  "Import Check"    error
-run_check "$SCRIPTS/check-storage.sh"  "Storage Check"   warning
-run_check "$SCRIPTS/check-env.sh"      "Env Vars"        warning
-run_check "$SCRIPTS/check-console.sh"  "Console Stmts"   warning
-run_check "$SCRIPTS/check-architecture.sh" "Architecture" warning
+run_check "$SCRIPTS/check-types.sh"      "Type Check"       error
+run_check "$SCRIPTS/check-secrets.sh"    "Secrets Scan"     error
+run_check "$SCRIPTS/check-telemetry.sh"  "Telemetry Guard"  error
+run_check "$SCRIPTS/check-imports.sh"    "Import Check"     error
+run_check "$SCRIPTS/check-storage.sh"    "Storage Check"    warning
+run_check "$SCRIPTS/check-env.sh"        "Env Vars"         warning
+run_check "$SCRIPTS/check-console.sh"    "Console Stmts"    warning
+run_check "$SCRIPTS/check-architecture.sh" "Architecture"   warning
 
 # --- Slow checks (skipped in quick mode) ---
 if ! $QUICK; then
