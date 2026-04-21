@@ -762,11 +762,12 @@ export const generateDoctorSummary = (): void => {
   const daysWithFood = new Set(foods.map((f) => new Date(f.timestamp).toDateString())).size || 1;
   const avg = (n: number): string => (n / daysWithFood).toFixed(0);
 
+  const daysWithSleep = new Set(sleep.map((s) => new Date(s.startTime).toDateString())).size || 1;
   const totalSleepHours = sleep.reduce(
     (acc, s) => acc + calculateDurationMinutes(s.startTime, s.endTime) / 60,
     0,
   );
-  const avgSleep = sleep.length > 0 ? (totalSleepHours / daysWithFood).toFixed(1) : '---';
+  const avgSleep = sleep.length > 0 ? (totalSleepHours / daysWithSleep).toFixed(1) : '---';
 
   const latestWeight = weights[0]?.weight;
   const latestBp = bloodPressure[0];
@@ -776,9 +777,38 @@ export const generateDoctorSummary = (): void => {
 
   let y = 60;
   const parentName = profile.userName || 'Parent';
-  const stageLabel =
-    profile.lifecycleStage === LifecycleStage.NEWBORN ? 'Newborn care' : 'Pregnancy';
-  drawProfileCard(doc, pageWidth, y, `Mama: ${parentName}`, `Current stage: ${stageLabel}`);
+  const stageLabelFor = (stage: LifecycleStage | undefined): string => {
+    switch (stage) {
+      case LifecycleStage.PRE_PREGNANCY: return 'Pre-pregnancy';
+      case LifecycleStage.BIRTH: return 'Birth';
+      case LifecycleStage.NEWBORN: return 'Newborn care';
+      case LifecycleStage.INFANT: return 'Infant care';
+      case LifecycleStage.TODDLER: return 'Toddler care';
+      case LifecycleStage.PREGNANCY:
+      default:
+        return 'Pregnancy';
+    }
+  };
+  const stageLabel = stageLabelFor(profile.lifecycleStage);
+
+  // Build a richer second line for pregnancy stages: include EDD and
+  // gestational week so the provider can anchor the numbers in time.
+  const profileLineParts: string[] = [`Current stage: ${stageLabel}`];
+  if (profile.dueDate) {
+    const due = new Date(profile.dueDate);
+    if (!Number.isNaN(due.getTime())) {
+      profileLineParts.push(`EDD ${due.toLocaleDateString('en-GB')}`);
+      if (
+        profile.lifecycleStage === LifecycleStage.PREGNANCY ||
+        profile.lifecycleStage === LifecycleStage.PRE_PREGNANCY
+      ) {
+        const weeksLeft = (due.getTime() - now.getTime()) / (7 * 24 * 60 * 60 * 1000);
+        const gestWeek = Math.max(0, Math.min(42, Math.round(40 - weeksLeft)));
+        profileLineParts.push(`Week ${gestWeek}`);
+      }
+    }
+  }
+  drawProfileCard(doc, pageWidth, y, `Mama: ${parentName}`, profileLineParts.join('  |  '));
   y += 45;
   drawDivider(doc, pageWidth, y);
   y += 12;
@@ -878,9 +908,32 @@ export const generateDoctorSummary = (): void => {
       y += wrapped.length * 6;
       if (y > pageHeight - 50) break;
     }
+    y += 8;
   }
 
-  drawFooter(doc, pageWidth, pageHeight, 'SHARE WITH YOUR HEALTHCARE PROVIDER.');
+  if (medications.length > 0 && y < pageHeight - 60) {
+    doc.setFont('times', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
+    doc.text('Medications logged', 15, y);
+    y += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
+    const uniqueNames = Array.from(
+      new Set(medications.map((m) => (m.name || '').trim()).filter(Boolean)),
+    ).slice(0, 10);
+    if (uniqueNames.length > 0) {
+      const wrapped = doc.splitTextToSize(uniqueNames.join(', '), pageWidth - 30);
+      doc.text(wrapped, 15, y);
+      y += wrapped.length * 6;
+    } else {
+      doc.text(`${medications.length} dose(s) logged.`, 15, y);
+      y += 6;
+    }
+  }
+
+  drawFooter(doc, pageWidth, pageHeight, 'FOR YOUR MIDWIFE OR DOCTOR.');
 
   doc.save(`Nestly_Doctor_Summary_${now.toISOString().split('T')[0]}.pdf`);
 };

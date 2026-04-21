@@ -9,7 +9,7 @@ import {
   ZeroDataExportV1,
 } from '@nestly/shared';
 import { storage } from '../services/storageService.ts';
-import { buildWebExport, downloadJson, importFromFile } from '../services/exportService.ts';
+import { APP_VERSION, buildWebExport, downloadJson, importFromFile } from '../services/exportService.ts';
 import { generateDoctorSummary } from '../services/reportService.ts';
 import { Camera, Plus, Trash2, Baby, Download, Upload, FileText, AlertTriangle } from 'lucide-react';
 
@@ -127,6 +127,10 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, lo
   };
 
   const handleDeleteAll = () => {
+    // Close the modal first so React doesn't try to unmount against
+    // already-wiped state during the post-reload teardown frame.
+    setShowDeleteConfirm(false);
+    setDeleteConfirmText('');
     storage.wipeAllUserScopedKeys();
     window.location.reload();
   };
@@ -464,7 +468,8 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, lo
       <div className="card-premium p-6 space-y-4">
         <h3 className="font-bold text-slate-800">Your Data</h3>
         <p className="text-xs text-slate-400 leading-relaxed">
-          All your data stays on this device. Back it up or move it to another device here.
+          Nestly keeps everything on this device. Nothing is uploaded. Export a backup,
+          bring a summary to your appointment, or move your data to another phone.
         </p>
 
         <div className="space-y-3">
@@ -474,6 +479,9 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, lo
           >
             <Download size={14} /> Export data
           </button>
+          <p className="text-[10px] text-slate-400 leading-snug px-2 -mt-1">
+            Saves a JSON backup of everything on this device. Keep it somewhere safe.
+          </p>
 
           <button
             onClick={handleExportPdf}
@@ -515,7 +523,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, lo
           All your data stays on your device.
         </p>
         <div className="flex gap-4 pt-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-rose-300">v1.2.0</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-rose-300">v{APP_VERSION}</span>
           <span className="text-[10px] font-black uppercase tracking-widest text-rose-300">Secure</span>
         </div>
       </div>
@@ -657,7 +665,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, lo
                 </button>
                 <button
                   onClick={handleDeleteAll}
-                  disabled={deleteConfirmText !== 'DELETE'}
+                  disabled={deleteConfirmText.trim().toUpperCase() !== 'DELETE'}
                   className="flex-1 py-3 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition-colors disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
                   Delete all

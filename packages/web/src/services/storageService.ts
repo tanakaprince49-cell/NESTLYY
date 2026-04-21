@@ -75,6 +75,21 @@ const KEYS = {
   LAST_WEEK_CELEBRATED: 'last_week_celebrated',
 };
 
+// Keys written unscoped via isGlobal=true — device-wide telemetry or seeded
+// content. These must NOT be wiped when deleting the user's personal data.
+const GLOBAL_KEYS: readonly string[] = [
+  KEYS.ACTIVITY_LOGS,
+  KEYS.VISITS,
+  KEYS.ARTICLES,
+  KEYS.BROADCASTS,
+  KEYS.VIDEOS,
+];
+
+// Everything else is written under `${uuid}_${key}` and belongs to the user.
+const USER_SCOPED_KEYS: readonly string[] = Object.values(KEYS).filter(
+  (k) => !GLOBAL_KEYS.includes(k),
+);
+
 class StorageService {
   private getLocalUuid(): string {
     return getLocalIdentitySync(
@@ -315,7 +330,7 @@ class StorageService {
   deleteAccount(): void {
     const uuid = this.getScope();
     try {
-      Object.values(KEYS).forEach(key => {
+      USER_SCOPED_KEYS.forEach(key => {
         localStorage.removeItem(`${uuid}_${key}`);
       });
       // Reset the local UUID so next launch generates a fresh one
@@ -465,45 +480,79 @@ class StorageService {
     // Wipe all user-scoped keys under the current scope, then write the
     // imported payload. Keeping the current UUID (we do not touch
     // LOCAL_UUID_KEY) means the imported data lives under this device's
-    // scope going forward, no identity churn.
-    this.wipeAllUserScopedKeys();
-
-    if (data.profile) {
-      this.setItem(KEYS.PROFILE, data.profile);
+    // scope going forward, no identity churn. If any write fails mid-way
+    // (e.g. QuotaExceededError), we roll back to the pre-import snapshot
+    // so the user is not left with a half-restored, half-empty state.
+    const uuid = this.getScope();
+    const snapshot = new Map<string, string | null>();
+    for (const key of USER_SCOPED_KEYS) {
+      const fullKey = `${uuid}_${key}`;
+      try {
+        snapshot.set(fullKey, localStorage.getItem(fullKey));
+      } catch {
+        snapshot.set(fullKey, null);
+      }
     }
 
-    this.setItem(KEYS.FOOD, data.tracking.foodEntries);
-    this.setItem(KEYS.SYMPTOMS, data.tracking.symptoms);
-    this.setItem(KEYS.VITAMINS, data.tracking.vitamins);
-    this.setItem(KEYS.CONTRACTIONS, data.tracking.contractions);
-    this.setItem(KEYS.JOURNAL, data.tracking.journalEntries);
-    this.setItem(KEYS.CALENDAR, data.tracking.calendarEvents);
-    this.setItem(KEYS.WEIGHT, data.tracking.weightLogs);
-    this.setItem(KEYS.SLEEP, data.tracking.sleepLogs);
-    this.setItem(KEYS.FEEDING, data.tracking.feedingLogs);
-    this.setItem(KEYS.MILESTONES, data.tracking.milestones);
-    this.setItem(KEYS.HEALTH, data.tracking.healthLogs);
-    this.setItem(KEYS.REACTIONS, data.tracking.reactions);
-    this.setItem(KEYS.BABY_GROWTH, data.tracking.babyGrowthLogs);
-    this.setItem(KEYS.TUMMY_TIME, data.tracking.tummyTimeLogs);
-    this.setItem(KEYS.BLOOD_PRESSURE, data.tracking.bloodPressureLogs);
-    this.setItem(KEYS.KICKS, data.tracking.kickLogs);
-    this.setItem(KEYS.KEGELS, data.tracking.kegelLogs);
-    this.setItem(KEYS.DIAPER, data.tracking.diaperLogs);
-    this.setItem(KEYS.MEDICATIONS, data.tracking.medicationLogs);
+    this.wipeAllUserScopedKeys();
 
-    this.setItem(KEYS.PRIVACY_ACCEPTED, data.settings.hasAcceptedPrivacy);
+    const writeOrThrow = (key: string, value: unknown): void => {
+      localStorage.setItem(`${uuid}_${key}`, JSON.stringify(value));
+    };
 
-    if (data.extras) {
-      if (data.extras.periodLogs) this.setItem(KEYS.PERIOD_LOGS, data.extras.periodLogs);
-      if (data.extras.archivedPregnancies) this.setItem(KEYS.ARCHIVE, data.extras.archivedPregnancies);
-      if (data.extras.checklistItems) this.setItem(KEYS.CHECKLISTS, data.extras.checklistItems);
-      if (data.extras.babyNames) this.setItem(KEYS.BABY_NAMES, data.extras.babyNames);
-      if (data.extras.bumpPhotos) this.setItem(KEYS.BUMP_PHOTOS, data.extras.bumpPhotos);
-      if (data.extras.unlockedAchievementIds) this.setItem(KEYS.UNLOCKED_IDS, data.extras.unlockedAchievementIds);
-      if (typeof data.extras.lastWeekCelebrated === 'number') {
-        this.setItem(KEYS.LAST_WEEK_CELEBRATED, data.extras.lastWeekCelebrated);
+    try {
+      if (data.profile) {
+        writeOrThrow(KEYS.PROFILE, data.profile);
       }
+
+      writeOrThrow(KEYS.FOOD, data.tracking.foodEntries);
+      writeOrThrow(KEYS.SYMPTOMS, data.tracking.symptoms);
+      writeOrThrow(KEYS.VITAMINS, data.tracking.vitamins);
+      writeOrThrow(KEYS.CONTRACTIONS, data.tracking.contractions);
+      writeOrThrow(KEYS.JOURNAL, data.tracking.journalEntries);
+      writeOrThrow(KEYS.CALENDAR, data.tracking.calendarEvents);
+      writeOrThrow(KEYS.WEIGHT, data.tracking.weightLogs);
+      writeOrThrow(KEYS.SLEEP, data.tracking.sleepLogs);
+      writeOrThrow(KEYS.FEEDING, data.tracking.feedingLogs);
+      writeOrThrow(KEYS.MILESTONES, data.tracking.milestones);
+      writeOrThrow(KEYS.HEALTH, data.tracking.healthLogs);
+      writeOrThrow(KEYS.REACTIONS, data.tracking.reactions);
+      writeOrThrow(KEYS.BABY_GROWTH, data.tracking.babyGrowthLogs);
+      writeOrThrow(KEYS.TUMMY_TIME, data.tracking.tummyTimeLogs);
+      writeOrThrow(KEYS.BLOOD_PRESSURE, data.tracking.bloodPressureLogs);
+      writeOrThrow(KEYS.KICKS, data.tracking.kickLogs);
+      writeOrThrow(KEYS.KEGELS, data.tracking.kegelLogs);
+      writeOrThrow(KEYS.DIAPER, data.tracking.diaperLogs);
+      writeOrThrow(KEYS.MEDICATIONS, data.tracking.medicationLogs);
+
+      writeOrThrow(KEYS.PRIVACY_ACCEPTED, data.settings.hasAcceptedPrivacy);
+
+      if (data.extras) {
+        if (data.extras.periodLogs) writeOrThrow(KEYS.PERIOD_LOGS, data.extras.periodLogs);
+        if (data.extras.archivedPregnancies) writeOrThrow(KEYS.ARCHIVE, data.extras.archivedPregnancies);
+        if (data.extras.checklistItems) writeOrThrow(KEYS.CHECKLISTS, data.extras.checklistItems);
+        if (data.extras.babyNames) writeOrThrow(KEYS.BABY_NAMES, data.extras.babyNames);
+        if (data.extras.bumpPhotos) writeOrThrow(KEYS.BUMP_PHOTOS, data.extras.bumpPhotos);
+        if (data.extras.unlockedAchievementIds) writeOrThrow(KEYS.UNLOCKED_IDS, data.extras.unlockedAchievementIds);
+        if (typeof data.extras.lastWeekCelebrated === 'number') {
+          writeOrThrow(KEYS.LAST_WEEK_CELEBRATED, data.extras.lastWeekCelebrated);
+        }
+      }
+    } catch (e) {
+      // Roll back: wipe partial writes, restore snapshot, re-throw for the UI.
+      try {
+        for (const fullKey of snapshot.keys()) {
+          localStorage.removeItem(fullKey);
+        }
+        for (const [fullKey, value] of snapshot) {
+          if (value !== null) {
+            localStorage.setItem(fullKey, value);
+          }
+        }
+      } catch {
+        // Nothing more we can do — surface the original error to the caller.
+      }
+      throw e;
     }
   }
 
@@ -515,7 +564,7 @@ class StorageService {
     // device-scoped telemetry or seeded content, not user data.
     const uuid = this.getScope();
     try {
-      Object.values(KEYS).forEach(key => {
+      USER_SCOPED_KEYS.forEach(key => {
         localStorage.removeItem(`${uuid}_${key}`);
       });
     } catch (e) {}

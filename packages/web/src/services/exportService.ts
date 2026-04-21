@@ -11,7 +11,7 @@ import { storage } from './storageService.ts';
 // Keep in sync with packages/mobile/app.json -> expo.version (canonical).
 // The release workflow bumps both; a drift here only affects the exported
 // meta.appVersion field.
-const APP_VERSION = '0.1.0';
+export const APP_VERSION = '0.1.0';
 
 function trimesterFromProfile(profile: PregnancyProfile | null): Trimester {
   if (!profile?.dueDate) return Trimester.FIRST;
