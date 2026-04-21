@@ -24,6 +24,9 @@ The committer then opens a release PR and, after merge, tags the merge commit `v
 
 ## [Unreleased]
 
+### Removed
+- Ava AI chat (web `AvaChat`/`AvaAIChat` components, mobile `AvaScreen`, `avaChatStore`, `/api/ava.js` serverless handler), Symptom Decoder tool (`SymptomDecoder` component), and Custom Meal Plan tool (`CustomPlanView` component, `/api/custom-plan.js` serverless handler). Removes the `Ava` tab from web nav and mobile bottom tabs, removes `@openrouter/sdk` and `@google/genai` SDK dependencies, and drops every nav entry, deep link, store registration, and settings reference for these features. (#295)
+
 ### Changed
 - Remove Firebase Auth entirely; switch to local UUID identity (Zero-Data MVP, POTRAZ compliance, #293 / #292). No account required. First-run skips AuthScreen and routes directly to Setup or Dashboard. Storage scoping switched from email to UUIDv4 persisted in localStorage (web) / AsyncStorage (mobile), with one-time migration for internal testers upgrading from email-scoped keys. `@react-native-google-signin/google-signin` removed from mobile. Settings removes Sign Out / account management; adds "Your Data" placeholder for export/import/delete (#301 / #302).
 

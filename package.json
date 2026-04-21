@@ -23,8 +23,6 @@
   },
   "dependencies": {
     "firebase-admin": "^13.7.0",
-    "@openrouter/sdk": "^0.9.11",
-    "@google/genai": "^1.40.0",
     "resend": "^6.9.3"
   },
   "overrides": {

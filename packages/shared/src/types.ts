@@ -329,34 +329,6 @@ export interface FertilityPrediction {
   advice: string;
 }
 
-export interface CustomPlan {
-  id: string;
-  trimester: Trimester;
-  dietPreference: string;
-  timestamp: number;
-  nutrition: {
-    breakfast: string[];
-    lunch: string[];
-    dinner: string[];
-    snacks: string[];
-    nutrients: { name: string, importance: string }[];
-  };
-  fitness: {
-    exercises: string[];
-    safety: string[];
-    frequency: string;
-  };
-  routine: {
-    morning: string[];
-    afternoon: string[];
-    evening: string[];
-  };
-  medical: {
-    upcoming: string[];
-    questions: string[];
-  };
-}
-
 // Village Hub
 export type NestCategory =
   | 'trimester' | 'lifestyle' | 'diet'

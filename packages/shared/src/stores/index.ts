@@ -2,14 +2,12 @@ export * from './localIdentityStore.ts';
 export * from './profileStore.ts';
 export * from './trackingStore.ts';
 export * from './navigationStore.ts';
-export * from './avaChatStore.ts';
 export * from './healthConnectStore.ts';
 export * from './privacyStore.ts';
 export * from './middleware/index.ts';
 
 import { useProfileStore, setProfileStorage } from './profileStore.ts';
 import { useTrackingStore, setTrackingStorage } from './trackingStore.ts';
-import { useAvaChatStore, setAvaChatStorage } from './avaChatStore.ts';
 import type { StateStorage } from './middleware/persistMiddleware.ts';
 
 /**
@@ -20,7 +18,7 @@ import type { StateStorage } from './middleware/persistMiddleware.ts';
  * sync on login/logout. Before this registry existed, bootstrap.ts kept its
  * own local list of four stores and their setters — if a fifth persisted
  * store was added in shared, nothing caught the drift at compile time and
- * that store would silently fail to rehydrate on login or leak data across
+ * that store would silently fail to rehydrate on login or clear data across
  * accounts on logout.
  *
  * Adding a new user-scoped persisted store now means adding one entry to
@@ -31,7 +29,6 @@ import type { StateStorage } from './middleware/persistMiddleware.ts';
 export const USER_SCOPED_PERSISTED_STORES = {
   profile: { store: useProfileStore, setStorage: setProfileStorage },
   tracking: { store: useTrackingStore, setStorage: setTrackingStorage },
-  avaChat: { store: useAvaChatStore, setStorage: setAvaChatStorage },
 } as const;
 
 export type UserScopedStoreName = keyof typeof USER_SCOPED_PERSISTED_STORES;

@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import {
   Home,
   TrendingUp,
-  Sparkles,
   BookOpen,
   LayoutGrid,
   User,
@@ -19,8 +18,8 @@ import { FloatingTeddiesBackground } from './FloatingTeddiesBackground.tsx';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeTab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village';
-  setActiveTab: (tab: 'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village') => void;
+  activeTab: 'dashboard' | 'baby' | 'education' | 'tools' | 'admin' | 'settings' | 'village';
+  setActiveTab: (tab: 'dashboard' | 'baby' | 'education' | 'tools' | 'admin' | 'settings' | 'village') => void;
   onLogout: () => void;
 }
 
@@ -43,7 +42,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
   const navItems = [
     { id: 'dashboard' as const, label: 'Nest', icon: Home },
     { id: 'baby' as const, label: 'Growth', icon: TrendingUp },
-    { id: 'ava' as const, label: 'Ava', icon: Sparkles, isSpecial: true },
     { id: 'education' as const, label: 'Articles', icon: BookOpen },
     { id: 'tools' as const, label: 'Tools', icon: LayoutGrid },
     { id: 'village' as const, label: 'Village', icon: Users },
@@ -97,13 +95,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           {/* Nav Items */}
           <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
             {navItems.map(item => (
-              <SidebarNavItem 
+              <SidebarNavItem
                 key={item.id}
                 active={activeTab === item.id}
                 onClick={() => setActiveTab(item.id)}
                 label={item.label}
                 icon={item.icon}
-                isSpecial={item.isSpecial}
                 collapsed={sidebarCollapsed}
               />
             ))}
@@ -140,7 +137,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           <header className="hidden lg:flex relative z-[110] px-8 pt-6 pb-4 items-center justify-between shrink-0 bg-rose-50/40 backdrop-blur-sm border-b border-rose-100/30">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-400">
-                {activeTab === 'dashboard' ? 'Home' : activeTab === 'baby' ? 'Baby Growth' : activeTab === 'ava' ? 'AI Assistant' : activeTab === 'education' ? 'Education' : activeTab === 'tools' ? 'Tools Hub' : activeTab === 'village' ? 'Village Hub' : activeTab === 'settings' ? 'Settings' : 'Admin'}
+                {activeTab === 'dashboard' ? 'Home' : activeTab === 'baby' ? 'Baby Growth' : activeTab === 'education' ? 'Education' : activeTab === 'tools' ? 'Tools Hub' : activeTab === 'village' ? 'Village Hub' : activeTab === 'settings' ? 'Settings' : 'Admin'}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -187,13 +184,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-[calc(1rem + var(--safe-area-inset-bottom))]">
           <nav className="mx-auto w-full max-w-[600px] bg-white/30 backdrop-blur-3xl px-2 py-2 rounded-[2.5rem] flex justify-between items-center shadow-[0_20px_50px_rgba(126,22,49,0.06)] border border-white/20">
             {navItems.map(item => (
-              <NavItem 
+              <NavItem
                 key={item.id}
-                active={activeTab === item.id} 
-                onClick={() => setActiveTab(item.id)} 
-                label={item.label} 
-                icon={item.icon} 
-                isSpecial={item.isSpecial} 
+                active={activeTab === item.id}
+                onClick={() => setActiveTab(item.id)}
+                label={item.label}
+                icon={item.icon}
               />
             ))}
           </nav>

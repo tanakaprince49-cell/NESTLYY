@@ -12,8 +12,6 @@
   },
   "dependencies": {
     "@nestly/shared": "*",
-    "@google/genai": "^1.40.0",
-    "@openrouter/sdk": "^0.9.11",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "express": "^5.2.1",
