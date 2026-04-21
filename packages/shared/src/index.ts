@@ -1,17 +1,13 @@
 export * from './types.ts';
 export * from './data/educationArticles.ts';
 export * from './data/babySizes.ts';
-export { db, messaging, app } from './firebase.ts';
+export { messaging, app } from './firebase.ts';
 export * from './utils/sleepUtils.ts';
 export { formatTime, formatDuration as formatDurationMs, timeAgo } from './utils/formatters.ts';
 export * from './services/storageInterface.ts';
 export * from './services/healthConnectService.ts';
 export * from './services/syncService.ts';
 export * from './services/babyGrowth.ts';
-export * from './services/groupService.ts';
-export * from './services/villageTemplates.ts';
-export { subscribeToNests, getNest, getUserMembership, subscribeToNest, subscribeToNestPosts, subscribeToPostComments, createPost, deletePost, toggleLike, createComment, deleteComment, toggleCommentLike, sharePost, subscribeToUserMemberships, joinNest, leaveNest, createNest, deleteNest } from './services/villageService.ts';
-export type { Unsubscribe } from './services/villageService.ts';
 export * from './tokens/index.ts';
 export * from './stores/index.ts';
 export * from './migrations/index.ts';

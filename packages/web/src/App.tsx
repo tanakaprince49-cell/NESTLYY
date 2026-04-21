@@ -8,7 +8,6 @@ const EducationHub = lazy(() => import('./components/EducationHub.tsx').then(m =
 const PrivacyScreen = lazy(() => import('./components/PrivacyScreen.tsx').then(m => ({ default: m.PrivacyScreen })));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard.tsx').then(m => ({ default: m.AdminDashboard })));
 const Settings = lazy(() => import('./components/Settings.tsx').then(m => ({ default: m.Settings })));
-const VillageHub = lazy(() => import('./components/VillageHub.tsx').then(m => ({ default: m.VillageHub })));
 import { storage } from './services/storageService.ts';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import {
@@ -53,7 +52,7 @@ const App: React.FC = () => {
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [trimester, setTrimester] = useState<Trimester>(Trimester.FIRST);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'admin' | 'settings' | 'village'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'admin' | 'settings'>('dashboard');
   const [activeToolCat, setActiveToolCat] = useState<string>('all');
 
   const [entries, setEntries] = useState<FoodEntry[]>([]);
@@ -159,24 +158,16 @@ const App: React.FC = () => {
     document.body.className = `theme-${theme} ${isPostpartum ? 'stage-newborn' : 'stage-pregnancy'}`;
   }, [profile?.lifecycleStage, profile?.themeColor]);
 
-  // Handle deep linking from Shortcuts / Widgets / Invites
+  // Handle deep linking from Shortcuts / Widgets
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    const invite = params.get('invite');
 
-    if (invite) {
-      setActiveTab('village');
-      sessionStorage.setItem('pendingInvite', invite);
-    } else {
-      if (tab === 'tools') setActiveTab('tools');
-      if (tab === 'dashboard') setActiveTab('dashboard');
-      if (tab === 'baby') setActiveTab('baby');
-      if (tab === 'village') setActiveTab('village');
-    }
+    if (tab === 'tools') setActiveTab('tools');
+    if (tab === 'dashboard') setActiveTab('dashboard');
+    if (tab === 'baby') setActiveTab('baby');
 
-    // Clear the URL params without reloading to keep a clean state
-    if (tab || invite) {
+    if (tab) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -412,7 +403,6 @@ const App: React.FC = () => {
                 storage.saveProfile(p);
                 setProfile(p);
                   }} localUuid={localUuid} />}
-              {activeTab === 'village' && <VillageHub profile={profile} userUid={localUuid} />}
               {activeTab === 'admin' && isAdmin && <AdminDashboard />}
             </div>
           </Suspense>

@@ -29,10 +29,6 @@ import {
   ArchivedPregnancy,
   ChecklistItem,
   Video,
-  Nest,
-  NestMembership,
-  NestPost,
-  NestComment,
   getLocalIdentitySync,
   LOCAL_UUID_KEY,
 } from '@nestly/shared';
@@ -73,10 +69,6 @@ const KEYS = {
   KEGELS: 'kegel_logs',
   PRIVACY_ACCEPTED: 'privacy_accepted',
   LAST_WEEK_CELEBRATED: 'last_week_celebrated',
-  VILLAGE_MEMBERSHIPS: 'village_memberships',
-  VILLAGE_POSTS: 'village_posts',
-  VILLAGE_COMMENTS: 'village_comments',
-  VILLAGE_CUSTOM_NESTS: 'village_custom_nests',
 };
 
 class StorageService {
@@ -410,87 +402,6 @@ class StorageService {
     this.setItem(KEYS.LAST_WEEK_CELEBRATED, week);
   }
 
-  // Village Hub: Memberships
-  getNestMemberships(): NestMembership[] { return this.getItem<NestMembership[]>(KEYS.VILLAGE_MEMBERSHIPS, []); }
-  joinNest(nestId: string): void {
-    const memberships = this.getNestMemberships();
-    if (!memberships.find(m => m.nestId === nestId)) {
-      this.setItem(KEYS.VILLAGE_MEMBERSHIPS, [...memberships, { nestId, joinedAt: Date.now() }]);
-    }
-  }
-  leaveNest(nestId: string): void {
-    this.setItem(KEYS.VILLAGE_MEMBERSHIPS, this.getNestMemberships().filter(m => m.nestId !== nestId));
-  }
-  isNestJoined(nestId: string): boolean {
-    return this.getNestMemberships().some(m => m.nestId === nestId);
-  }
-
-  // Village Hub: Posts
-  getAllNestPosts(): NestPost[] { return this.getItem<NestPost[]>(KEYS.VILLAGE_POSTS, []); }
-  getNestPosts(nestId: string): NestPost[] {
-    return this.getAllNestPosts().filter(p => p.nestId === nestId);
-  }
-  addNestPost(post: NestPost): void {
-    this.setItem(KEYS.VILLAGE_POSTS, [post, ...this.getAllNestPosts()]);
-  }
-  removeNestPost(id: string): void {
-    this.setItem(KEYS.VILLAGE_POSTS, this.getAllNestPosts().filter(p => p.id !== id));
-  }
-  toggleNestPostLike(id: string, userId: string): void {
-    const posts = this.getAllNestPosts();
-    const index = posts.findIndex(p => p.id === id);
-    if (index >= 0) {
-      const isLiked = posts[index].likedBy.includes(userId);
-      posts[index] = {
-        ...posts[index],
-        likedBy: isLiked ? posts[index].likedBy.filter(uid => uid !== userId) : [...posts[index].likedBy, userId],
-        likeCount: isLiked ? Math.max(0, posts[index].likeCount - 1) : posts[index].likeCount + 1,
-      };
-      this.setItem(KEYS.VILLAGE_POSTS, posts);
-    }
-  }
-
-  // Village Hub: Comments
-  getAllComments(): NestComment[] { return this.getItem<NestComment[]>(KEYS.VILLAGE_COMMENTS, []); }
-  getCommentsForPost(postId: string): NestComment[] {
-    return this.getAllComments().filter(c => c.postId === postId);
-  }
-  addComment(comment: NestComment): void {
-    this.setItem(KEYS.VILLAGE_COMMENTS, [comment, ...this.getAllComments()]);
-  }
-  toggleCommentLike(commentId: string): void {
-    const comments = this.getAllComments();
-    const index = comments.findIndex(c => c.id === commentId);
-    if (index >= 0) {
-      const userId = this.getScope();
-      const isLiked = comments[index].likedBy.includes(userId);
-      comments[index] = {
-        ...comments[index],
-        likedBy: isLiked ? comments[index].likedBy.filter(uid => uid !== userId) : [...comments[index].likedBy, userId],
-        likeCount: isLiked ? Math.max(0, comments[index].likeCount - 1) : comments[index].likeCount + 1,
-      };
-      this.setItem(KEYS.VILLAGE_COMMENTS, comments);
-    }
-  }
-
-  // Village Hub: Custom Nests
-  getCustomNests(): Nest[] { return this.getItem<Nest[]>(KEYS.VILLAGE_CUSTOM_NESTS, []); }
-  addCustomNest(nest: Nest): void {
-    this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, [nest, ...this.getCustomNests()]);
-  }
-  updateCustomNest(nestId: string, updates: Partial<Nest>): void {
-    const nests = this.getCustomNests();
-    const index = nests.findIndex(n => n.id === nestId);
-    if (index >= 0) {
-      nests[index] = { ...nests[index], ...updates };
-      this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, nests);
-    }
-  }
-  removeCustomNest(id: string): void {
-    this.leaveNest(id);
-    this.setItem(KEYS.VILLAGE_POSTS, this.getAllNestPosts().filter(p => p.nestId !== id));
-    this.setItem(KEYS.VILLAGE_CUSTOM_NESTS, this.getCustomNests().filter(n => n.id !== id));
-  }
 }
 
 export const storage = new StorageService();

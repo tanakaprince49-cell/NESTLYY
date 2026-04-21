@@ -19,9 +19,7 @@ Nestly ("we", "us", "our") is a pregnancy tracking and baby care application ope
 
 ### 2.1 Account Information
 
-- Name, email address, and profile picture (via Firebase Authentication)
-- Authentication method (Google, email/password, or anonymous)
-- Unique user identifier
+Nestly does not require an account. On first launch the app generates a random device-scoped identifier (UUIDv4) that is stored locally to key your own data on this device. The identifier is never sent to our servers and is not linked to any personally identifying information such as name or email.
 
 ### 2.2 Health and Pregnancy Data (Sensitive Personal Data)
 
@@ -31,27 +29,16 @@ Nestly ("we", "us", "our") is a pregnancy tracking and baby care application ope
 - Kick counts, contraction timing, medication and vitamin logs
 - Journal entries
 
-This data is classified as sensitive personal data under Zimbabwean law (section 12, CDPA) and requires your explicit written consent before collection. Where required, Nestly will request explicit consent for the processing of sensitive data through in-app prompts as these features are implemented.
+This data is classified as sensitive personal data under Zimbabwean law (section 12, CDPA) and requires your explicit written consent before collection. All of this data is stored only on your device and is never transmitted to our servers.
 
-### 2.3 AI Conversation Data
+### 2.3 Media
 
-- Messages you send to Ava, our AI companion
-- These messages are sent to a third-party AI service for processing (see Section 5)
+Profile pictures and memory-album photos are selected from your device and stored locally. No media is uploaded to our servers.
 
-### 2.4 Community Data (Village Hub)
+### 2.4 Technical Data
 
-- Posts, comments, and likes you create in community groups ("nests")
-- Your display name and profile picture as shown to other community members
-- Nest memberships
-
-### 2.5 Media
-
-Profile pictures are initially selected from your device. When you create a post or comment in the Village Hub, a copy of the image is uploaded and stored on our servers (Firebase Firestore) as part of that content. This means your media becomes server-side data and may be visible to other users.
-
-### 2.6 Technical Data
-
-- Push notification tokens
-- Device type and browser information (collected automatically)
+- Push notification tokens (if you opt in to push notifications)
+- Food-research query text when you use the food-research feature (see Section 11)
 
 ---
 
@@ -59,8 +46,7 @@ Profile pictures are initially selected from your device. When you create a post
 
 We process your personal data on the following bases:
 
-- **Explicit written consent:** Health data, AI conversations, and community participation require your explicit written consent before processing. You will be presented with a clear consent screen ("I give my written consent to...") before any sensitive data is collected. You may withdraw consent at any time (see Section 8).
-- **Contract:** Account data is processed to provide the service you signed up for.
+- **Explicit written consent:** Food-research queries and push-notification delivery require your explicit consent. Health-tracking data is stored only on your device and is not transmitted to our servers.
 - **Legitimate interest:** Technical data for security and service operation.
 
 ---
@@ -69,9 +55,6 @@ We process your personal data on the following bases:
 
 - To provide personalised pregnancy tracking and baby care features
 - To display your dashboard, growth charts, and health summaries
-- To generate AI-powered responses through Ava (general information only, not medical advice)
-- To generate nutrition and fitness plans
-- To enable community interaction in Village Hub
 - To send push notifications you have opted into
 - To allow you to export health reports
 - To provide article recommendations based on your lifecycle stage
@@ -88,10 +71,7 @@ We use the following third-party services that process your data:
 
 | Service | Provider | Purpose | Data Shared | Server Location |
 |---|---|---|---|---|
-| Firebase Authentication | Google (USA) | User login and identity | Email, name, auth tokens | USA |
-| Cloud Firestore | Google (USA) | Village Hub data storage | Posts, comments, likes, memberships | USA |
 | Firebase Cloud Messaging | Google (USA) | Push notification delivery | Device token | USA |
-| OpenRouter / DeepSeek | OpenRouter (USA) / DeepSeek | AI chat (Ava) | Chat messages | USA / varies |
 | Google Gemini API | Google (USA) | Food nutrition research | Food queries | USA |
 | Vercel | Vercel Inc. (USA) | App hosting | HTTP requests | USA |
 | Resend | Resend Inc. (USA) | Transactional email | Email address | USA |
@@ -110,16 +90,12 @@ By using Nestly, you consent to the transfer of your data to these services. You
 
 ### 7.1 Where Your Data Is Stored
 
-- Most personal health data (pregnancy logs, baby tracking, vitals, journal) is stored locally on your device. This data does not leave your device unless you export it.
-- Village Hub data (posts, comments, likes, memberships) is stored in Google Cloud Firestore.
-- AI conversations are processed in real time and are not permanently stored on our servers.
+- All personal health data (pregnancy logs, baby tracking, vitals, journal) is stored locally on your device. This data does not leave your device unless you choose to export it.
 
 ### 7.2 Security Measures
 
-- All data transmitted between your device and our servers is encrypted using TLS/HTTPS
-- Firebase Authentication secures access to your account
-- Firestore security rules restrict data access to authorised users only
-- Locally stored data is scoped to your user account
+- All data transmitted between your device and our servers (food-research queries, push notifications) is encrypted using TLS/HTTPS
+- Locally stored data is scoped to a device-specific identifier that never leaves your device
 
 ---
 
@@ -138,15 +114,13 @@ Under the Cyber and Data Protection Act, you have the right to:
 
 To exercise any of these rights, contact us at supportnestly@gmail.com. We will respond within 30 days.
 
-To delete your locally stored data, go to **Settings -> Apps -> Nestly -> Storage -> Clear Data**, or uninstall the app. To delete your Firestore data (Village Hub), contact us or use the account deletion feature in the app.
+To delete your locally stored data, go to **Settings -> Apps -> Nestly -> Storage -> Clear Data**, or uninstall the app.
 
 ---
 
 ## 9. Data Retention
 
-- Locally stored data remains on your device until you clear it or delete your account.
-- Firestore data (Village Hub) is retained while your account is active. Upon account deletion, all associated data is deleted within 30 days.
-- AI conversation data is not permanently stored by us. Third-party AI providers may retain data according to their own policies.
+- Locally stored data remains on your device until you clear it.
 - You can delete locally stored data by:
   - Going to Settings -> Apps -> Nestly -> Storage -> Clear Data
   - Or uninstalling the app from your device
@@ -163,31 +137,17 @@ Nestly is intended for users aged 18 and above. We do not knowingly collect pers
 
 ---
 
-## 11. AI-Generated Content
+## 11. Food Research Feature
 
-Nestly uses artificial intelligence (Ava chatbot and nutrition planning) to provide general information. Important disclosures:
+The food-research feature sends the text of food or meal queries you type to Google Gemini to return safety ratings and nutritional guidance during pregnancy:
 
-- AI responses are generated by third-party language models (DeepSeek, Google Gemini)
-- AI-generated content is not medical advice and should never replace consultation with a qualified healthcare professional
-- We do not guarantee the accuracy of AI-generated content
-- Your chat messages are sent to third-party AI services for processing
-- You have the right not to be subject to decisions based solely on automated processing. If you disagree with AI-generated advice, disregard it and consult a healthcare provider.
+- Only the food query text is transmitted. No profile, health log, or identifier is attached.
+- Responses are returned over HTTPS and displayed on-device; we do not persist them server-side.
+- Food-research content is general pregnancy-nutrition information and is not medical advice. Always consult a qualified healthcare professional before changing your diet.
 
 ---
 
-## 12. Village Hub (Community Features)
-
-When you participate in Village Hub:
-
-- Your display name, profile picture, posts, comments, and likes are visible to other members of the nests you join
-- Community content is stored in Cloud Firestore, not locally on your device
-- You are responsible for the personal information you choose to share in posts and comments
-- Do not share sensitive health information in community posts unless you are comfortable with other members seeing it
-- Other members cannot access your private health tracking data
-
----
-
-## 13. Push Notifications
+## 12. Push Notifications
 
 If you enable push notifications:
 
@@ -197,7 +157,7 @@ If you enable push notifications:
 
 ---
 
-## 14. Data Breach Notification
+## 13. Data Breach Notification
 
 In the event of a personal data breach:
 
@@ -207,7 +167,7 @@ In the event of a personal data breach:
 
 ---
 
-## 15. Changes to This Policy
+## 14. Changes to This Policy
 
 We may update this privacy policy from time to time. When we do:
 
@@ -217,7 +177,7 @@ We may update this privacy policy from time to time. When we do:
 
 ---
 
-## 16. Contact
+## 15. Contact
 
 For questions, data requests, or complaints:
 
