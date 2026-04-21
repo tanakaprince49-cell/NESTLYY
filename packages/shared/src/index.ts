@@ -1,7 +1,6 @@
 export * from './types.ts';
 export * from './data/educationArticles.ts';
 export * from './data/babySizes.ts';
-export { messaging, app } from './firebase.ts';
 export * from './utils/sleepUtils.ts';
 export { formatTime, formatDuration as formatDurationMs, timeAgo } from './utils/formatters.ts';
 export * from './services/storageInterface.ts';

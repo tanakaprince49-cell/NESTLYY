@@ -66,7 +66,6 @@ Root `.env.example` documents all variables:
 - `OPENROUTER_API_KEY` -- Food research AI (DeepSeek via OpenRouter)
 - `RESEND_API_KEY` -- Email service
 - `FIREBASE_SERVICE_ACCOUNT` -- Firebase Admin JSON
-- `VITE_FIREBASE_VAPID_KEY` -- FCM push notifications
 - `EXPO_PUBLIC_API_URL` -- Mobile API base URL (defaults to production)
 
 ## Tech Stack

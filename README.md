@@ -25,8 +25,7 @@ Live at [nestlyhealth.com](https://nestlyhealth.com).
    | Variable | Required | Purpose |
    |----------|----------|---------|
    | `OPENROUTER_API_KEY` | Yes | Food research AI (DeepSeek via OpenRouter) |
-   | `FIREBASE_SERVICE_ACCOUNT` | Yes | Firebase Admin -- auth verification, push notifications |
-   | `VITE_FIREBASE_VAPID_KEY` | Yes | Firebase Cloud Messaging (push notifications) |
+   | `FIREBASE_SERVICE_ACCOUNT` | Yes | Firebase Admin -- push token verification (mobile) |
    | `RESEND_API_KEY` | No | Email service |
    | `APP_URL` | No | Base URL for links in emails |
 
@@ -59,7 +58,7 @@ npm test           # Run tests with Vitest
 
 The app deploys to Vercel. The Express server (`server.ts`) is for local development only -- production API routes are Vercel serverless functions in the `api/` directory.
 
-Required Vercel environment variables: `OPENROUTER_API_KEY`, `FIREBASE_SERVICE_ACCOUNT`, `VITE_FIREBASE_VAPID_KEY`.
+Required Vercel environment variables: `OPENROUTER_API_KEY`, `FIREBASE_SERVICE_ACCOUNT`.
 
 ## Architecture
 

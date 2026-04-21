@@ -58,7 +58,6 @@ const KEYS = {
   BABY_GROWTH: 'baby_growth_logs',
   DIAPER: 'baby_diaper_logs',
   REMINDERS: 'nestly_reminders',
-  BROADCASTS: 'nestly_global_broadcasts',
   SHOWN_REMINDERS: 'nestly_shown_reminders',
   VIDEOS: 'nestly_global_videos',
   BABY_NAMES: 'baby_names',
@@ -358,10 +357,6 @@ class StorageService {
   addReminder(reminder: any): void { this.setItem(KEYS.REMINDERS, [reminder, ...this.getReminders()], false); }
   removeReminder(id: string): void { this.setItem(KEYS.REMINDERS, this.getReminders().filter(r => r.id !== id), false); }
   clearReminders(): void { this.setItem(KEYS.REMINDERS, [], false); }
-
-  getBroadcasts(): any[] { return this.getItem<any[]>(KEYS.BROADCASTS, [], true); }
-  addBroadcast(broadcast: any): void { this.setItem(KEYS.BROADCASTS, [broadcast, ...this.getBroadcasts()], true); }
-  removeBroadcast(id: string): void { this.setItem(KEYS.BROADCASTS, this.getBroadcasts().filter(b => b.id !== id), true); }
 
   getShownReminders(): { id: string, timestamp: number }[] { return this.getItem<{ id: string, timestamp: number }[]>(KEYS.SHOWN_REMINDERS, []); }
   markReminderAsShown(id: string): void {
