@@ -17,7 +17,7 @@ import type { BabyAvatar } from '@nestly/shared';
 import { useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { Avatar } from '../components/Avatar';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
-import { requestNotificationPermissions, registerPushToken, cancelAllScheduled } from '../services/notificationService';
+import { requestNotificationPermissions, cancelAllScheduled } from '../services/notificationService';
 import { clearUserStores } from '../stores/bootstrap';
 
 const GENDER_EMOJI: Record<string, string> = {
@@ -120,7 +120,6 @@ export function SettingsScreen() {
         return;
       }
       useProfileStore.getState().updateProfile({ notificationsEnabled: true });
-      registerPushToken();
     } else {
       useProfileStore.getState().updateProfile({ notificationsEnabled: false });
       cancelAllScheduled();

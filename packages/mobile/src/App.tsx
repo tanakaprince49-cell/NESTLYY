@@ -28,7 +28,6 @@ import { SetupScreen } from './screens/SetupScreen';
 import { MainTabs } from './navigation/MainTabs';
 import {
   requestNotificationPermissions,
-  registerPushToken,
   addNotificationResponseListener,
 } from './services/notificationService';
 import { rescheduleAllReminders } from './services/reminderScheduler';
@@ -61,14 +60,12 @@ export default function App() {
     })();
   }, []);
 
-  // Initialize notifications after identity and profile are ready
+  // Request notification permission after identity and profile are ready
   useEffect(() => {
     if (!localUuid || !profile) return;
     if (!profile.notificationsEnabled) return;
 
-    requestNotificationPermissions().then((granted) => {
-      if (granted) registerPushToken();
-    });
+    requestNotificationPermissions();
   }, [localUuid, profile?.notificationsEnabled]);
 
   // Reschedule reminders when app comes to foreground or relevant profile fields change
