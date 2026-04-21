@@ -84,26 +84,19 @@ These Terms constitute the entire agreement between you and Nestly regarding the
 
 ---
 
-## 9. Data Deletion
-
-- You can delete all your local data at any time through **Settings -> Delete all data**, by clearing app data in Android Settings, or by uninstalling the App.
-- Because Nestly does not store your personal data on our servers, no server-side deletion request is necessary.
-
----
-
-## 10. Force Majeure
+## 9. Force Majeure
 
 Nestly shall not be liable for any failure or delay in performance resulting from events beyond our reasonable control, including but not limited to natural disasters, internet outages, or government actions.
 
 ---
 
-## 11. Dispute Resolution
+## 10. Dispute Resolution
 
-In the event of a dispute, users agree to first contact Nestly to seek an informal resolution. If the dispute is not resolved within 30 days, it shall be subject to the laws and courts of Zimbabwe.
+In the event of a dispute, users agree to first contact Nestly to seek an informal resolution. If the dispute is not resolved within 30 days, it shall be handled under the Governing Law in section 14.
 
 ---
 
-## 12. Limitation of Liability
+## 11. Limitation of Liability
 
 To the maximum extent permitted by Zimbabwean law:
 
@@ -116,7 +109,7 @@ To the maximum extent permitted by Zimbabwean law:
 
 ---
 
-## 13. Indemnification
+## 12. Indemnification
 
 You agree to indemnify and hold harmless Nestly and its team from any claims, damages, or expenses arising from:
 
@@ -126,7 +119,7 @@ You agree to indemnify and hold harmless Nestly and its team from any claims, da
 
 ---
 
-## 14. Changes to These Terms
+## 13. Changes to These Terms
 
 - We may update these Terms from time to time
 - Updated Terms will be posted in the App with a new effective date
@@ -135,13 +128,13 @@ You agree to indemnify and hold harmless Nestly and its team from any claims, da
 
 ---
 
-## 15. Governing Law
+## 14. Governing Law
 
 These Terms are governed by the laws of the Republic of Zimbabwe. Any disputes arising from these Terms shall be subject to the jurisdiction of the courts of Zimbabwe.
 
 ---
 
-## 16. Contact
+## 15. Contact
 
 For questions about these Terms:
 

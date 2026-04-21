@@ -80,7 +80,7 @@ We use the following third-party services that process your data:
 
 Your data is transferred to servers located outside Zimbabwe, primarily in the United States. Transfers rely on your consent and on the contractual safeguards provided by the service providers listed in Section 5 (such as their standard terms, security certifications, and privacy commitments). We take reasonable technical and organisational measures to protect data in transit, including TLS/HTTPS encryption.
 
-By using Nestly, you consent to the transfer of your data to these services. You may withdraw this consent at any time by deleting your account.
+By using Nestly, you consent to the transfer of your data to these services. You may withdraw this consent at any time by disabling push notifications and deleting your local data (see Section 9).
 
 ---
 
