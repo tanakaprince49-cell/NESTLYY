@@ -37,7 +37,7 @@ Profile pictures and memory-album photos are selected from your device and store
 
 ### 2.4 Technical Data
 
-- Push notification tokens (if you opt in to push notifications)
+- Push notification tokens in the Android app (if you opt in to push notifications). The web PWA does not collect push tokens.
 - Food-research query text when you use the food-research feature (see Section 11)
 
 ---
@@ -71,7 +71,7 @@ We use the following third-party services that process your data:
 
 | Service | Provider | Purpose | Data Shared | Server Location |
 |---|---|---|---|---|
-| Firebase Cloud Messaging | Google (USA) | Push notification delivery | Device token | USA |
+| Firebase Cloud Messaging | Google (USA) | Push notification delivery (Android app only) | Device token | USA |
 | Google Gemini API | Google (USA) | Food nutrition research | Food queries | USA |
 | Vercel | Vercel Inc. (USA) | App hosting | HTTP requests | USA |
 | Resend | Resend Inc. (USA) | Transactional email | Email address | USA |
@@ -147,9 +147,11 @@ The food-research feature sends the text of food or meal queries you type to Goo
 
 ---
 
-## 12. Push Notifications
+## 12. Push Notifications (Android app only)
 
-If you enable push notifications:
+Push notifications are available only in the Android app. The web PWA does not send or receive push notifications.
+
+If you enable push notifications in the Android app:
 
 - We collect a device token through Firebase Cloud Messaging
 - This token is used solely to deliver notifications you have opted into
@@ -172,7 +174,7 @@ In the event of a personal data breach:
 We may update this privacy policy from time to time. When we do:
 
 - The updated policy will be posted in the app with a new effective date
-- For significant changes, we will notify you via push notification or in-app notice
+- For significant changes, we will notify you via in-app notice (and push notification in the Android app if you have opted in)
 - Continued use of the app after changes constitutes acceptance of the updated policy
 
 ---
