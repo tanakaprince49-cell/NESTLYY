@@ -270,23 +270,9 @@ export interface MedicationLog {
   timestamp: number;
 }
 
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'model';
-  text: string;
-  timestamp: number;
-}
-
 export interface PeriodLog {
   id: string;
   startDate: string;
-  timestamp: number;
-}
-
-export interface AvaMemoryFact {
-  id: string;
-  content: string;
-  category: 'preference' | 'symptom' | 'milestone' | 'info';
   timestamp: number;
 }
 

@@ -31,13 +31,6 @@
   ],
   "shortcuts": [
     {
-      "name": "Chat with Ava",
-      "short_name": "Ava",
-      "url": "/?tab=ava",
-      "description": "Ask Ava about nutrition and safety",
-      "icons": [{ "src": "/logo.webp", "sizes": "192x192" }]
-    },
-    {
       "name": "Log Tools",
       "short_name": "Tools",
       "url": "/?tab=tools",

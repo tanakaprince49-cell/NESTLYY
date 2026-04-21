@@ -25,8 +25,6 @@ import {
   DiaperLog,
   MedicationLog,
   PeriodLog,
-  ChatMessage,
-  AvaMemoryFact,
   Article,
   ArchivedPregnancy,
   ChecklistItem,
@@ -52,12 +50,8 @@ const KEYS = {
   WEIGHT: 'weight_logs',
   SLEEP: 'sleep_logs',
   KICKS: 'kick_logs',
-  CHAT_HISTORY: 'chat_history',
-  AVA_HISTORY: 'ava_history_v2',
-  AVA_MEMORY: 'ava_memory_bank',
   PERIOD_LOGS: 'period_logs',
   UNLOCKED_IDS: 'unlocked_achievement_ids',
-  AVA_IMAGE: 'ava_custom_image',
   ARTICLES: 'nestly_global_articles',
   ARCHIVE: 'pregnancy_archive',
   CHECKLISTS: 'checklists',
@@ -282,15 +276,6 @@ class StorageService {
   getPeriodLogs(): PeriodLog[] { return this.getItem<PeriodLog[]>(KEYS.PERIOD_LOGS, []); }
   addPeriodLog(log: PeriodLog): void { this.setItem(KEYS.PERIOD_LOGS, [log, ...this.getPeriodLogs()]); }
 
-  getAvaHistory(): ChatMessage[] { return this.getItem<ChatMessage[]>(KEYS.AVA_HISTORY, []); }
-  saveAvaHistory(history: ChatMessage[]): void { this.setItem(KEYS.AVA_HISTORY, history); }
-
-  getAvaMemory(): AvaMemoryFact[] { return this.getItem<AvaMemoryFact[]>(KEYS.AVA_MEMORY, []); }
-  saveAvaMemory(facts: AvaMemoryFact[]): void { this.setItem(KEYS.AVA_MEMORY, facts); }
-
-  getChatHistory(): ChatMessage[] { return this.getItem<ChatMessage[]>(KEYS.CHAT_HISTORY, []); }
-  saveChatHistory(history: ChatMessage[]): void { this.setItem(KEYS.CHAT_HISTORY, history); }
-
   getAvailableReportDates(): string[] {
     const dates = new Set<string>();
     const addDate = (ts: number) => dates.add(new Date(ts).toISOString().split('T')[0]);
@@ -306,14 +291,6 @@ class StorageService {
     this.getSymptoms().forEach(e => addDate(e.timestamp));
     
     return Array.from(dates).sort().reverse();
-  }
-
-  getAvaImage(): string | null {
-    return this.getItem<string | null>(KEYS.AVA_IMAGE, null);
-  }
-
-  saveAvaImage(dataUrl: string): void {
-    this.setItem(KEYS.AVA_IMAGE, dataUrl);
   }
 
   getArticles(): Article[] {
