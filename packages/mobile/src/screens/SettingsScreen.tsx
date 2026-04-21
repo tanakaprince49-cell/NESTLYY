@@ -8,17 +8,28 @@ import {
   Alert,
   FlatList,
   Switch,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { LifecycleStage } from '@nestly/shared';
-import type { BabyAvatar } from '@nestly/shared';
-import { useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
+import { LifecycleStage, ExportValidationError } from '@nestly/shared';
+import type { BabyAvatar, ZeroDataExportV1 } from '@nestly/shared';
+import { useProfileStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { Avatar } from '../components/Avatar';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
 import { requestNotificationPermissions, cancelAllScheduled } from '../services/notificationService';
 import { clearUserStores } from '../stores/bootstrap';
+import {
+  APP_VERSION,
+  buildMobileExport,
+  saveExportAndShare,
+  pickAndLoadExport,
+  restoreMobileExport,
+  wipeAllMobileData,
+  shareDoctorSummaryPdf,
+} from '../services/exportService';
 
 const GENDER_EMOJI: Record<string, string> = {
   boy: '👦',
@@ -41,6 +52,11 @@ export function SettingsScreen() {
   const [editedName, setEditedName] = useState(profile?.userName ?? '');
   const [newBabyName, setNewBabyName] = useState('');
   const [showAddBaby, setShowAddBaby] = useState(false);
+  const [dataBusy, setDataBusy] = useState<'idle' | 'exporting' | 'pdf' | 'importing' | 'wiping'>('idle');
+  const [importPreview, setImportPreview] = useState<{ data: ZeroDataExportV1; fileDate: string } | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   if (!profile) {
     return (
@@ -126,25 +142,91 @@ export function SettingsScreen() {
     }
   }, []);
 
-  const handleDeleteAllData = () => {
-    Alert.alert(
-      'Delete All Data',
-      'This will permanently erase all your tracking data from this device. This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            await clearUserStores();
-            useProfileStore.getState().setProfile(null);
-            useTrackingStore.getState().resetAllLogs();
-            useHealthConnectStore.getState().resetSyncState();
-          },
-        },
-      ],
-    );
-  };
+  const handleExportJson = useCallback(async () => {
+    if (dataBusy !== 'idle') return;
+    setDataBusy('exporting');
+    try {
+      const data = buildMobileExport();
+      await saveExportAndShare(data);
+    } catch (e) {
+      Alert.alert('Export failed', e instanceof Error ? e.message : 'Unknown error');
+    } finally {
+      setDataBusy('idle');
+    }
+  }, [dataBusy]);
+
+  const handleExportPdf = useCallback(async () => {
+    if (dataBusy !== 'idle') return;
+    if (!profile) {
+      Alert.alert(
+        'Set up your profile first',
+        'The doctor summary needs a profile so it knows which trackers to include.',
+      );
+      return;
+    }
+    setDataBusy('pdf');
+    try {
+      await shareDoctorSummaryPdf();
+    } catch (e) {
+      Alert.alert('Could not generate PDF', e instanceof Error ? e.message : 'Unknown error');
+    } finally {
+      setDataBusy('idle');
+    }
+  }, [dataBusy, profile]);
+
+  const handleImport = useCallback(async () => {
+    if (dataBusy !== 'idle') return;
+    setDataBusy('importing');
+    try {
+      const data = await pickAndLoadExport();
+      if (!data) return;
+      const fileDate = new Date(data.meta.exportedAt).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      setImportPreview({ data, fileDate });
+    } catch (e) {
+      if (e instanceof ExportValidationError) {
+        setImportError(e.message);
+      } else {
+        setImportError(e instanceof Error ? e.message : 'Unknown error');
+      }
+    } finally {
+      setDataBusy('idle');
+    }
+  }, [dataBusy]);
+
+  const confirmImport = useCallback(() => {
+    if (!importPreview) return;
+    try {
+      restoreMobileExport(importPreview.data);
+      setImportPreview(null);
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : 'Unknown error');
+    }
+  }, [importPreview]);
+
+  const openDelete = useCallback(() => {
+    setDeleteConfirmText('');
+    setShowDeleteConfirm(true);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (deleteConfirmText.trim().toUpperCase() !== 'DELETE') return;
+    if (dataBusy !== 'idle') return;
+    setDataBusy('wiping');
+    try {
+      await wipeAllMobileData();
+      useHealthConnectStore.getState().resetSyncState();
+      setShowDeleteConfirm(false);
+      setDeleteConfirmText('');
+    } catch (e) {
+      Alert.alert('Delete failed', e instanceof Error ? e.message : 'Unknown error');
+    } finally {
+      setDataBusy('idle');
+    }
+  }, [deleteConfirmText, dataBusy]);
 
   return (
     <SafeAreaView className="flex-1 bg-rose-50">
@@ -323,18 +405,209 @@ export function SettingsScreen() {
         <HealthConnectSection />
 
         <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
-          <Text className="text-base font-semibold text-gray-800 mb-2">Your Data</Text>
-          <Text className="text-xs text-gray-400 mb-4">
-            All data is stored privately on this device. No account required.
+          <Text className="text-base font-semibold text-gray-800 mb-1">Your Data</Text>
+          <Text className="text-xs text-gray-400 mb-3">
+            Everything stays on this phone. Export a backup, bring a summary to your appointment, or move your data to another phone.
           </Text>
+
           <TouchableOpacity
-            className="py-3 items-center"
-            onPress={handleDeleteAllData}
+            onPress={handleExportJson}
+            disabled={dataBusy !== 'idle'}
+            className="flex-row items-center justify-between py-3"
+            style={{ opacity: dataBusy !== 'idle' && dataBusy !== 'exporting' ? 0.5 : 1 }}
           >
-            <Text className="text-red-500 text-sm">Delete All Data</Text>
+            <View className="flex-row items-center" style={{ gap: 12, flex: 1 }}>
+              <Ionicons name="download-outline" size={22} color="#f43f5e" />
+              <View style={{ flex: 1 }}>
+                <Text className="text-sm font-semibold text-gray-800">Export data (JSON)</Text>
+                <Text className="text-xs text-gray-400">Saves a backup of everything on this phone.</Text>
+              </View>
+            </View>
+            {dataBusy === 'exporting' ? (
+              <ActivityIndicator color="#f43f5e" />
+            ) : (
+              <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+            )}
           </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleExportPdf}
+            disabled={dataBusy !== 'idle'}
+            className="flex-row items-center justify-between py-3"
+            style={{ opacity: dataBusy !== 'idle' && dataBusy !== 'pdf' ? 0.5 : 1 }}
+          >
+            <View className="flex-row items-center" style={{ gap: 12, flex: 1 }}>
+              <Ionicons name="document-text-outline" size={22} color="#f43f5e" />
+              <View style={{ flex: 1 }}>
+                <Text className="text-sm font-semibold text-gray-800">Doctor summary (PDF)</Text>
+                <Text className="text-xs text-gray-400">Last 14 days for your midwife or doctor.</Text>
+              </View>
+            </View>
+            {dataBusy === 'pdf' ? (
+              <ActivityIndicator color="#f43f5e" />
+            ) : (
+              <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleImport}
+            disabled={dataBusy !== 'idle'}
+            className="flex-row items-center justify-between py-3"
+            style={{ opacity: dataBusy !== 'idle' && dataBusy !== 'importing' ? 0.5 : 1 }}
+          >
+            <View className="flex-row items-center" style={{ gap: 12, flex: 1 }}>
+              <Ionicons name="cloud-upload-outline" size={22} color="#f43f5e" />
+              <View style={{ flex: 1 }}>
+                <Text className="text-sm font-semibold text-gray-800">Import data</Text>
+                <Text className="text-xs text-gray-400">Restore from a Nestly JSON backup.</Text>
+              </View>
+            </View>
+            {dataBusy === 'importing' ? (
+              <ActivityIndicator color="#f43f5e" />
+            ) : (
+              <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={openDelete}
+            disabled={dataBusy !== 'idle'}
+            className="flex-row items-center justify-between py-3 mt-2 pt-4 border-t border-rose-100"
+            style={{ opacity: dataBusy !== 'idle' ? 0.5 : 1 }}
+          >
+            <View className="flex-row items-center" style={{ gap: 12, flex: 1 }}>
+              <Ionicons name="trash-outline" size={22} color="#ef4444" />
+              <View style={{ flex: 1 }}>
+                <Text className="text-sm font-semibold text-red-500">Delete all data</Text>
+                <Text className="text-xs text-gray-400">Erases every entry from this phone.</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+          </TouchableOpacity>
+
+          <Text className="text-xs text-gray-300 mt-4 text-center">Nestly v{APP_VERSION}</Text>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={importError !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setImportError(null)}
+      >
+        <View className="flex-1 bg-black/50 items-center justify-center px-6">
+          <View className="bg-white rounded-2xl p-6 w-full">
+            <Text className="text-base font-semibold text-red-500 mb-2">Import failed</Text>
+            <Text className="text-sm text-gray-600 mb-4">{importError}</Text>
+            <TouchableOpacity
+              onPress={() => setImportError(null)}
+              className="bg-rose-400 rounded-xl py-3 items-center"
+            >
+              <Text className="text-white font-semibold">OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={importPreview !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setImportPreview(null)}
+      >
+        <View className="flex-1 bg-black/50 items-center justify-center px-6">
+          <View className="bg-white rounded-2xl p-6 w-full">
+            <Text className="text-base font-semibold text-gray-800 mb-2">Restore this backup?</Text>
+            <Text className="text-xs text-gray-500 mb-3">
+              This will replace everything on this phone with the contents of the backup.
+            </Text>
+            {importPreview ? (
+              <View className="bg-rose-50 rounded-xl p-3 mb-4">
+                <Text className="text-xs text-gray-600">Exported: {importPreview.fileDate}</Text>
+                <Text className="text-xs text-gray-600">From: {importPreview.data.meta.platform}</Text>
+                <Text className="text-xs text-gray-600">App version: v{importPreview.data.meta.appVersion}</Text>
+              </View>
+            ) : null}
+            <View className="flex-row" style={{ gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => setImportPreview(null)}
+                className="flex-1 border border-gray-300 rounded-xl py-3 items-center"
+              >
+                <Text className="text-gray-500">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={confirmImport}
+                className="flex-1 bg-rose-400 rounded-xl py-3 items-center"
+              >
+                <Text className="text-white font-semibold">Restore</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showDeleteConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (dataBusy === 'idle') {
+            setShowDeleteConfirm(false);
+            setDeleteConfirmText('');
+          }
+        }}
+      >
+        <View className="flex-1 bg-black/50 items-center justify-center px-6">
+          <View className="bg-white rounded-2xl p-6 w-full">
+            <Text className="text-base font-semibold text-red-500 mb-2">Delete all data?</Text>
+            <Text className="text-sm text-gray-600 mb-4">
+              Every tracker entry, profile, and baby will be erased from this phone. This cannot be undone.
+            </Text>
+            <Text className="text-xs text-gray-500 mb-2">Type DELETE to confirm:</Text>
+            <TextInput
+              value={deleteConfirmText}
+              onChangeText={setDeleteConfirmText}
+              placeholder="DELETE"
+              placeholderTextColor="#94a3b8"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              className="bg-gray-50 rounded-xl py-3 px-4 text-base border border-gray-200 mb-4"
+            />
+            <View className="flex-row" style={{ gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (dataBusy === 'idle') {
+                    setShowDeleteConfirm(false);
+                    setDeleteConfirmText('');
+                  }
+                }}
+                disabled={dataBusy !== 'idle'}
+                className="flex-1 border border-gray-300 rounded-xl py-3 items-center"
+              >
+                <Text className="text-gray-500">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={confirmDelete}
+                disabled={deleteConfirmText.trim().toUpperCase() !== 'DELETE' || dataBusy !== 'idle'}
+                className="flex-1 rounded-xl py-3 items-center"
+                style={{
+                  backgroundColor:
+                    deleteConfirmText.trim().toUpperCase() !== 'DELETE' || dataBusy !== 'idle'
+                      ? '#fecdd3'
+                      : '#ef4444',
+                }}
+              >
+                {dataBusy === 'wiping' ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white font-semibold">Delete</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
