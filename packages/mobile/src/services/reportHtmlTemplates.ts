@@ -366,9 +366,11 @@ ${milestoneRows ? `<div class="section-title">Milestone Timeline</div><table><th
 }
 
 // --- 6. Doctor Summary ---
-// Mirrors the web `generateDoctorSummary` in packages/web/src/services/reportService.ts.
-// Keep the two in sync — printed output is part of the cross-platform contract
-// patients take to their midwife or doctor.
+// Mobile-only today. Web exposes `generatePregnancyDailyReport` /
+// `generateNewbornDailyReport` / `generateLaborReport` / `generateFullPregnancyReport`
+// / `generateFullNewbornReport` in reportService.ts — a doctor-facing 14-day
+// summary in this format has no web counterpart yet. Tracked as a follow-up to
+// #302 once we're ready to ship the same PDF from the PWA.
 
 function stageLabelFor(stage: LifecycleStage | undefined): string {
   switch (stage) {

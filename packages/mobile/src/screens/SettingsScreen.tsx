@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { LifecycleStage, ExportValidationError } from '@nestly/shared';
 import type { BabyAvatar, ZeroDataExportV1 } from '@nestly/shared';
-import { useProfileStore, useHealthConnectStore } from '@nestly/shared/stores';
+import { useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { Avatar } from '../components/Avatar';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
 import { requestNotificationPermissions, cancelAllScheduled } from '../services/notificationService';
@@ -45,6 +45,25 @@ function makeBaby(): BabyAvatar {
     skinTone: '#FDDBB4',
     gender: 'surprise',
   };
+}
+
+function summarizeImportCounts(data: ZeroDataExportV1): string {
+  const t = data.tracking;
+  const parts: string[] = [];
+  if (data.profile?.userName) parts.push(`profile for ${data.profile.userName}`);
+  if (data.profile?.babies?.length) {
+    parts.push(`${data.profile.babies.length} ${data.profile.babies.length === 1 ? 'baby' : 'babies'}`);
+  }
+  if (t.foodEntries.length) parts.push(`${t.foodEntries.length} meals`);
+  if (t.feedingLogs.length) parts.push(`${t.feedingLogs.length} feedings`);
+  if (t.diaperLogs.length) parts.push(`${t.diaperLogs.length} diapers`);
+  if (t.sleepLogs.length) parts.push(`${t.sleepLogs.length} sleep`);
+  if (t.weightLogs.length) parts.push(`${t.weightLogs.length} weights`);
+  if (t.bloodPressureLogs.length) parts.push(`${t.bloodPressureLogs.length} BP`);
+  if (t.kickLogs.length) parts.push(`${t.kickLogs.length} kicks`);
+  if (t.symptoms.length) parts.push(`${t.symptoms.length} symptoms`);
+  if (t.medicationLogs.length) parts.push(`${t.medicationLogs.length} meds`);
+  return parts.length ? parts.slice(0, 6).join(', ') : 'no tracker entries';
 }
 
 export function SettingsScreen() {
@@ -157,10 +176,25 @@ export function SettingsScreen() {
 
   const handleExportPdf = useCallback(async () => {
     if (dataBusy !== 'idle') return;
-    if (!profile) {
+    // profile is guaranteed non-null by the early return above, but keep the
+    // guard: if a future refactor moves the dataBusy handlers above the guard,
+    // the PDF needs a profile to render anything meaningful.
+    if (!profile) return;
+    const t = useTrackingStore.getState();
+    const hasSomeData =
+      t.symptoms.length > 0 ||
+      t.weightLogs.length > 0 ||
+      t.bloodPressureLogs.length > 0 ||
+      t.sleepLogs.length > 0 ||
+      t.kickLogs.length > 0 ||
+      t.feedingLogs.length > 0 ||
+      t.diaperLogs.length > 0 ||
+      t.medicationLogs.length > 0 ||
+      t.entries.length > 0;
+    if (!hasSomeData) {
       Alert.alert(
-        'Set up your profile first',
-        'The doctor summary needs a profile so it knows which trackers to include.',
+        'Nothing to summarise yet',
+        'Log at least one reading (weight, feeding, kicks, or a symptom) so there is something for your midwife or doctor to read.',
       );
       return;
     }
@@ -199,13 +233,21 @@ export function SettingsScreen() {
 
   const confirmImport = useCallback(() => {
     if (!importPreview) return;
+    if (dataBusy !== 'idle') return;
+    setDataBusy('importing');
     try {
       restoreMobileExport(importPreview.data);
       setImportPreview(null);
+      Alert.alert(
+        'Restored',
+        'Your data has been replaced with the contents of the backup.',
+      );
     } catch (e) {
       setImportError(e instanceof Error ? e.message : 'Unknown error');
+    } finally {
+      setDataBusy('idle');
     }
-  }, [importPreview]);
+  }, [importPreview, dataBusy]);
 
   const openDelete = useCallback(() => {
     setDeleteConfirmText('');
@@ -419,8 +461,8 @@ export function SettingsScreen() {
             <View className="flex-row items-center" style={{ gap: 12, flex: 1 }}>
               <Ionicons name="download-outline" size={22} color="#f43f5e" />
               <View style={{ flex: 1 }}>
-                <Text className="text-sm font-semibold text-gray-800">Export data (JSON)</Text>
-                <Text className="text-xs text-gray-400">Saves a backup of everything on this phone.</Text>
+                <Text className="text-sm font-semibold text-gray-800">Back up my data</Text>
+                <Text className="text-xs text-gray-400">Saves a file you can keep in Drive, WhatsApp, or another phone.</Text>
               </View>
             </View>
             {dataBusy === 'exporting' ? (
@@ -459,8 +501,8 @@ export function SettingsScreen() {
             <View className="flex-row items-center" style={{ gap: 12, flex: 1 }}>
               <Ionicons name="cloud-upload-outline" size={22} color="#f43f5e" />
               <View style={{ flex: 1 }}>
-                <Text className="text-sm font-semibold text-gray-800">Import data</Text>
-                <Text className="text-xs text-gray-400">Restore from a Nestly JSON backup.</Text>
+                <Text className="text-sm font-semibold text-gray-800">Restore from a backup</Text>
+                <Text className="text-xs text-gray-400">Pick a backup file to replace everything on this phone.</Text>
               </View>
             </View>
             {dataBusy === 'importing' ? (
@@ -525,22 +567,33 @@ export function SettingsScreen() {
             {importPreview ? (
               <View className="bg-rose-50 rounded-xl p-3 mb-4">
                 <Text className="text-xs text-gray-600">Exported: {importPreview.fileDate}</Text>
-                <Text className="text-xs text-gray-600">From: {importPreview.data.meta.platform}</Text>
+                <Text className="text-xs text-gray-600">
+                  From: Nestly {importPreview.data.meta.platform === 'mobile' ? 'on another phone' : 'on the web'}
+                </Text>
                 <Text className="text-xs text-gray-600">App version: v{importPreview.data.meta.appVersion}</Text>
+                <Text className="text-xs text-gray-600 mt-1">
+                  Includes: {summarizeImportCounts(importPreview.data)}
+                </Text>
               </View>
             ) : null}
             <View className="flex-row" style={{ gap: 8 }}>
               <TouchableOpacity
                 onPress={() => setImportPreview(null)}
+                disabled={dataBusy !== 'idle'}
                 className="flex-1 border border-gray-300 rounded-xl py-3 items-center"
               >
                 <Text className="text-gray-500">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={confirmImport}
+                disabled={dataBusy !== 'idle'}
                 className="flex-1 bg-rose-400 rounded-xl py-3 items-center"
               >
-                <Text className="text-white font-semibold">Restore</Text>
+                {dataBusy === 'importing' ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white font-semibold">Restore</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

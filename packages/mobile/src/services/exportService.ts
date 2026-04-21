@@ -164,33 +164,87 @@ export async function pickAndLoadExport(): Promise<ZeroDataExportV1 | null> {
  * need to be sure the AsyncStorage write landed (e.g., before navigating away)
  * should `await` one microtask after this returns, but the in-memory state is
  * authoritative for the rest of the session either way.
+ *
+ * Privacy consent (`settings.hasAcceptedPrivacy`) is intentionally NOT applied
+ * to the device: consent is device-level per #281, and the receiving device's
+ * own consent state must win over whatever the backup file carries. The field
+ * is still stamped into the export for portability, just ignored here.
+ *
+ * All store writes are wrapped in a try/catch that rolls back to the
+ * pre-restore snapshot if any setter throws, so users never see a partial
+ * restore (profile replaced but tracking half-populated).
  */
 export function restoreMobileExport(data: ZeroDataExportV1): void {
-  useProfileStore.getState().setProfile(data.profile);
-
+  const profileStore = useProfileStore.getState();
   const t = useTrackingStore.getState();
-  // Mirror the export->slice mapping: slice.foodEntries -> store.entries.
-  t.setEntries(data.tracking.foodEntries);
-  t.setSymptoms(data.tracking.symptoms);
-  t.setVitamins(data.tracking.vitamins);
-  t.setContractions(data.tracking.contractions);
-  t.setJournalEntries(data.tracking.journalEntries);
-  t.setCalendarEvents(data.tracking.calendarEvents);
-  t.setWeightLogs(data.tracking.weightLogs);
-  t.setSleepLogs(data.tracking.sleepLogs);
-  t.setFeedingLogs(data.tracking.feedingLogs);
-  t.setMilestones(data.tracking.milestones);
-  t.setHealthLogs(data.tracking.healthLogs);
-  t.setReactions(data.tracking.reactions);
-  t.setBabyGrowthLogs(data.tracking.babyGrowthLogs);
-  t.setTummyTimeLogs(data.tracking.tummyTimeLogs);
-  t.setBloodPressureLogs(data.tracking.bloodPressureLogs);
-  t.setKickLogs(data.tracking.kickLogs);
-  t.setKegelLogs(data.tracking.kegelLogs);
-  t.setDiaperLogs(data.tracking.diaperLogs);
-  t.setMedicationLogs(data.tracking.medicationLogs);
+  const snapshot = {
+    profile: profileStore.profile,
+    entries: t.entries,
+    symptoms: t.symptoms,
+    vitamins: t.vitamins,
+    contractions: t.contractions,
+    journalEntries: t.journalEntries,
+    calendarEvents: t.calendarEvents,
+    weightLogs: t.weightLogs,
+    sleepLogs: t.sleepLogs,
+    feedingLogs: t.feedingLogs,
+    milestones: t.milestones,
+    healthLogs: t.healthLogs,
+    reactions: t.reactions,
+    babyGrowthLogs: t.babyGrowthLogs,
+    tummyTimeLogs: t.tummyTimeLogs,
+    bloodPressureLogs: t.bloodPressureLogs,
+    kickLogs: t.kickLogs,
+    kegelLogs: t.kegelLogs,
+    diaperLogs: t.diaperLogs,
+    medicationLogs: t.medicationLogs,
+  };
 
-  usePrivacyStore.getState().setHasAcceptedPrivacy(data.settings.hasAcceptedPrivacy);
+  try {
+    profileStore.setProfile(data.profile);
+    // Mirror the export->slice mapping: slice.foodEntries -> store.entries.
+    t.setEntries(data.tracking.foodEntries);
+    t.setSymptoms(data.tracking.symptoms);
+    t.setVitamins(data.tracking.vitamins);
+    t.setContractions(data.tracking.contractions);
+    t.setJournalEntries(data.tracking.journalEntries);
+    t.setCalendarEvents(data.tracking.calendarEvents);
+    t.setWeightLogs(data.tracking.weightLogs);
+    t.setSleepLogs(data.tracking.sleepLogs);
+    t.setFeedingLogs(data.tracking.feedingLogs);
+    t.setMilestones(data.tracking.milestones);
+    t.setHealthLogs(data.tracking.healthLogs);
+    t.setReactions(data.tracking.reactions);
+    t.setBabyGrowthLogs(data.tracking.babyGrowthLogs);
+    t.setTummyTimeLogs(data.tracking.tummyTimeLogs);
+    t.setBloodPressureLogs(data.tracking.bloodPressureLogs);
+    t.setKickLogs(data.tracking.kickLogs);
+    t.setKegelLogs(data.tracking.kegelLogs);
+    t.setDiaperLogs(data.tracking.diaperLogs);
+    t.setMedicationLogs(data.tracking.medicationLogs);
+  } catch (err) {
+    profileStore.setProfile(snapshot.profile);
+    t.setEntries(snapshot.entries);
+    t.setSymptoms(snapshot.symptoms);
+    t.setVitamins(snapshot.vitamins);
+    t.setContractions(snapshot.contractions);
+    t.setJournalEntries(snapshot.journalEntries);
+    t.setCalendarEvents(snapshot.calendarEvents);
+    t.setWeightLogs(snapshot.weightLogs);
+    t.setSleepLogs(snapshot.sleepLogs);
+    t.setFeedingLogs(snapshot.feedingLogs);
+    t.setMilestones(snapshot.milestones);
+    t.setHealthLogs(snapshot.healthLogs);
+    t.setReactions(snapshot.reactions);
+    t.setBabyGrowthLogs(snapshot.babyGrowthLogs);
+    t.setTummyTimeLogs(snapshot.tummyTimeLogs);
+    t.setBloodPressureLogs(snapshot.bloodPressureLogs);
+    t.setKickLogs(snapshot.kickLogs);
+    t.setKegelLogs(snapshot.kegelLogs);
+    t.setDiaperLogs(snapshot.diaperLogs);
+    t.setMedicationLogs(snapshot.medicationLogs);
+    throw err;
+  }
 }
 
 /**
@@ -198,11 +252,16 @@ export function restoreMobileExport(data: ZeroDataExportV1): void {
  * in-memory store state. Privacy consent is device-level per #281 and is
  * intentionally NOT wiped — a user who asks to delete their tracking data
  * should not be forced back through the privacy consent screen on next launch.
+ *
+ * The in-memory setters run BEFORE `clearUserStores()` so that if Zustand's
+ * persist middleware flushes during the AsyncStorage wipe window, it writes
+ * empty state (the no-op we want) rather than the old state (which would
+ * survive the wipe).
  */
 export async function wipeAllMobileData(): Promise<void> {
-  await clearUserStores();
   useProfileStore.getState().setProfile(null);
   useTrackingStore.getState().resetAllLogs();
+  await clearUserStores();
 }
 
 /**
