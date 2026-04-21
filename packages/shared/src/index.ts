@@ -14,3 +14,4 @@ export { subscribeToNests, getNest, getUserMembership, subscribeToNest, subscrib
 export type { Unsubscribe } from './services/villageService.ts';
 export * from './tokens/index.ts';
 export * from './stores/index.ts';
+export * from './migrations/index.ts';
