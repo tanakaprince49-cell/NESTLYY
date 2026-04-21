@@ -13,7 +13,10 @@ import type {
   BabyGrowthLog,
   MilestoneLog,
   Contraction,
+  BloodPressureLog,
+  MedicationLog,
 } from '@nestly/shared';
+import { LifecycleStage } from '@nestly/shared';
 
 const STYLES = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -360,4 +363,168 @@ ${babiesHtml ? `<div class="card"><div class="card-title">The Babies</div>${babi
 ${milestoneRows ? `<div class="section-title">Milestone Timeline</div><table><thead><tr><th>Date</th><th>Milestone</th><th>Notes</th></tr></thead><tbody>${milestoneRows}</tbody></table>` : ''}`;
 
   return wrap("YOUR BABY'S JOURNEY - ARCHIVED BY NESTLY", body);
+}
+
+// --- 6. Doctor Summary ---
+// Mobile-only today. Web exposes `generatePregnancyDailyReport` /
+// `generateNewbornDailyReport` / `generateLaborReport` / `generateFullPregnancyReport`
+// / `generateFullNewbornReport` in reportService.ts — a doctor-facing 14-day
+// summary in this format has no web counterpart yet. Tracked as a follow-up to
+// #302 once we're ready to ship the same PDF from the PWA.
+
+function stageLabelFor(stage: LifecycleStage | undefined): string {
+  switch (stage) {
+    case LifecycleStage.PRE_PREGNANCY: return 'Pre-pregnancy';
+    case LifecycleStage.BIRTH: return 'Birth';
+    case LifecycleStage.NEWBORN: return 'Newborn care';
+    case LifecycleStage.INFANT: return 'Infant care';
+    case LifecycleStage.TODDLER: return 'Toddler care';
+    case LifecycleStage.PREGNANCY:
+    default:
+      return 'Pregnancy';
+  }
+}
+
+export function buildDoctorSummaryHtml(params: {
+  profile: PregnancyProfile;
+  now?: Date;
+  weightLogs: WeightLog[];
+  bloodPressureLogs: BloodPressureLog[];
+  sleepLogs: SleepLog[];
+  symptoms: SymptomLog[];
+  kickLogs: KickLog[];
+  kegelLogs: KegelLog[];
+  foodEntries: FoodEntry[];
+  feedingLogs: FeedingLog[];
+  diaperLogs: DiaperLog[];
+  medicationLogs: MedicationLog[];
+}): string {
+  const {
+    profile,
+    now = new Date(),
+    weightLogs,
+    bloodPressureLogs,
+    sleepLogs,
+    symptoms,
+    kickLogs,
+    kegelLogs,
+    foodEntries,
+    feedingLogs,
+    diaperLogs,
+    medicationLogs,
+  } = params;
+
+  const fourteenDaysAgo = now.getTime() - 14 * 24 * 60 * 60 * 1000;
+  const within14 = <T extends { timestamp: number }>(items: T[]): T[] =>
+    items.filter((x) => x.timestamp >= fourteenDaysAgo);
+
+  const weights = within14(weightLogs).sort((a, b) => b.timestamp - a.timestamp);
+  const bp = within14(bloodPressureLogs).sort((a, b) => b.timestamp - a.timestamp);
+  const sleep = within14(sleepLogs);
+  const sympt = within14(symptoms).sort((a, b) => b.timestamp - a.timestamp);
+  const kicks = within14(kickLogs);
+  const kegels = within14(kegelLogs);
+  const foods = within14(foodEntries);
+  const feedings = within14(feedingLogs);
+  const diapers = within14(diaperLogs);
+  const meds = within14(medicationLogs);
+
+  const nutritionTotals = foods.reduce(
+    (acc, f) => ({ c: acc.c + (f.calories || 0), p: acc.p + (f.protein || 0), i: acc.i + (f.iron || 0) }),
+    { c: 0, p: 0, i: 0 },
+  );
+  const daysWithFood = new Set(foods.map((f) => new Date(f.timestamp).toDateString())).size || 1;
+  const avg = (n: number): string => (n / daysWithFood).toFixed(0);
+
+  const daysWithSleep = new Set(sleep.map((s) => new Date(s.startTime).toDateString())).size || 1;
+  const totalSleepHrs = sleep.reduce(
+    (acc, s) => acc + (new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) / 3600000,
+    0,
+  );
+  const avgSleep = sleep.length > 0 ? (totalSleepHrs / daysWithSleep).toFixed(1) : '---';
+
+  const latestWeight = weights[0]?.weight;
+  const latestBp = bp[0];
+  const parentName = profile.userName || 'Parent';
+  const stageLabel = stageLabelFor(profile.lifecycleStage);
+
+  const profileLineParts: string[] = [`Current stage: ${stageLabel}`];
+  if (profile.dueDate) {
+    const due = new Date(profile.dueDate);
+    if (!Number.isNaN(due.getTime())) {
+      profileLineParts.push(`EDD ${due.toLocaleDateString('en-GB')}`);
+      if (
+        profile.lifecycleStage === LifecycleStage.PREGNANCY ||
+        profile.lifecycleStage === LifecycleStage.PRE_PREGNANCY
+      ) {
+        const weeksLeft = (due.getTime() - now.getTime()) / (7 * 24 * 60 * 60 * 1000);
+        const gestWeek = Math.max(0, Math.min(42, Math.round(40 - weeksLeft)));
+        profileLineParts.push(`Week ${gestWeek}`);
+      }
+    }
+  }
+
+  const trackersRows =
+    profile.lifecycleStage === LifecycleStage.NEWBORN
+      ? `<div class="row">Feedings: ${feedings.length}</div>
+         <div class="row">Diaper changes: ${diapers.length}</div>
+         <div class="row">Medications: ${meds.length}</div>`
+      : `<div class="row">Kick sessions: ${kicks.length} (${kicks.reduce((a, k) => a + (k.count || 0), 0)} kicks)</div>
+         <div class="row">Kegel sessions: ${kegels.length}</div>
+         <div class="row">Medications: ${meds.length}</div>`;
+
+  const symptomsHtml = sympt.length > 0
+    ? `<div class="section-title">Recent symptoms</div>
+       <div class="card"><div class="card-text">${sympt.slice(0, 8)
+         .map((s) => `${new Date(s.timestamp).toLocaleDateString('en-GB')}: ${escHtml(s.type)} (severity ${s.severity}/10)`)
+         .join('<br/>')}</div></div>`
+    : '';
+
+  const uniqueMedNames = Array.from(
+    new Set(meds.map((m) => (m.name || '').trim()).filter(Boolean)),
+  ).slice(0, 10);
+  const medsHtml = meds.length > 0
+    ? `<div class="section-title">Medications logged</div>
+       <div class="card"><div class="card-text">${
+         uniqueMedNames.length > 0 ? escHtml(uniqueMedNames.join(', ')) : `${meds.length} dose(s) logged.`
+       }</div></div>`
+    : '';
+
+  const nutritionHtml = foods.length > 0
+    ? `<div class="card-text">Per logged day: ${avg(nutritionTotals.c)} kcal | ${avg(nutritionTotals.p)}g protein | ${avg(nutritionTotals.i)}mg iron</div>
+       <div class="card-text">Total meals logged: ${foods.length} across ${daysWithFood} day(s)</div>`
+    : `<div class="card-text">No meals logged in the last 14 days.</div>`;
+
+  const body = `
+<div class="header">
+  <h1>Nestly</h1>
+  <div class="subtitle">DOCTOR VISIT SUMMARY</div>
+  <div class="date">${fmtDate(now)}</div>
+</div>
+<div class="profile-card">
+  <div class="name">Mama: ${escHtml(parentName)}</div>
+  <div class="detail">${escHtml(profileLineParts.join('  |  '))}</div>
+</div>
+<div class="section-title">Last 14 days</div>
+<div class="section-subtitle">Summary of self-tracked readings. Bring this sheet to your appointment.</div>
+<div class="stat-grid">
+  <div class="stat-box">
+    <div class="label">Vitals</div>
+    <div class="row">Weight: ${latestWeight !== undefined ? latestWeight + ' kg' : '---'}</div>
+    <div class="row">Blood pressure: ${latestBp ? `${latestBp.systolic}/${latestBp.diastolic}` : '---'}</div>
+    <div class="row">Avg sleep: ${avgSleep} hrs</div>
+    <div class="row">Symptoms logged: ${sympt.length}</div>
+    <div class="row">Readings: ${weights.length} weight, ${bp.length} BP</div>
+  </div>
+  <div class="stat-box">
+    <div class="label">Trackers</div>
+    ${trackersRows}
+  </div>
+</div>
+<div class="section-title">Nutrition averages</div>
+<div class="card">${nutritionHtml}</div>
+${symptomsHtml}
+${medsHtml}`;
+
+  return wrap('FOR YOUR MIDWIFE OR DOCTOR.', body);
 }
