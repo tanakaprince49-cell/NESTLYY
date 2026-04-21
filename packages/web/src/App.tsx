@@ -7,7 +7,6 @@ const SetupScreen = lazy(() => import('./components/SetupScreen.tsx').then(m => 
 const EducationHub = lazy(() => import('./components/EducationHub.tsx').then(m => ({ default: m.EducationHub })));
 const PrivacyScreen = lazy(() => import('./components/PrivacyScreen.tsx').then(m => ({ default: m.PrivacyScreen })));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard.tsx').then(m => ({ default: m.AdminDashboard })));
-const AvaChat = lazy(() => import('./components/AvaChat.tsx').then(m => ({ default: m.AvaChat })));
 const Settings = lazy(() => import('./components/Settings.tsx').then(m => ({ default: m.Settings })));
 const VillageHub = lazy(() => import('./components/VillageHub.tsx').then(m => ({ default: m.VillageHub })));
 import { storage } from './services/storageService.ts';
@@ -54,7 +53,7 @@ const App: React.FC = () => {
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [trimester, setTrimester] = useState<Trimester>(Trimester.FIRST);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'ava' | 'admin' | 'settings' | 'village'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'admin' | 'settings' | 'village'>('dashboard');
   const [activeToolCat, setActiveToolCat] = useState<string>('all');
 
   const [entries, setEntries] = useState<FoodEntry[]>([]);
@@ -170,7 +169,6 @@ const App: React.FC = () => {
       setActiveTab('village');
       sessionStorage.setItem('pendingInvite', invite);
     } else {
-      if (tab === 'ava') setActiveTab('ava');
       if (tab === 'tools') setActiveTab('tools');
       if (tab === 'dashboard') setActiveTab('dashboard');
       if (tab === 'baby') setActiveTab('baby');
@@ -280,7 +278,6 @@ const App: React.FC = () => {
                 />
               )}
               {activeTab === 'baby' && <BabyProgress profile={profile} babyGrowthLogs={babyGrowthLogs} />}
-              {activeTab === 'ava' && <AvaChat profile={profile} />}
               {activeTab === 'education' && (
                 <EducationHub
                   trimester={trimester}

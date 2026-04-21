@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { LifecycleStage } from '@nestly/shared';
 import type { BabyAvatar } from '@nestly/shared';
-import { useAvaChatStore, useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
+import { useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { Avatar } from '../components/Avatar';
 import { HealthConnectSection } from '../components/settings/HealthConnectSection';
 import { requestNotificationPermissions, registerPushToken, cancelAllScheduled } from '../services/notificationService';
@@ -140,7 +140,6 @@ export function SettingsScreen() {
             await clearUserStores();
             useProfileStore.getState().setProfile(null);
             useTrackingStore.getState().resetAllLogs();
-            useAvaChatStore.getState().clearMessages();
             useHealthConnectStore.getState().resetSyncState();
           },
         },

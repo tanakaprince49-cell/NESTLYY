@@ -25,7 +25,6 @@ export type VillageStackParamList = {
 export type RootTabParamList = {
   Dashboard: undefined;
   Baby: undefined;
-  Ava: undefined;
   Education: undefined;
   Tools: NavigatorScreenParams<ToolsStackParamList>;
   Village: NavigatorScreenParams<VillageStackParamList>;

@@ -24,7 +24,7 @@ flowchart TD
 
 ## Navigation
 
-8 tabs controlled by `activeTab` state in `App.tsx`. No router library.
+7 tabs controlled by `activeTab` state in `App.tsx`. No router library.
 
 ```mermaid
 flowchart LR
@@ -33,7 +33,6 @@ flowchart LR
         baby[Growth]
         education[Articles]
         tools[Tools]
-        ava[Ava]
         village[Village]
         settings[Settings]
         admin[Admin]
@@ -81,22 +80,17 @@ flowchart TD
     end
 
     subgraph Vercel
-        AVA_API[/api/ava.js/]
-        PLAN_API[/api/custom-plan.js/]
         FOOD_API[/api/food-research.js/]
     end
 
     subgraph External
         OR[OpenRouter / DeepSeek]
-        GEM[Google Gemini]
     end
 
     UI --> SS --> LS
     SS --> FS
     AUTH --> UI
-    UI --> AVA_API --> OR
-    UI --> PLAN_API --> GEM
-    UI --> FOOD_API --> GEM
+    UI --> FOOD_API --> OR
 ```
 
 All personal data (logs, profile, settings) lives in localStorage, scoped by user email.
@@ -130,21 +124,19 @@ The home screen. Shows different widgets depending on lifecycle stage.
 
 ### Tools Hub
 
-27 tools organized by lifecycle stage. User picks a tool from a grid, it opens full-screen.
+25 tools organized by lifecycle stage. User picks a tool from a grid, it opens full-screen.
 
-**Pregnancy tools (17):**
-AI Plan, Medications, Baby Names, Bump Photos, Sleep, Calendar, Checklists, Memories, Kegels, Journal, Contractions, Kicks, Reactions, Calm, Reports, Symptoms, Nutrition, Vitamins
+**Pregnancy tools (16):**
+Medications, Baby Names, Bump Photos, Sleep, Calendar, Checklists, Memories, Kegels, Journal, Contractions, Kicks, Reactions, Calm, Reports, Symptoms, Nutrition, Vitamins
 
-**Newborn/postpartum tools (19):**
-AI Plan, Feeding, Sleep, Diaper, Milestones, Health, Medications, Tummy Time, Bath, Pumping, Teething, Journal, Export PDF, Calendar, Checklists, Memories, Symptoms, Nutrition, Vitamins
+**Newborn/postpartum tools (18):**
+Feeding, Sleep, Diaper, Milestones, Health, Medications, Tummy Time, Bath, Pumping, Teething, Journal, Export PDF, Calendar, Checklists, Memories, Symptoms, Nutrition, Vitamins
 
 What each tool does:
 
 | Tool | What it does |
 |------|-------------|
-| AI Plan | AI-generated nutrition, fitness, routine, and medical plan based on trimester |
 | Symptoms | Log preset symptoms (nausea, headache, fatigue, etc.) with severity |
-| Symptom Decoder | Describe symptoms in free text, get Green/Amber/Red safety rating (mock, no backend) |
 | Contractions | Timer for labor contractions, tracks duration and frequency |
 | Kicks | Fetal kick counting sessions |
 | Sleep | Sleep logging with quality ratings, works in pregnancy and newborn modes |
@@ -170,17 +162,6 @@ What each tool does:
 | Bath | Bath tracking |
 | Pumping | Breast pump session logging |
 | Teething | Teething symptom tracking |
-
-### Ava chatbot
-
-AI companion powered by DeepSeek via OpenRouter. System prompt says she is not a doctor and must never diagnose.
-
-Features:
-- Text chat with conversation history (stored in localStorage)
-- Voice input (speech-to-text) and voice output (text-to-speech)
-- Memory Vault that stores key facts about the user's journey
-- Custom avatar upload
-- Backend: `/api/ava.js` serverless function, requires Firebase auth token
 
 ### Village Hub
 
@@ -246,7 +227,7 @@ packages/
   shared/        @nestly/shared - types, firebase, services (village, sync, growth)
   web/           @nestly/web - React app, components, web-specific services
   mobile/        placeholder for future React Native app
-api/             Vercel serverless functions (ava, custom-plan, food-research, push)
+api/             Vercel serverless functions (food-research, push)
 scripts/         Seed scripts
 tests/           Vitest unit tests
 ```

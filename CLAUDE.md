@@ -63,8 +63,7 @@ Every PR that modifies production code under `packages/*/src/**` (excluding test
 ## Environment Variables
 
 Root `.env.example` documents all variables:
-- `OPENROUTER_API_KEY` -- AI chat (DeepSeek via OpenRouter)
-- `GEMINI_API_KEY` -- Google Gemini API
+- `OPENROUTER_API_KEY` -- Food research AI (DeepSeek via OpenRouter)
 - `RESEND_API_KEY` -- Email service
 - `FIREBASE_SERVICE_ACCOUNT` -- Firebase Admin JSON
 - `VITE_FIREBASE_VAPID_KEY` -- FCM push notifications
@@ -90,7 +89,7 @@ Root `.env.example` documents all variables:
 - All cross-package imports use `@nestly/shared` alias (never relative `../../`)
 
 ### State management
-- All Zustand stores in `packages/shared/src/stores/` (authStore, profileStore, trackingStore, avaChatStore, navigationStore)
+- All Zustand stores in `packages/shared/src/stores/` (profileStore, trackingStore, navigationStore, localIdentityStore)
 - Local React state only for ephemeral UI values (input text, toggles)
 - Web also uses storageService.ts for localStorage persistence (user-scoped by email)
 
@@ -102,8 +101,6 @@ Root `.env.example` documents all variables:
 All data models in `packages/shared/src/types.ts`. Component prop types stay inline.
 
 ### Serverless API (api/)
-- `api/ava.js` -- Ava AI chat (requires Firebase ID token)
-- `api/custom-plan.js` -- Meal plan AI (requires Firebase ID token)
 - `api/food-research.js` -- Nutrition research (public)
 - `api/push/token.js` -- Push token storage
 - `api/admin/broadcast.js` -- Admin push broadcasts

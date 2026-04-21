@@ -270,6 +270,10 @@ export interface MedicationLog {
   timestamp: number;
 }
 
+// Legacy export-schema types. The Ava feature was removed in #295, but the
+// Zero-Data export schema v1 (#294) still carries Ava data shapes so users who
+// captured Ava conversations before the removal can round-trip them through
+// export/import. Do not reintroduce runtime consumers of these types.
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model';
@@ -277,16 +281,16 @@ export interface ChatMessage {
   timestamp: number;
 }
 
-export interface PeriodLog {
-  id: string;
-  startDate: string;
-  timestamp: number;
-}
-
 export interface AvaMemoryFact {
   id: string;
   content: string;
   category: 'preference' | 'symptom' | 'milestone' | 'info';
+  timestamp: number;
+}
+
+export interface PeriodLog {
+  id: string;
+  startDate: string;
   timestamp: number;
 }
 
@@ -327,34 +331,6 @@ export interface FertilityPrediction {
   ovulationDay: string;
   fertileWindow: string[];
   advice: string;
-}
-
-export interface CustomPlan {
-  id: string;
-  trimester: Trimester;
-  dietPreference: string;
-  timestamp: number;
-  nutrition: {
-    breakfast: string[];
-    lunch: string[];
-    dinner: string[];
-    snacks: string[];
-    nutrients: { name: string, importance: string }[];
-  };
-  fitness: {
-    exercises: string[];
-    safety: string[];
-    frequency: string;
-  };
-  routine: {
-    morning: string[];
-    afternoon: string[];
-    evening: string[];
-  };
-  medical: {
-    upcoming: string[];
-    questions: string[];
-  };
 }
 
 export const CURRENT_SCHEMA_VERSION = 1 as const;
@@ -413,7 +389,6 @@ export interface ZeroDataExtrasSlice {
   babyNames?: { name: string; gender: string; rating: number }[];
   bumpPhotos?: { id: string; url: string; date: string; week: number }[];
   unlockedAchievementIds?: string[];
-  customPlan?: CustomPlan | null;
   lastWeekCelebrated?: number;
 }
 

@@ -12,8 +12,6 @@
   },
   "dependencies": {
     "@nestly/shared": "*",
-    "@google/genai": "^1.40.0",
-    "@openrouter/sdk": "^0.9.11",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "express": "^5.2.1",
@@ -26,7 +24,6 @@
     "node-cron": "^4.2.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-markdown": "^10.1.0",
     "react-phone-input-2": "^2.15.1",
     "recharts": "^3.8.0",
     "resend": "^6.9.3",
