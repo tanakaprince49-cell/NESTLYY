@@ -158,20 +158,16 @@ const App: React.FC = () => {
     document.body.className = `theme-${theme} ${isPostpartum ? 'stage-newborn' : 'stage-pregnancy'}`;
   }, [profile?.lifecycleStage, profile?.themeColor]);
 
-  // Handle deep linking from Shortcuts / Widgets / Invites
+  // Handle deep linking from Shortcuts / Widgets
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    const invite = params.get('invite');
 
-    if (!invite) {
-      if (tab === 'tools') setActiveTab('tools');
-      if (tab === 'dashboard') setActiveTab('dashboard');
-      if (tab === 'baby') setActiveTab('baby');
-    }
+    if (tab === 'tools') setActiveTab('tools');
+    if (tab === 'dashboard') setActiveTab('dashboard');
+    if (tab === 'baby') setActiveTab('baby');
 
-    // Clear the URL params without reloading to keep a clean state
-    if (tab || invite) {
+    if (tab) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);

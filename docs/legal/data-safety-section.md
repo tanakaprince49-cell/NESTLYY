@@ -19,11 +19,7 @@ It is not a user-facing document.
 
 ### Personal Info
 
-| Data type | Collected | Shared with third parties | Purpose | Required/Optional |
-|-----------|-----------|--------------------------|---------|-------------------|
-| Name | Yes | Yes (Google/Firebase for authentication) | App functionality, Account management | Required |
-| Email address | Yes | Yes (Google/Firebase for authentication, Resend for transactional email) | App functionality, Account management | Required |
-| User IDs | Yes | Yes (Google/Firebase for authentication) | App functionality | Required |
+Nestly does not collect name, email, or user IDs. The app uses a local device-scoped UUID for storage partitioning on the device only; it is never transmitted.
 
 ### Health and Fitness
 
@@ -31,44 +27,40 @@ It is not a user-facing document.
 |-----------|-----------|--------------------------|---------|-------------------|
 | Health info (pregnancy data, symptoms, vitals, baby health logs) | Yes | No (stored in localStorage on device) | App functionality, Personalisation | Optional |
 
-**Note:** Most health data stays on-device in localStorage and is never transmitted to our servers. The exception is when a user sends health-related questions to the Ava chatbot -- those messages are sent to the AI provider.
+**Note:** All health data stays on-device and is never transmitted to our servers.
 
 ### Messages
 
-| Data type | Collected | Shared with third parties | Purpose | Required/Optional |
-|-----------|-----------|--------------------------|---------|-------------------|
-| In-app messages (Ava chat) | Yes | Yes (OpenRouter/DeepSeek for AI processing) | App functionality | Optional |
-| Other (Village Hub posts/comments) | Yes | No (stored in Firestore, visible to other app users) | App functionality | Optional |
+Nestly does not collect in-app messages. No AI chat or community-messaging features are present.
 
 ### Photos and Videos
 
 | Data type | Collected | Shared with third parties | Purpose | Required/Optional |
 |-----------|-----------|--------------------------|---------|-------------------|
-| Photos (profile, memories, Village Hub) | Yes | No | App functionality | Optional |
+| Photos (profile, memory albums) | Yes | No (stored locally on device) | App functionality | Optional |
 
 ### App Activity
 
 | Data type | Collected | Shared with third parties | Purpose | Required/Optional |
 |-----------|-----------|--------------------------|---------|-------------------|
-| In-app search history (Village Hub search) | No (not persisted) | No | N/A | N/A |
+| In-app search history (food research query text) | Yes | Yes (Google Gemini for nutrition guidance) | App functionality | Optional |
 
 ### Device or Other IDs
 
 | Data type | Collected | Shared with third parties | Purpose | Required/Optional |
 |-----------|-----------|--------------------------|---------|-------------------|
-| Device or other IDs (push notification tokens) | Yes | No (stored in Firebase) | App functionality (push notifications) | Optional |
+| Device or other IDs (push notification tokens) | Yes | No (stored in Firebase Cloud Messaging) | App functionality (push notifications) | Optional |
 
 ---
 
 ## Data Sharing Clarifications
 
-**"Shared" in Google Play terms means transferred to a third party.** Village Hub posts visible to other users within the app do NOT count as "shared with third parties" per Google's definition (it's user-to-user within the app).
+**"Shared" in Google Play terms means transferred to a third party.**
 
 Data that IS shared with third parties:
-- **Name, email, user IDs** with Google/Firebase (authentication and account management)
-- **Email address** with Resend (email delivery)
-- **Chat messages** with OpenRouter/DeepSeek (AI processing)
-- **Village Hub post media** embedded in Firestore (Google) -- visible to other app users
+- **Food-research query text** with Google Gemini (for nutrition-safety guidance during pregnancy)
+- **Push notification tokens** with Firebase Cloud Messaging (delivery only)
+- **Email address** with Resend (transactional email; only when you opt in)
 
 ---
 
