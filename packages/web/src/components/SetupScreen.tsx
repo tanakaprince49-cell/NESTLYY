@@ -33,7 +33,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
   const [isManualDueDate, setIsManualDueDate] = useState(initialProfile?.isManualDueDate || false);
   const [weight, setWeight] = useState(initialProfile?.startingWeight?.toString() || '');
   const [profileImage, setProfileImage] = useState(initialProfile?.profileImage || '');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(initialProfile?.notificationsEnabled ?? true);
   const [emailNotifications, setEmailNotifications] = useState(initialProfile?.emailNotifications ?? true);
   const [dietPreference, setDietPreference] = useState<'normal' | 'vegan' | 'vegetarian' | 'pescatarian' | 'gluten-free' | 'dairy-free'>(initialProfile?.dietPreference || 'normal');
   
@@ -101,7 +100,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
         customTargets: useCustomTargets ? targets : undefined,
         albums: initialProfile?.albums || emptyAlbums,
         lifecycleStage,
-        notificationsEnabled,
         emailNotifications,
         dietPreference
       };
@@ -593,19 +591,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onComplete, initialPro
             </div>
             
             <div className="space-y-4">
-              <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 flex items-center justify-between">
-                <div className="text-left">
-                  <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Push Notifications</span>
-                  <span className="text-sm font-bold text-slate-800">Reminders & Guidance</span>
-                </div>
-                <button 
-                  onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                  className={`w-14 h-8 rounded-full transition-all relative ${notificationsEnabled ? 'bg-rose-900' : 'bg-slate-200'}`}
-                >
-                  <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${notificationsEnabled ? 'right-1' : 'left-1'}`} />
-                </button>
-              </div>
-
               <div className="p-6 bg-white rounded-[2rem] border-2 border-slate-50 flex items-center justify-between">
                 <div className="text-left">
                   <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Email Updates</span>

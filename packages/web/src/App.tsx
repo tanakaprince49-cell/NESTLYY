@@ -44,10 +44,6 @@ const App: React.FC = () => {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    import('./services/pushService.ts').then(m => m.setupForegroundMessaging());
-  }, []);
-
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [trimester, setTrimester] = useState<Trimester>(Trimester.FIRST);
@@ -119,27 +115,6 @@ const App: React.FC = () => {
       setTimeout(() => splash.remove(), 600);
     }
   }, [loading]);
-
-  // Notification Polling
-  useEffect(() => {
-    if (!localUuid || !profile) return;
-
-    let interval: ReturnType<typeof setInterval> | undefined;
-
-    (async () => {
-      const { scheduleReminders, processReminders } = await import('./services/pushService.ts');
-
-      const runReminders = async () => {
-        scheduleReminders(profile, calendarEvents, vitamins, feedingLogs, sleepLogs, milestones, medicationLogs);
-        await processReminders();
-      };
-
-      interval = setInterval(runReminders, 10000);
-      runReminders();
-    })();
-
-    return () => { if (interval) clearInterval(interval); };
-  }, [localUuid, profile, calendarEvents, vitamins, feedingLogs, sleepLogs, milestones]);
 
   useEffect(() => {
     if (!profile) return;

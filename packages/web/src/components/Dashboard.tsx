@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { subscribeUserToPush } from '../services/pushService.ts';
 import { NutrientCard } from './NutrientCard.tsx';
 import { getBabyGrowth, babyGrowthData } from '@nestly/shared';
 import { CelebrationModal } from './CelebrationModal.tsx';
@@ -139,8 +138,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [newbornTab, setNewbornTab] = useState<'growth' | 'feeding' | 'sleep' | 'milestones' | 'health' | 'journal'>('feeding');
   const [selectedBabyId, setSelectedBabyId] = useState<string>(profile.babies?.[0]?.id || 'combined');
   const [dailyTip, setDailyTip] = useState('');
-  const [showPushPrompt, setShowPushPrompt] = useState(Notification.permission === 'default');
-  
   const [foodName, setFoodName] = useState('');
   const [foodCals, setFoodCals] = useState('');
   const [foodProtein, setFoodProtein] = useState('');
@@ -174,14 +171,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       return () => clearTimeout(timer);
     }
   }, [toast]);
-
-  const handleEnablePush = async () => {
-    const sub = await subscribeUserToPush();
-    if (sub) {
-      setShowPushPrompt(false);
-      onUpdateProfile?.({ ...profile, notificationsEnabled: true });
-    }
-  };
 
   useEffect(() => {
     const day = new Date().getDate();
