@@ -783,14 +783,27 @@ export const nutritionFoods: NutritionFood[] = [
   {
     id: 'mulberry',
     name: 'Mulberry',
-    aliases: ['mulberry', 'mazhanje'],
-    explanation: 'Fresh mulberries; traditional fruit rich in iron.',
+    aliases: ['mulberry'],
+    explanation: 'Fresh mulberries; vitamin-C and iron-rich berry.',
     serving: '1 cup (140g)',
     calories: 60,
     protein: 2,
     folate: 8,
     iron: 2.6,
     calcium: 55,
+    category: 'fruit',
+  },
+  {
+    id: 'mazhanje',
+    name: 'Mazhanje (muzhanje)',
+    aliases: ['mazhanje', 'muzhanje', 'wild loquat', 'mahobohobo', 'uapaca'],
+    explanation: 'Uapaca kirkiana wild fruit; sweet indigenous fruit harvested in late dry season.',
+    serving: '1 cup (150g)',
+    calories: 110,
+    protein: 1,
+    folate: 10,
+    iron: 0.6,
+    calcium: 35,
     category: 'fruit',
   },
   {
@@ -1008,6 +1021,20 @@ export const nutritionFoods: NutritionFood[] = [
     category: 'drink',
   },
 
+  {
+    id: 'eggplant',
+    name: 'Eggplant (brinjal)',
+    aliases: ['eggplant', 'brinjal', 'aubergine'],
+    explanation: 'Cooked eggplant; fibre and some folate.',
+    serving: '1 cup cooked (100g)',
+    calories: 35,
+    protein: 1,
+    folate: 15,
+    iron: 0.3,
+    calcium: 10,
+    category: 'vegetable',
+  },
+
   // ---- Other / mixed ----
   {
     id: 'honey',
@@ -1021,19 +1048,6 @@ export const nutritionFoods: NutritionFood[] = [
     iron: 0.1,
     calcium: 1,
     category: 'other',
-  },
-  {
-    id: 'eggplant',
-    name: 'Eggplant (brinjal)',
-    aliases: ['eggplant', 'brinjal', 'aubergine'],
-    explanation: 'Cooked eggplant; fibre and some folate.',
-    serving: '1 cup cooked (100g)',
-    calories: 35,
-    protein: 1,
-    folate: 15,
-    iron: 0.3,
-    calcium: 10,
-    category: 'vegetable',
   },
 ];
 
@@ -1064,7 +1078,7 @@ export function searchNutrition(query: string, limit = 8): NutritionFood[] {
     if (score > 0) scored.push({ food, score });
   }
 
-  scored.sort((a, b) => b.score - a.score || a.food.name.localeCompare(b.food.name));
+  scored.sort((a, b) => b.score - a.score || a.food.name.localeCompare(b.food.name, 'en'));
   return scored.slice(0, limit).map((s) => s.food);
 }
 

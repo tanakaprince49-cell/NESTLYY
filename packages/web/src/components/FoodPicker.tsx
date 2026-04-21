@@ -91,9 +91,9 @@ export const FoodPicker: React.FC<FoodPickerProps> = ({ onAddEntry }) => {
             <Search size={20} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Food Log</h2>
+            <h2 className="text-xl font-bold text-slate-900">Log a meal</h2>
             <p className="text-[10px] font-black uppercase tracking-widest text-rose-600/60">
-              Offline pregnancy-aware nutrition picker
+              Search foods you ate today
             </p>
           </div>
         </div>
@@ -193,7 +193,7 @@ export const FoodPicker: React.FC<FoodPickerProps> = ({ onAddEntry }) => {
 
         <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium italic">
           <Info size={12} />
-          <span>Values are WHO/USDA averages per serving; no data leaves this device.</span>
+          <span>Values are WHO averages per serving. Nothing you log leaves this phone.</span>
         </div>
       </div>
     </motion.div>
