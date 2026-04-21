@@ -29,6 +29,10 @@ import {
   ArchivedPregnancy,
   ChecklistItem,
   Video,
+  ZeroDataExportV1,
+  ZeroDataTrackingSlice,
+  ZeroDataExtrasSlice,
+  ZeroDataSettingsSlice,
   getLocalIdentitySync,
   LOCAL_UUID_KEY,
 } from '@nestly/shared';
@@ -400,6 +404,121 @@ class StorageService {
 
   setLastWeekCelebrated(week: number): void {
     this.setItem(KEYS.LAST_WEEK_CELEBRATED, week);
+  }
+
+  getTrackingSlice(): ZeroDataTrackingSlice {
+    return {
+      foodEntries: this.getFoodEntries(),
+      symptoms: this.getSymptoms(),
+      vitamins: this.getVitamins(),
+      contractions: this.getContractions(),
+      journalEntries: this.getJournalEntries(),
+      calendarEvents: this.getCalendarEvents(),
+      weightLogs: this.getWeightLogs(),
+      sleepLogs: this.getSleepLogs(),
+      feedingLogs: this.getFeedingLogs(),
+      milestones: this.getMilestones(),
+      healthLogs: this.getHealthLogs(),
+      reactions: this.getReactions(),
+      babyGrowthLogs: this.getBabyGrowthLogs(),
+      tummyTimeLogs: this.getTummyTimeLogs(),
+      bloodPressureLogs: this.getBloodPressureLogs(),
+      kickLogs: this.getKickLogs(),
+      kegelLogs: this.getKegelLogs(),
+      diaperLogs: this.getDiaperLogs(),
+      medicationLogs: this.getMedications(),
+    };
+  }
+
+  getExtrasSlice(): ZeroDataExtrasSlice {
+    return {
+      periodLogs: this.getPeriodLogs(),
+      archivedPregnancies: this.getArchive(),
+      checklistItems: this.getAllChecklists(),
+      babyNames: this.getBabyNames(),
+      bumpPhotos: this.getBumpPhotos(),
+      unlockedAchievementIds: this.getUnlockedAchievementIds(),
+      lastWeekCelebrated: this.getLastWeekCelebrated(),
+    };
+  }
+
+  getSettingsSlice(profile: PregnancyProfile | null): ZeroDataSettingsSlice {
+    const slice: ZeroDataSettingsSlice = {
+      hasAcceptedPrivacy: this.hasAcceptedPrivacy(),
+    };
+    if (profile?.notificationsEnabled !== undefined) {
+      slice.notificationsEnabled = profile.notificationsEnabled;
+    }
+    if (profile?.emailNotifications !== undefined) {
+      slice.emailNotifications = profile.emailNotifications;
+    }
+    if (profile?.dietPreference !== undefined) {
+      slice.dietPreference = profile.dietPreference;
+    }
+    if (profile?.themeColor !== undefined) {
+      slice.themeColor = profile.themeColor;
+    }
+    return slice;
+  }
+
+  restoreFromExport(data: ZeroDataExportV1): void {
+    // Wipe all user-scoped keys under the current scope, then write the
+    // imported payload. Keeping the current UUID (we do not touch
+    // LOCAL_UUID_KEY) means the imported data lives under this device's
+    // scope going forward, no identity churn.
+    this.wipeAllUserScopedKeys();
+
+    if (data.profile) {
+      this.setItem(KEYS.PROFILE, data.profile);
+    }
+
+    this.setItem(KEYS.FOOD, data.tracking.foodEntries);
+    this.setItem(KEYS.SYMPTOMS, data.tracking.symptoms);
+    this.setItem(KEYS.VITAMINS, data.tracking.vitamins);
+    this.setItem(KEYS.CONTRACTIONS, data.tracking.contractions);
+    this.setItem(KEYS.JOURNAL, data.tracking.journalEntries);
+    this.setItem(KEYS.CALENDAR, data.tracking.calendarEvents);
+    this.setItem(KEYS.WEIGHT, data.tracking.weightLogs);
+    this.setItem(KEYS.SLEEP, data.tracking.sleepLogs);
+    this.setItem(KEYS.FEEDING, data.tracking.feedingLogs);
+    this.setItem(KEYS.MILESTONES, data.tracking.milestones);
+    this.setItem(KEYS.HEALTH, data.tracking.healthLogs);
+    this.setItem(KEYS.REACTIONS, data.tracking.reactions);
+    this.setItem(KEYS.BABY_GROWTH, data.tracking.babyGrowthLogs);
+    this.setItem(KEYS.TUMMY_TIME, data.tracking.tummyTimeLogs);
+    this.setItem(KEYS.BLOOD_PRESSURE, data.tracking.bloodPressureLogs);
+    this.setItem(KEYS.KICKS, data.tracking.kickLogs);
+    this.setItem(KEYS.KEGELS, data.tracking.kegelLogs);
+    this.setItem(KEYS.DIAPER, data.tracking.diaperLogs);
+    this.setItem(KEYS.MEDICATIONS, data.tracking.medicationLogs);
+
+    this.setItem(KEYS.PRIVACY_ACCEPTED, data.settings.hasAcceptedPrivacy);
+
+    if (data.extras) {
+      if (data.extras.periodLogs) this.setItem(KEYS.PERIOD_LOGS, data.extras.periodLogs);
+      if (data.extras.archivedPregnancies) this.setItem(KEYS.ARCHIVE, data.extras.archivedPregnancies);
+      if (data.extras.checklistItems) this.setItem(KEYS.CHECKLISTS, data.extras.checklistItems);
+      if (data.extras.babyNames) this.setItem(KEYS.BABY_NAMES, data.extras.babyNames);
+      if (data.extras.bumpPhotos) this.setItem(KEYS.BUMP_PHOTOS, data.extras.bumpPhotos);
+      if (data.extras.unlockedAchievementIds) this.setItem(KEYS.UNLOCKED_IDS, data.extras.unlockedAchievementIds);
+      if (typeof data.extras.lastWeekCelebrated === 'number') {
+        this.setItem(KEYS.LAST_WEEK_CELEBRATED, data.extras.lastWeekCelebrated);
+      }
+    }
+  }
+
+  wipeAllUserScopedKeys(): void {
+    // Mirror deleteAccount() minus LOCAL_UUID_KEY removal. The device scope
+    // is preserved so a post-wipe reload routes to Setup under the same UUID,
+    // without generating a fresh identity. Global keys (ACTIVITY_LOGS,
+    // VISITS, ARTICLES, BROADCASTS, VIDEOS) intentionally survive — they are
+    // device-scoped telemetry or seeded content, not user data.
+    const uuid = this.getScope();
+    try {
+      Object.values(KEYS).forEach(key => {
+        localStorage.removeItem(`${uuid}_${key}`);
+      });
+    } catch (e) {}
   }
 
 }

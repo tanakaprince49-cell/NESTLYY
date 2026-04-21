@@ -1,6 +1,6 @@
 import { storage } from './storageService.ts';
 import { jsPDF } from 'jspdf';
-import { calculateDurationMinutes } from '@nestly/shared';
+import { calculateDurationMinutes, LifecycleStage } from '@nestly/shared';
 
 const PDF_THEME = {
   primary: [190, 24, 93] as const, // rose-700
@@ -721,4 +721,166 @@ export const generateFullNewbornReport = () => {
   doc.text('A lifetime of newborn memories, preserved by Nestly.', pageWidth / 2, footerY, { align: 'center' });
 
   doc.save(`Nestly_Newborn_Full_Archive.pdf`);
+};
+
+export const generateDoctorSummary = (): void => {
+  const profile = storage.getProfile();
+  if (!profile) return;
+
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  const now = new Date();
+  const dateStr = now
+    .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    .toUpperCase();
+
+  const fourteenDaysAgo = now.getTime() - 14 * 24 * 60 * 60 * 1000;
+  const within14 = <T extends { timestamp: number }>(items: T[]): T[] =>
+    items.filter((x) => x.timestamp >= fourteenDaysAgo);
+
+  const weights = within14(storage.getWeightLogs() || []);
+  const bloodPressure = within14(storage.getBloodPressureLogs() || []);
+  const sleep = within14(storage.getSleepLogs() || []);
+  const symptoms = within14(storage.getSymptoms() || []);
+  const kicks = within14(storage.getKickLogs() || []);
+  const kegels = within14(storage.getKegelLogs() || []);
+  const foods = within14(storage.getFoodEntries() || []);
+  const feedings = within14(storage.getFeedingLogs() || []);
+  const diapers = within14(storage.getDiaperLogs() || []);
+  const medications = within14(storage.getMedications() || []);
+
+  const nutritionTotals = foods.reduce(
+    (acc, f) => ({
+      c: acc.c + (f.calories || 0),
+      p: acc.p + (f.protein || 0),
+      i: acc.i + (f.iron || 0),
+    }),
+    { c: 0, p: 0, i: 0 },
+  );
+  const daysWithFood = new Set(foods.map((f) => new Date(f.timestamp).toDateString())).size || 1;
+  const avg = (n: number): string => (n / daysWithFood).toFixed(0);
+
+  const totalSleepHours = sleep.reduce(
+    (acc, s) => acc + calculateDurationMinutes(s.startTime, s.endTime) / 60,
+    0,
+  );
+  const avgSleep = sleep.length > 0 ? (totalSleepHours / daysWithFood).toFixed(1) : '---';
+
+  const latestWeight = weights[0]?.weight;
+  const latestBp = bloodPressure[0];
+
+  drawSoftBackground(doc, pageWidth, pageHeight);
+  drawHeader(doc, pageWidth, dateStr, 'DOCTOR VISIT SUMMARY');
+
+  let y = 60;
+  const parentName = profile.userName || 'Parent';
+  const stageLabel =
+    profile.lifecycleStage === LifecycleStage.NEWBORN ? 'Newborn care' : 'Pregnancy';
+  drawProfileCard(doc, pageWidth, y, `Mama: ${parentName}`, `Current stage: ${stageLabel}`);
+  y += 45;
+  drawDivider(doc, pageWidth, y);
+  y += 12;
+
+  doc.setFont('times', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
+  doc.text('Last 14 days', 15, y);
+  y += 10;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
+  doc.text('Summary of self-tracked readings. Bring this sheet to your appointment.', 15, y);
+  y += 12;
+
+  const boxWidth = (pageWidth - 40) / 2;
+  const boxHeight = 60;
+
+  doc.setFillColor(PDF_THEME.cardBg[0], PDF_THEME.cardBg[1], PDF_THEME.cardBg[2]);
+  doc.roundedRect(15, y, boxWidth, boxHeight, 8, 8, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(PDF_THEME.accent[0], PDF_THEME.accent[1], PDF_THEME.accent[2]);
+  doc.text('VITALS', 25, y + 12);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
+  doc.text(`Weight: ${latestWeight !== undefined ? latestWeight + ' kg' : '---'}`, 25, y + 24);
+  doc.text(
+    `Blood pressure: ${latestBp ? `${latestBp.systolic}/${latestBp.diastolic}` : '---'}`,
+    25,
+    y + 31,
+  );
+  doc.text(`Avg sleep: ${avgSleep} hrs`, 25, y + 38);
+  doc.text(`Symptoms logged: ${symptoms.length}`, 25, y + 45);
+  doc.text(`Readings: ${weights.length} weight, ${bloodPressure.length} BP`, 25, y + 52);
+
+  doc.setFillColor(PDF_THEME.cardBg[0], PDF_THEME.cardBg[1], PDF_THEME.cardBg[2]);
+  doc.roundedRect(15 + boxWidth + 10, y, boxWidth, boxHeight, 8, 8, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(PDF_THEME.accent[0], PDF_THEME.accent[1], PDF_THEME.accent[2]);
+  doc.text('TRACKERS', 15 + boxWidth + 25, y + 12);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
+  if (profile.lifecycleStage === LifecycleStage.NEWBORN) {
+    doc.text(`Feedings: ${feedings.length}`, 15 + boxWidth + 25, y + 24);
+    doc.text(`Diaper changes: ${diapers.length}`, 15 + boxWidth + 25, y + 31);
+    doc.text(`Medications: ${medications.length}`, 15 + boxWidth + 25, y + 38);
+  } else {
+    const totalKicks = kicks.reduce((a, k) => a + (k.count || 0), 0);
+    doc.text(`Kick sessions: ${kicks.length} (${totalKicks} kicks)`, 15 + boxWidth + 25, y + 24);
+    doc.text(`Kegel sessions: ${kegels.length}`, 15 + boxWidth + 25, y + 31);
+    doc.text(`Medications: ${medications.length}`, 15 + boxWidth + 25, y + 38);
+  }
+
+  y += boxHeight + 12;
+
+  doc.setFont('times', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
+  doc.text('Nutrition averages', 15, y);
+  y += 10;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
+  if (foods.length > 0) {
+    doc.text(
+      `Per logged day: ${avg(nutritionTotals.c)} kcal | ${avg(nutritionTotals.p)}g protein | ${avg(nutritionTotals.i)}mg iron`,
+      15,
+      y,
+    );
+    y += 7;
+    doc.text(`Total meals logged: ${foods.length} across ${daysWithFood} day(s)`, 15, y);
+  } else {
+    doc.text('No meals logged in the last 14 days.', 15, y);
+  }
+  y += 18;
+
+  if (symptoms.length > 0) {
+    doc.setFont('times', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
+    doc.text('Recent symptoms', 15, y);
+    y += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(PDF_THEME.text[0], PDF_THEME.text[1], PDF_THEME.text[2]);
+    const recent = symptoms.slice(0, 8);
+    for (const s of recent) {
+      const when = new Date(s.timestamp).toLocaleDateString('en-GB');
+      const line = `${when}: ${s.type} (severity ${s.severity}/10)`;
+      const wrapped = doc.splitTextToSize(line, pageWidth - 30);
+      doc.text(wrapped, 15, y);
+      y += wrapped.length * 6;
+      if (y > pageHeight - 50) break;
+    }
+  }
+
+  drawFooter(doc, pageWidth, pageHeight, 'SHARE WITH YOUR HEALTHCARE PROVIDER.');
+
+  doc.save(`Nestly_Doctor_Summary_${now.toISOString().split('T')[0]}.pdf`);
 };
