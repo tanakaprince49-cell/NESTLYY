@@ -2,8 +2,6 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { auth } from '@nestly/shared';
-
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://nestlyy-one.vercel.app';
 
 // Configure how notifications appear when app is in foreground
@@ -39,23 +37,6 @@ export async function registerPushToken(): Promise<string | null> {
     const { data: token } = await Notifications.getExpoPushTokenAsync(
       projectId ? { projectId } : undefined,
     );
-
-    // Store token on server
-    const user = auth.currentUser;
-    if (user) {
-      const idToken = await user.getIdToken();
-      await fetch(`${API_URL}/api/push/token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({
-          token,
-          platform: Platform.OS,
-        }),
-      }).catch(() => {});
-    }
 
     return token;
   } catch {

@@ -35,6 +35,8 @@ import {
   NestMembership,
   NestPost,
   NestComment,
+  getLocalIdentitySync,
+  LOCAL_UUID_KEY,
 } from '@nestly/shared';
 
 const KEYS = {
@@ -45,7 +47,6 @@ const KEYS = {
   CONTRACTIONS: 'contractions',
   JOURNAL: 'journal',
   CALENDAR: 'calendar',
-  AUTH: 'nestly_auth_email',
   ACTIVITY_LOGS: 'nestly_activity_logs',
   VISITS: 'nestly_visit_count',
   WEIGHT: 'weight_logs',
@@ -85,18 +86,53 @@ const KEYS = {
   VILLAGE_CUSTOM_NESTS: 'village_custom_nests',
 };
 
-import { syncToFirestore } from '@nestly/shared';
-
 class StorageService {
+  private getLocalUuid(): string {
+    return getLocalIdentitySync(
+      (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+      (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+    );
+  }
+
+  private migrateFromEmailScope(uuid: string): void {
+    // One-time migration: if legacy email-scoped keys exist, copy them under
+    // the UUID scope and remove the originals. Handles internal testers who
+    // update past this PR.
+    try {
+      const legacyEmail = localStorage.getItem('nestly_auth_email');
+      if (!legacyEmail) return;
+      for (const dataKey of Object.values(KEYS)) {
+        const legacyKey = `${legacyEmail}_${dataKey}`;
+        const value = localStorage.getItem(legacyKey);
+        if (value !== null) {
+          const newKey = `${uuid}_${dataKey}`;
+          if (!localStorage.getItem(newKey)) {
+            localStorage.setItem(newKey, value);
+          }
+          localStorage.removeItem(legacyKey);
+        }
+      }
+      localStorage.removeItem('nestly_auth_email');
+    } catch {}
+  }
+
+  private _uuid: string | null = null;
+  private getScope(): string {
+    if (!this._uuid) {
+      this._uuid = this.getLocalUuid();
+      this.migrateFromEmailScope(this._uuid);
+    }
+    return this._uuid;
+  }
+
   private getUserKey(key: string): string {
-    const email = this.getAuthEmail();
-    if (!email) return `guest_${key}`;
-    return `${email}_${key}`;
+    return `${this.getScope()}_${key}`;
   }
 
   private getItem<T>(key: string, defaultValue: T, isGlobal: boolean = false): T {
     const finalKey = isGlobal ? key : this.getUserKey(key);
-    const saved = localStorage.getItem(finalKey);
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(finalKey); } catch { return defaultValue; }
     if (!saved) return defaultValue;
     try {
       const parsed = JSON.parse(saved);
@@ -113,39 +149,15 @@ class StorageService {
     try {
       const finalKey = isGlobal ? key : this.getUserKey(key);
       localStorage.setItem(finalKey, JSON.stringify(value));
-      
-      // Sync to Firestore if it's a user-specific key
-      if (!isGlobal) {
-        const email = this.getAuthEmail();
-        if (email) {
-          syncToFirestore(email);
-        }
-      }
     } catch (e) {
-      console.error("Storage error:", e);
-      // If it's a quota error, we might want to alert the user or clear some space
       if (e instanceof Error && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
         console.warn("Storage quota exceeded. Profile picture might be too large.");
       }
     }
   }
 
-  getAuthEmail(): string | null { 
-    try {
-      return localStorage.getItem(KEYS.AUTH); 
-    } catch (e) {
-      return null;
-    }
-  }
-  setAuthEmail(email: string): void { 
-    try {
-      localStorage.setItem(KEYS.AUTH, email); 
-    } catch (e) {}
-  }
-  logout(): void { 
-    try {
-      localStorage.removeItem(KEYS.AUTH); 
-    } catch (e) {}
+  getLocalUuidPublic(): string {
+    return this.getScope();
   }
 
   getProfile(): PregnancyProfile | null { 
@@ -246,9 +258,9 @@ class StorageService {
   }
 
   getAuthActivity(): UserLog[] { return this.getItem<UserLog[]>(KEYS.ACTIVITY_LOGS, [], true); }
-  logActivity(email: string, action: 'login' | 'signup'): void {
+  logActivity(_identifier: string, action: 'login' | 'signup'): void {
     const logs = this.getAuthActivity();
-    this.setItem(KEYS.ACTIVITY_LOGS, [{ email, action, timestamp: Date.now() }, ...logs], true);
+    this.setItem(KEYS.ACTIVITY_LOGS, [{ email: _identifier, action, timestamp: Date.now() }, ...logs], true);
   }
 
   getActivityLogs(): UserLog[] { return this.getAuthActivity(); }
@@ -329,17 +341,14 @@ class StorageService {
   }
 
   deleteAccount(): void {
-    const email = this.getAuthEmail();
-    if (!email) return;
-
+    const uuid = this.getScope();
     try {
-      // Remove all user-specific keys
       Object.values(KEYS).forEach(key => {
-        localStorage.removeItem(`${email}_${key}`);
+        localStorage.removeItem(`${uuid}_${key}`);
       });
-      
-      // Also remove the auth email itself
-      localStorage.removeItem(KEYS.AUTH);
+      // Reset the local UUID so next launch generates a fresh one
+      localStorage.removeItem(LOCAL_UUID_KEY);
+      this._uuid = null;
     } catch (e) {}
   }
 
@@ -485,10 +494,11 @@ class StorageService {
     const comments = this.getAllComments();
     const index = comments.findIndex(c => c.id === commentId);
     if (index >= 0) {
-      const isLiked = comments[index].likedBy.includes(this.getAuthEmail() || '');
+      const userId = this.getScope();
+      const isLiked = comments[index].likedBy.includes(userId);
       comments[index] = {
         ...comments[index],
-        likedBy: isLiked ? comments[index].likedBy.filter(uid => uid !== this.getAuthEmail()) : [...comments[index].likedBy, this.getAuthEmail() || ''],
+        likedBy: isLiked ? comments[index].likedBy.filter(uid => uid !== userId) : [...comments[index].likedBy, userId],
         likeCount: isLiked ? Math.max(0, comments[index].likeCount - 1) : comments[index].likeCount + 1,
       };
       this.setItem(KEYS.VILLAGE_COMMENTS, comments);

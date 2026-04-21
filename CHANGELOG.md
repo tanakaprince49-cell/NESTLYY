@@ -24,6 +24,9 @@ The committer then opens a release PR and, after merge, tags the merge commit `v
 
 ## [Unreleased]
 
+### Changed
+- Remove Firebase Auth entirely; switch to local UUID identity (Zero-Data MVP, POTRAZ compliance, #293 / #292). No account required. First-run skips AuthScreen and routes directly to Setup or Dashboard. Storage scoping switched from email to UUIDv4 persisted in localStorage (web) / AsyncStorage (mobile), with one-time migration for internal testers upgrading from email-scoped keys. `@react-native-google-signin/google-signin` removed from mobile. Settings removes Sign Out / account management; adds "Your Data" placeholder for export/import/delete (#301 / #302).
+
 ### Fixed
 - #286 AuthScreen email and password `TextInput` now render typed characters in `text-slate-900` instead of the platform default. Both inputs only had `text-base` (a font-size class) and no text color, so RN fell back to the Android system default. Tanaka's device runs Android in dark mode, so the default text color is white -- and the input has `bg-white`, hence the typed password was invisible (white-on-white). `app.json`'s `userInterfaceStyle: "light"` controls the app theme but not per-`TextInput` text color. Same dark slate as the rest of the app's typography. Other `TextInput` instances in SetupScreen and tracker screens may have the same bug; out of scope here.
 

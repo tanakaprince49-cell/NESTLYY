@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Check
 } from 'lucide-react';
-import { PregnancyProfile, NutritionTargets, MemoryAlbums, LifecycleStage, auth } from '@nestly/shared';
+import { PregnancyProfile, NutritionTargets, MemoryAlbums, LifecycleStage } from '@nestly/shared';
 import { Logo } from './Logo.tsx';
 
 interface SetupScreenProps {

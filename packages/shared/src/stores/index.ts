@@ -1,4 +1,4 @@
-export * from './authStore.ts';
+export * from './localIdentityStore.ts';
 export * from './profileStore.ts';
 export * from './trackingStore.ts';
 export * from './navigationStore.ts';

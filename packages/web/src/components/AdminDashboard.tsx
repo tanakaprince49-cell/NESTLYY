@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { storage } from '../services/storageService.ts';
-import { Trimester, Article, Video, auth } from '@nestly/shared';
+import { Trimester, Article, Video } from '@nestly/shared';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, CartesianGrid } from 'recharts';
 import { showLocalNotification } from '../services/pushService.ts';
 import { 
@@ -63,23 +63,18 @@ export const AdminDashboard: React.FC = () => {
         type: 'broadcast'
       });
 
-      // 2. Trigger real FCM push via server
-      const user = auth.currentUser;
-      if (user) {
-        const idToken = await user.getIdToken();
-        await fetch('/api/admin/broadcast', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({
-            title: pushTitle,
-            body: pushBody,
-            url: '/?tab=dashboard'
-          })
-        });
-      }
+      // 2. Trigger real FCM push via server (no auth token in zero-data MVP)
+      await fetch('/api/admin/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: pushTitle,
+          body: pushBody,
+          url: '/?tab=dashboard'
+        })
+      });
       
       setPushTitle('');
       setPushBody('');

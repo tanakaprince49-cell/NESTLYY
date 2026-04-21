@@ -49,7 +49,7 @@
       "expo-dev-client",
       "expo-splash-screen",
       "@react-native-community/datetimepicker",
-      "@react-native-google-signin/google-signin",
+
       [
         "expo-notifications",
         {

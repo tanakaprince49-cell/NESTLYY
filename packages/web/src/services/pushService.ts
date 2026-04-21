@@ -1,5 +1,5 @@
 import { storage } from './storageService.ts';
-import { PregnancyProfile, CalendarEvent, VitaminLog, FeedingLog, SleepLog, MilestoneLog, LifecycleStage, MedicationLog, messaging, auth } from '@nestly/shared';
+import { PregnancyProfile, CalendarEvent, VitaminLog, FeedingLog, SleepLog, MilestoneLog, LifecycleStage, MedicationLog, messaging } from '@nestly/shared';
 import { getToken, onMessage } from 'firebase/messaging';
 
 /**
@@ -65,23 +65,6 @@ export async function subscribeUserToPush() {
     });
 
     if (currentToken) {
-      // Send token to server
-      if (auth.currentUser) {
-        const idToken = await auth.currentUser.getIdToken();
-        await fetch('/api/push/token', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({
-            token: currentToken,
-            userId: auth.currentUser.uid,
-            email: auth.currentUser.email
-          })
-        });
-      }
-      
       return currentToken;
     } else {
       console.warn('No registration token available. Request permission to generate one.');

@@ -20,7 +20,7 @@ import {
   toggleLike,
   type Unsubscribe,
 } from '@nestly/shared';
-import { useAuthStore } from '@nestly/shared/stores';
+import { useLocalIdentityStore } from '@nestly/shared/stores';
 import { useProfileStore } from '@nestly/shared/stores';
 import type { Nest, NestPost, NestMedia } from '@nestly/shared';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -37,7 +37,8 @@ type Props = NativeStackScreenProps<VillageStackParamList, 'NestDetail'>;
 
 export function NestDetailScreen({ route, navigation }: Props) {
   const { nestId } = route.params;
-  const { userUid } = useAuthStore();
+  const localUuid = useLocalIdentityStore((s) => s.localUuid);
+  const userUid = localUuid || null;
   const { profile } = useProfileStore();
 
   const [nest, setNest] = useState<Nest | null>(null);
