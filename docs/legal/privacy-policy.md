@@ -38,7 +38,6 @@ Profile pictures and memory-album photos are selected from your device and store
 ### 2.4 Technical Data
 
 - Push notification tokens in the Android app (if you opt in to push notifications). The web PWA does not collect push tokens.
-- Food-research query text when you use the food-research feature (see Section 11)
 
 ---
 
@@ -46,7 +45,7 @@ Profile pictures and memory-album photos are selected from your device and store
 
 We process your personal data on the following bases:
 
-- **Explicit written consent:** Food-research queries and push-notification delivery require your explicit consent. Health-tracking data is stored only on your device and is not transmitted to our servers.
+- **Explicit written consent:** Push-notification delivery requires your explicit consent. Health-tracking data is stored only on your device and is not transmitted to our servers.
 - **Legitimate interest:** Technical data for security and service operation.
 
 ---
@@ -72,7 +71,6 @@ We use the following third-party services that process your data:
 | Service | Provider | Purpose | Data Shared | Server Location |
 |---|---|---|---|---|
 | Firebase Cloud Messaging | Google (USA) | Push notification delivery (Android app only) | Device token | USA |
-| Google Gemini API | Google (USA) | Food nutrition research | Food queries | USA |
 | Vercel | Vercel Inc. (USA) | App hosting | HTTP requests | USA |
 | Resend | Resend Inc. (USA) | Transactional email | Email address | USA |
 
@@ -94,7 +92,7 @@ By using Nestly, you consent to the transfer of your data to these services. You
 
 ### 7.2 Security Measures
 
-- All data transmitted between your device and our servers (food-research queries, push notifications) is encrypted using TLS/HTTPS
+- All data transmitted between your device and our servers (push notifications) is encrypted using TLS/HTTPS
 - Locally stored data is scoped to a device-specific identifier that never leaves your device
 
 ---
@@ -137,17 +135,7 @@ Nestly is intended for users aged 18 and above. We do not knowingly collect pers
 
 ---
 
-## 11. Food Research Feature
-
-The food-research feature sends the text of food or meal queries you type to Google Gemini to return safety ratings and nutritional guidance during pregnancy:
-
-- Only the food query text is transmitted. No profile, health log, or identifier is attached.
-- Responses are returned over HTTPS and displayed on-device; we do not persist them server-side.
-- Food-research content is general pregnancy-nutrition information and is not medical advice. Always consult a qualified healthcare professional before changing your diet.
-
----
-
-## 12. Push Notifications (Android app only)
+## 11. Push Notifications (Android app only)
 
 Push notifications are available only in the Android app. The web PWA does not send or receive push notifications.
 
@@ -159,7 +147,7 @@ If you enable push notifications in the Android app:
 
 ---
 
-## 13. Data Breach Notification
+## 12. Data Breach Notification
 
 In the event of a personal data breach:
 
@@ -169,7 +157,7 @@ In the event of a personal data breach:
 
 ---
 
-## 14. Changes to This Policy
+## 13. Changes to This Policy
 
 We may update this privacy policy from time to time. When we do:
 
@@ -179,7 +167,7 @@ We may update this privacy policy from time to time. When we do:
 
 ---
 
-## 15. Contact
+## 14. Contact
 
 For questions, data requests, or complaints:
 

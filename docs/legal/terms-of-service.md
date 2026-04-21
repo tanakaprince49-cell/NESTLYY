@@ -92,7 +92,7 @@ We reserve the right to remove content that violates these terms and to suspend 
 
 ### 6.1 Nature of AI Content
 
-- Ava and other AI features use third-party language models (DeepSeek, Google Gemini)
+- Ava and other AI features use third-party language models (DeepSeek)
 - AI responses are generated automatically and are not reviewed by humans before delivery
 - AI content may be inaccurate, incomplete, or inappropriate
 

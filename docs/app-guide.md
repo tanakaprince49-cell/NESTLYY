@@ -76,18 +76,9 @@ flowchart TD
         FS[(Firestore)]
     end
 
-    subgraph Vercel
-        FOOD_API[/api/food-research.js/]
-    end
-
-    subgraph External
-        OR[OpenRouter / DeepSeek]
-    end
-
     UI --> SS --> LS
     SS --> FS
     AUTH --> UI
-    UI --> FOOD_API --> OR
 ```
 
 All personal data (logs, profile, settings) lives in localStorage, scoped by user email.
@@ -105,7 +96,7 @@ The home screen. Shows different widgets depending on lifecycle stage.
 - Weight graph (Recharts line chart)
 - Sleep tracker with quality ratings
 - Vitamin logging
-- Food Research AI (food safety lookup via Gemini)
+- Food picker (offline WHO-aligned nutrition lookup)
 - Medication tracker
 - Randomized WHO-based pregnancy tips
 
@@ -224,7 +215,7 @@ packages/
   shared/        @nestly/shared - types, firebase, services (village, sync, growth)
   web/           @nestly/web - React app, components, web-specific services
   mobile/        placeholder for future React Native app
-api/             Vercel serverless functions (food-research, push)
+api/             Vercel serverless functions (push)
 scripts/         Seed scripts
 tests/           Vitest unit tests
 ```

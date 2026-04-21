@@ -39,12 +39,6 @@ Nestly does not collect in-app messages. No AI chat or community-messaging featu
 |-----------|-----------|--------------------------|---------|-------------------|
 | Photos (profile, memory albums) | Yes | No (stored locally on device) | App functionality | Optional |
 
-### App Activity
-
-| Data type | Collected | Shared with third parties | Purpose | Required/Optional |
-|-----------|-----------|--------------------------|---------|-------------------|
-| In-app search history (food research query text) | Yes | Yes (Google Gemini for nutrition guidance) | App functionality | Optional |
-
 ### Device or Other IDs
 
 | Data type | Collected | Shared with third parties | Purpose | Required/Optional |
@@ -58,7 +52,6 @@ Nestly does not collect in-app messages. No AI chat or community-messaging featu
 **"Shared" in Google Play terms means transferred to a third party.**
 
 Data that IS shared with third parties:
-- **Food-research query text** with Google Gemini (for nutrition-safety guidance during pregnancy)
 - **Push notification tokens** with Firebase Cloud Messaging (delivery only)
 - **Email address** with Resend (transactional email; only when you opt in)
 

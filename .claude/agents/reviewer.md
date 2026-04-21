@@ -32,7 +32,7 @@ Read the FULL file (not just the diff) to understand context, then check against
 ### Security (HIGH priority)
 - No hardcoded secrets, API keys, or Firebase credentials
 - No `dangerouslySetInnerHTML` without sanitization
-- Auth middleware on all `/api/` routes that need it (except public ones like food-research)
+- Auth middleware on all `/api/` routes that need it
 - Admin checks use env vars (`VITE_ADMIN_EMAILS`, `ADMIN_UIDS`), never hardcoded emails
 
 ### Convention Violations

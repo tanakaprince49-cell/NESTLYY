@@ -48,7 +48,7 @@ import {
   Droplet
 } from 'lucide-react';
 import { calculateDurationMinutes } from '@nestly/shared';
-import { FoodResearchAI } from './FoodResearchAI.tsx';
+import { FoodPicker } from './FoodPicker.tsx';
 import { 
   FoodEntry,
   Trimester,
@@ -325,7 +325,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      <FoodResearchAI onAddEntry={onAddEntry} />
+      <FoodPicker onAddEntry={onAddEntry} />
 
       {isPostpartum && (
         <div className="space-y-6">
