@@ -357,6 +357,78 @@ export interface CustomPlan {
   };
 }
 
+export const CURRENT_SCHEMA_VERSION = 1 as const;
+
+export type IdentityType = 'local-uuid' | 'firebase-uid';
+
+export interface ZeroDataExportMeta {
+  schemaVersion: 1;
+  appVersion: string;
+  exportedAt: string;
+  identityType: IdentityType;
+  identityValue?: string;
+  platform: 'web' | 'mobile';
+}
+
+export interface ZeroDataTrackingSlice {
+  foodEntries: FoodEntry[];
+  symptoms: SymptomLog[];
+  vitamins: VitaminLog[];
+  contractions: Contraction[];
+  journalEntries: JournalEntry[];
+  calendarEvents: CalendarEvent[];
+  weightLogs: WeightLog[];
+  sleepLogs: SleepLog[];
+  feedingLogs: FeedingLog[];
+  milestones: MilestoneLog[];
+  healthLogs: HealthLog[];
+  reactions: ReactionLog[];
+  babyGrowthLogs: BabyGrowthLog[];
+  tummyTimeLogs: TummyTimeLog[];
+  bloodPressureLogs: BloodPressureLog[];
+  kickLogs: KickLog[];
+  kegelLogs: KegelLog[];
+  diaperLogs: DiaperLog[];
+  medicationLogs: MedicationLog[];
+}
+
+export interface ZeroDataAvaSlice {
+  messages: ChatMessage[];
+  memoryFacts?: AvaMemoryFact[];
+  chatHistory?: ChatMessage[];
+}
+
+export interface ZeroDataSettingsSlice {
+  hasAcceptedPrivacy: boolean;
+  notificationsEnabled?: boolean;
+  emailNotifications?: boolean;
+  dietPreference?: PregnancyProfile['dietPreference'];
+  themeColor?: PregnancyProfile['themeColor'];
+}
+
+export interface ZeroDataExtrasSlice {
+  periodLogs?: PeriodLog[];
+  archivedPregnancies?: ArchivedPregnancy[];
+  checklistItems?: ChecklistItem[];
+  babyNames?: { name: string; gender: string; rating: number }[];
+  bumpPhotos?: { id: string; url: string; date: string; week: number }[];
+  unlockedAchievementIds?: string[];
+  customPlan?: CustomPlan | null;
+  lastWeekCelebrated?: number;
+}
+
+export interface ZeroDataExportV1 {
+  meta: ZeroDataExportMeta;
+  profile: PregnancyProfile | null;
+  trimester: Trimester;
+  tracking: ZeroDataTrackingSlice;
+  avaChat: ZeroDataAvaSlice;
+  settings: ZeroDataSettingsSlice;
+  extras?: ZeroDataExtrasSlice;
+}
+
+export type ZeroDataExportAny = ZeroDataExportV1;
+
 // Village Hub
 export type NestCategory =
   | 'trimester' | 'lifestyle' | 'diet'
