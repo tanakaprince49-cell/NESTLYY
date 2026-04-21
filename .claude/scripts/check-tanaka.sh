@@ -23,7 +23,6 @@ CRITICAL_FILES=(
   ".github/workflows/cd.yml"
   ".github/workflows/auto-pr.yml"
   "api/push/token.js"
-  "api/admin/broadcast.js"
   "api/food-research.js"
   "vercel.json"
   "tailwind.config.js"
@@ -68,12 +67,6 @@ if [ -f "$REPO_ROOT/server.ts" ]; then
     ISSUES=$((ISSUES+1))
   else
     echo "  OK: requireAuth present in server.ts"
-  fi
-  if ! grep -q 'requireAdmin' "$REPO_ROOT/server.ts"; then
-    echo "  WARNING: requireAdmin middleware missing from server.ts"
-    ISSUES=$((ISSUES+1))
-  else
-    echo "  OK: requireAdmin present in server.ts"
   fi
 else
   echo "  SKIP: server.ts not found"
