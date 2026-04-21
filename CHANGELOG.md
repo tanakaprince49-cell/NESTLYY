@@ -24,6 +24,9 @@ The committer then opens a release PR and, after merge, tags the merge commit `v
 
 ## [Unreleased]
 
+### Added
+- Zero-Data export schema v1 and migration harness (#294). Defines `ZeroDataExportV1`, `ZeroDataExportMeta`, `ZeroDataTrackingSlice`, `ZeroDataAvaSlice`, `ZeroDataSettingsSlice`, `ZeroDataExtrasSlice`, `IdentityType`, `CURRENT_SCHEMA_VERSION`, and `ZeroDataExportAny` types in `@nestly/shared`. New `migrations/` module exports `buildExport`, `migrateExport`, `isZeroDataExportV1`, and `ExportValidationError` (with error codes `MISSING_VERSION`, `FUTURE_VERSION`, `LEGACY_VERSION`, `INVALID_SHAPE`). No UI touched; downstream import/export/delete UI (#301/#302) will bind to this contract.
+
 ### Removed
 - Ava AI chat (web `AvaChat`/`AvaAIChat` components, mobile `AvaScreen`, `avaChatStore`, `/api/ava.js` serverless handler), Symptom Decoder tool (`SymptomDecoder` component), and Custom Meal Plan tool (`CustomPlanView` component, `/api/custom-plan.js` serverless handler). Removes the `Ava` tab from web nav and mobile bottom tabs, removes `@openrouter/sdk` and `@google/genai` SDK dependencies, and drops every nav entry, deep link, store registration, and settings reference for these features. (#295)
 

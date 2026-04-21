@@ -270,6 +270,24 @@ export interface MedicationLog {
   timestamp: number;
 }
 
+// Legacy export-schema types. The Ava feature was removed in #295, but the
+// Zero-Data export schema v1 (#294) still carries Ava data shapes so users who
+// captured Ava conversations before the removal can round-trip them through
+// export/import. Do not reintroduce runtime consumers of these types.
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  timestamp: number;
+}
+
+export interface AvaMemoryFact {
+  id: string;
+  content: string;
+  category: 'preference' | 'symptom' | 'milestone' | 'info';
+  timestamp: number;
+}
+
 export interface PeriodLog {
   id: string;
   startDate: string;
@@ -314,6 +332,77 @@ export interface FertilityPrediction {
   fertileWindow: string[];
   advice: string;
 }
+
+export const CURRENT_SCHEMA_VERSION = 1 as const;
+
+export type IdentityType = 'local-uuid' | 'firebase-uid';
+
+export interface ZeroDataExportMeta {
+  schemaVersion: 1;
+  appVersion: string;
+  exportedAt: string;
+  identityType: IdentityType;
+  identityValue?: string;
+  platform: 'web' | 'mobile';
+}
+
+export interface ZeroDataTrackingSlice {
+  foodEntries: FoodEntry[];
+  symptoms: SymptomLog[];
+  vitamins: VitaminLog[];
+  contractions: Contraction[];
+  journalEntries: JournalEntry[];
+  calendarEvents: CalendarEvent[];
+  weightLogs: WeightLog[];
+  sleepLogs: SleepLog[];
+  feedingLogs: FeedingLog[];
+  milestones: MilestoneLog[];
+  healthLogs: HealthLog[];
+  reactions: ReactionLog[];
+  babyGrowthLogs: BabyGrowthLog[];
+  tummyTimeLogs: TummyTimeLog[];
+  bloodPressureLogs: BloodPressureLog[];
+  kickLogs: KickLog[];
+  kegelLogs: KegelLog[];
+  diaperLogs: DiaperLog[];
+  medicationLogs: MedicationLog[];
+}
+
+export interface ZeroDataAvaSlice {
+  messages: ChatMessage[];
+  memoryFacts?: AvaMemoryFact[];
+  chatHistory?: ChatMessage[];
+}
+
+export interface ZeroDataSettingsSlice {
+  hasAcceptedPrivacy: boolean;
+  notificationsEnabled?: boolean;
+  emailNotifications?: boolean;
+  dietPreference?: PregnancyProfile['dietPreference'];
+  themeColor?: PregnancyProfile['themeColor'];
+}
+
+export interface ZeroDataExtrasSlice {
+  periodLogs?: PeriodLog[];
+  archivedPregnancies?: ArchivedPregnancy[];
+  checklistItems?: ChecklistItem[];
+  babyNames?: { name: string; gender: string; rating: number }[];
+  bumpPhotos?: { id: string; url: string; date: string; week: number }[];
+  unlockedAchievementIds?: string[];
+  lastWeekCelebrated?: number;
+}
+
+export interface ZeroDataExportV1 {
+  meta: ZeroDataExportMeta;
+  profile: PregnancyProfile | null;
+  trimester: Trimester;
+  tracking: ZeroDataTrackingSlice;
+  avaChat: ZeroDataAvaSlice;
+  settings: ZeroDataSettingsSlice;
+  extras?: ZeroDataExtrasSlice;
+}
+
+export type ZeroDataExportAny = ZeroDataExportV1;
 
 // Village Hub
 export type NestCategory =
