@@ -6,7 +6,6 @@ const ToolsHub = lazy(() => import('./components/ToolsHub.tsx').then(m => ({ def
 const SetupScreen = lazy(() => import('./components/SetupScreen.tsx').then(m => ({ default: m.SetupScreen })));
 const EducationHub = lazy(() => import('./components/EducationHub.tsx').then(m => ({ default: m.EducationHub })));
 const PrivacyScreen = lazy(() => import('./components/PrivacyScreen.tsx').then(m => ({ default: m.PrivacyScreen })));
-const AdminDashboard = lazy(() => import('./components/AdminDashboard.tsx').then(m => ({ default: m.AdminDashboard })));
 const Settings = lazy(() => import('./components/Settings.tsx').then(m => ({ default: m.Settings })));
 import { storage } from './services/storageService.ts';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
@@ -52,7 +51,7 @@ const App: React.FC = () => {
   const [profile, setProfile] = useState<PregnancyProfile | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [trimester, setTrimester] = useState<Trimester>(Trimester.FIRST);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'admin' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'baby' | 'education' | 'tools' | 'settings'>('dashboard');
   const [activeToolCat, setActiveToolCat] = useState<string>('all');
 
   const [entries, setEntries] = useState<FoodEntry[]>([]);
@@ -213,8 +212,6 @@ const App: React.FC = () => {
       />
     );
   }
-
-  const isAdmin = false;
 
   return (
     <ErrorBoundary>
@@ -403,7 +400,7 @@ const App: React.FC = () => {
                 storage.saveProfile(p);
                 setProfile(p);
                   }} localUuid={localUuid} />}
-              {activeTab === 'admin' && isAdmin && <AdminDashboard />}
+
             </div>
           </Suspense>
       </div>

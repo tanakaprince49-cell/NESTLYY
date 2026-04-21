@@ -48,16 +48,6 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-// Admin middleware — checks if user UID is in ADMIN_UIDS env var
-function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  const user = (req as any).user;
-  const adminUids = (process.env.ADMIN_UIDS || "").split(",").filter(Boolean);
-  if (!user || !adminUids.includes(user.uid)) {
-    return res.status(403).json({ error: "Forbidden" });
-  }
-  next();
-}
-
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -131,15 +121,6 @@ Return ONLY the JSON.`,
   app.post("/api/push/token", requireAuth, async (req, res) => {
     // Disabled as per request to keep Firebase for Auth only
     res.json({ success: true, message: "FCM token storage disabled (Local only mode)" });
-  });
-
-  // Admin Broadcast Push
-  app.post("/api/admin/broadcast", requireAuth, requireAdmin, async (req, res) => {
-    const { title, body, url } = req.body;
-    if (!title || !body) return res.status(400).send("Title and body required");
-
-    // Broadcast is disabled because tokens are not stored in a central database
-    res.status(501).send("Broadcasts are disabled in Local-only mode.");
   });
 
   // Unsubscribe endpoint
