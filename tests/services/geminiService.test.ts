@@ -2,15 +2,6 @@ import { mockLocalStorage } from '../helpers';
 
 let ls: ReturnType<typeof mockLocalStorage>;
 
-// Mock @nestly/shared so we do not need a real Firebase app in tests
-vi.mock('@nestly/shared', () => ({
-  auth: {
-    currentUser: {
-      getIdToken: vi.fn().mockResolvedValue('fake-id-token'),
-    },
-  },
-}));
-
 beforeEach(() => {
   ls = mockLocalStorage();
   vi.stubGlobal('localStorage', ls);
@@ -33,7 +24,6 @@ describe('getAvaResponse', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer fake-id-token',
       },
     }));
   });

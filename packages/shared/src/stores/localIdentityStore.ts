@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const LOCAL_UUID_KEY = 'nestly_local_uuid';
+export const LOCAL_UUID_KEY = 'nestly_local_uuid';
 
 interface LocalIdentityState {
   localUuid: string;

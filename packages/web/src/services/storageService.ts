@@ -36,9 +36,8 @@ import {
   NestPost,
   NestComment,
   getLocalIdentitySync,
+  LOCAL_UUID_KEY,
 } from '@nestly/shared';
-
-const LOCAL_UUID_KEY = 'nestly_local_uuid';
 
 const KEYS = {
   PROFILE: 'profile_v5',

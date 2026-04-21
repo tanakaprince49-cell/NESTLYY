@@ -225,8 +225,7 @@ const App: React.FC = () => {
     );
   }
 
-  const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map((e: string) => e.trim()).filter(Boolean);
-  const isAdmin = adminEmails.includes(localUuid);
+  const isAdmin = false;
 
   return (
     <ErrorBoundary>
