@@ -1,18 +1,12 @@
 # Nestly App Guide
 
-Mobile-first PWA for pregnancy tracking, postpartum monitoring, and baby care.
+Mobile-first pregnancy tracking, postpartum monitoring, and baby care. Shipped as a web PWA and an Android app, both running a Zero-Data architecture: all personal tracking data lives on the user's device. Nothing is sent to a server we control.
 
 ## User flow
 
 ```mermaid
 flowchart TD
-    A[Open App] --> B{Authenticated?}
-    B -- No --> C[Auth Screen]
-    C --> C1[Google OAuth]
-    C --> C2[Email + Password]
-    C --> C3[Guest Login]
-    C1 & C2 & C3 --> D{Privacy accepted?}
-    B -- Yes --> D
+    A[Open App] --> D{Privacy accepted?}
     D -- No --> E[Privacy Screen]
     E --> D
     D -- Yes --> F{Profile exists?}
@@ -21,6 +15,8 @@ flowchart TD
     H --> I[Main App]
     F -- Yes --> I
 ```
+
+No sign-in. On first launch the app generates a random UUIDv4 and stores it locally (`nestly_local_uuid`). That UUID keys every storage record on this device. There is no account, no password, no sync.
 
 ## Navigation
 
@@ -37,7 +33,7 @@ flowchart LR
     end
 ```
 
-Desktop: collapsible sidebar on the left. Mobile: fixed bottom nav bar with horizontal scroll.
+Desktop: collapsible sidebar on the left. Mobile (PWA and Android): fixed bottom nav bar with horizontal scroll.
 
 ## Lifecycle stages
 
@@ -65,25 +61,20 @@ Tools, dashboard widgets, and education content change based on stage.
 
 ```mermaid
 flowchart TD
-    subgraph Client
+    subgraph Device
         UI[React Components]
         SS[storageService.ts]
-        LS[(localStorage)]
-    end
-
-    subgraph Firebase
-        AUTH[Firebase Auth]
-        FS[(Firestore)]
+        LS[(localStorage / AsyncStorage)]
+        UUID[nestly_local_uuid]
     end
 
     UI --> SS --> LS
-    SS --> FS
-    AUTH --> UI
+    UUID --> SS
 ```
 
-All personal data (logs, profile, settings) lives in localStorage, scoped by user email.
-Village Hub (nests, posts, comments) uses Firestore with real-time subscriptions.
-There is no server database for personal data. PDF export is the only way to share data with a provider.
+All personal data (logs, profile, settings, vitals, journal, media references) lives on the device, scoped by a local UUID stored on this device. Web uses `localStorage` via `storageService`; the Android app uses `AsyncStorage`. The same record is never visible to any other device, user, or server.
+
+There is no server database. Export / Import / Delete-all-data in Settings is the only way data leaves or re-enters the app. Doctor Summary PDF is the only way data is shared with a healthcare provider.
 
 ## Screens
 
@@ -112,13 +103,11 @@ The home screen. Shows different widgets depending on lifecycle stage.
 
 ### Tools Hub
 
-25 tools organized by lifecycle stage. User picks a tool from a grid, it opens full-screen.
+Tools organized by lifecycle stage. User picks a tool from a grid, it opens full-screen.
 
-**Pregnancy tools (16):**
-Medications, Baby Names, Bump Photos, Sleep, Calendar, Checklists, Memories, Kegels, Journal, Contractions, Kicks, Reactions, Calm, Reports, Symptoms, Nutrition, Vitamins
+**Pregnancy tools:** Symptoms, Contractions, Kicks, Sleep, Nutrition, Vitamins, Medications, Appointments, Checklists, Journal, Bump Diary, Memories, Baby Names, Kegels, Calm, Reactions, Vitals, Reports
 
-**Newborn/postpartum tools (18):**
-Feeding, Sleep, Diaper, Milestones, Health, Medications, Tummy Time, Bath, Pumping, Teething, Journal, Export PDF, Calendar, Checklists, Memories, Symptoms, Nutrition, Vitamins
+**Newborn/postpartum tools:** Feeding, Sleep, Diaper, Milestones, Health, Medications, Tummy Time, Bath, Pumping, Teething, Journal, Appointments, Checklists, Memories, Symptoms, Nutrition, Vitamins, Reports, Export PDF
 
 What each tool does:
 
@@ -128,20 +117,21 @@ What each tool does:
 | Contractions | Timer for labor contractions, tracks duration and frequency |
 | Kicks | Fetal kick counting sessions |
 | Sleep | Sleep logging with quality ratings, works in pregnancy and newborn modes |
-| Nutrition | Food entry tracking with calories and nutrients |
+| Nutrition | Offline food picker backed by `nutrition.ts` (WHO/USDA-aligned, Zimbabwean staples). Logs entries with calories, protein, folate, iron, calcium. Airplane-mode safe. |
 | Vitamins | Daily vitamin supplement logging |
 | Medications | Track medication names, dosages, timing |
-| Calendar | Manual appointment and reminder calendar |
+| Appointments | Manual appointment and reminder calendar |
 | Checklists | Preparation checklists: hospital bag, birth plan, nursery, general |
 | Journal | Free-form text journaling with mood |
-| Bump Photos | Pregnancy progress photos by week |
+| Bump Diary | Pregnancy progress photos by week |
 | Memories | Photo albums: bump, baby, ultrasound, nursery, family, other |
 | Baby Names | Save and manage name ideas |
 | Kegels | Pelvic floor exercise timer |
 | Calm | Guided calming exercises |
 | Reactions | Log fetal/baby reactions to stimuli (music, food, voice) |
 | Reports | Data analysis and reporting interface |
-| Export PDF | Generate PDF of all logged data |
+| Export PDF | Generate PDF of all logged data, or a 14-day Doctor Summary PDF |
+| Vitals | Weight, blood pressure, temperature logs |
 | Feeding | Track breastfeeding, bottle, formula, solids with amounts |
 | Diaper | Log diaper changes (wet/dirty/mixed) |
 | Milestones | Baby developmental milestone tracking |
@@ -150,32 +140,6 @@ What each tool does:
 | Bath | Bath tracking |
 | Pumping | Breast pump session logging |
 | Teething | Teething symptom tracking |
-
-### Village Hub
-
-Community space built on Firestore. Users join "Nests" (topic groups).
-
-```mermaid
-flowchart TD
-    subgraph Village Hub
-        DISC[Discover View]
-        MY[My Nests View]
-        DET[Nest Detail View]
-    end
-
-    DISC -- Join a nest --> MY
-    MY -- Open a nest --> DET
-    DET -- Posts, comments, likes --> DET
-```
-
-**Nest categories:** Trimester, Lifestyle, Diet, Support, Postpartum, General
-
-**Discover view:** search, sort (popular/newest), filter by category, browse all nests
-**My Nests view:** list of joined nests, create custom nest
-**Nest Detail view:** posts feed, create posts, comments with reply threads, likes on posts and comments, share posts
-
-8 template nests are seeded via `scripts/seedVillage.ts`. Users can create custom nests.
-All data (nests, posts, comments, memberships) lives in Firestore with security rules.
 
 ### Education Hub
 
@@ -186,36 +150,39 @@ Content filtered by trimester. Stage-specific guidance (feelings, what's happeni
 ### Settings
 
 - Edit username and profile photo
-- Change password
 - Manage babies (add/remove, set name, gender, skin tone, birth date, weight, length)
-
-### Auth Screen
-
-Three login methods: Google OAuth, Email/Password (signup + signin), Anonymous Guest.
-Includes PWA install instructions for iOS and Android.
+- Theme picker
+- **Your Data** card:
+  - Export all tracking data as a JSON file (web: "Export data" / Android: "Back up my data")
+  - Doctor Summary PDF (14-day window with vitals, trackers, nutrition averages, symptoms)
+  - Import a previously exported JSON file to restore on a new device (web: "Import data" / Android: "Restore from a backup")
+  - **Delete all data** (typed-DELETE confirmation)
 
 ## Theming
 
-3 color themes: pink (default), blue, orange. Applied via CSS class on body (`theme-pink`, etc.).
+12 color themes selectable in Settings. Applied via CSS class on body (`theme-pink`, etc.).
 Also adapts to lifecycle stage (`stage-pregnancy`, `stage-newborn`).
 Glassmorphism effects with backdrop blur on navigation and headers.
 Floating teddy bear background animation.
 
 ## Storage keys
 
-All user data in localStorage, prefixed with user email for multi-user support.
-Guest users get `guest_` prefix. Key examples: `user@email.com_profile_v5`, `user@email.com_food_entries`.
+All user data lives on device, scoped by the locally generated UUIDv4 (`nestly_local_uuid`). Legacy installs that were created before the Zero-Data migration still have email-prefixed keys until the one-time migration runs.
 
-19 tracking log types, 4 chat/memory keys, 8 global keys, 4 village keys.
+- Web: `localStorage`, keys of the form `{uuid}_profile_v5`, `{uuid}_food_entries`, etc.
+- Android: `AsyncStorage` with the same key shape.
+
+19 tracking log types, 4 chat/memory keys, and a small set of global keys (non-user-scoped, e.g. the UUID itself and the privacy consent flag).
 
 ## Monorepo structure
 
 ```
 packages/
-  shared/        @nestly/shared - types, firebase, services (village, sync, growth)
-  web/           @nestly/web - React app, components, web-specific services
-  mobile/        placeholder for future React Native app
-api/             Vercel serverless functions (push)
-scripts/         Seed scripts
-tests/           Vitest unit tests
+  shared/        @nestly/shared - types, stores, design tokens, Zero-Data export schema, migrations
+  web/           @nestly/web - React 19 PWA (Vite + Tailwind + Lucide)
+  mobile/        @nestly/mobile - Expo SDK 54 + React Native 0.81 (NativeWind + Ionicons)
+api/             Vercel serverless functions (currently only static health/unsubscribe)
+docs/            Project docs (this file, legal, architecture notes)
+scripts/         Build and release tooling
+tests/           Vitest unit tests (web)
 ```
