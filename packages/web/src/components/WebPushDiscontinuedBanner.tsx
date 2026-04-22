@@ -5,15 +5,18 @@ import {
   dismissWebPushStaleNoticeSync,
 } from '@nestly/shared';
 
+// storage-audit: allowed — sync-backend adapter for the platform-agnostic
+// shouldShow/dismiss helpers in @nestly/shared. The shared package must
+// not import localStorage directly, so web supplies this thin wrapper.
 const syncBackend = {
   getItem: (k: string): string | null => {
-    try { return localStorage.getItem(k); } catch { return null; }
+    try { return localStorage.getItem(k); } catch { return null; } // storage-audit: allowed
   },
   setItem: (k: string, v: string): void => {
-    try { localStorage.setItem(k, v); } catch {}
+    try { localStorage.setItem(k, v); } catch {} // storage-audit: allowed
   },
   removeItem: (k: string): void => {
-    try { localStorage.removeItem(k); } catch {}
+    try { localStorage.removeItem(k); } catch {} // storage-audit: allowed
   },
 };
 
