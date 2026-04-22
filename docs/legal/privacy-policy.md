@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective Date:** 15 April 2026
+**Effective Date:** 22 April 2026
 **App:** Nestly Pregnancy Companion
 **Operator:** Tanaka Gaadzikwa, 490 Westwood, Harare, Zimbabwe
 **Contact:** supportnestly@gmail.com
@@ -80,7 +80,7 @@ We use the following third-party services that process your data:
 
 Your data is transferred to servers located outside Zimbabwe, primarily in the United States. Transfers rely on your consent and on the contractual safeguards provided by the service providers listed in Section 5 (such as their standard terms, security certifications, and privacy commitments). We take reasonable technical and organisational measures to protect data in transit, including TLS/HTTPS encryption.
 
-By using Nestly, you consent to the transfer of your data to these services. You may withdraw this consent at any time by deleting your account.
+By using Nestly, you consent to the transfer of your data to these services. You may withdraw this consent at any time by disabling push notifications and deleting your local data (see Section 9).
 
 ---
 
@@ -103,7 +103,7 @@ Under the Cyber and Data Protection Act, you have the right to:
 
 - Access your personal data and receive a copy
 - Rectify inaccurate data
-- Delete your account and all associated data
+- Delete all your locally stored data
 - Restrict processing of your data
 - Object to processing of your data
 - Data portability: receive your data in a structured format
