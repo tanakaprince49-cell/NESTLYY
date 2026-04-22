@@ -305,6 +305,16 @@ export class StorageService {
 
   getSleepSessions(): SleepLog[] { return this.getItem<SleepLog[]>(KEYS.SLEEP_SESSIONS, []); }
   setSleepSessions(sessions: SleepLog[]): void { this.setItem(KEYS.SLEEP_SESSIONS, sessions); }
+  // True when the key has ever been written (even with an empty array).
+  // Lets SleepDashboard distinguish a first-ever boot (seed sample data)
+  // from a user who has deliberately deleted all their sessions (#337).
+  hasSleepSessions(): boolean {
+    try {
+      return localStorage.getItem(this.getUserKey(KEYS.SLEEP_SESSIONS)) !== null;
+    } catch {
+      return false;
+    }
+  }
 
   getWeightLogs(): WeightLog[] { return this.getItem<WeightLog[]>(KEYS.WEIGHT, []); }
   addWeightLog(log: WeightLog): void { this.setItem(KEYS.WEIGHT, [log, ...this.getWeightLogs()]); }

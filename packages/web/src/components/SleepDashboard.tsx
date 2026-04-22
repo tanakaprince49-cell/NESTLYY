@@ -37,11 +37,13 @@ export const SleepDashboard: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<SleepLog | null>(null);
 
-  // Load data from UUID-scoped storage; fall back to sample data on first run.
+  // Load data from UUID-scoped storage. Seed sample data only on a first-ever
+  // boot — if the user has deliberately emptied their sessions the stored
+  // array is `[]`, which must not re-seed. `hasSleepSessions()` checks for
+  // key presence to tell those cases apart.
   useEffect(() => {
-    const saved = storage.getSleepSessions();
-    if (saved.length > 0) {
-      setSessions(saved);
+    if (storage.hasSleepSessions()) {
+      setSessions(storage.getSleepSessions());
     } else {
       setSessions(SAMPLE_DATA);
     }
