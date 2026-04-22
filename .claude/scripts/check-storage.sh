@@ -3,10 +3,12 @@
 # Web code should use storageService, mobile code should use AsyncStorage.
 # Exit 0 = clean, Exit 1 = violations found.
 #
-# Exemption: lines annotated with `storage-audit: allowed` are skipped. Use
-# sparingly — only for call sites where the typed storageService API does
-# not fit (dynamic key iteration, sync-backend adapters for shared helpers,
-# etc.). The annotation must include a one-line reason.
+# Exemption: lines annotated with `storage-audit: allowed — <reason>` are
+# skipped. Use sparingly — only for call sites where the typed
+# storageService API does not fit (dynamic key iteration, sync-backend
+# adapters for shared helpers, etc.). The em-dash and reason text are
+# required; bare `storage-audit: allowed` is rejected, so every
+# exemption carries its justification at the call site.
 set -uo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -22,7 +24,7 @@ HITS=$(grep -rn --include='*.ts' --include='*.tsx' \
   | grep -v node_modules \
   | grep -v storageService \
   | grep -v '__tests__' \
-  | grep -v 'storage-audit: allowed')
+  | grep -v 'storage-audit: allowed —')
 if [ -n "$HITS" ]; then
   COUNT=$(echo "$HITS" | wc -l)
   echo "  WARN: $COUNT direct localStorage access(es) in web (should use storageService):"
@@ -38,7 +40,7 @@ HITS=$(grep -rn --include='*.ts' --include='*.tsx' \
   packages/shared/src/ 2>/dev/null \
   | grep -v node_modules \
   | grep -v storageInterface \
-  | grep -v 'storage-audit: allowed' \
+  | grep -v 'storage-audit: allowed —' \
   | grep -Ev ':[[:space:]]*(\*|//)')
 if [ -n "$HITS" ]; then
   COUNT=$(echo "$HITS" | wc -l)

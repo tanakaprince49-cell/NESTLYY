@@ -10,10 +10,10 @@ import {
 // not import localStorage directly, so web supplies this thin wrapper.
 const syncBackend = {
   getItem: (k: string): string | null => {
-    try { return localStorage.getItem(k); } catch { return null; } // storage-audit: allowed
+    try { return localStorage.getItem(k); } catch { return null; } // storage-audit: allowed — shared-helper sync backend
   },
   setItem: (k: string, v: string): void => {
-    try { localStorage.setItem(k, v); } catch {} // storage-audit: allowed
+    try { localStorage.setItem(k, v); } catch {} // storage-audit: allowed — shared-helper sync backend
   },
 };
 
