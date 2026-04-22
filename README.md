@@ -17,22 +17,11 @@ Live at [nestlyhealth.com](https://nestlyhealth.com).
    npm install
    ```
 
-2. Copy `.env.example` to `.env.local` and fill in the values:
-   ```bash
-   cp .env.example .env.local
-   ```
-
-   | Variable | Required | Purpose |
-   |----------|----------|---------|
-   | `FIREBASE_SERVICE_ACCOUNT` | Yes | Firebase Admin -- push token verification (mobile) |
-   | `RESEND_API_KEY` | No | Email service |
-   | `APP_URL` | No | Base URL for links in emails |
-
-3. Start the dev server:
+2. Start the dev server:
    ```bash
    npm run dev
    ```
-   Runs Express + Vite on `http://localhost:3000`.
+   Runs Express + Vite on `http://localhost:3000`. No env vars are required; the app is Zero-Data and all state lives on device.
 
 ## Commands
 
@@ -47,16 +36,16 @@ npm test           # Run tests with Vitest
 ## Tech stack
 
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v3, Motion, Recharts, Lucide React
-- **Backend:** Express 5 (dev only), Vercel serverless functions (production)
-- **Auth:** Firebase Auth (Google, Email/Password, Anonymous, Phone)
-- **Storage:** Browser localStorage (no backend database)
+- **Backend:** Express 5 (dev only), Vercel serverless functions (production, currently only static health/unsubscribe)
+- **Auth:** None. Local UUIDv4 identity generated on first launch and stored on the device.
+- **Storage:** Browser localStorage on web, AsyncStorage on Android. No backend database. All user data is scoped by the local UUID.
 - **Deployment:** Vercel
 
 ## Deployment
 
 The app deploys to Vercel. The Express server (`server.ts`) is for local development only -- production API routes are Vercel serverless functions in the `api/` directory.
 
-Required Vercel environment variables: `FIREBASE_SERVICE_ACCOUNT`.
+No Vercel environment variables are required (Zero-Data MVP).
 
 ## Architecture
 

@@ -10,10 +10,10 @@ NESTLYY is a pregnancy tracking, postpartum monitoring, and baby care app. Turbo
 
 ```
 packages/
-  shared/   # Types, Zustand stores, Firebase init, design tokens
+  shared/   # Types, Zustand stores, design tokens, Zero-Data export schema + migrations
   web/      # React 19 PWA (Vite + Tailwind + Lucide)
   mobile/   # Expo SDK 54 + React Native 0.81 (NativeWind + Ionicons)
-api/        # Vercel serverless functions (production API)
+api/        # Vercel serverless functions (currently only static health/unsubscribe)
 ```
 
 ## Commands
@@ -62,19 +62,16 @@ Every PR that modifies production code under `packages/*/src/**` (excluding test
 
 ## Environment Variables
 
-Root `.env.example` documents all variables:
-- `RESEND_API_KEY` -- Email service
-- `FIREBASE_SERVICE_ACCOUNT` -- Firebase Admin JSON
-- `EXPO_PUBLIC_API_URL` -- Mobile API base URL (defaults to production)
+Zero-Data MVP: no env vars are required for runtime. `.env.example` exists as a placeholder; the app boots with an empty environment.
 
 ## Tech Stack
 
-**Shared**: TypeScript, Zustand v5 (state), Firebase Auth
+**Shared**: TypeScript, Zustand v5 (state), Zero-Data export schema + migrations
 **Web**: React 19, Vite, Tailwind v3, Motion, Recharts, Lucide React
 **Mobile**: Expo SDK 54, React Native 0.81, NativeWind v4, React Navigation v7, Ionicons, expo-speech
-**Backend**: Vercel serverless functions (api/). Express server.ts is dev-only, does NOT run on Vercel.
-**Auth**: Firebase Auth (Google, Email/Password, Anonymous)
-**Storage**: Web = localStorage via storageService (user-scoped). Mobile = AsyncStorage.
+**Backend**: Vercel serverless functions (api/) - only static health/unsubscribe endpoints remain after Zero-Data MVP. Express server.ts is dev-only, does NOT run on Vercel.
+**Auth**: None. First-launch generates a local UUIDv4 (`nestly_local_uuid`) stored on the device; that UUID keys all user data.
+**Storage**: Web = localStorage via storageService (UUID-scoped). Mobile = AsyncStorage (UUID-scoped).
 **Testing**: Vitest (web), Jest (mobile), Playwright (e2e)
 **CI/CD**: GitHub Actions (ci.yml type check + build, cd.yml deploy), Vercel
 
@@ -88,7 +85,7 @@ Root `.env.example` documents all variables:
 ### State management
 - All Zustand stores in `packages/shared/src/stores/` (profileStore, trackingStore, navigationStore, localIdentityStore)
 - Local React state only for ephemeral UI values (input text, toggles)
-- Web also uses storageService.ts for localStorage persistence (user-scoped by email)
+- Web also uses storageService.ts for localStorage persistence (UUID-scoped via `nestly_local_uuid`)
 
 ### Navigation
 - **Web**: Tab-based via `activeTab` state in App.tsx. No router library.
