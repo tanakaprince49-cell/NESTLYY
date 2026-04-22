@@ -8,9 +8,23 @@
  * The migration iterates every existing key and removes anything whose
  * suffix matches a known Ava/CustomPlan key, then sets a done flag so the
  * scan runs exactly once per installation. See issue #311.
+ *
+ * Failure mode: if `getAllKeys()` throws (storage quota, permission, etc.),
+ * neither the had-orphans nor the done flag is written, so the purge retries
+ * on next launch rather than silently skipping cleanup.
  */
 
 export const AVA_PURGE_DONE_KEY = 'nestly_ava_purge_v1_done';
+
+/**
+ * Set to '1' by the purge when it finds and removes at least one orphan,
+ * '0' when the scan completes with zero orphans. Used downstream (issue
+ * #312) to decide whether to show the Ava / Symptom Decoder / Custom Plan
+ * retirement notice: if orphans were found the user actively used those
+ * features and deserves an acknowledgment; if the device was clean the
+ * notice is suppressed silently.
+ */
+export const AVA_HAD_ORPHANS_KEY = 'nestly_ava_had_orphans_v1';
 
 const AVA_ORPHAN_KEY_SUFFIXES = [
   'ava_history_v2',
@@ -61,6 +75,7 @@ export function purgeAvaOrphansSync(backend: AvaPurgeSyncBackend): AvaPurgeResul
   for (const key of orphans) {
     backend.removeItem(key);
   }
+  backend.setItem(AVA_HAD_ORPHANS_KEY, orphans.length > 0 ? '1' : '0');
   backend.setItem(AVA_PURGE_DONE_KEY, '1');
   return { purged: orphans.length, skipped: false };
 }
@@ -76,6 +91,7 @@ export async function purgeAvaOrphansAsync(
   for (const key of orphans) {
     await backend.removeItem(key);
   }
+  await backend.setItem(AVA_HAD_ORPHANS_KEY, orphans.length > 0 ? '1' : '0');
   await backend.setItem(AVA_PURGE_DONE_KEY, '1');
   return { purged: orphans.length, skipped: false };
 }

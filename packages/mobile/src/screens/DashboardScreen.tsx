@@ -12,6 +12,7 @@ import { Avatar } from '../components/Avatar';
 import { Card } from '../components/Card';
 import { StatCard } from '../components/StatCard';
 import { ProgressBar } from '../components/ProgressBar';
+import { RetirementNoticeBanner } from '../components/RetirementNoticeBanner';
 import { getWeeksAndDays, getWeeksRemaining, formatBabyAge } from '../utils/pregnancyCalc';
 
 function getTodayMs(): { start: number; end: number } {
@@ -135,6 +136,7 @@ export function DashboardScreen() {
     return (
       <SafeAreaView className="flex-1 bg-rose-50">
         <ScrollView contentContainerStyle={{ padding: 16 }}>
+          <RetirementNoticeBanner />
           {syncIssueBanner}
           <View className="mb-4 flex-row items-start justify-between">
             <View className="flex-1 pr-3">
@@ -227,6 +229,7 @@ export function DashboardScreen() {
   return (
     <SafeAreaView className="flex-1 bg-rose-50">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <RetirementNoticeBanner />
         {syncIssueBanner}
         <View className="mb-4 flex-row items-start justify-between">
           <View className="flex-1 pr-3">
