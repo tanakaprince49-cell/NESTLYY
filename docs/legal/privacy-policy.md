@@ -37,49 +37,47 @@ Profile pictures and memory-album photos are selected from your device and store
 
 ### 2.4 Technical Data
 
-- Push notification tokens in the Android app (if you opt in to push notifications). The web PWA does not collect push tokens.
+Nestly does not collect any technical data on servers we control. The Android app schedules local reminders (e.g. medication and appointment reminders, due-date countdown) using the Android OS notification scheduler; these reminders are set on your device and do not involve a server token, account registration, or network call. The web PWA does not send notifications.
 
 ---
 
 ## 3. Legal Basis for Processing
 
-We process your personal data on the following bases:
-
-- **Explicit written consent:** Push-notification delivery requires your explicit consent. Health-tracking data is stored only on your device and is not transmitted to our servers.
-- **Legitimate interest:** Technical data for security and service operation.
+Nestly does not process your personal data on servers we control. Health-tracking data is stored only on your device and is never transmitted to us. The only consent we ask for is your consent to install and use the app, and (on the Android app) your consent to let the app schedule local reminders on your device.
 
 ---
 
-## 4. How We Use Your Data
+## 4. How Your Data Is Used
 
-- To provide personalised pregnancy tracking and baby care features
-- To display your dashboard, growth charts, and health summaries
-- To send push notifications you have opted into
-- To allow you to export health reports
-- To provide article recommendations based on your lifecycle stage
+All of the features below run on your device against data that never leaves your device:
 
-We do not use your data for advertising. We do not sell your data to any third party.
+- Personalised pregnancy tracking and baby care features
+- Dashboard, growth charts, and health summaries
+- Local reminders you schedule in the app (Android only)
+- Export of your own data as a downloadable file that you keep or share as you choose
+- Article recommendations based on your lifecycle stage
 
-We practice data minimisation: we only collect data that is necessary for the features you use, and we do not retain data longer than needed for its stated purpose.
+We do not use your data for advertising. We do not sell your data to any third party. We do not have your data to sell — it stays on your device.
 
 ---
 
 ## 5. Third-Party Services
 
-We use the following third-party services that process your data:
+Nestly does not use third parties to process your personal health data. The only third-party service involved in running the app is:
 
 | Service | Provider | Purpose | Data Shared | Server Location |
 |---|---|---|---|---|
-| Firebase Cloud Messaging | Google (USA) | Push notification delivery (Android app only) | Device token | USA |
-| Vercel | Vercel Inc. (USA) | App hosting | HTTP requests | USA |
+| Vercel | Vercel Inc. (USA) | Serves the static app bundle and this legal site | Standard HTTP request metadata (IP address, user agent, timestamp) from CDN access. No in-app tracking data. | USA |
+
+Loading the web PWA or this legal page retrieves static files from Vercel's CDN, which logs standard request metadata under its own privacy policy. This is the same kind of request your browser makes when opening any website.
 
 ---
 
 ## 6. International Data Transfers
 
-Your data is transferred to servers located outside Zimbabwe, primarily in the United States. Transfers rely on your consent and on the contractual safeguards provided by the service providers listed in Section 5 (such as their standard terms, security certifications, and privacy commitments). We take reasonable technical and organisational measures to protect data in transit, including TLS/HTTPS encryption.
+Nestly does not transmit your personal health data outside of your device. The only cross-border activity involved in running the app is the retrieval of static assets (HTML, CSS, JavaScript, images) from Vercel's CDN (United States) when you open the web PWA or this legal page. No in-app tracking data is included in those requests.
 
-By using Nestly, you consent to the transfer of your data to these services. You may withdraw this consent at any time by disabling push notifications and deleting your local data (see Section 9).
+If you choose to export your data in the app, the resulting file is placed on your device. Where that file travels next (email, cloud drive, sharing apps) is a choice you make outside Nestly.
 
 ---
 
@@ -91,8 +89,9 @@ By using Nestly, you consent to the transfer of your data to these services. You
 
 ### 7.2 Security Measures
 
-- All data transmitted between your device and our servers (push notifications) is encrypted using TLS/HTTPS
-- Locally stored data is scoped to a device-specific identifier that never leaves your device
+- Locally stored data is scoped to a device-specific identifier that never leaves your device.
+- Static asset loading (opening the web PWA or this legal page) uses TLS/HTTPS.
+- The security of the data on your device depends on the security of the device itself. We recommend enabling a screen lock and keeping your Android OS up to date.
 
 ---
 
@@ -111,7 +110,7 @@ Under the Cyber and Data Protection Act, you have the right to:
 
 To exercise any of these rights, contact us at supportnestly@gmail.com. We will respond within 30 days.
 
-To delete your locally stored data, go to **Settings -> Apps -> Nestly -> Storage -> Clear Data**, or uninstall the app.
+To delete your locally stored data, use the in-app **Delete all data** action in Settings, or go to **Android Settings -> Apps -> Nestly -> Storage -> Clear Data**, or uninstall the app. All three paths wipe the data in place on your device without contacting any server.
 
 ---
 
@@ -134,15 +133,16 @@ Nestly is intended for users aged 18 and above. We do not knowingly collect pers
 
 ---
 
-## 11. Push Notifications (Android app only)
+## 11. Local Reminders (Android app only)
 
-Push notifications are available only in the Android app. The web PWA does not send or receive push notifications.
+Notifications are available only in the Android app. The web PWA does not send notifications.
 
-If you enable push notifications in the Android app:
+If you enable reminders in the Android app:
 
-- We collect a device token through Firebase Cloud Messaging
-- This token is used solely to deliver notifications you have opted into
-- You can disable push notifications at any time through your device settings
+- Reminders (medication, appointments, due-date countdown) are scheduled locally on your device by the Android OS.
+- No device token is collected, registered, or transmitted. There is no Firebase Cloud Messaging involvement and no push server.
+- Reminders fire from the Android notification queue even when the device is offline.
+- You can disable reminders at any time through Android notification settings or inside the app.
 
 ---
 
@@ -161,7 +161,7 @@ In the event of a personal data breach:
 We may update this privacy policy from time to time. When we do:
 
 - The updated policy will be posted in the app with a new effective date
-- For significant changes, we will notify you via in-app notice (and push notification in the Android app if you have opted in)
+- For significant changes, we will display an in-app notice the next time you open the app
 - Continued use of the app after changes constitutes acceptance of the updated policy
 
 ---
