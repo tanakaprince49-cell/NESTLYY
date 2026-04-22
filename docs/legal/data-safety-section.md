@@ -11,7 +11,7 @@ It is not a user-facing document.
 |----------|--------|
 | Does your app collect or share any of the required user data types? | **Yes** |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** (HTTPS/TLS) |
-| Do you provide a way for users to request that their data is deleted? | **Yes** (account deletion in settings + contact email) |
+| Do you provide a way for users to request that their data is deleted? | **Yes** (in-app "Delete all data" action in Settings + device storage clear + contact email) |
 
 ---
 
@@ -53,7 +53,6 @@ Nestly does not collect in-app messages. No AI chat or community-messaging featu
 
 Data that IS shared with third parties:
 - **Push notification tokens** with Firebase Cloud Messaging (delivery only)
-- **Email address** with Resend (transactional email; only when you opt in)
 
 ---
 
