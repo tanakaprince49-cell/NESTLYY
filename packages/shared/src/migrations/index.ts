@@ -28,3 +28,10 @@ export type {
   RetirementNoticeSyncBackend,
   RetirementNoticeAsyncBackend,
 } from './retirementNotices.ts';
+export {
+  WEB_PUSH_STALE_NOTICE_PENDING_KEY,
+  detectStaleWebPushSync,
+  shouldShowWebPushStaleNoticeSync,
+  dismissWebPushStaleNoticeSync,
+} from './webPushStaleNotice.ts';
+export type { WebPushStaleSyncBackend } from './webPushStaleNotice.ts';

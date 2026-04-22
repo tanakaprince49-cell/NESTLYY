@@ -36,6 +36,7 @@ import {
   getLocalIdentitySync,
   LOCAL_UUID_KEY,
   purgeAvaOrphansSync,
+  detectStaleWebPushSync,
 } from '@nestly/shared';
 
 const KEYS = {
@@ -141,12 +142,35 @@ class StorageService {
     } catch {}
   }
 
+  private runWebPushStaleDetection(uuid: string): void {
+    // One-shot detection for pre-#298 users who had web Push Notifications
+    // enabled. The field stayed in profile as a no-op; strip it and queue
+    // a banner if the user had actually opted in. See #320.
+    try {
+      detectStaleWebPushSync(
+        {
+          getItem: (k) => {
+            try { return localStorage.getItem(k); } catch { return null; }
+          },
+          setItem: (k, v) => {
+            try { localStorage.setItem(k, v); } catch {}
+          },
+          removeItem: (k) => {
+            try { localStorage.removeItem(k); } catch {}
+          },
+        },
+        `${uuid}_${KEYS.PROFILE}`,
+      );
+    } catch {}
+  }
+
   private _uuid: string | null = null;
   private getScope(): string {
     if (!this._uuid) {
       this._uuid = this.getLocalUuid();
       this.migrateFromEmailScope(this._uuid);
       this.runAvaOrphanPurge();
+      this.runWebPushStaleDetection(this._uuid);
     }
     return this._uuid;
   }
