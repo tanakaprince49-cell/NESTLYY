@@ -19,6 +19,7 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       mobile: ${{ steps.filter.outputs.mobile }}
       root: ${{ steps.filter.outputs.root }}
+      tests: ${{ steps.filter.outputs.tests }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,10 +39,15 @@ jobs:
               - 'tsconfig.json'
               - 'turbo.json'
               - 'vitest.config.*'
+            tests:
+              - 'tests/**'
 
   lint-shared:
     needs: detect-changes
-    if: needs.detect-changes.outputs.shared == 'true' || needs.detect-changes.outputs.root == 'true'
+    if: >-
+      needs.detect-changes.outputs.shared == 'true'
+      || needs.detect-changes.outputs.root == 'true'
+      || needs.detect-changes.outputs.tests == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,6 +64,7 @@ jobs:
       needs.detect-changes.outputs.web == 'true'
       || needs.detect-changes.outputs.shared == 'true'
       || needs.detect-changes.outputs.root == 'true'
+      || needs.detect-changes.outputs.tests == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -90,6 +97,7 @@ jobs:
       needs.detect-changes.outputs.shared == 'true'
       || needs.detect-changes.outputs.web == 'true'
       || needs.detect-changes.outputs.root == 'true'
+      || needs.detect-changes.outputs.tests == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
