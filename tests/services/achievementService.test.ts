@@ -158,6 +158,18 @@ describe('achievementService — checkAchievements triggers', () => {
     expect(unlocked.map(a => a.id)).not.toContain('weight_log');
   });
 
+  it('never unlocks ar_explorer from checkAchievements (AR flow must unlock it explicitly)', () => {
+    storage.addWeightLog(weight('w1'));
+    const unlocked = checkAchievements(
+      profile,
+      [food('f1')],
+      [journal('j1')],
+      [vitamin('v1')],
+      Trimester.SECOND,
+    );
+    expect(unlocked.map(a => a.id)).not.toContain('ar_explorer');
+  });
+
   it('unlocks multiple achievements at once when multiple conditions are met', () => {
     storage.addWeightLog(weight('w1'));
     const unlocked = checkAchievements(

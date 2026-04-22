@@ -302,6 +302,7 @@ describe('storageService — email-scope migration (#293 follow-up)', () => {
 
     expect(ls._store.get(`fixed-uuid_${KEYS.FOOD}`)).toContain('from-uuid');
     expect(ls._store.has('user@test.com_food_entries')).toBe(false);
+    expect(ls._store.has('nestly_auth_email')).toBe(false);
   });
 });
 
