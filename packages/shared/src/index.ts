@@ -6,7 +6,6 @@ export * from './utils/sleepUtils.ts';
 export { formatTime, formatDuration as formatDurationMs, timeAgo } from './utils/formatters.ts';
 export * from './services/storageInterface.ts';
 export * from './services/healthConnectService.ts';
-export * from './services/syncService.ts';
 export * from './services/babyGrowth.ts';
 export * from './tokens/index.ts';
 export * from './stores/index.ts';
