@@ -75,11 +75,16 @@ export function buildSettingsSlice(
 // reload routes to Setup under the same identity. Global keys
 // (ACTIVITY_LOGS, VISITS, ARTICLES, VIDEOS) intentionally survive — they
 // are device telemetry or seeded content, not user data.
+//
+// storage-audit: allowed — bulk iteration over USER_SCOPED_KEYS. The
+// typed storageService API has no generic remove(key) because every
+// domain has its own typed setter; this is the one place that needs
+// dynamic-key access, and it is the implementation of the "wipe" primitive.
 export function wipeUserScopedKeys(storage: StorageService): void {
   const uuid = storage.getLocalUuidPublic();
   try {
     USER_SCOPED_KEYS.forEach((key) => {
-      localStorage.removeItem(`${uuid}_${key}`);
+      localStorage.removeItem(`${uuid}_${key}`); // storage-audit: allowed — bulk wipe over dynamic key list
     });
   } catch {}
 }
@@ -89,6 +94,10 @@ export function wipeUserScopedKeys(storage: StorageService): void {
 // (e.g. QuotaExceededError) so the user is never left with a half-restored
 // state. Device UUID is preserved — imported data lives under this
 // device's scope going forward, no identity churn.
+//
+// storage-audit: allowed — snapshot/restore needs dynamic-key read and
+// raw-string passthrough. Typed getters would deserialize-then-reserialize
+// on every key and drop unknown fields, breaking round-trip fidelity.
 export function restoreUserScopedKeys(
   storage: StorageService,
   data: ZeroDataExportV1,
@@ -98,7 +107,7 @@ export function restoreUserScopedKeys(
   for (const key of USER_SCOPED_KEYS) {
     const fullKey = `${uuid}_${key}`;
     try {
-      snapshot.set(fullKey, localStorage.getItem(fullKey));
+      snapshot.set(fullKey, localStorage.getItem(fullKey)); // storage-audit: allowed — raw snapshot for rollback
     } catch {
       snapshot.set(fullKey, null);
     }
@@ -107,7 +116,7 @@ export function restoreUserScopedKeys(
   wipeUserScopedKeys(storage);
 
   const writeOrThrow = (key: string, value: unknown): void => {
-    localStorage.setItem(`${uuid}_${key}`, JSON.stringify(value));
+    localStorage.setItem(`${uuid}_${key}`, JSON.stringify(value)); // storage-audit: allowed — dynamic-key typed write
   };
 
   try {
@@ -151,11 +160,11 @@ export function restoreUserScopedKeys(
   } catch (e) {
     try {
       for (const fullKey of snapshot.keys()) {
-        localStorage.removeItem(fullKey);
+        localStorage.removeItem(fullKey); // storage-audit: allowed — rollback wipe
       }
       for (const [fullKey, value] of snapshot) {
         if (value !== null) {
-          localStorage.setItem(fullKey, value);
+          localStorage.setItem(fullKey, value); // storage-audit: allowed — rollback restore
         }
       }
     } catch {
