@@ -28,21 +28,8 @@ export class ErrorBoundary extends React.Component<any, any> {
 
   public render() {
     if (this.state.hasError) {
-      let errorMessage = "Something went wrong. Please try refreshing the page.";
-      
-      try {
-        if (this.state.error?.message) {
-          const parsedError = JSON.parse(this.state.error.message);
-          if (parsedError.error && parsedError.operationType) {
-            errorMessage = `Firestore Error: ${parsedError.error} during ${parsedError.operationType} on ${parsedError.path || 'unknown path'}.`;
-          }
-        }
-      } catch (e) {
-        // Not a JSON error message, use default or raw message
-        if (this.state.error?.message) {
-          errorMessage = this.state.error.message;
-        }
-      }
+      const errorMessage = this.state.error?.message
+        ?? "Something went wrong. Please try refreshing the page.";
 
       return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">

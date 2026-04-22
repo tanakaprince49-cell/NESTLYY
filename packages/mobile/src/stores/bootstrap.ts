@@ -36,9 +36,10 @@ type PrivacyPersistedStore = { persist: { rehydrate: () => Promise<void> } };
 
 /**
  * Rehydrate the device-level privacy store. Safe to call at cold start
- * before Firebase auth resolves, because this store is not user-scoped.
- * Swallows failures so a corrupted privacy bucket can never block app boot —
- * the consent prompt reappearing is a far better failure mode than a hang.
+ * before the local UUID store rehydrates, because this store is not
+ * user-scoped. Swallows failures so a corrupted privacy bucket can never
+ * block app boot — the consent prompt reappearing is a far better failure
+ * mode than a hang.
  */
 export async function rehydratePrivacyStore(): Promise<void> {
   try {
@@ -52,9 +53,9 @@ type PersistedStore = { persist: { rehydrate: () => Promise<void>; clearStorage:
 
 /**
  * Rehydrate all user-scoped stores from AsyncStorage. Must be called after
- * Firebase auth has resolved and `setAuth` has populated the authStore with
- * the correct scope identifier, otherwise the persist middleware would read
- * the guest bucket.
+ * the local UUID store has hydrated so `getLocalUuid()` returns the real
+ * UUID rather than null, otherwise the persist middleware would read the
+ * guest bucket.
  *
  * Each store is rehydrated inside its own try/catch: if one bucket contains
  * unparseable JSON or the backend read throws, we log the failure and move on
