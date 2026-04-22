@@ -7,6 +7,11 @@ import {
   type PregnancyProfile,
 } from '@nestly/shared';
 import { storage } from './storageService.ts';
+import {
+  buildExtrasSlice,
+  buildSettingsSlice,
+  buildTrackingSlice,
+} from './webExportAdapter.ts';
 
 // Keep in sync with packages/mobile/app.json -> expo.version (canonical).
 // The release workflow bumps both; a drift here only affects the exported
@@ -30,10 +35,10 @@ export function buildWebExport(): ZeroDataExportV1 {
   return buildExport({
     profile,
     trimester: trimesterFromProfile(profile),
-    tracking: storage.getTrackingSlice(),
+    tracking: buildTrackingSlice(storage),
     avaChat: { messages: [] },
-    settings: storage.getSettingsSlice(profile),
-    extras: storage.getExtrasSlice(),
+    settings: buildSettingsSlice(storage, profile),
+    extras: buildExtrasSlice(storage),
     identityType: 'local-uuid',
     identityValue: storage.getLocalUuidPublic(),
     platform: 'web',

@@ -1,7 +1,5 @@
 import {
   PregnancyProfile,
-  Trimester,
-  LifecycleStage,
   FoodEntry,
   SymptomLog,
   VitaminLog,
@@ -30,16 +28,14 @@ import {
   ChecklistItem,
   Video,
   ZeroDataExportV1,
-  ZeroDataTrackingSlice,
-  ZeroDataExtrasSlice,
-  ZeroDataSettingsSlice,
   getLocalIdentitySync,
   LOCAL_UUID_KEY,
   purgeAvaOrphansSync,
   detectStaleWebPushSync,
 } from '@nestly/shared';
+import { restoreUserScopedKeys, wipeUserScopedKeys } from './webExportAdapter.ts';
 
-const KEYS = {
+export const KEYS = {
   PROFILE: 'profile_v5',
   FOOD: 'food_entries',
   SYMPTOMS: 'symptoms',
@@ -86,11 +82,11 @@ const GLOBAL_KEYS: readonly string[] = [
 ];
 
 // Everything else is written under `${uuid}_${key}` and belongs to the user.
-const USER_SCOPED_KEYS: readonly string[] = Object.values(KEYS).filter(
+export const USER_SCOPED_KEYS: readonly string[] = Object.values(KEYS).filter(
   (k) => !GLOBAL_KEYS.includes(k),
 );
 
-class StorageService {
+export class StorageService {
   private getLocalUuid(): string {
     return getLocalIdentitySync(
       (k) => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -463,153 +459,12 @@ class StorageService {
     this.setItem(KEYS.LAST_WEEK_CELEBRATED, week);
   }
 
-  getTrackingSlice(): ZeroDataTrackingSlice {
-    return {
-      foodEntries: this.getFoodEntries(),
-      symptoms: this.getSymptoms(),
-      vitamins: this.getVitamins(),
-      contractions: this.getContractions(),
-      journalEntries: this.getJournalEntries(),
-      calendarEvents: this.getCalendarEvents(),
-      weightLogs: this.getWeightLogs(),
-      sleepLogs: this.getSleepLogs(),
-      feedingLogs: this.getFeedingLogs(),
-      milestones: this.getMilestones(),
-      healthLogs: this.getHealthLogs(),
-      reactions: this.getReactions(),
-      babyGrowthLogs: this.getBabyGrowthLogs(),
-      tummyTimeLogs: this.getTummyTimeLogs(),
-      bloodPressureLogs: this.getBloodPressureLogs(),
-      kickLogs: this.getKickLogs(),
-      kegelLogs: this.getKegelLogs(),
-      diaperLogs: this.getDiaperLogs(),
-      medicationLogs: this.getMedications(),
-    };
-  }
-
-  getExtrasSlice(): ZeroDataExtrasSlice {
-    return {
-      periodLogs: this.getPeriodLogs(),
-      archivedPregnancies: this.getArchive(),
-      checklistItems: this.getAllChecklists(),
-      babyNames: this.getBabyNames(),
-      bumpPhotos: this.getBumpPhotos(),
-      unlockedAchievementIds: this.getUnlockedAchievementIds(),
-      lastWeekCelebrated: this.getLastWeekCelebrated(),
-    };
-  }
-
-  getSettingsSlice(profile: PregnancyProfile | null): ZeroDataSettingsSlice {
-    const slice: ZeroDataSettingsSlice = {
-      hasAcceptedPrivacy: this.hasAcceptedPrivacy(),
-    };
-    if (profile?.notificationsEnabled !== undefined) {
-      slice.notificationsEnabled = profile.notificationsEnabled;
-    }
-    if (profile?.emailNotifications !== undefined) {
-      slice.emailNotifications = profile.emailNotifications;
-    }
-    if (profile?.dietPreference !== undefined) {
-      slice.dietPreference = profile.dietPreference;
-    }
-    if (profile?.themeColor !== undefined) {
-      slice.themeColor = profile.themeColor;
-    }
-    return slice;
-  }
-
   restoreFromExport(data: ZeroDataExportV1): void {
-    // Wipe all user-scoped keys under the current scope, then write the
-    // imported payload. Keeping the current UUID (we do not touch
-    // LOCAL_UUID_KEY) means the imported data lives under this device's
-    // scope going forward, no identity churn. If any write fails mid-way
-    // (e.g. QuotaExceededError), we roll back to the pre-import snapshot
-    // so the user is not left with a half-restored, half-empty state.
-    const uuid = this.getScope();
-    const snapshot = new Map<string, string | null>();
-    for (const key of USER_SCOPED_KEYS) {
-      const fullKey = `${uuid}_${key}`;
-      try {
-        snapshot.set(fullKey, localStorage.getItem(fullKey));
-      } catch {
-        snapshot.set(fullKey, null);
-      }
-    }
-
-    this.wipeAllUserScopedKeys();
-
-    const writeOrThrow = (key: string, value: unknown): void => {
-      localStorage.setItem(`${uuid}_${key}`, JSON.stringify(value));
-    };
-
-    try {
-      if (data.profile) {
-        writeOrThrow(KEYS.PROFILE, data.profile);
-      }
-
-      writeOrThrow(KEYS.FOOD, data.tracking.foodEntries);
-      writeOrThrow(KEYS.SYMPTOMS, data.tracking.symptoms);
-      writeOrThrow(KEYS.VITAMINS, data.tracking.vitamins);
-      writeOrThrow(KEYS.CONTRACTIONS, data.tracking.contractions);
-      writeOrThrow(KEYS.JOURNAL, data.tracking.journalEntries);
-      writeOrThrow(KEYS.CALENDAR, data.tracking.calendarEvents);
-      writeOrThrow(KEYS.WEIGHT, data.tracking.weightLogs);
-      writeOrThrow(KEYS.SLEEP, data.tracking.sleepLogs);
-      writeOrThrow(KEYS.FEEDING, data.tracking.feedingLogs);
-      writeOrThrow(KEYS.MILESTONES, data.tracking.milestones);
-      writeOrThrow(KEYS.HEALTH, data.tracking.healthLogs);
-      writeOrThrow(KEYS.REACTIONS, data.tracking.reactions);
-      writeOrThrow(KEYS.BABY_GROWTH, data.tracking.babyGrowthLogs);
-      writeOrThrow(KEYS.TUMMY_TIME, data.tracking.tummyTimeLogs);
-      writeOrThrow(KEYS.BLOOD_PRESSURE, data.tracking.bloodPressureLogs);
-      writeOrThrow(KEYS.KICKS, data.tracking.kickLogs);
-      writeOrThrow(KEYS.KEGELS, data.tracking.kegelLogs);
-      writeOrThrow(KEYS.DIAPER, data.tracking.diaperLogs);
-      writeOrThrow(KEYS.MEDICATIONS, data.tracking.medicationLogs);
-
-      writeOrThrow(KEYS.PRIVACY_ACCEPTED, data.settings.hasAcceptedPrivacy);
-
-      if (data.extras) {
-        if (data.extras.periodLogs) writeOrThrow(KEYS.PERIOD_LOGS, data.extras.periodLogs);
-        if (data.extras.archivedPregnancies) writeOrThrow(KEYS.ARCHIVE, data.extras.archivedPregnancies);
-        if (data.extras.checklistItems) writeOrThrow(KEYS.CHECKLISTS, data.extras.checklistItems);
-        if (data.extras.babyNames) writeOrThrow(KEYS.BABY_NAMES, data.extras.babyNames);
-        if (data.extras.bumpPhotos) writeOrThrow(KEYS.BUMP_PHOTOS, data.extras.bumpPhotos);
-        if (data.extras.unlockedAchievementIds) writeOrThrow(KEYS.UNLOCKED_IDS, data.extras.unlockedAchievementIds);
-        if (typeof data.extras.lastWeekCelebrated === 'number') {
-          writeOrThrow(KEYS.LAST_WEEK_CELEBRATED, data.extras.lastWeekCelebrated);
-        }
-      }
-    } catch (e) {
-      // Roll back: wipe partial writes, restore snapshot, re-throw for the UI.
-      try {
-        for (const fullKey of snapshot.keys()) {
-          localStorage.removeItem(fullKey);
-        }
-        for (const [fullKey, value] of snapshot) {
-          if (value !== null) {
-            localStorage.setItem(fullKey, value);
-          }
-        }
-      } catch {
-        // Nothing more we can do — surface the original error to the caller.
-      }
-      throw e;
-    }
+    restoreUserScopedKeys(this, data);
   }
 
   wipeAllUserScopedKeys(): void {
-    // Mirror deleteAccount() minus LOCAL_UUID_KEY removal. The device scope
-    // is preserved so a post-wipe reload routes to Setup under the same UUID,
-    // without generating a fresh identity. Global keys (ACTIVITY_LOGS,
-    // VISITS, ARTICLES, VIDEOS) intentionally survive — they are
-    // device-scoped telemetry or seeded content, not user data.
-    const uuid = this.getScope();
-    try {
-      USER_SCOPED_KEYS.forEach(key => {
-        localStorage.removeItem(`${uuid}_${key}`);
-      });
-    } catch (e) {}
+    wipeUserScopedKeys(this);
   }
 
 }
