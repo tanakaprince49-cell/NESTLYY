@@ -18,7 +18,7 @@ describe('nutrition data — serving-unit convention (#335)', () => {
     const countedById = new Set(['eggs-2', 'eggs-roadrunner']);
     for (const f of nutritionFoods) {
       if (countedById.has(f.id)) continue;
-      expect(f.serving, `no g/ml reference on ${f.id}`).toMatch(/\d+\s*(g|ml|cup)/);
+      expect(f.serving, `no g/ml reference on ${f.id}`).toMatch(/\d+\s*(g|ml)/);
     }
   });
 
