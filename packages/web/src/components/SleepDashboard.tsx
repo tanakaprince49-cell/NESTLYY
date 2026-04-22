@@ -6,6 +6,7 @@ import { SleepCharts } from './SleepCharts';
 import { SleepInsights } from './SleepInsights';
 import { SleepHistory } from './SleepHistory';
 import { startOfDay, format, subDays } from 'date-fns';
+import { storage } from '../services/storageService';
 
 const SAMPLE_DATA: SleepLog[] = [
   {
@@ -36,19 +37,20 @@ export const SleepDashboard: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<SleepLog | null>(null);
 
-  // Load data from localStorage
+  // Load data from UUID-scoped storage. Seed sample data only on a first-ever
+  // boot — if the user has deliberately emptied their sessions the stored
+  // array is `[]`, which must not re-seed. `hasSleepSessions()` checks for
+  // key presence to tell those cases apart.
   useEffect(() => {
-    const saved = localStorage.getItem('sleep_sessions');
-    if (saved) {
-      setSessions(JSON.parse(saved));
+    if (storage.hasSleepSessions()) {
+      setSessions(storage.getSleepSessions());
     } else {
       setSessions(SAMPLE_DATA);
     }
   }, []);
 
-  // Save data to localStorage
   useEffect(() => {
-    localStorage.setItem('sleep_sessions', JSON.stringify(sessions));
+    storage.setSleepSessions(sessions);
   }, [sessions]);
 
   const handleSaveSession = (sessionData: Partial<SleepLog>) => {
