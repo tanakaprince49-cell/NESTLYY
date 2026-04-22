@@ -387,7 +387,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, lo
         </div>
       </div>
 
-      <DataManagementCard profile={profile} />
+      <DataManagementCard />
 
       <div className="card-premium p-6 space-y-4">
         <h3 className="font-bold text-slate-800">About Nestly</h3>

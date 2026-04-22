@@ -1,25 +1,19 @@
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  ExportValidationError,
-  PregnancyProfile,
-  ZeroDataExportV1,
-} from '@nestly/shared';
+import { ExportValidationError, ZeroDataExportV1 } from '@nestly/shared';
 import { AlertTriangle, Download, FileText, Upload } from 'lucide-react';
 import { storage } from '../services/storageService.ts';
 import { buildWebExport, downloadJson, importFromFile } from '../services/exportService.ts';
 import { generateDoctorSummary } from '../services/reportService.ts';
-
-interface DataManagementCardProps {
-  profile: PregnancyProfile;
-}
 
 // The Your Data card owns all localStorage-mutating flows on the Settings
 // page: JSON export, doctor-summary PDF, import-with-preview, and the
 // typed-DELETE wipe. Split out of Settings.tsx so the Delete-all blast
 // radius is obvious from the file structure and so the import/delete
 // flows can be unit-tested without mounting the whole Settings page.
-export const DataManagementCard: React.FC<DataManagementCardProps> = ({ profile: _profile }) => {
+// Profile is read from `storage` directly inside the export builders —
+// no prop needed.
+export const DataManagementCard: React.FC = () => {
   const importInputRef = useRef<HTMLInputElement>(null);
   const [importPreview, setImportPreview] = useState<ZeroDataExportV1 | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
