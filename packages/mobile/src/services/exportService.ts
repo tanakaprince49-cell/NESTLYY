@@ -20,9 +20,11 @@ import { clearUserStores } from '../stores/bootstrap';
 import { buildDoctorSummaryHtml } from './reportHtmlTemplates';
 import { generateAndSharePdf } from './pdfService';
 
-// Keep in sync with packages/mobile/app.json -> expo.version (canonical).
 // Mirrors the web exportService constant — both platforms stamp this onto
 // meta.appVersion so a user can see which build produced a given backup file.
+// Kept in sync with packages/mobile/app.json -> expo.version by scripts/
+// version-bump.mjs, which rewrites this literal every time you run
+// `npm run version:patch|minor|major`. Do not edit by hand (#331).
 export const APP_VERSION = '0.1.0';
 
 function trimesterFromProfile(profile: PregnancyProfile | null): Trimester {
