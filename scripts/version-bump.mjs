@@ -6,10 +6,13 @@
 // 1. Reads current expo.version from packages/mobile/app.json
 // 2. Bumps it by the requested semver component
 // 3. Increments expo.android.versionCode by 1
-// 4. Moves CHANGELOG.md `## [Unreleased]` entries under a new
+// 4. Rewrites the `APP_VERSION` literal in both `packages/web/src/services/
+//    exportService.ts` and `packages/mobile/src/services/exportService.ts`
+//    so backup files stamp the correct version (#331)
+// 5. Moves CHANGELOG.md `## [Unreleased]` entries under a new
 //    `## [X.Y.Z] - YYYY-MM-DD` section
-// 5. Writes everything back
-// 6. Exits non-zero if there is nothing in Unreleased to release
+// 6. Writes everything back
+// 7. Exits non-zero if there is nothing in Unreleased to release
 //
 // It does NOT commit, tag, or push. The committer does that manually so the
 // release commit stays reviewable.
@@ -23,6 +26,8 @@ const repoRoot = resolve(__dirname, '..');
 
 const APP_JSON = resolve(repoRoot, 'packages/mobile/app.json');
 const CHANGELOG = resolve(repoRoot, 'CHANGELOG.md');
+const WEB_EXPORT_SERVICE = resolve(repoRoot, 'packages/web/src/services/exportService.ts');
+const MOBILE_EXPORT_SERVICE = resolve(repoRoot, 'packages/mobile/src/services/exportService.ts');
 
 const kind = process.argv[2];
 if (!['patch', 'minor', 'major'].includes(kind)) {
@@ -31,7 +36,13 @@ if (!['patch', 'minor', 'major'].includes(kind)) {
 }
 
 // ---------- 1. Read current version from app.json ----------
-const appJson = JSON.parse(readFileSync(APP_JSON, 'utf8'));
+// Expo permits trailing commas in app.json (this repo's copy has one after the
+// android.permissions list). JSON.parse does not, so strip any `,` that sits
+// right before `]` or `}` with only whitespace between them. The round-trip
+// through JSON.stringify normalises the output either way, so the first bump
+// after adding a trailing comma silently cleans it up.
+const appJsonRaw = readFileSync(APP_JSON, 'utf8');
+const appJson = JSON.parse(appJsonRaw.replace(/,(\s*[\]}])/g, '$1'));
 const current = appJson.expo.version;
 if (!/^\d+\.\d+\.\d+$/.test(current)) {
   console.error(`app.json expo.version "${current}" is not a valid MAJOR.MINOR.PATCH`);
@@ -72,7 +83,29 @@ appJson.expo.android.versionCode = prevCode + 1;
 
 writeFileSync(APP_JSON, JSON.stringify(appJson, null, 2) + '\n');
 
-// ---------- 4. Rewrite CHANGELOG ----------
+// ---------- 4. Rewrite APP_VERSION in web + mobile exportService ----------
+// Both files mirror expo.version in a single-line literal. A missed bump
+// lands stale meta.appVersion on every exported backup file — so the
+// release commit owns the sync, not a runtime lookup (#331).
+const appVersionRe = /(export const APP_VERSION = ')(\d+\.\d+\.\d+)(';)/;
+for (const servicePath of [WEB_EXPORT_SERVICE, MOBILE_EXPORT_SERVICE]) {
+  const src = readFileSync(servicePath, 'utf8');
+  const m = src.match(appVersionRe);
+  if (!m) {
+    console.error(`Expected APP_VERSION literal not found in ${servicePath}`);
+    process.exit(7);
+  }
+  if (m[2] !== current) {
+    console.error(
+      `APP_VERSION in ${servicePath} is "${m[2]}" but app.json is "${current}". ` +
+        'Fix the drift before bumping.',
+    );
+    process.exit(8);
+  }
+  writeFileSync(servicePath, src.replace(appVersionRe, `$1${next}$3`));
+}
+
+// ---------- 5. Rewrite CHANGELOG ----------
 const today = new Date().toISOString().slice(0, 10);
 
 // Insert the new version section right after the old [Unreleased] block, and
@@ -97,9 +130,10 @@ if (unreleasedLinkRe.test(rewrittenBody)) {
 
 writeFileSync(CHANGELOG, rewritten);
 
-// ---------- 5. Report ----------
+// ---------- 6. Report ----------
 console.log(`Bumped version: ${current} -> ${next}`);
 console.log(`Bumped versionCode: ${prevCode} -> ${prevCode + 1}`);
+console.log(`Rewrote APP_VERSION in web + mobile exportService`);
 console.log(`Updated CHANGELOG.md with [${next}] - ${today}`);
 console.log('');
 console.log('Next steps:');
