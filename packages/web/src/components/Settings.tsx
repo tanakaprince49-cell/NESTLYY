@@ -489,6 +489,14 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, lo
             onChange={handleImportFileChange}
           />
 
+          <div className="flex items-center gap-3 pt-4">
+            <div className="flex-1 h-px bg-rose-100" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-300">
+              Danger zone
+            </span>
+            <div className="flex-1 h-px bg-rose-100" />
+          </div>
+
           <button
             onClick={() => {
               setDeleteConfirmText('');
@@ -592,12 +600,23 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, lo
                 <h3 className="text-lg font-bold text-slate-900">Could not import file</h3>
               </div>
               <p className="text-sm text-slate-600 leading-relaxed">{importError}</p>
-              <button
-                onClick={() => setImportError(null)}
-                className="w-full py-3 bg-rose-900 text-white font-bold rounded-xl hover:bg-rose-800 transition-colors"
-              >
-                Got it
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    setImportError(null);
+                    importInputRef.current?.click();
+                  }}
+                  className="w-full py-3 bg-rose-900 text-white font-bold rounded-xl hover:bg-rose-800 transition-colors"
+                >
+                  Try another file
+                </button>
+                <button
+                  onClick={() => setImportError(null)}
+                  className="w-full py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                >
+                  Got it
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
