@@ -50,6 +50,7 @@ import {
 import { calculateDurationMinutes } from '@nestly/shared';
 import { FoodPicker } from './FoodPicker.tsx';
 import { RetirementNoticeBanner } from './RetirementNoticeBanner.tsx';
+import { WebPushDiscontinuedBanner } from './WebPushDiscontinuedBanner.tsx';
 import { 
   FoodEntry,
   Trimester,
@@ -311,6 +312,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       className="w-full max-w-5xl mx-auto space-y-6 lg:space-y-8 px-5 pb-36 lg:pb-12 pt-2 lg:pt-6 no-scrollbar relative z-10"
     >
       <RetirementNoticeBanner />
+      <WebPushDiscontinuedBanner />
 
       {/* Header */}
       <div className="flex justify-between items-start mb-2">
