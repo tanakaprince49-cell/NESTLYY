@@ -76,6 +76,15 @@ describe('isAvaOrphanKey', () => {
     expect(isAvaOrphanKey('nestly_privacy_accepted')).toBe(false);
     expect(isAvaOrphanKey('abc-123_ava_reality_check')).toBe(false);
   });
+
+  it('handles full-length UUIDv4 scope prefixes', () => {
+    expect(
+      isAvaOrphanKey('a1b2c3d4-e5f6-4abc-9def-0123456789ab_ava_history_v2'),
+    ).toBe(true);
+    expect(
+      isAvaOrphanKey('a1b2c3d4-e5f6-4abc-9def-0123456789ab_food_entries'),
+    ).toBe(false);
+  });
 });
 
 describe('collectAvaOrphanKeys', () => {
