@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   AVA_PURGE_DONE_KEY,
+  AVA_HAD_ORPHANS_KEY,
   isAvaOrphanKey,
   collectAvaOrphanKeys,
   purgeAvaOrphansSync,
@@ -110,7 +111,7 @@ describe('collectAvaOrphanKeys', () => {
 });
 
 describe('purgeAvaOrphansSync', () => {
-  it('fresh install: no orphans to purge, flag set', () => {
+  it('fresh install: no orphans to purge, flag set, had-orphans=0', () => {
     const { store, backend } = makeSyncBackend({
       nestly_local_uuid: 'abc-123',
       'abc-123_profile_v5': '{}',
@@ -118,11 +119,12 @@ describe('purgeAvaOrphansSync', () => {
     const result = purgeAvaOrphansSync(backend);
     expect(result).toEqual({ purged: 0, skipped: false });
     expect(store.get(AVA_PURGE_DONE_KEY)).toBe('1');
+    expect(store.get(AVA_HAD_ORPHANS_KEY)).toBe('0');
     expect(store.get('nestly_local_uuid')).toBe('abc-123');
     expect(store.get('abc-123_profile_v5')).toBe('{}');
   });
 
-  it('upgrade with Ava data: removes orphan keys and sets the flag', () => {
+  it('upgrade with Ava data: removes orphan keys, flag set, had-orphans=1', () => {
     const { store, backend } = makeSyncBackend({
       nestly_local_uuid: 'abc-123',
       'abc-123_ava_history_v2': '[]',
@@ -145,6 +147,7 @@ describe('purgeAvaOrphansSync', () => {
     expect(store.get('abc-123_profile_v5')).toBe('{"userName":"Test"}');
     expect(store.get('abc-123_food_entries')).toBe('[]');
     expect(store.get(AVA_PURGE_DONE_KEY)).toBe('1');
+    expect(store.get(AVA_HAD_ORPHANS_KEY)).toBe('1');
   });
 
   it('skips rerun when flag is already set', () => {
