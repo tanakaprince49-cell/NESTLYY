@@ -322,7 +322,7 @@ export const nutritionFoods: NutritionFood[] = [
   {
     id: 'eggs-roadrunner',
     name: 'Road-runner eggs (indigenous, 2)',
-    aliases: ['road runner', 'roadrunner', 'mupfuti', 'huku yechivanhu', 'free range egg', 'indigenous egg'],
+    aliases: ['roadrunner', 'road-runner', 'mupfuti', 'huku yechivanhu', 'free range egg', 'indigenous egg'],
     explanation: 'Two indigenous free-range chicken eggs; same macro profile as commercial eggs with slightly higher omega-3 and vitamin A from the mixed diet.',
     serving: '2 medium',
     calories: 140,
@@ -1114,7 +1114,7 @@ export const nutritionFoods: NutritionFood[] = [
   {
     id: 'tea-with-milk',
     name: 'Tea with milk',
-    aliases: ['tea', 'milk tea', 'chai', 'rooibos', 'black tea'],
+    aliases: ['tea', 'milk tea', 'chai', 'black tea'],
     explanation: 'Black tea with milk and a teaspoon of sugar. Tannins in tea can block iron uptake; take at least an hour apart from iron-rich meals or supplements.',
     serving: '1 mug (250ml)',
     calories: 55,
@@ -1130,7 +1130,7 @@ export const nutritionFoods: NutritionFood[] = [
     aliases: ['mazoe', 'mazowe', 'orange crush', 'cordial', 'concentrate'],
     explanation: 'Mazoe orange cordial diluted 1:4 with water; occasional sweet drink, mostly added sugar.',
     serving: '1 glass (250ml, diluted)',
-    calories: 100,
+    calories: 75,
     protein: 0,
     folate: 0,
     iron: 0,
