@@ -8,6 +8,10 @@
  * The migration iterates every existing key and removes anything whose
  * suffix matches a known Ava/CustomPlan key, then sets a done flag so the
  * scan runs exactly once per installation. See issue #311.
+ *
+ * Failure mode: if `getAllKeys()` throws (storage quota, permission, etc.),
+ * neither the had-orphans nor the done flag is written, so the purge retries
+ * on next launch rather than silently skipping cleanup.
  */
 
 export const AVA_PURGE_DONE_KEY = 'nestly_ava_purge_v1_done';

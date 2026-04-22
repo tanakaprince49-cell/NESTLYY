@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import {
   shouldShowAvaRetirementNoticeSync,
@@ -15,11 +15,13 @@ const syncBackend = {
 };
 
 export const RetirementNoticeBanner: React.FC = () => {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    setVisible(shouldShowAvaRetirementNoticeSync(syncBackend));
-  }, []);
+  // Compute initial visibility synchronously (localStorage is sync) so the
+  // banner is in the DOM from the first paint. Assistive tech announces
+  // role="status" on mount; a visible=false -> true flip after useEffect
+  // would be a tree mutation that many screen readers do not re-announce.
+  const [visible, setVisible] = useState<boolean>(() =>
+    shouldShowAvaRetirementNoticeSync(syncBackend),
+  );
 
   if (!visible) return null;
 

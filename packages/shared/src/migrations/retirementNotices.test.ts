@@ -88,6 +88,12 @@ describe('shouldShowAvaRetirementNoticeAsync', () => {
     expect(store.get(AVA_RETIREMENT_NOTICE_SEEN_KEY)).toBe('1');
   });
 
+  it('returns false and silently marks seen when purge has not run yet (no had-orphans flag)', async () => {
+    const { store, backend } = makeAsyncBackend({});
+    await expect(shouldShowAvaRetirementNoticeAsync(backend)).resolves.toBe(false);
+    expect(store.get(AVA_RETIREMENT_NOTICE_SEEN_KEY)).toBe('1');
+  });
+
   it('returns false when notice has already been seen', async () => {
     const { backend } = makeAsyncBackend({
       [AVA_HAD_ORPHANS_KEY]: '1',
