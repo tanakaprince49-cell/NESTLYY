@@ -32,6 +32,7 @@ import {
   LOCAL_UUID_KEY,
   purgeAvaOrphansSync,
   detectStaleWebPushSync,
+  searchNutrition,
 } from '@nestly/shared';
 import { restoreUserScopedKeys, wipeUserScopedKeys } from './webExportAdapter.ts';
 
@@ -70,6 +71,9 @@ export const KEYS = {
   KEGELS: 'kegel_logs',
   PRIVACY_ACCEPTED: 'privacy_accepted',
   LAST_WEEK_CELEBRATED: 'last_week_celebrated',
+  RECENT_FOOD_PICKS: 'recent_food_picks',
+  RECENT_REPORTS: 'nestly_recent_reports',
+  SLEEP_SESSIONS: 'sleep_sessions',
 };
 
 // Keys written unscoped via isGlobal=true — device-wide telemetry or seeded
@@ -138,6 +142,62 @@ export class StorageService {
     } catch {}
   }
 
+  private migrateOrphanGlobalKeys(uuid: string): void {
+    // Three pre-existing keys that were written unscoped into localStorage:
+    //   - recent_food_picks       (FoodPicker)
+    //   - nestly_recent_reports   (ExportReport)
+    //   - sleep_sessions          (SleepDashboard)
+    // Plus an older pre-pivot key (recent_food_research) that stored food
+    // names instead of IDs. On a shared device both users saw the same data.
+    // One-shot per UUID: copy each global value under `${uuid}_${key}` and
+    // delete the global, so after this boot everything routes through the
+    // normal user-scoped path. Guarded by a scoped flag so repeated boots
+    // do no work. See #337.
+    const flagKey = `${uuid}_orphan_keys_migrated_v1`;
+    try {
+      if (localStorage.getItem(flagKey) === 'done') return;
+    } catch {
+      return;
+    }
+    try {
+      const orphanKeys = [
+        KEYS.RECENT_FOOD_PICKS,
+        KEYS.RECENT_REPORTS,
+        KEYS.SLEEP_SESSIONS,
+      ];
+      for (const key of orphanKeys) {
+        const globalValue = localStorage.getItem(key);
+        if (globalValue !== null) {
+          const scopedKey = `${uuid}_${key}`;
+          if (localStorage.getItem(scopedKey) === null) {
+            localStorage.setItem(scopedKey, globalValue);
+          }
+          localStorage.removeItem(key);
+        }
+      }
+      // Older pre-pivot key stored food names; translate to IDs via the
+      // offline nutrition database so the recent-picks UI continues to work.
+      const legacyResearch = localStorage.getItem('recent_food_research');
+      if (legacyResearch !== null) {
+        try {
+          const names = JSON.parse(legacyResearch) as unknown;
+          if (Array.isArray(names)) {
+            const ids = names
+              .map((n) => (typeof n === 'string' ? searchNutrition(n, 1)[0]?.id : undefined))
+              .filter((id): id is string => typeof id === 'string')
+              .slice(0, 4);
+            const scopedKey = `${uuid}_${KEYS.RECENT_FOOD_PICKS}`;
+            if (ids.length > 0 && localStorage.getItem(scopedKey) === null) {
+              localStorage.setItem(scopedKey, JSON.stringify(ids));
+            }
+          }
+        } catch {}
+        localStorage.removeItem('recent_food_research');
+      }
+      localStorage.setItem(flagKey, 'done');
+    } catch {}
+  }
+
   private runWebPushStaleDetection(uuid: string): void {
     // One-shot detection for pre-#298 users who had web Push Notifications
     // enabled. The field stayed in profile as a no-op; strip it and queue
@@ -165,6 +225,7 @@ export class StorageService {
     if (!this._uuid) {
       this._uuid = this.getLocalUuid();
       this.migrateFromEmailScope(this._uuid);
+      this.migrateOrphanGlobalKeys(this._uuid);
       this.runAvaOrphanPurge();
       this.runWebPushStaleDetection(this._uuid);
     }
@@ -231,6 +292,19 @@ export class StorageService {
   getFoodEntries(): FoodEntry[] { return this.getItem<FoodEntry[]>(KEYS.FOOD, []); }
   addFoodEntry(entry: FoodEntry): void { this.setItem(KEYS.FOOD, [entry, ...this.getFoodEntries()]); }
   removeFoodEntry(id: string): void { this.setItem(KEYS.FOOD, this.getFoodEntries().filter(e => e.id !== id)); }
+
+  getRecentFoodPicks(): string[] { return this.getItem<string[]>(KEYS.RECENT_FOOD_PICKS, []); }
+  setRecentFoodPicks(ids: string[]): void { this.setItem(KEYS.RECENT_FOOD_PICKS, ids); }
+
+  getRecentReports(): { start: string; end: string; id: string }[] {
+    return this.getItem<{ start: string; end: string; id: string }[]>(KEYS.RECENT_REPORTS, []);
+  }
+  setRecentReports(reports: { start: string; end: string; id: string }[]): void {
+    this.setItem(KEYS.RECENT_REPORTS, reports);
+  }
+
+  getSleepSessions(): SleepLog[] { return this.getItem<SleepLog[]>(KEYS.SLEEP_SESSIONS, []); }
+  setSleepSessions(sessions: SleepLog[]): void { this.setItem(KEYS.SLEEP_SESSIONS, sessions); }
 
   getWeightLogs(): WeightLog[] { return this.getItem<WeightLog[]>(KEYS.WEIGHT, []); }
   addWeightLog(log: WeightLog): void { this.setItem(KEYS.WEIGHT, [log, ...this.getWeightLogs()]); }

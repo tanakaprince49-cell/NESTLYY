@@ -2,39 +2,17 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, CheckCircle, Apple, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FoodEntry, searchNutrition, getFoodById, NutritionFood } from '@nestly/shared';
+import { storage } from '../services/storageService';
 
 interface FoodPickerProps {
   onAddEntry: (entry: Omit<FoodEntry, 'id' | 'timestamp'>) => void;
 }
 
-const RECENT_KEY = 'recent_food_picks';
-const LEGACY_KEY = 'recent_food_research';
 const MAX_RECENT = 4;
-
-function loadRecent(): string[] {
-  try {
-    const current = localStorage.getItem(RECENT_KEY);
-    if (current) return JSON.parse(current) as string[];
-    const legacy = localStorage.getItem(LEGACY_KEY);
-    if (legacy) {
-      localStorage.removeItem(LEGACY_KEY);
-      const names = JSON.parse(legacy) as string[];
-      const ids = names
-        .map((n) => searchNutrition(n, 1)[0]?.id)
-        .filter((id): id is string => typeof id === 'string')
-        .slice(0, MAX_RECENT);
-      localStorage.setItem(RECENT_KEY, JSON.stringify(ids));
-      return ids;
-    }
-  } catch {
-    // Fall through to empty.
-  }
-  return [];
-}
 
 export const FoodPicker: React.FC<FoodPickerProps> = ({ onAddEntry }) => {
   const [query, setQuery] = useState('');
-  const [recentIds, setRecentIds] = useState<string[]>(() => loadRecent());
+  const [recentIds, setRecentIds] = useState<string[]>(() => storage.getRecentFoodPicks());
   const [loggedFood, setLoggedFood] = useState<NutritionFood | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const successTimer = useRef<number | null>(null);
@@ -62,11 +40,7 @@ export const FoodPicker: React.FC<FoodPickerProps> = ({ onAddEntry }) => {
 
     const next = [food.id, ...recentIds.filter((id) => id !== food.id)].slice(0, MAX_RECENT);
     setRecentIds(next);
-    try {
-      localStorage.setItem(RECENT_KEY, JSON.stringify(next));
-    } catch {
-      // Ignore quota / disabled storage.
-    }
+    storage.setRecentFoodPicks(next);
 
     setLoggedFood(food);
     setShowSuccess(true);

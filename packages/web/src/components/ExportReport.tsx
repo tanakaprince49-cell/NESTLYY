@@ -1,7 +1,7 @@
 import React, { useRef, useState, useMemo } from 'react';
 import html2pdf from 'html2pdf.js';
-import { 
-  Download, Baby, Ruler, Milk, Moon, Droplets, Stethoscope, Activity, 
+import {
+  Download, Baby, Ruler, Milk, Moon, Droplets, Stethoscope, Activity,
   Heart, FileText, Calendar, Trophy, Pill, Activity as ActivityIcon,
   Thermometer, Zap, Utensils, Waves, Search, Check, Smile, Sparkles
 } from 'lucide-react';
@@ -12,6 +12,7 @@ import {
   WeightLog, SymptomLog, VitaminLog, Contraction,
   KegelLog, FoodEntry, LifecycleStage
 } from '@nestly/shared';
+import { storage } from '../services/storageService';
 
 interface ExportReportProps {
   profile: PregnancyProfile;
@@ -61,10 +62,9 @@ export const ExportReport: React.FC<ExportReportProps> = ({
   const reportRef = useRef<HTMLDivElement>(null);
   const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [recentReports, setRecentReports] = useState<{start: string, end: string, id: string}[]>(() => {
-    const saved = localStorage.getItem('nestly_recent_reports');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [recentReports, setRecentReports] = useState<{start: string, end: string, id: string}[]>(
+    () => storage.getRecentReports(),
+  );
 
   const filteredData = useMemo(() => {
     const start = new Date(startDate).getTime();
@@ -125,11 +125,10 @@ export const ExportReport: React.FC<ExportReportProps> = ({
 
     html2pdf().set(opt).from(reportRef.current).save();
 
-    // Save to recent reports
     const newReport = { start: startDate, end: endDate, id: crypto.randomUUID() };
     const updated = [newReport, ...recentReports.slice(0, 4)];
     setRecentReports(updated);
-    localStorage.setItem('nestly_recent_reports', JSON.stringify(updated));
+    storage.setRecentReports(updated);
   };
 
   const Section = ({ title, icon: Icon, children, color = "pink" }: any) => (
