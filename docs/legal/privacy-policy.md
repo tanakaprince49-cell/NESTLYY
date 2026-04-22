@@ -72,7 +72,6 @@ We use the following third-party services that process your data:
 |---|---|---|---|---|
 | Firebase Cloud Messaging | Google (USA) | Push notification delivery (Android app only) | Device token | USA |
 | Vercel | Vercel Inc. (USA) | App hosting | HTTP requests | USA |
-| Resend | Resend Inc. (USA) | Transactional email | Email address | USA |
 
 ---
 
