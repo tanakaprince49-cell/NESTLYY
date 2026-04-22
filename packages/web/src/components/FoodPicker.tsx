@@ -190,11 +190,21 @@ export const FoodPicker: React.FC<FoodPickerProps> = ({ onAddEntry }) => {
                       <button
                         type="button"
                         onClick={(e) => toggleExpanded(food.id, e)}
+                        onKeyDown={(e) => {
+                          // Parent div is role="button" with its own Enter/Space
+                          // handler. Click.stopPropagation is not enough — keyboard
+                          // activation fires both keydown on the focused button AND
+                          // a synthesized click that bubbles. Stop the keydown too
+                          // so Enter on "More" only toggles the drawer.
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                          }
+                        }}
                         aria-expanded={isExpanded}
                         aria-controls={`more-${food.id}`}
-                        className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-rose-600 transition-colors whitespace-nowrap"
+                        className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-rose-600 hover:text-rose-700 transition-colors whitespace-nowrap underline-offset-2 decoration-dotted hover:underline"
                       >
-                        More
+                        More nutrients
                         <ChevronDown
                           size={12}
                           className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -223,8 +233,8 @@ export const FoodPicker: React.FC<FoodPickerProps> = ({ onAddEntry }) => {
             ) : (
               <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                 <p className="text-xs text-slate-500 italic mb-3">
-                  No food matched "{trimmedQuery}". Log it as a custom entry below — we'll only
-                  capture the name and rough calories.
+                  No food matched "{trimmedQuery}". Log it as a custom entry below. We'll save the
+                  name and kcal only; protein, folate, iron and calcium stay blank.
                 </p>
                 <form onSubmit={handleCustomSubmit} className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
@@ -254,7 +264,7 @@ export const FoodPicker: React.FC<FoodPickerProps> = ({ onAddEntry }) => {
                     />
                     <button
                       type="submit"
-                      disabled={!customName.trim() || !Number(customKcal)}
+                      disabled={!customName.trim() || !(Number(customKcal) > 0)}
                       className="ml-auto px-4 py-2 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Log it
@@ -306,9 +316,11 @@ export const FoodPicker: React.FC<FoodPickerProps> = ({ onAddEntry }) => {
                     <div className="text-[10px] font-bold text-rose-600 uppercase tracking-tighter">
                       {loggedFood.calories} kcal
                     </div>
-                    <div className="text-[10px] font-bold text-rose-600 uppercase tracking-tighter">
-                      {loggedFood.protein}g protein
-                    </div>
+                    {loggedFood.protein > 0 && (
+                      <div className="text-[10px] font-bold text-rose-600 uppercase tracking-tighter">
+                        {loggedFood.protein}g protein
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
