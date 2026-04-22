@@ -267,6 +267,28 @@ export class StorageService {
     return this.getScope();
   }
 
+  // Dynamic-key primitives used by export/import/wipe and deleteAccount.
+  // They route raw string values under `${uuid}_${key}` so callers that
+  // iterate USER_SCOPED_KEYS or need raw-string passthrough do not have
+  // to reach into localStorage directly. Typed domain getters above
+  // remain the primary API; these three exist for the handful of places
+  // where the key is only known at runtime.
+  removeUserScopedKey(key: string): void {
+    try {
+      localStorage.removeItem(this.getUserKey(key));
+    } catch {}
+  }
+  readScopedRaw(key: string): string | null {
+    try {
+      return localStorage.getItem(this.getUserKey(key));
+    } catch {
+      return null;
+    }
+  }
+  writeScopedRaw(key: string, value: string): void {
+    localStorage.setItem(this.getUserKey(key), value);
+  }
+
   getProfile(): PregnancyProfile | null { 
     const p = this.getItem<PregnancyProfile | null>(KEYS.PROFILE, null);
     if (p && !p.babies) p.babies = [];
@@ -454,11 +476,8 @@ export class StorageService {
   }
 
   deleteAccount(): void {
-    const uuid = this.getScope();
+    USER_SCOPED_KEYS.forEach(key => this.removeUserScopedKey(key));
     try {
-      USER_SCOPED_KEYS.forEach(key => {
-        localStorage.removeItem(`${uuid}_${key}`);
-      });
       // Reset the local UUID so next launch generates a fresh one
       localStorage.removeItem(LOCAL_UUID_KEY);
       this._uuid = null;

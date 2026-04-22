@@ -7,6 +7,11 @@ import {
 } from '@nestly/shared';
 import { KEYS, StorageService, USER_SCOPED_KEYS } from './storageService.ts';
 
+// Raw-string export/import primitives route through storageService's
+// dynamic-key helpers (removeUserScopedKey, readScopedRaw, writeScopedRaw)
+// so no platform guard annotations are needed here — this file contains
+// zero direct `localStorage.*` calls.
+
 // Zero-Data export/import/wipe adapter. Bridges the tracker-by-tracker
 // storageService getters into the flat `ZeroDataExportV1` shape used by
 // exportService (build) and DataManagementCard (restore/wipe). Lives
@@ -75,48 +80,32 @@ export function buildSettingsSlice(
 // reload routes to Setup under the same identity. Global keys
 // (ACTIVITY_LOGS, VISITS, ARTICLES, VIDEOS) intentionally survive — they
 // are device telemetry or seeded content, not user data.
-//
-// storage-audit: allowed — bulk iteration over USER_SCOPED_KEYS. The
-// typed storageService API has no generic remove(key) because every
-// domain has its own typed setter; this is the one place that needs
-// dynamic-key access, and it is the implementation of the "wipe" primitive.
 export function wipeUserScopedKeys(storage: StorageService): void {
-  const uuid = storage.getLocalUuidPublic();
-  try {
-    USER_SCOPED_KEYS.forEach((key) => {
-      localStorage.removeItem(`${uuid}_${key}`); // storage-audit: allowed — bulk wipe over dynamic key list
-    });
-  } catch {}
+  USER_SCOPED_KEYS.forEach((key) => {
+    storage.removeUserScopedKey(key);
+  });
 }
 
 // Restore snapshots every user-scoped key under the current UUID, wipes,
 // writes the imported payload, and rolls back if any write throws mid-way
 // (e.g. QuotaExceededError) so the user is never left with a half-restored
 // state. Device UUID is preserved — imported data lives under this
-// device's scope going forward, no identity churn.
-//
-// storage-audit: allowed — snapshot/restore needs dynamic-key read and
-// raw-string passthrough. Typed getters would deserialize-then-reserialize
-// on every key and drop unknown fields, breaking round-trip fidelity.
+// device's scope going forward, no identity churn. Raw strings go through
+// storage.readScopedRaw / writeScopedRaw so no part of the restore
+// deserializes-then-reserializes mid-round-trip.
 export function restoreUserScopedKeys(
   storage: StorageService,
   data: ZeroDataExportV1,
 ): void {
-  const uuid = storage.getLocalUuidPublic();
   const snapshot = new Map<string, string | null>();
   for (const key of USER_SCOPED_KEYS) {
-    const fullKey = `${uuid}_${key}`;
-    try {
-      snapshot.set(fullKey, localStorage.getItem(fullKey)); // storage-audit: allowed — raw snapshot for rollback
-    } catch {
-      snapshot.set(fullKey, null);
-    }
+    snapshot.set(key, storage.readScopedRaw(key));
   }
 
   wipeUserScopedKeys(storage);
 
   const writeOrThrow = (key: string, value: unknown): void => {
-    localStorage.setItem(`${uuid}_${key}`, JSON.stringify(value)); // storage-audit: allowed — dynamic-key typed write
+    storage.writeScopedRaw(key, JSON.stringify(value));
   };
 
   try {
@@ -159,12 +148,12 @@ export function restoreUserScopedKeys(
     }
   } catch (e) {
     try {
-      for (const fullKey of snapshot.keys()) {
-        localStorage.removeItem(fullKey); // storage-audit: allowed — rollback wipe
+      for (const key of snapshot.keys()) {
+        storage.removeUserScopedKey(key);
       }
-      for (const [fullKey, value] of snapshot) {
+      for (const [key, value] of snapshot) {
         if (value !== null) {
-          localStorage.setItem(fullKey, value); // storage-audit: allowed — rollback restore
+          storage.writeScopedRaw(key, value);
         }
       }
     } catch {
