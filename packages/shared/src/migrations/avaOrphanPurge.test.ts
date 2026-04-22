@@ -183,6 +183,7 @@ describe('purgeAvaOrphansAsync', () => {
     const result = await purgeAvaOrphansAsync(backend);
     expect(result).toEqual({ purged: 0, skipped: false });
     expect(store.get(AVA_PURGE_DONE_KEY)).toBe('1');
+    expect(store.get(AVA_HAD_ORPHANS_KEY)).toBe('0');
     expect(store.get('abc-123_profile_v5')).toBe('{}');
   });
 
@@ -199,6 +200,7 @@ describe('purgeAvaOrphansAsync', () => {
     expect(store.has('abc-123_ava-chat')).toBe(false);
     expect(store.get('abc-123_profile_v5')).toBe('{}');
     expect(store.get(AVA_PURGE_DONE_KEY)).toBe('1');
+    expect(store.get(AVA_HAD_ORPHANS_KEY)).toBe('1');
   });
 
   it('skips rerun when flag is already set', async () => {
