@@ -10,6 +10,19 @@
 // averages, not pharmacist-level precision. If a value is unknown for a
 // particular entry it is set to 0 rather than guessed.
 //
+// Serving-unit convention (#335):
+//   - Sadza / nshima dishes use `1 side plate` — the ZimVAC dietary survey
+//     convention for the flat small plate sadza is served on.
+//   - Portions of meat and relish (leafy greens) use `1 palmful` — the
+//     culturally standard eyeballed portion in Zimbabwean households.
+//   - Dried snacks (kapenta, biltong, mopane worms) use `1 handful`.
+//   - Nuts and seeds use `1 handful` or `2 tbsp`.
+//   - Other foods keep their natural unit: `1 medium` for whole fruits /
+//     vegetables, `1 cup` for looser cups (rice, pasta, beans, legumes),
+//     `1 glass` / `1 mug` / `1 can` for drinks, `1 slice` for bread / cheese.
+//   The grams in parentheses stay authoritative — the nutrition math is
+//   always per-gram and the palmful / side-plate labels are UX only.
+//
 // Units:
 //   calories: kcal
 //   protein:  grams
@@ -49,7 +62,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Sadza (maize)',
     aliases: ['sadza', 'pap', 'ugali', 'nshima', 'mealie meal', 'maize porridge'],
     explanation: 'Stiff porridge of white maize meal; the staple starch across most of Zimbabwe.',
-    serving: '1 plate (200g cooked)',
+    serving: '1 side plate (200g cooked)',
     calories: 240,
     protein: 5,
     folate: 20,
@@ -62,7 +75,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Sadza rerapoko (finger millet)',
     aliases: ['rapoko', 'zviyo', 'finger millet', 'ragi'],
     explanation: 'Sadza made from finger millet; higher in iron and calcium than maize sadza.',
-    serving: '1 plate (200g cooked)',
+    serving: '1 side plate (200g cooked)',
     calories: 250,
     protein: 7,
     folate: 35,
@@ -75,7 +88,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Sadza remhunga (pearl millet)',
     aliases: ['mhunga', 'pearl millet', 'bajra'],
     explanation: 'Pearl millet sadza; drought-resistant grain with more iron than maize.',
-    serving: '1 plate (200g cooked)',
+    serving: '1 side plate (200g cooked)',
     calories: 240,
     protein: 7,
     folate: 30,
@@ -233,7 +246,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Beef (lean, grilled)',
     aliases: ['nyama', 'steak', 'lean beef'],
     explanation: 'Lean grilled beef; heme iron source, readily absorbed in pregnancy.',
-    serving: '100g cooked',
+    serving: '1 palmful (100g cooked)',
     calories: 220,
     protein: 30,
     folate: 10,
@@ -246,7 +259,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Chicken breast (grilled)',
     aliases: ['huku', 'chicken', 'grilled chicken'],
     explanation: 'Skinless grilled chicken breast; lean animal protein.',
-    serving: '100g cooked',
+    serving: '1 palmful (100g cooked)',
     calories: 165,
     protein: 31,
     folate: 5,
@@ -272,7 +285,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Tilapia (grilled)',
     aliases: ['bream', 'hove', 'fish'],
     explanation: 'Grilled tilapia; low-mercury freshwater fish safe in pregnancy.',
-    serving: '100g cooked',
+    serving: '1 palmful (100g cooked)',
     calories: 130,
     protein: 26,
     folate: 25,
@@ -285,7 +298,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Kapenta (dried)',
     aliases: ['matemba', 'muromo', 'dried sardine', 'freshwater sardine'],
     explanation: 'Dried freshwater sardines; very high in calcium and iron eaten whole with bones.',
-    serving: '30g dry',
+    serving: '1 handful (30g dry)',
     calories: 90,
     protein: 18,
     folate: 10,
@@ -337,7 +350,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Liver (beef)',
     aliases: ['chiropa', 'ox liver'],
     explanation: 'Cooked beef liver; extremely rich in iron and folate. WHO cautions against more than once per week in pregnancy due to vitamin A content.',
-    serving: '100g cooked',
+    serving: '1 palmful (100g cooked)',
     calories: 175,
     protein: 27,
     folate: 260,
@@ -363,7 +376,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Biltong',
     aliases: ['chimukuyu', 'dried meat', 'jerky'],
     explanation: 'Air-dried cured beef; dense protein snack.',
-    serving: '30g',
+    serving: '1 handful (30g)',
     calories: 105,
     protein: 18,
     folate: 5,
@@ -497,7 +510,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Rape (chomolia)',
     aliases: ['rape', 'chomolia', 'choumolia', 'rape leaves', 'rape greens'],
     explanation: 'Traditional leafy brassica; one of the cheapest folate and calcium sources.',
-    serving: '1 cup cooked (130g)',
+    serving: '1 palmful cooked (130g)',
     calories: 40,
     protein: 4,
     folate: 180,
@@ -510,7 +523,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Covo',
     aliases: ['kovo', 'collard greens', 'sukuma wiki'],
     explanation: 'Cooked collard greens; a folate powerhouse eaten as relish to sadza.',
-    serving: '1 cup cooked (130g)',
+    serving: '1 palmful cooked (130g)',
     calories: 50,
     protein: 4,
     folate: 175,
@@ -523,7 +536,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Tsunga (mustard greens)',
     aliases: ['tsunga', 'mustard greens'],
     explanation: 'Cooked mustard greens; slightly bitter leafy vegetable high in vitamin K and folate.',
-    serving: '1 cup cooked (140g)',
+    serving: '1 palmful cooked (140g)',
     calories: 35,
     protein: 3,
     folate: 100,
@@ -536,7 +549,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Muboora (pumpkin leaves)',
     aliases: ['pumpkin leaves', 'mbuya', 'muboora'],
     explanation: 'Cooked pumpkin leaves; local leafy relish high in iron and folate.',
-    serving: '1 cup cooked (130g)',
+    serving: '1 palmful cooked (130g)',
     calories: 35,
     protein: 4,
     folate: 120,
@@ -549,7 +562,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Mufushwa (dried greens)',
     aliases: ['mufushwa', 'dried vegetables', 'dried rape'],
     explanation: 'Dried and rehydrated leafy greens; preserves folate and iron through the dry season.',
-    serving: '1 cup cooked (120g)',
+    serving: '1 palmful cooked (120g)',
     calories: 55,
     protein: 5,
     folate: 140,
@@ -562,7 +575,7 @@ export const nutritionFoods: NutritionFood[] = [
     name: 'Spinach',
     aliases: ['spinach', 'saladhi'],
     explanation: 'Cooked spinach; classic folate, iron and vitamin K source.',
-    serving: '1 cup cooked (180g)',
+    serving: '1 palmful cooked (180g)',
     calories: 40,
     protein: 5,
     folate: 260,
