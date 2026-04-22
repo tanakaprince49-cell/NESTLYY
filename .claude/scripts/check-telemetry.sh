@@ -30,6 +30,8 @@ BANNED_PACKAGES=(
   "fullstory"
   "heap-"
   "segment"
+  "plausible"
+  "plausible-tracker"
 )
 
 PKG_FILES=(
@@ -70,6 +72,7 @@ BANNED_IMPORTS=(
   "from ['\"]logrocket"
   "from ['\"]fullstory"
   "from ['\"]firebase/analytics"
+  "from ['\"]plausible"
   "getAnalytics"
 )
 
@@ -88,6 +91,45 @@ done
 
 if [ $ISSUES -eq $BEFORE_IMPORT_ISSUES ]; then
   echo "  OK: no banned imports in packages/*/src"
+fi
+
+echo ""
+
+# --- 3. Banned hostnames in HTML / API proxies ---
+# The #2 list only catches npm imports. Telemetry can also slip in via a raw
+# <script src="..."> tag in index.html or a serverless proxy that forwards to
+# an analytics origin. Plausible was shipped for months this way (#358).
+echo "--- 3. Banned telemetry hostnames in HTML / api/ ---"
+BANNED_HOSTS=(
+  "plausible\\.io"
+  "googletagmanager\\.com"
+  "google-analytics\\.com"
+  "sentry\\.io"
+  "mixpanel\\.com"
+  "amplitude\\.com"
+  "posthog\\.com"
+  "datadoghq\\.com"
+  "logrocket\\.com"
+  "fullstory\\.com"
+  "heap\\.io"
+  "segment\\.io"
+)
+
+BEFORE_HOST_ISSUES=$ISSUES
+for host in "${BANNED_HOSTS[@]}"; do
+  HITS=$(grep -rnE "$host" \
+    --include='*.html' --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' \
+    --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.next \
+    packages/ api/ 2>/dev/null || true)
+  if [ -n "$HITS" ]; then
+    echo "  FAIL: banned telemetry hostname '$host':"
+    echo "$HITS" | sed 's/^/    /'
+    ISSUES=$((ISSUES+1))
+  fi
+done
+
+if [ $ISSUES -eq $BEFORE_HOST_ISSUES ]; then
+  echo "  OK: no banned telemetry hostnames in packages/ or api/"
 fi
 
 echo ""
