@@ -47,6 +47,34 @@ const drawHeader = (doc: jsPDF, pageWidth: number, dateStr: string, subtitle: st
   doc.text(dateStr, pageWidth - 20, 28, { align: 'right' });
 };
 
+// The doctor summary is a clinical handout, so the document title reads first
+// and the Nestly brand sits as a small attribution above it. Matches the
+// hierarchy on printed medical forms.
+const drawDoctorSummaryHeader = (
+  doc: jsPDF,
+  pageWidth: number,
+  dateStr: string,
+  subtitle: string,
+) => {
+  doc.setFillColor(PDF_THEME.primary[0], PDF_THEME.primary[1], PDF_THEME.primary[2]);
+  doc.rect(0, 0, pageWidth, 45, 'F');
+
+  doc.setFont('times', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text('Nestly', 20, 16);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(255, 255, 255);
+  doc.text(subtitle, 20, 32);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(255, 255, 255);
+  doc.text(dateStr, pageWidth - 20, 16, { align: 'right' });
+};
+
 const drawProfileCard = (doc: jsPDF, pageWidth: number, y: number, line1: string, line2: string) => {
   doc.setFillColor(PDF_THEME.cardBg[0], PDF_THEME.cardBg[1], PDF_THEME.cardBg[2]);
   doc.roundedRect(15, y, pageWidth - 30, 30, 8, 8, 'F');
@@ -773,7 +801,7 @@ export const generateDoctorSummary = (): void => {
   const latestBp = bloodPressure[0];
 
   drawSoftBackground(doc, pageWidth, pageHeight);
-  drawHeader(doc, pageWidth, dateStr, 'DOCTOR VISIT SUMMARY');
+  drawDoctorSummaryHeader(doc, pageWidth, dateStr, 'DOCTOR VISIT SUMMARY');
 
   let y = 60;
   const parentName = profile.userName || 'Parent';

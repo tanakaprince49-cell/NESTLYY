@@ -46,7 +46,7 @@ export function downloadJson(payload: ZeroDataExportV1, filename?: string): void
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = filename ?? `nestly-export-${new Date().toISOString().split('T')[0]}.json`;
+  a.download = filename ?? `nestly-backup-${new Date().toISOString().split('T')[0]}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
