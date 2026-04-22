@@ -35,6 +35,7 @@ import {
   ZeroDataSettingsSlice,
   getLocalIdentitySync,
   LOCAL_UUID_KEY,
+  purgeAvaOrphansSync,
 } from '@nestly/shared';
 
 const KEYS = {
@@ -118,11 +119,34 @@ class StorageService {
     } catch {}
   }
 
+  private runAvaOrphanPurge(): void {
+    // One-shot removal of Ava / Symptom Decoder / Custom Plan blobs that
+    // stayed on-device after the code that wrote them was deleted in #295.
+    // Guarded by a done flag so repeated boots do no work. See #311.
+    try {
+      purgeAvaOrphansSync({
+        getItem: (k) => {
+          try { return localStorage.getItem(k); } catch { return null; }
+        },
+        setItem: (k, v) => {
+          try { localStorage.setItem(k, v); } catch {}
+        },
+        removeItem: (k) => {
+          try { localStorage.removeItem(k); } catch {}
+        },
+        getAllKeys: () => {
+          try { return Object.keys(localStorage); } catch { return []; }
+        },
+      });
+    } catch {}
+  }
+
   private _uuid: string | null = null;
   private getScope(): string {
     if (!this._uuid) {
       this._uuid = this.getLocalUuid();
       this.migrateFromEmailScope(this._uuid);
+      this.runAvaOrphanPurge();
     }
     return this._uuid;
   }

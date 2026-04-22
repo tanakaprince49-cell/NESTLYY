@@ -5,7 +5,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { registerHealthConnectModule, LifecycleStage, getLocalIdentityAsync } from '@nestly/shared';
+import {
+  registerHealthConnectModule,
+  LifecycleStage,
+  getLocalIdentityAsync,
+  purgeAvaOrphansAsync,
+} from '@nestly/shared';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { rehydrateUserStores, rehydratePrivacyStore } from './stores/bootstrap';
 import { asyncStorageBackend } from './stores/storageBackend';
 
@@ -54,6 +60,18 @@ export default function App() {
         asyncStorageBackend.setItem.bind(asyncStorageBackend),
       );
       setLocalUuid(uuid);
+      // Issue #311: one-shot purge of Ava / Symptom Decoder / Custom Plan
+      // orphans. Runs before rehydrate so any `{uuid}_ava-chat` Zustand
+      // bucket is gone before the (now-deregistered) store would have
+      // attempted to read it.
+      try {
+        await purgeAvaOrphansAsync({
+          getItem: (k) => AsyncStorage.getItem(k),
+          setItem: (k, v) => AsyncStorage.setItem(k, v),
+          removeItem: (k) => AsyncStorage.removeItem(k),
+          getAllKeys: () => AsyncStorage.getAllKeys(),
+        });
+      } catch {}
       await rehydrateUserStores();
       setStoresHydrated(true);
       setIdentityReady(true);
