@@ -687,6 +687,19 @@ export const nutritionFoods: NutritionFood[] = [
     calcium: 10,
     category: 'vegetable',
   },
+  {
+    id: 'eggplant',
+    name: 'Eggplant (brinjal)',
+    aliases: ['eggplant', 'brinjal', 'aubergine'],
+    explanation: 'Cooked eggplant; fibre and some folate.',
+    serving: '1 cup cooked (100g)',
+    calories: 35,
+    protein: 1,
+    folate: 15,
+    iron: 0.3,
+    calcium: 10,
+    category: 'vegetable',
+  },
 
   // ---- Fruits ----
   {
@@ -1019,20 +1032,6 @@ export const nutritionFoods: NutritionFood[] = [
     iron: 0.5,
     calcium: 30,
     category: 'drink',
-  },
-
-  {
-    id: 'eggplant',
-    name: 'Eggplant (brinjal)',
-    aliases: ['eggplant', 'brinjal', 'aubergine'],
-    explanation: 'Cooked eggplant; fibre and some folate.',
-    serving: '1 cup cooked (100g)',
-    calories: 35,
-    protein: 1,
-    folate: 15,
-    iron: 0.3,
-    calcium: 10,
-    category: 'vegetable',
   },
 
   // ---- Other / mixed ----
