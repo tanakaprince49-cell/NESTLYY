@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Shield, Lock, Trash2, CheckCircle2 } from 'lucide-react';
+import { Shield, Smartphone, Download, CheckCircle2 } from 'lucide-react';
+import { LEGAL_PRIVACY_PATH, LEGAL_TERMS_PATH } from '@nestly/shared';
 
 interface PrivacyScreenProps {
   onAccept: () => void;
@@ -11,7 +12,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onAccept }) => {
 
   return (
     <div className="min-h-screen bg-rose-50 flex flex-col items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-3xl shadow-xl max-w-2xl w-full p-8 md:p-12"
@@ -21,51 +22,67 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onAccept }) => {
             <Shield className="w-12 h-12 text-rose-500" />
           </div>
         </div>
-        
+
         <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
-          Your Privacy & Security
+          Your data stays with you
         </h1>
         <p className="text-center text-gray-600 mb-8">
-          Nestly takes your data seriously. Before we begin, please review how we protect your information.
+          Nestly does not collect, store, or transmit your tracking data. Here is how that works.
         </p>
 
         <div className="space-y-6 mb-8 text-gray-700">
           <div className="flex gap-4">
+            <div className="mt-1"><Smartphone className="w-6 h-6 text-rose-500" /></div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Stored on this device only</h3>
+              <p className="text-sm">Everything you log — pregnancy details, feeding, sleep, vitals, journal — lives in your browser storage on this device. Nothing is sent to a Nestly server because there is no Nestly server for your data.</p>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <div className="mt-1"><Download className="w-6 h-6 text-rose-500" /></div>
+            <div>
+              <h3 className="font-semibold text-gray-900">You own the export</h3>
+              <p className="text-sm">Use Settings &raquo; Your Data to download a JSON backup any time, or to wipe everything from this device. There is no account to delete because there is no account in the first place.</p>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
             <div className="mt-1"><CheckCircle2 className="w-6 h-6 text-rose-500" /></div>
             <div>
-              <h3 className="font-semibold text-gray-900">What data we collect</h3>
-              <p className="text-sm">We collect pregnancy data, health inputs, and usage metrics to personalize your experience and provide relevant insights.</p>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="mt-1"><Lock className="w-6 h-6 text-rose-500" /></div>
-            <div>
-              <h3 className="font-semibold text-gray-900">How it's protected</h3>
-              <p className="text-sm">Your sensitive health data is stored securely using industry-standard encryption. We do not sell your personal data to third parties.</p>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="mt-1"><Trash2 className="w-6 h-6 text-rose-500" /></div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Your rights</h3>
-              <p className="text-sm">You have full control over your data. You can request data removal or delete your account at any time from the settings menu.</p>
+              <h3 className="font-semibold text-gray-900">No tracking, no analytics</h3>
+              <p className="text-sm">No third-party trackers. No ads. No usage telemetry. Clearing browser data or uninstalling the app permanently erases everything Nestly knows about you.</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-rose-50 p-4 rounded-xl mb-8 border border-rose-100">
-          <h4 className="font-semibold text-rose-900 mb-2">Privacy Commitment</h4>
-          <p className="text-sm text-rose-800">
-            Your data is encrypted and stored securely. We prioritize your privacy above all else.
+        <div className="bg-rose-50 p-4 rounded-xl mb-8 border border-rose-100 text-sm">
+          <p className="text-rose-900 font-semibold mb-1">Read the full text:</p>
+          <p>
+            <a
+              href={LEGAL_PRIVACY_PATH}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-rose-700 underline hover:text-rose-900"
+            >
+              Privacy Policy
+            </a>
+            <span className="text-rose-300 mx-2">&middot;</span>
+            <a
+              href={LEGAL_TERMS_PATH}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-rose-700 underline hover:text-rose-900"
+            >
+              Terms of Service
+            </a>
           </p>
         </div>
 
         <label className="flex items-start gap-3 cursor-pointer mb-8 group">
           <div className="relative flex items-center mt-1">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               className="peer sr-only"
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
@@ -75,7 +92,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onAccept }) => {
             </div>
           </div>
           <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
-            I have read and agree to Nestly’s Privacy & Security Policy.
+            I have read and agree to the Privacy Policy and Terms of Service.
           </span>
         </label>
 
@@ -83,8 +100,8 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onAccept }) => {
           onClick={onAccept}
           disabled={!accepted}
           className={`w-full py-4 rounded-xl font-semibold text-lg transition-all ${
-            accepted 
-              ? 'bg-rose-500 text-white hover:bg-rose-600 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5' 
+            accepted
+              ? 'bg-rose-500 text-white hover:bg-rose-600 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}
         >

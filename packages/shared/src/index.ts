@@ -10,3 +10,4 @@ export * from './services/babyGrowth.ts';
 export * from './tokens/index.ts';
 export * from './stores/index.ts';
 export * from './migrations/index.ts';
+export * from './constants/legal.ts';

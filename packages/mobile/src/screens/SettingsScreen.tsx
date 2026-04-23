@@ -9,11 +9,12 @@ import {
   FlatList,
   Switch,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { LifecycleStage, ExportValidationError } from '@nestly/shared';
+import { LifecycleStage, ExportValidationError, LEGAL_PRIVACY_URL, LEGAL_TERMS_URL } from '@nestly/shared';
 import type { BabyAvatar, ZeroDataExportV1 } from '@nestly/shared';
 import { useProfileStore, useTrackingStore, useHealthConnectStore } from '@nestly/shared/stores';
 import { Avatar } from '../components/Avatar';
@@ -509,6 +510,43 @@ export function SettingsScreen() {
           </TouchableOpacity>
 
           <Text className="text-xs text-gray-300 mt-4 text-center">Nestly v{APP_VERSION}</Text>
+        </View>
+
+        <View className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <Text className="text-base font-semibold text-gray-800 mb-1">Legal</Text>
+          <Text className="text-xs text-gray-400 mb-3">
+            Nestly does not collect, store, or transmit your tracking data. The full text:
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => Linking.openURL(LEGAL_PRIVACY_URL)}
+            className="flex-row items-center justify-between py-3"
+            activeOpacity={0.7}
+          >
+            <View className="flex-row items-center" style={{ gap: 12, flex: 1 }}>
+              <Ionicons name="document-text-outline" size={22} color="#f43f5e" />
+              <View style={{ flex: 1 }}>
+                <Text className="text-sm font-semibold text-gray-800">Privacy Policy</Text>
+                <Text className="text-xs text-gray-400">Opens in your browser.</Text>
+              </View>
+            </View>
+            <Ionicons name="open-outline" size={18} color="#cbd5e1" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => Linking.openURL(LEGAL_TERMS_URL)}
+            className="flex-row items-center justify-between py-3"
+            activeOpacity={0.7}
+          >
+            <View className="flex-row items-center" style={{ gap: 12, flex: 1 }}>
+              <Ionicons name="reader-outline" size={22} color="#f43f5e" />
+              <View style={{ flex: 1 }}>
+                <Text className="text-sm font-semibold text-gray-800">Terms of Service</Text>
+                <Text className="text-xs text-gray-400">Opens in your browser.</Text>
+              </View>
+            </View>
+            <Ionicons name="open-outline" size={18} color="#cbd5e1" />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
