@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "npm run build:legal",
     "dev": "tsx server.ts",
+    "build:legal": "node scripts/build-legal.mjs",
+    "prebuild": "npm run build:legal",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
@@ -33,6 +36,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.27",
+    "marked": "^18.0.2",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.8.2",

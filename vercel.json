@@ -8,6 +8,8 @@
     { "source": "/firebase-messaging-sw.js", "destination": "/firebase-messaging-sw.js" },
     { "source": "/manifest.json", "destination": "/manifest.json" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/legal/privacy", "destination": "/legal/privacy.html" },
+    { "source": "/legal/terms", "destination": "/legal/terms.html" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
