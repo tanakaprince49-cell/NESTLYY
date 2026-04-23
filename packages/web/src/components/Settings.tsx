@@ -5,6 +5,8 @@ import {
   PregnancyProfile,
   LifecycleStage,
   BabyAvatar,
+  LEGAL_PRIVACY_PATH,
+  LEGAL_TERMS_PATH,
 } from '@nestly/shared';
 import { storage } from '../services/storageService.ts';
 import { APP_VERSION } from '../services/exportService.ts';
@@ -411,6 +413,31 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onUpdateProfile, lo
           className="block w-full py-4 bg-slate-50 border-2 border-rose-100/50 text-rose-900 rounded-2xl text-center active:scale-95 transition-all group"
         >
           <span className="text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-rose-600">supportnestly@gmail.com</span>
+        </a>
+      </div>
+
+      <div className="card-premium p-6 space-y-4">
+        <h3 className="font-bold text-slate-800">Legal</h3>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Nestly does not collect, store, or transmit your tracking data. The full text:
+        </p>
+        <a
+          href={LEGAL_PRIVACY_PATH}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between w-full py-4 px-5 bg-slate-50 border-2 border-rose-100/50 text-rose-900 rounded-2xl active:scale-95 transition-all group"
+        >
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-rose-600">Privacy Policy</span>
+          <span className="text-rose-300 group-hover:text-rose-500 transition-colors" aria-hidden="true">&rarr;</span>
+        </a>
+        <a
+          href={LEGAL_TERMS_PATH}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between w-full py-4 px-5 bg-slate-50 border-2 border-rose-100/50 text-rose-900 rounded-2xl active:scale-95 transition-all group"
+        >
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-rose-600">Terms of Service</span>
+          <span className="text-rose-300 group-hover:text-rose-500 transition-colors" aria-hidden="true">&rarr;</span>
         </a>
       </div>
 
