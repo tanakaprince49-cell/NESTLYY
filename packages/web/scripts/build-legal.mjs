@@ -14,7 +14,10 @@ const repoRoot = resolve(__dirname, '../../..');
 const docsDir = resolve(repoRoot, 'docs/legal');
 const outDir = resolve(__dirname, '../public/legal');
 
-marked.setOptions({ gfm: true, breaks: false, pedantic: false });
+// marked v18 defaults: gfm: true, breaks: false, pedantic: false. The async
+// setting defaults to false too, but we pass it explicitly to marked.parse()
+// below so a future global setOptions({ async: true }) does not silently
+// embed [object Promise] into the rendered template.
 
 const PAGES = [
   { src: 'privacy-policy.md', out: 'privacy.html', title: 'Privacy Policy', slug: 'privacy' },
@@ -91,6 +94,28 @@ blockquote {
   background: #fef2f2;
   color: #4a0e2c;
 }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  font-size: 0.95em;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+table thead, table tbody, table tr { display: table; width: 100%; table-layout: auto; }
+th, td {
+  border: 1px solid #fbe7e7;
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: #fef2f2;
+  font-weight: 600;
+  color: #4a0e2c;
+}
+tr:nth-child(even) td { background: #fff8f8; }
 footer.legal-footer {
   margin-top: 48px;
   padding-top: 16px;
@@ -111,6 +136,9 @@ footer.legal-footer {
   nav.legal-nav a { color: #c4b5b5; }
   nav.legal-nav a.current { color: #f9a8d4; }
   footer.legal-footer { color: #b8a4a4; }
+  th { background: #3a2a2a; color: #ffd6e6; }
+  th, td { border-color: #3a2a2a; }
+  tr:nth-child(even) td { background: #1c1717; }
 }
 </style>
 </head>
@@ -134,8 +162,20 @@ Nestly is a personal, on-device pregnancy and baby care companion. We do not col
 mkdirSync(outDir, { recursive: true });
 
 for (const page of PAGES) {
-  const md = readFileSync(resolve(docsDir, page.src), 'utf-8');
-  const contentHtml = marked.parse(md);
+  const srcPath = resolve(docsDir, page.src);
+  let md;
+  try {
+    md = readFileSync(srcPath, 'utf-8');
+  } catch (err) {
+    process.stderr.write(
+      `build-legal: failed to read ${srcPath} (${err.code ?? 'error'}): ${err.message}\n` +
+      `Source markdown is missing. If you renamed or moved the file under docs/legal/, update the PAGES array in this script.\n`
+    );
+    process.exit(1);
+  }
+  // Pass { async: false } explicitly so the type narrows to string and a
+  // future global async option upstream does not silently embed a Promise.
+  const contentHtml = marked.parse(md, { async: false });
   const html = template({ title: page.title, slug: page.slug, contentHtml });
   writeFileSync(resolve(outDir, page.out), html, 'utf-8');
   process.stdout.write(`build-legal: ${page.src} -> public/legal/${page.out}\n`);
