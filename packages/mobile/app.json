@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#fdf8f7"
       },
-      "versionCode": 6,
+      "versionCode": 7,
       "package": "com.nestly.app",
       "googleServicesFile": "./google-services.json",
       "permissions": [
@@ -35,6 +35,9 @@
         "android.permission.health.WRITE_HEART_RATE",
         "android.permission.health.READ_SLEEP",
         "android.permission.health.WRITE_SLEEP",
+      ],
+      "blockedPermissions": [
+        "android.permission.CAMERA"
       ]
     },
     "notification": {
