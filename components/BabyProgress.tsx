@@ -1,11 +1,13 @@
-
-import React, { useMemo, useState } from 'react';
-import { PregnancyProfile, Trimester, LifecycleStage, BabyGrowthLog } from '../types.ts';
-import { babyGrowthData, getBabyGrowth, DevelopmentInfo } from '../services/babyGrowth.ts';
+import * as React from 'react';
+import { useMemo, useState } from 'react';
+import { PregnancyProfile, LifecycleStage, BabyGrowthLog } from '../types.ts';
+import { babyGrowthData, getBabyGrowth } from '../services/babyGrowth.ts';
 import { ARVisualizer } from './ARVisualizer.tsx';
+import { Baby3DModel } from './Baby3DModel.tsx';
 
 export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?: BabyGrowthLog[] }> = ({ profile, babyGrowthLogs = [] }) => {
   const [showAR, setShowAR] = useState(false);
+  const [view3D, setView3D] = useState(true);
   
   const currentWeeks = useMemo(() => {
     const diff = new Date().getTime() - new Date(profile.lmpDate).getTime();
@@ -141,28 +143,77 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?
 
       <div className="card-premium p-8 sm:p-10 bg-white border-2 border-white shadow-xl relative overflow-hidden group">
         <div className="absolute -top-12 -right-12 w-48 h-48 bg-rose-50 rounded-full blur-3xl opacity-50" />
+        
+        {/* View Toggle */}
+        <div className="flex justify-center mb-6 relative z-10">
+          <div className="inline-flex bg-rose-50/80 rounded-2xl p-1 border border-rose-100/50">
+            <button
+              onClick={() => setView3D(true)}
+              className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${view3D ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' : 'text-rose-400 hover:text-rose-600'}`}
+            >
+              🧬 3D Model
+            </button>
+            <button
+              onClick={() => setView3D(false)}
+              className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${!view3D ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' : 'text-rose-400 hover:text-rose-600'}`}
+            >
+              {baby.image} Classic
+            </button>
+          </div>
+        </div>
+
         <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
           <div className="flex flex-col items-center gap-4">
-            <div className="flex justify-center gap-2">
-              {profile.pregnancyType === 'singleton' ? (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-40 h-40 bg-rose-50/50 rounded-[2.5rem] flex items-center justify-center text-8xl shadow-inner border border-rose-100 shrink-0 animate-in zoom-in-50 duration-500">
-                    {baby.image}
+            {view3D ? (
+              /* 3D Baby Model View */
+              <div className="animate-in fade-in duration-700 flex flex-col items-center">
+                <Baby3DModel week={selectedWeek} />
+                <div className="w-full max-w-[200px] mt-6 space-y-3">
+                  <div className="flex justify-between items-center text-[8px] font-black text-rose-300 uppercase tracking-widest px-1">
+                    <span>Week 1</span>
+                    <span className="text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">Week {selectedWeek}</span>
+                    <span>42</span>
                   </div>
+                  <input 
+                    type="range"
+                    min="1"
+                    max="42"
+                    value={selectedWeek}
+                    onChange={(e) => setSelectedWeek(parseInt(e.target.value))}
+                    className="w-full h-1.5 bg-rose-100 rounded-lg appearance-none cursor-pointer accent-rose-500 hover:accent-rose-600 transition-all opacity-80 hover:opacity-100"
+                    style={{
+                      WebkitAppearance: 'none',
+                      background: `linear-gradient(to right, #f43f5e 0%, #f43f5e ${(selectedWeek - 1) / 41 * 100}%, #ffe4e6 ${(selectedWeek - 1) / 41 * 100}%, #ffe4e6 100%)`
+                    }}
+                  />
+                  <p className="text-center text-[8px] font-black text-rose-300 uppercase tracking-widest">
+                    Drag to morph stages
+                  </p>
                 </div>
-              ) : (
-                <div className="flex flex-wrap justify-center gap-4 max-w-[300px]">
-                  {profile.babies?.map((b, i) => (
-                    <div key={i} className="flex flex-col items-center gap-2">
-                      <div className="w-24 h-24 bg-rose-50/50 rounded-2xl flex items-center justify-center text-5xl shadow-inner border border-rose-100 animate-in zoom-in-50 duration-500">
-                        {baby.image}
-                      </div>
-                      <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">{b.name || `Baby ${i+1}`}</span>
+              </div>
+            ) : (
+              /* Classic Emoji View */
+              <div className="flex justify-center gap-2 animate-in fade-in duration-500">
+                {profile.pregnancyType === 'singleton' ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-40 h-40 bg-rose-50/50 rounded-[2.5rem] flex items-center justify-center text-8xl shadow-inner border border-rose-100 shrink-0 animate-in zoom-in-50 duration-500">
+                      {baby.image}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap justify-center gap-4 max-w-[300px]">
+                    {profile.babies?.map((b, i) => (
+                      <div key={i} className="flex flex-col items-center gap-2">
+                        <div className="w-24 h-24 bg-rose-50/50 rounded-2xl flex items-center justify-center text-5xl shadow-inner border border-rose-100 animate-in zoom-in-50 duration-500">
+                          {baby.image}
+                        </div>
+                        <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">{b.name || `Baby ${i+1}`}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex-1 space-y-4 text-center sm:text-left">
             <div>
@@ -191,7 +242,7 @@ export const BabyProgress: React.FC<{ profile: PregnancyProfile, babyGrowthLogs?
           </div>
         </div>
 
-        <div className="mt-10 space-y-6 relative z-10">
+        <div className="mt-1 space-y-6 relative z-10">
           <div className="p-6 bg-rose-50/50 rounded-[2rem] border border-rose-100">
             <h4 className="text-[9px] font-black text-rose-700 uppercase tracking-widest mb-2">{trimesterFocus.title}</h4>
             <p className="text-xs text-gray-600 leading-relaxed font-medium mb-3">"{trimesterFocus.advice}"</p>
