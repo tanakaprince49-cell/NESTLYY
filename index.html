@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="google-site-verification" content="oIhcH7YPGgkdAz-VKZDHjd88vmrSJqAx5sB01A3VzRE" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Nestly" />
     <meta name="theme-color" content="#ffffff" />
@@ -22,7 +22,7 @@
     <style>
       /* Critical CSS: only what's needed to paint the splash screen */
       body { margin: 0; background: #fdf8f7; }
-      #root { display: none; }
+      #root { visibility: hidden; }
       #static-splash {
         position: fixed;
         inset: 0;
@@ -108,8 +108,8 @@
         100% { transform: translateX(100%); }
       }
     </style>
-    <!-- Privacy-friendly analytics by Plausible -->
-    <script async src="/js/script.js"></script>
+    <!-- Privacy-friendly analytics by Plausible (Removed due to 404) -->
+    <!-- <script async src="/js/script.js"></script> -->
 </head>
   <body>
     <div id="static-splash">

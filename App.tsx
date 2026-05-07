@@ -108,38 +108,50 @@ const App: React.FC = () => {
   // Firebase Auth Listener (dynamically imported to keep Firebase out of initial bundle)
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
-    const fallbackTimer = setTimeout(() => setLoading(false), 3000);
+    let resolved = false;
+    const fallbackTimer = setTimeout(() => {
+      if (!resolved) {
+        console.warn('Firebase auth timeout — falling back');
+        setLoading(false);
+      }
+    }, 2500);
 
     (async () => {
-      const [{ auth }, { onAuthStateChanged }] = await Promise.all([
-        import('./firebase.ts'),
-        import('firebase/auth')
-      ]);
+      try {
+        const [{ auth }, { onAuthStateChanged }] = await Promise.all([
+          import('./firebase.ts'),
+          import('firebase/auth')
+        ]);
 
-      unsubscribe = onAuthStateChanged(auth, async (user) => {
-        try {
-          clearTimeout(fallbackTimer);
-          setLoading(true);
-          if (user) {
-            const identifier = user.email || `anon-${user.uid}`;
-            storage.setAuthEmail(identifier);
+        unsubscribe = onAuthStateChanged(auth, async (user) => {
+          try {
+            resolved = true;
+            clearTimeout(fallbackTimer);
+            if (user) {
+              const identifier = user.email || `anon-${user.uid}`;
+              storage.setAuthEmail(identifier);
 
-            setAuthEmail(identifier);
-            setUserUid(user.uid);
-            setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
+              setAuthEmail(identifier);
+              setUserUid(user.uid);
+              setHasAcceptedPrivacy(storage.hasAcceptedPrivacy());
 
-            loadUserData();
-            setLoading(false);
-          } else {
-            setAuthEmail(null);
-            setUserUid(null);
+              loadUserData();
+            } else {
+              setAuthEmail(null);
+              setUserUid(null);
+            }
+          } catch (err) {
+            console.error("Auth state change error:", err);
+          } finally {
             setLoading(false);
           }
-        } catch (err) {
-          console.error("Auth state change error:", err);
-          setLoading(false);
-        }
-      });
+        });
+      } catch (err) {
+        console.error('Firebase import failed:', err);
+        resolved = true;
+        clearTimeout(fallbackTimer);
+        setLoading(false);
+      }
     })();
 
     return () => {

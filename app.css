@@ -44,6 +44,7 @@ body {
 
 #root {
   display: flex !important;
+  visibility: visible !important;
   width: 100%;
   min-height: 100vh;
   background: var(--soft-bg);

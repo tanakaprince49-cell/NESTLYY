@@ -60,7 +60,7 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = 7000;
 
   app.use(express.json());
 
@@ -302,6 +302,7 @@ Return ONLY the JSON.`,
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
+      optimizeDeps: { force: true },
     });
     app.use(vite.middlewares);
   } else {
